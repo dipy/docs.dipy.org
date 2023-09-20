@@ -33,18 +33,19 @@
                 const data = await response.json();
 
                 if (Array.isArray(data)) {
+                    // Sort the folders by name alphabetically
+                    const sortedData = data.filter(item => item.type === 'dir').sort((a, b) => a.name.localeCompare(b.name));
+
                     const repoContents = document.getElementById('repo-contents');
 
-                    data.forEach(item => {
-                        if (item.type === 'dir') {
-                            const listItem = document.createElement('li');
-                            const folderLink = document.createElement('a');
-                            folderLink.textContent = item.name;
-                            folderLink.href = item.name; // Link to the folder on GitHub
-                            //folderLink.target = '_blank'; // Open in a new tab/window
-                            listItem.appendChild(folderLink);
-                            repoContents.appendChild(listItem);
-                        }
+                    sortedData.forEach(item => {
+                        const listItem = document.createElement('li');
+                        const folderLink = document.createElement('a');
+                        folderLink.textContent = item.name;
+                        folderLink.href = item.name; // Link to the folder on GitHub
+                        //folderLink.target = '_blank'; // Open in a new tab/window
+                        listItem.appendChild(folderLink);
+                        repoContents.appendChild(listItem);
                     });
                 } else {
                     console.error('Failed to fetch repository contents.');
