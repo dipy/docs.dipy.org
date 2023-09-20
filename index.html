@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GitHub Repository Contents</title>
+</head>
+<body>
+    <h1>GitHub Repository Contents</h1>
+    <ul id="repo-contents"></ul>
+
+    <script>
+        // GitHub API URL for listing the contents of a repository
+        const apiUrl = 'https://api.github.com/repos/dipy/docs.dipy.org/contents';
+
+        // Function to fetch and display the repository contents
+        async function listRepoContents() {
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
+                    const repoContents = document.getElementById('repo-contents');
+
+                    data.forEach(item => {
+                        if (item.type === 'dir') {
+                            const listItem = document.createElement('li');
+                            const folderLink = document.createElement('a');
+                            folderLink.textContent = item.name;
+                            folderLink.href = item.html_url; // Link to the folder on GitHub
+                            folderLink.target = '_blank'; // Open in a new tab/window
+                            listItem.appendChild(folderLink);
+                            repoContents.appendChild(listItem);
+                        }
+                    });
+                } else {
+                    console.error('Failed to fetch repository contents.');
+                }
+            } catch (error) {
+                console.error('Error fetching repository contents:', error);
+            }
+        }
+
+        // Call the function to list repository contents
+        listRepoContents();
+    </script>
+</body>
+</html>
