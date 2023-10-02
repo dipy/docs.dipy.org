@@ -10,7 +10,7 @@
     .. note::
         :class: sphx-glr-download-link-note
 
-        Click :ref:`here <sphx_glr_download_examples_built_reconstruction_reconst_dti.py>`
+        :ref:`Go to the end <sphx_glr_download_examples_built_reconstruction_reconst_dti.py>`
         to download the full example code
 
 .. rst-class:: sphx-glr-example-title
@@ -72,6 +72,12 @@ First import the necessary modules:
     import numpy as np
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 54-56
 
 ``dipy.io.image`` is for loading / saving imaging datasets
@@ -88,6 +94,12 @@ First import the necessary modules:
     from dipy.core.gradients import gradient_table
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 63-65
 
 ``dipy.reconst`` is for the reconstruction algorithms which we use to create
@@ -100,6 +112,12 @@ voxel models from the raw data.
 
 
     import dipy.reconst.dti as dti
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 70-71
@@ -115,6 +133,12 @@ voxel models from the raw data.
     from dipy.data import get_fnames
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 76-79
 
 ``get_fnames`` will download the raw dMRI dataset of a single subject.
@@ -128,6 +152,12 @@ will return the file names of our data.
 
 
     hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames('stanford_hardi')
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 84-86
@@ -147,6 +177,18 @@ object (information about the gradients e.g. b-values and b-vectors).
     gtab = gradient_table(bvals, bvecs)
 
     print('data.shape (%d, %d, %d, %d)' % data.shape)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    data.shape (81, 106, 76, 160)
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 96-101
@@ -170,6 +212,18 @@ calculating Tensors on the background of the image. This is done using DIPY_'s
     print('maskdata.shape (%d, %d, %d, %d)' % maskdata.shape)
 
 
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    maskdata.shape (71, 88, 62, 160)
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 110-114
 
 maskdata.shape ``(72, 87, 59, 160)``
@@ -186,6 +240,12 @@ reconstruction. First, we instantiate the Tensor model in the following way.
     tenmodel = dti.TensorModel(gtab)
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 119-121
 
 Fitting the data is very simple. We just need to call the fit method of the
@@ -198,6 +258,12 @@ TensorModel in the following way:
 
 
     tenfit = tenmodel.fit(maskdata)
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 126-131
@@ -215,6 +281,12 @@ defined below is a 4D data with last dimension of size 6.
 
 
     tensor_vals = dti.lower_triangular(tenfit.quadratic_form)
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 136-156
@@ -252,6 +324,18 @@ or where more than one population of white matter fibers crosses.
     FA = fractional_anisotropy(tenfit.evals)
 
 
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Computing anisotropy measures (FA, MD, RGB)
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 164-167
 
 In the background of the image the fitting will not be accurate there is no
@@ -265,6 +349,12 @@ easily remove these in the following way.
 
 
     FA[np.isnan(FA)] = 0
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 172-175
@@ -282,6 +372,12 @@ Here, we choose to save the FA in ``float32``.
     save_nifti('tensor_fa.nii.gz', FA.astype(np.float32), affine)
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 180-183
 
 You can now see the result with any nifti viewer or check it slice by slice
@@ -295,6 +391,12 @@ the eigen vectors or any other properties of the tensor.
 
 
     save_nifti('tensor_evecs.nii.gz', tenfit.evecs.astype(np.float32), affine)
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 188-195
@@ -317,6 +419,12 @@ eigen-values of the ``TensorFit`` class instance:
     save_nifti('tensors_md.nii.gz', MD1.astype(np.float32), affine)
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 201-202
 
 The other is to call the ``TensorFit`` class method:
@@ -328,6 +436,12 @@ The other is to call the ``TensorFit`` class method:
 
 
     MD2 = tenfit.md
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 207-211
@@ -346,6 +460,12 @@ sure that the FA is scaled between 0 and 1, we compute the RGB map and save it.
     FA = np.clip(FA, 0, 1)
     RGB = color_fa(FA, tenfit.evecs)
     save_nifti('tensor_rgb.nii.gz', np.array(255 * RGB, 'uint8'), affine)
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 218-220
@@ -375,6 +495,18 @@ area in an axial slice of the splenium of the corpus callosum (CC).
     evecs = tenfit.evecs[13:43, 44:74, 28:29]
 
 
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Computing tensor ellipsoids in a part of the splenium of the CC
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 238-241
 
 We can color the ellipsoids using the ``color_fa`` values that we calculated
@@ -400,6 +532,23 @@ contrast.
         window.show(scene)
 
 
+
+
+.. image-sg:: /examples_built/reconstruction/images/sphx_glr_reconst_dti_001.png
+   :alt: reconst dti
+   :srcset: /examples_built/reconstruction/images/sphx_glr_reconst_dti_001.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Saving illustration as tensor_ellipsoids.png
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 256-260
 
 .. figure:: tensor_ellipsoids.png
@@ -414,6 +563,12 @@ contrast.
 
 
     scene.clear()
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 265-267
@@ -436,6 +591,23 @@ for the same area as we did with the ellipsoids.
     window.record(scene, n_frames=1, out_path='tensor_odfs.png', size=(600, 600))
     if interactive:
         window.show(scene)
+
+
+
+
+.. image-sg:: /examples_built/reconstruction/images/sphx_glr_reconst_dti_002.png
+   :alt: reconst dti
+   :srcset: /examples_built/reconstruction/images/sphx_glr_reconst_dti_002.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Saving illustration as tensor_odfs.png
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 280-308
@@ -477,7 +649,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.000 seconds)
+   **Total running time of the script:** (0 minutes 59.565 seconds)
 
 
 .. _sphx_glr_download_examples_built_reconstruction_reconst_dti.py:
@@ -485,6 +657,8 @@ References
 .. only:: html
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
+
+
 
 
     .. container:: sphx-glr-download sphx-glr-download-python

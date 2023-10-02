@@ -10,7 +10,7 @@
     .. note::
         :class: sphx-glr-download-link-note
 
-        Click :ref:`here <sphx_glr_download_examples_built_registration_streamline_registration.py>`
+        :ref:`Go to the end <sphx_glr_download_examples_built_registration_streamline_registration.py>`
         to download the full example code
 
 .. rst-class:: sphx-glr-example-title
@@ -65,6 +65,12 @@ b0 from the Stanford HARDI dataset:
     gtab = gradient_table(bvals, bvecs)
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 46-49
 
 The second one will be the T2-contrast MNI template image, which we'll need to
@@ -89,6 +95,12 @@ reslice to 2x2x2 mm isotropic voxel resolution to match the HARDI data.
     img_t2_mni = nib.Nifti1Image(data2, affine=affine2)
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 63-66
 
 We filter the diffusion data from the Stanford HARDI dataset to find all the b0
@@ -103,6 +115,12 @@ images.
 
     b0_idx_stanford = np.where(gtab.b0s_mask)[0]
     b0_data_stanford = data[..., b0_idx_stanford]
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 72-74
@@ -123,6 +141,12 @@ We then remove the skull from them:
                     median_radius=4, numpass=4)
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 83-85
 
 And go on to compute the Stanford HARDI dataset mean b0 image.
@@ -136,6 +160,12 @@ And go on to compute the Stanford HARDI dataset mean b0 image.
 
     mean_b0_masked_stanford = np.mean(b0_masked_stanford, axis=3,
                                       dtype=data.dtype)
+
+
+
+
+
+
 
 
 
@@ -170,6 +200,12 @@ We will first perform an affine registration to roughly align the two volumes:
     moving_affine = hardi_img.affine
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 116-120
 
 We estimate an affine that maps the origin of the moving image to that of the
@@ -186,6 +222,12 @@ image.
     affine_map = transform_origins(static, static_affine, moving, moving_affine)
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 125-127
 
 We specify the mismatch metric:
@@ -200,6 +242,12 @@ We specify the mismatch metric:
     nbins = 32
     sampling_prop = None
     metric = MutualInformationMetric(nbins, sampling_prop)
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 134-136
@@ -233,6 +281,23 @@ As well as the optimization strategy:
     transform = AffineTransform3D()
 
 
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Optimizing level 2 [max iter: 10]
+    Optimizing level 1 [max iter: 10]
+    Optimizing level 0 [max iter: 5]
+    Optimizing level 2 [max iter: 10]
+    Optimizing level 1 [max iter: 10]
+    Optimizing level 0 [max iter: 5]
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 158-160
 
 We bump up the iterations to get a more exact fit:
@@ -249,6 +314,20 @@ We bump up the iterations to get a more exact fit:
                                       static_affine, moving_affine,
                                       starting_affine=rigid_map.affine)
     transformed = highres_map.transform(moving)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Optimizing level 2 [max iter: 1000]
+    Optimizing level 1 [max iter: 1000]
+    Optimizing level 0 [max iter: 100]
+
 
 
 
@@ -277,6 +356,12 @@ implemented in the ANTs software [Avants11]_):
     warped_moving = mapping.transform(moving)
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 188-190
 
 We show the registration result with:
@@ -296,6 +381,42 @@ We show the registration result with:
                             'transformed_coronal.png')
     regtools.overlay_slices(static, warped_moving, None, 2, 'Static', 'Moving',
                             'transformed_axial.png')
+
+
+
+
+.. rst-class:: sphx-glr-horizontal
+
+
+    *
+
+      .. image-sg:: /examples_built/registration/images/sphx_glr_streamline_registration_001.png
+          :alt: streamline registration
+          :srcset: /examples_built/registration/images/sphx_glr_streamline_registration_001.png
+          :class: sphx-glr-multi-img
+
+    *
+
+      .. image-sg:: /examples_built/registration/images/sphx_glr_streamline_registration_002.png
+          :alt: streamline registration
+          :srcset: /examples_built/registration/images/sphx_glr_streamline_registration_002.png
+          :class: sphx-glr-multi-img
+
+    *
+
+      .. image-sg:: /examples_built/registration/images/sphx_glr_streamline_registration_003.png
+          :alt: streamline registration
+          :srcset: /examples_built/registration/images/sphx_glr_streamline_registration_003.png
+          :class: sphx-glr-multi-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <Figure size 640x480 with 3 Axes>
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 202-211
@@ -335,6 +456,12 @@ We read the streamlines from file in voxel space:
 
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 232-238
 
 We then apply the obtained deformation field to the streamlines. Note that the
@@ -360,6 +487,12 @@ different voxel grids of the moving and static images.
     origin_affine = affine_map.affine.copy()
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 250-257
 
 In order to align the FOV of the template and the mirror image of the
@@ -380,6 +513,12 @@ static and moving images) that we obtained using :meth:`transform_origins`:
     origin_affine[1][3] = -origin_affine[1][3]
 
 
+
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 263-267
 
 :meth:`transform_origins` returns this affine transformation with (1, 1, 1)
@@ -394,6 +533,12 @@ Thus, we scale z by the voxel size:
 
 
     origin_affine[2][3] = origin_affine[2][3]/vox_size
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 272-276
@@ -417,6 +562,12 @@ square of the voxel size (1/4, and not 1/2):
         stream_to_current_grid=target_isocenter,
         current_grid_to_world=origin_affine, stream_to_ref_grid=target_isocenter,
         ref_grid_to_world=np.eye(4))
+
+
+
+
+
+
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 288-290
@@ -468,6 +619,17 @@ We display the original streamlines and the registered streamlines:
         """
 
 
+
+
+.. image-sg:: /examples_built/registration/images/sphx_glr_streamline_registration_004.png
+   :alt: streamline registration
+   :srcset: /examples_built/registration/images/sphx_glr_streamline_registration_004.png
+   :class: sphx-glr-single-img
+
+
+
+
+
 .. GENERATED FROM PYTHON SOURCE LINES 330-332
 
 Finally, we save the registered streamlines:
@@ -485,6 +647,18 @@ Finally, we save the registered streamlines:
     sft = StatefulTractogram(mni_streamlines, img_t2_mni, Space.RASMM)
 
     save_tractogram(sft, 'mni-lr-superiorfrontal.trk', bbox_valid_check=False)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    True
 
 
 
@@ -516,7 +690,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.000 seconds)
+   **Total running time of the script:** (2 minutes 30.504 seconds)
 
 
 .. _sphx_glr_download_examples_built_registration_streamline_registration.py:
@@ -524,6 +698,8 @@ References
 .. only:: html
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
+
+
 
 
     .. container:: sphx-glr-download sphx-glr-download-python
