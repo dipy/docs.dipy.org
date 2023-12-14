@@ -27,21 +27,18 @@ from dipy.data import two_cingulum_bundles
 # To show the concept we will use two pre-saved cingulum bundle.
 # Let's start by fetching the data.
 
-
 cb_subj1, _ = two_cingulum_bundles()
 
 ###############################################################################
 # Let's create two streamline sets (bundles) from same bundle cb_subj1 by
 # randomly selecting 60 streamlines two times.
 
-
-rng = np.random.RandomState()
+rng = np.random.default_rng()
 bundle1 = select_random_set_of_streamlines(cb_subj1, 60, rng=None)
 bundle2 = select_random_set_of_streamlines(cb_subj1, 60, rng=None)
 
 ###############################################################################
 # Now, let's visualize two bundles.
-
 
 
 def show_both_bundles(bundles, colors=None, show=True, fname=None):
@@ -64,26 +61,20 @@ show_both_bundles([bundle1, bundle2], colors=[(1, 0, 0), (0, 1, 0)],
                   show=False, fname="two_bundles.png")
 
 ###############################################################################
-# .. figure:: two_bundles.png
-#    :align: center
-# 
-#    Two Cingulum Bundles.
-
-
-###############################################################################
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# Two Cingulum Bundles.
+#
+#
+#
 # Calculate shape similarity score between two bundles.
-
-
-###############################################################################
 # 0 cluster_thr because we want to use all streamlines and not the centroids of
 # clusters.
-
 
 clust_thr = [0]
 
 ###############################################################################
 # Threshold indicates how strictly we want two bundles to be similar in shape.
-
 
 threshold = 5
 
@@ -93,7 +84,6 @@ print("Shape similarity score = ", ba_score)
 ###############################################################################
 # Let's change the value of threshold to 10.
 
-
 threshold = 10
 
 ba_score = bundle_shape_similarity(bundle1, bundle2, rng, clust_thr, threshold)
@@ -102,19 +92,17 @@ print("Shape similarity score = ", ba_score)
 ###############################################################################
 # Higher value of threshold gives us higher shape similarity score as it is
 # more lenient.
-
-
-###############################################################################
-# 
+#
+#
+#
 # References
 # ----------
-# 
+#
 # .. [Chandio2020] Chandio, B.Q., Risacher, S.L., Pestilli, F.,
 #         Bullock, D., Yeh, FC., Koudoro, S., Rokem, A., Harezlak, J., and
 #         Garyfallidis, E. Bundle analytics, a computational framework for
 #         investigating the shapes and profiles of brain pathways across
 #         populations. Sci Rep 10, 17149 (2020)
-# 
 
 ###############################################################################
 # .. include:: ../../links_names.inc

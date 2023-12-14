@@ -21,7 +21,6 @@ from dipy.viz import regtools
 # the reference image.
 
 
-
 def draw_ellipse(img, center, axis):
     rr, cc = draw.ellipse(center[0], center[1], axis[0], axis[1],
                           shape=img.shape)
@@ -40,7 +39,6 @@ img_in = filters.gaussian(img_ref, sigma=3)
 # Let's define a small visualization function.
 
 
-
 def show_images(img_ref, img_warp, fig_name):
     fig, axarr = plt.subplots(ncols=2, figsize=(12, 5))
     axarr[0].set_title('warped image & reference contour')
@@ -57,18 +55,16 @@ def show_images(img_ref, img_warp, fig_name):
 show_images(img_ref, img_in, 'input')
 
 ###############################################################################
-# .. figure:: input.png
-#    :align: center
-# 
-#    Input images before alignment.
-
-
-###############################################################################
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# Input images before alignment.
+#
+#
+#
 # Let's use the general Registration function with some naive parameters,
-# such as set `step_length` as 1 assuming maximal step 1 pixel and a reasonably
-# small number of iterations since the deformation with already aligned images
-# should be minimal.
-
+# such as set `step_length` as 1 assuming maximal step 1 pixel and a
+# reasonably small number of iterations since the deformation with already
+# aligned images should be minimal.
 
 sdr = SymmetricDiffeomorphicRegistration(metric=SSDMetric(img_ref.ndim),
                                          step_length=1.0,
@@ -80,24 +76,19 @@ sdr = SymmetricDiffeomorphicRegistration(metric=SSDMetric(img_ref.ndim),
 ###############################################################################
 # Perform the registration with equal images.
 
-
 mapping = sdr.optimize(img_ref.astype(float), img_ref.astype(float))
 img_warp = mapping.transform(img_ref, 'linear')
 show_images(img_ref, img_warp, 'output-0')
 regtools.plot_2d_diffeomorphic_map(mapping, 5, 'map-0.png')
 
 ###############################################################################
-# .. figure:: output-0.png
-#    :align: center
-# .. figure:: map-0.png
-#    :align: center
-# 
-#    Registration results for default parameters and equal images.
-
-
-###############################################################################
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# Registration results for default parameters and equal images.
+#
+#
+#
 # Perform the registration with binary and fuzzy images.
-
 
 mapping = sdr.optimize(img_ref.astype(float), img_in.astype(float))
 img_warp = mapping.transform(img_in, 'linear')
@@ -105,25 +96,20 @@ show_images(img_ref, img_warp, 'output-1')
 regtools.plot_2d_diffeomorphic_map(mapping, 5, 'map-1.png')
 
 ###############################################################################
-# .. figure:: output-1.png
-#    :align: center
-# .. figure:: map-1.png
-#    :align: center
-# 
-#    Registration results for a naive parameter configuration.
-
-
-###############################################################################
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# Registration results for a naive parameter configuration.
+#
+#
+#
 # Note, we are still using a multi-scale approach which makes `step_length`
 # in the upper level multiplicatively larger.
 # What happens if we set `step_length` to a rather small value?
-
 
 sdr.step_length = 0.1
 
 ###############################################################################
 # Perform the registration and examine the output.
-
 
 mapping = sdr.optimize(img_ref.astype(float), img_in.astype(float))
 img_warp = mapping.transform(img_in, 'linear')
@@ -131,19 +117,15 @@ show_images(img_ref, img_warp, 'output-2')
 regtools.plot_2d_diffeomorphic_map(mapping, 5, 'map-2.png')
 
 ###############################################################################
-# .. figure:: output-2.png
-#    :align: center
-# .. figure:: map-2.png
-#    :align: center
-# 
-#    Registration results for decreased step size.
-
-
-###############################################################################
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# Registration results for decreased step size.
+#
+#
+#
 # An alternative scenario is to use just a single-scale level.
 # Even though the warped image may look fine, the estimated deformations show
 # that it is off the mark.
-
 
 sdr = SymmetricDiffeomorphicRegistration(metric=SSDMetric(img_ref.ndim),
                                          step_length=1.0,
@@ -155,19 +137,15 @@ sdr = SymmetricDiffeomorphicRegistration(metric=SSDMetric(img_ref.ndim),
 ###############################################################################
 # Perform the registration.
 
-
 mapping = sdr.optimize(img_ref.astype(float), img_in.astype(float))
 img_warp = mapping.transform(img_in, 'linear')
 show_images(img_ref, img_warp, 'output-3')
 regtools.plot_2d_diffeomorphic_map(mapping, 5, 'map-3.png')
 
 ###############################################################################
-# .. figure:: output-3.png
-#    :align: center
-# .. figure:: map-3.png
-#    :align: center
-# 
-#    Registration results for single level.
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# Registration results for single level.
 
 ###############################################################################
 # .. include:: ../../links_names.inc

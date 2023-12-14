@@ -7,6 +7,7 @@ Here is a simple tutorial following the probabilistic CSA Tracking Example in
 which we generate a dataset of streamlines from a corpus callosum ROI, and
 then display them with the seed ROI rendered in 3D with 50% transparency.
 
+Let's start by importing the relevant modules.
 """
 
 from dipy.core.gradients import gradient_table
@@ -25,7 +26,6 @@ from dipy.viz import actor, window, colormap as cmap
 # First, we need to generate some streamlines. For a more complete
 # description of these steps, please refer to the CSA Probabilistic Tracking
 # Tutorial.
-
 
 hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames('stanford_hardi')
 label_fname = get_fnames('stanford_labels')
@@ -58,7 +58,6 @@ streamlines = Streamlines(streamlines)
 ###############################################################################
 # We will create a streamline actor from the streamlines.
 
-
 streamlines_actor = actor.line(streamlines, cmap.line_colors(streamlines))
 
 ###############################################################################
@@ -66,7 +65,6 @@ streamlines_actor = actor.line(streamlines, cmap.line_colors(streamlines))
 # provide the ROI data, the affine, the color in [R,G,B], and the opacity as
 # a decimal between zero and one. Here, we set the color as blue/green with
 # 50% opacity.
-
 
 surface_opacity = 0.5
 surface_color = [0, 1, 1]
@@ -78,7 +76,6 @@ seedroi_actor = actor.contour_from_roi(seed_mask, affine,
 # Next, we initialize a ''Scene'' object and add both actors
 # to the rendering.
 
-
 scene = window.Scene()
 scene.add(streamlines_actor)
 scene.add(seedroi_actor)
@@ -87,7 +84,6 @@ scene.add(seedroi_actor)
 # If you uncomment the following line, the rendering will pop up in an
 # interactive window.
 
-
 interactive = False
 if interactive:
     window.show(scene)
@@ -95,11 +91,10 @@ if interactive:
 window.record(scene, out_path='contour_from_roi_tutorial.png', size=(1200, 900))
 
 ###############################################################################
-# .. figure:: contour_from_roi_tutorial.png
-#    :align: center
-# 
-#    **A top view of corpus callosum streamlines with the blue transparent
-#    seed ROI in the center**.
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# A top view of corpus callosum streamlines with the blue transparent
+# seed ROI in the center.
 
 ###############################################################################
 # .. include:: ../../links_names.inc

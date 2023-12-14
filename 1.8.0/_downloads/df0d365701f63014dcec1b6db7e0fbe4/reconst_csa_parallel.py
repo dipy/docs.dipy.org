@@ -32,17 +32,15 @@ maskdata, mask = median_otsu(data, vol_idx=range(10, 50), median_radius=3,
 ###############################################################################
 # We instantiate our CSA model with spherical harmonic order of 4
 
-
 csamodel = CsaOdfModel(gtab, 4)
 
 ###############################################################################
 # `Peaks_from_model` is used to calculate properties of the ODFs (Orientation
 # Distribution Function) and return for
-# example the peaks and their indices, or GFA which is similar to FA but for ODF
-# based models. This function mainly needs a reconstruction model, the data and a
-# sphere as input. The sphere is an object that represents the spherical discrete
-# grid where the ODF values will be evaluated.
-
+# example the peaks and their indices, or GFA which is similar to FA but for
+# ODF based models. This function mainly needs a reconstruction model, the
+# data and a sphere as input. The sphere is an object that represents the
+# spherical discrete grid where the ODF values will be evaluated.
 
 sphere = get_sphere('repulsion724')
 
@@ -50,12 +48,11 @@ start_time = time.time()
 
 ###############################################################################
 # We will first run `peaks_from_model` using parallelism with 2 processes. If
-# `num_processes` is None (default option) then this function will find the total
-# number of processors from the operating system and use this number as
-# `num_processes`. Sometimes it makes sense to use only a few of the processes in
-# order to allow resources for other applications. However, most of the times
-# using the default option will be sufficient.
-
+# `num_processes` is None (default option) then this function will find the
+# total number of processors from the operating system and use this number as
+# `num_processes`. Sometimes it makes sense to use only a few of the processes
+# in order to allow resources for other applications. However, most of the
+# times using the default option will be sufficient.
 
 csapeaks_parallel = peaks_from_model(model=csamodel,
                                      data=maskdata,
@@ -74,11 +71,7 @@ print("peaks_from_model using 2 processes ran in : " +
       str(time_parallel) + " seconds")
 
 ###############################################################################
-# peaks_from_model using 2 process ran in  : 114.333221912 seconds, using 2
-# process
-# 
 # If we don't use parallelism then we need to set `parallel=False`:
-
 
 start_time = time.time()
 csapeaks = peaks_from_model(model=csamodel,
@@ -96,23 +89,16 @@ csapeaks = peaks_from_model(model=csamodel,
 time_single = time.time() - start_time
 print("peaks_from_model ran in : " + str(time_single) + " seconds")
 
-###############################################################################
-# peaks_from_model ran in : 196.872478008 seconds
-
-
 print("Speedup factor : " + str(time_single / time_parallel))
 
 ###############################################################################
-# Speedup factor : 1.72191839533
-# 
 # In Windows if you get a runtime error about frozen executable please start
 # your script by adding your code above in a ``main`` function and use::
-# 
-#     if __name__ == '__main__':
-#         import multiprocessing
-#         multiprocessing.freeze_support()
-#         main()
-# 
+#
+#    if __name__ == '__main__':
+#        import multiprocessing
+#        multiprocessing.freeze_support()
+#        main()
 
 ###############################################################################
 # .. include:: ../../links_names.inc

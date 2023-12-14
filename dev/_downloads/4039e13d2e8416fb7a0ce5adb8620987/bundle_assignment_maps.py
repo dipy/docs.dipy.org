@@ -21,13 +21,11 @@ from dipy.viz import actor, window
 ###############################################################################
 # Download and read data for this tutorial
 
-
 atlas_file, atlas_folder = fetch_bundle_atlas_hcp842()
 
 ###############################################################################
 # Read AF left and CST left bundles from already fetched atlas data to use them
 # as model bundles
-
 
 model_af_l_file, model_cst_l_file = get_two_hcp842_bundles()
 
@@ -36,7 +34,6 @@ model_af_l = sft_af_l.streamlines
 
 ###############################################################################
 # let's visualize Arcuate Fasiculus Left (AF_L) bundle before assignment maps
-
 
 interactive = False
 
@@ -52,22 +49,21 @@ if interactive:
     window.show(scene)
 
 ###############################################################################
-# .. figure:: af_l_before_assignment_maps.png
-#    :align: center
-# 
-#    AF_L before assignment maps
-
-
-
-###############################################################################
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# AF_L before assignment maps
+#
+#
+#
 # Creating 100 bundle assignment maps on AF_L using BUAN [Chandio2020]_
 
+rng = np.random.default_rng()
 
 n = 100
 indx = assignment_map(model_af_l, model_af_l, n)
 indx = np.array(indx)
 
-colors = [np.random.rand(3) for si in range(n)]
+colors = [rng.random(3) for si in range(n)]
 
 disks_color = []
 for i in range(len(indx)):
@@ -75,7 +71,6 @@ for i in range(len(indx)):
 
 ###############################################################################
 # let's visualize Arcuate Fasiculus Left (AF_L) bundle after assignment maps
-
 
 interactive = False
 
@@ -92,24 +87,19 @@ if interactive:
     window.show(scene)
 
 ###############################################################################
-# .. figure:: af_l_after_assignment_maps.png
-#    :align: center
-# 
-#    AF_L after assignment maps
-# 
-
-
-###############################################################################
-# 
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# AF_L after assignment maps
+#
+#
 # References
 # ----------
-# 
+#
 # .. [Chandio2020] Chandio, B.Q., Risacher, S.L., Pestilli, F.,
 #         Bullock, D., Yeh, FC., Koudoro, S., Rokem, A., Harezlak, J., and
 #         Garyfallidis, E. Bundle analytics, a computational framework for
 #         investigating the shapes and profiles of brain pathways across
 #         populations. Sci Rep 10, 17149 (2020)
-# 
 
 ###############################################################################
 # .. include:: ../../links_names.inc

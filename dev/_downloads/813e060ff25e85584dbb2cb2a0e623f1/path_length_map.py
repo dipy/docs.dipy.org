@@ -12,7 +12,12 @@ on a tractography model of the local white matter anatomy, as described in
 [Jordan_2018_plm]_, by executing this tutorial with the gross tumor volume
 (GTV) as the ROI.
 
-NOTE: The background value is set to -1 by default
+.. note::
+
+    The background value is set to -1 by default
+
+
+Let's start by importing the necessary modules.
 """
 
 from dipy.core.gradients import gradient_table
@@ -32,11 +37,10 @@ import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import AxesGrid
 
 ###############################################################################
-# First, we need to generate some streamlines and visualize. For a more complete
-# description of these steps, please refer to the
+# First, we need to generate some streamlines and visualize. For a more
+# complete description of these steps, please refer to the
 # :ref:`sphx_glr_examples_built_fiber_tracking_tracking_probabilistic.py`
 # and the Visualization of ROI Surface Rendered with Streamlines Tutorials.
-
 
 hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames('stanford_hardi')
 label_fname = get_fnames('stanford_labels')
@@ -62,8 +66,6 @@ stopping_criterion = ThresholdStoppingCriterion(csa_peaks.gfa, .25)
 # demonstrate the method. In practice, this corpus callosum mask (labels == 2)
 # should be replaced with the desired ROI mask (e.g. gross tumor volume (GTV),
 # lesion mask, or electrode mask).
-# 
-
 
 # Make a corpus callosum seed mask for tracking
 seed_mask = labels == 2
@@ -91,7 +93,6 @@ scene.add(seedroi_actor)
 # If you set interactive to True (below), the scene will pop up in an
 # interactive window.
 
-
 interactive = False
 if interactive:
     window.show(scene)
@@ -99,26 +100,24 @@ if interactive:
 window.record(scene, n_frames=1, out_path='plm_roi_sls.png',
               size=(800, 800))
 
-
 ###############################################################################
-# .. figure:: plm_roi_sls.png
-#    :align: center
-# 
-#    **A top view of corpus callosum streamlines with the blue transparent ROI in
-#    the center**.
-
-
-###############################################################################
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# A top view of corpus callosum streamlines with the blue transparent ROI in
+# the center.
+#
+#
+#
 # Now we calculate the Path Length Map using the corpus callosum streamline
 # bundle and corpus callosum ROI.
-# 
-# NOTE: the mask used to seed the tracking does not have to be the Path
-# Length Map base ROI, as we do here, but it often makes sense for them to be the
-# same ROI if we want a map of the whole brain's distance back to our ROI.
-# (e.g. we could test a hypothesis about the motor system by making a streamline
-# bundle model of the cortico-spinal track (CST) and input a lesion mask as our
-# Path Length Map base ROI to restrict the analysis to the CST)
-
+#
+# **NOTE**: the mask used to seed the tracking does not have to be the Path
+# Length Map base ROI, as we do here, but it often makes sense for them to be
+# the same ROI if we want a map of the whole brain's distance back to our ROI.
+# (e.g. we could test a hypothesis about the motor system by making a
+# streamline bundle model of the cortico-spinal track (CST) and input a
+# lesion mask as our Path Length Map base ROI to restrict the analysis to
+# the CST)
 
 path_length_map_base_roi = seed_mask
 
@@ -144,9 +143,9 @@ ax = AxesGrid(fig, 111,
               cbar_pad="5%")
 
 ###############################################################################
-# We will mask our WMPL to ignore values less than zero because negative numbers
-# indicate no path back to the ROI was found in the provided streamlines
-
+# We will mask our WMPL to ignore values less than zero because negative
+# numbers indicate no path back to the ROI was found in the provided
+# streamlines
 
 wmpl_show = np.ma.masked_where(wmpl < 0, wmpl)
 
@@ -169,23 +168,18 @@ for lax in ax:
     lax.set_yticks([])
 fig.savefig("Path_Length_Map.png")
 
-
 ###############################################################################
-# .. figure:: Path_Length_Map.png
-#    :align: center
-# 
-#    **Path Length Map showing the shortest distance, along a streamline,
-#    from the corpus callosum ROI with the background set to -1**.
-# 
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# Path Length Map showing the shortest distance, along a streamline,
+# from the corpus callosum ROI with the background set to -1.
+#
 # References
 # ----------
-# 
+#
 # .. [Jordan_2018_plm] Jordan K. et al., "An Open-Source Tool for Anisotropic
 # Radiation Therapy Planning in Neuro-oncology Using DW-MRI Tractography",
 # PREPRINT (biorxiv), 2018.
-# 
-# .. include:: ../links_names.inc
-# 
 
 ###############################################################################
 # .. include:: ../../links_names.inc

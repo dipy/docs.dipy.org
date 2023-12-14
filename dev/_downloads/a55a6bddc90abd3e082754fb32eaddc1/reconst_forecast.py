@@ -26,7 +26,6 @@ from dipy.core.gradients import gradient_table
 # [Alexander2017]_ and was preprocessed and quality controlled in the HBN-POD2
 # dataset [RichieHalford2022]_.
 
-
 data_path = fetch_hbn(["NDARAA948VFH"])[1]
 dwi_path = op.join(
        data_path, "derivatives", "qsiprep", "sub-NDARAA948VFH",
@@ -53,33 +52,29 @@ brain_mask = mask_img.get_fdata()
 ###############################################################################
 # Let us consider only a single slice for the FORECAST fitting
 
-
 data_small = data[:, :, 50:51]
 mask_small = brain_mask[:, :, 50:51]
 
 ###############################################################################
 # Instantiate the FORECAST Model.
-# 
+#
 # "sh_order" is the spherical harmonics order used for the fODF.
-# 
+#
 # dec_alg is the spherical deconvolution algorithm used for the FORECAST basis
 # fitting, in this case we used the Constrained Spherical Deconvolution (CSD)
 # algorithm.
-
 
 fm = ForecastModel(gtab, sh_order=6, dec_alg='CSD')
 
 ###############################################################################
 # Fit the FORECAST to the data
 
-
 f_fit = fm.fit(data_small, mask_small)
 
 ###############################################################################
 # Calculate the crossing invariant tensor indices [Kaden2016]_ : the parallel
-# diffusivity, the perpendicular diffusivity, the fractional anisotropy and the
-# mean diffusivity.
-
+# diffusivity, the perpendicular diffusivity, the fractional anisotropy and
+# the mean diffusivity.
 
 d_par = f_fit.dpar
 d_perp = f_fit.dperp
@@ -88,7 +83,6 @@ md = f_fit.mean_diffusivity()
 
 ###############################################################################
 # Show the indices and save them in FORECAST_indices.png.
-
 
 fig = plt.figure(figsize=(6, 6))
 ax1 = fig.add_subplot(2, 2, 1, title='parallel diffusivity')
@@ -114,29 +108,23 @@ plt.colorbar(ind, shrink=0.6)
 plt.savefig('FORECAST_indices.png', dpi=300, bbox_inches='tight')
 
 ###############################################################################
-# .. figure:: FORECAST_indices.png
-#    :align: center
-# 
-#    **FORECAST scalar indices**.
-# 
-
-
-###############################################################################
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# FORECAST scalar indices.
+#
+#
 # Load an ODF reconstruction sphere
-
 
 sphere = get_sphere('repulsion724')
 
 ###############################################################################
 # Compute the fODFs.
 
-
 odf = f_fit.odf(sphere)
 print('fODF.shape (%d, %d, %d, %d)' % odf.shape)
 
 ###############################################################################
 # Display a part of the fODFs
-
 
 odf_actor = actor.odf_slicer(odf[30:60, 30:60, :], sphere=sphere,
                              colormap='plasma', scale=0.6)
@@ -145,37 +133,33 @@ scene.add(odf_actor)
 window.record(scene, out_path='fODFs.png', size=(600, 600), magnification=4)
 
 ###############################################################################
-# .. figure:: fODFs.png
-#    :align: center
-# 
-#    **Fiber Orientation Distribution Functions, in a small ROI of the brain**.
-# 
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# Fiber Orientation Distribution Functions, in a small ROI of the brain.
+#
+#
 # References
 # ----------
-# 
+#
 # .. [Anderson2005] Anderson A. W., "Measurement of Fiber Orientation
-#        Distributions Using High Angular Resolution Diffusion Imaging", Magnetic
-#        Resonance in Medicine, 2005.
-# 
-# .. [Kaden2016] Kaden E. et al., "Quantitative Mapping of the Per-Axon Diffusion
-#        Coefficients in Brain White Matter", Magnetic Resonance in Medicine,
-#        2016.
-# 
-# .. [Zucchelli2017] Zucchelli E. et al., "A generalized SMT-based framework for
-#        Diffusion MRI microstructural model estimation", MICCAI Workshop on
-#        Computational DIFFUSION MRI (CDMRI), 2017.
-# 
-# .. [Alexander2017] Alexander LM, Escalera J, Ai L, et al. An open resource for
-#        transdiagnostic research in pediatric mental health and learning
+#        Distributions Using High Angular Resolution Diffusion Imaging",
+#        Magnetic Resonance in Medicine, 2005.
+#
+# .. [Kaden2016] Kaden E. et al., "Quantitative Mapping of the Per-Axon
+#        Diffusion Coefficients in Brain White Matter", Magnetic Resonance
+#        in Medicine, 2016.
+#
+# .. [Zucchelli2017] Zucchelli E. et al., "A generalized SMT-based framework
+#        for Diffusion MRI microstructural model estimation", MICCAI Workshop
+#        on Computational DIFFUSION MRI (CDMRI), 2017.
+#
+# .. [Alexander2017] Alexander LM, Escalera J, Ai L, et al. An open resource
+#        for transdiagnostic research in pediatric mental health and learning
 #        disorders. Sci Data. 2017;4:170181.
-# 
+#
 # .. [RichieHalford2022] Richie-Halford A, Cieslak M, Ai L, et al. An
 #        analysis-ready and quality controlled resource for pediatric brain
 #        white-matter research. Scientific Data. 2022;9(1):1-27.
-# 
-# 
-# .. include:: ../links_names.inc
-# 
 
 ###############################################################################
 # .. include:: ../../links_names.inc

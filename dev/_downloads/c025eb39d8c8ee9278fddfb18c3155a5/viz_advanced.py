@@ -6,42 +6,44 @@ Advanced interactive visualization
 In DIPY_ we created a thin interface to access many of the capabilities
 available in the FURY 3D visualization library but tailored to the
 needs of structural and diffusion imaging.
+
+Let's start by importing the necessary modules.
 """
 
 import numpy as np
+
+from dipy.data.fetcher import fetch_bundles_2_subjects, read_bundles_2_subjects
+from dipy.tracking.streamline import Streamlines
 from dipy.viz import actor, window, ui
 
 ###############################################################################
 # In ``window`` we have all the objects that connect what needs to be rendered
 # to the display or the disk e.g., for saving screenshots. So, there you will
 # find key objects and functions like the ``Scene`` class which holds and
-# provides access to all the actors and the ``show`` function which displays what
-# is in the scene on a window. Also, this module provides access to functions
-# for opening/saving dialogs and printing screenshots (see ``snapshot``).
-# 
+# provides access to all the actors and the ``show`` function which displays
+# what is in the scene on a window. Also, this module provides access to
+# functions for opening/saving dialogs and printing screenshots
+# (see ``snapshot``).
+#
 # In the ``actor`` module we can find all the different primitives e.g.,
 # streamtubes, lines, image slices, etc.
-# 
+#
 # In the ``ui`` module we have some other objects which allow to add buttons
-# and sliders and these interact both with windows and actors. Because of this
-# they need input from the operating system so they can process events.
-# 
+# and sliders and these interact both with windows and actors. Because of
+# this they need input from the operating system so they can process events.
+#
 # Let's get started. In this tutorial, we will visualize some bundles
 # together with FA or T1. We will be able to change the slices using
 # a ``LineSlider2D`` widget.
-# 
+#
 # First we need to fetch and load some datasets.
-
-
-from dipy.tracking.streamline import Streamlines
-from dipy.data.fetcher import fetch_bundles_2_subjects, read_bundles_2_subjects
 
 fetch_bundles_2_subjects()
 
 ###############################################################################
-# The following function outputs a dictionary with the required bundles e.g. ``af
-# left`` (left arcuate fasciculus) and maps, e.g. FA for a specific subject.
-
+# The following function outputs a dictionary with the required bundles e.g.
+# ``af left`` (left arcuate fasciculus) and maps, e.g. FA for a specific
+# subject.
 
 res = read_bundles_2_subjects('subj_1', ['t1', 'fa'],
                               ['af.left', 'cst.right', 'cc_1'])
@@ -49,7 +51,6 @@ res = read_bundles_2_subjects('subj_1', ['t1', 'fa'],
 ###############################################################################
 # We will use 3 bundles, FA and the affine transformation that brings the voxel
 # coordinates to world coordinates (RAS 1mm).
-
 
 streamlines = Streamlines(res['af.left'])
 streamlines.extend(res['cst.right'])
@@ -64,14 +65,12 @@ affine = res['affine']
 # streamlines and slices to appear. The default we have here is to appear in
 # world coordinates (RAS 1mm).
 
-
 world_coords = True
 
 ###############################################################################
 # If we want to see the objects in native space we need to make sure that all
 # objects which are currently in world coordinates are transformed back to
 # native space using the inverse of the affine.
-
 
 if not world_coords:
     from dipy.tracking.streamline import transform_streamlines
@@ -80,7 +79,6 @@ if not world_coords:
 ###############################################################################
 # Now we create, a ``Scene`` object and add the streamlines using the ``line``
 # function and an image plane using the ``slice`` function.
-
 
 scene = window.Scene()
 stream_actor = actor.line(streamlines)
@@ -93,14 +91,12 @@ else:
 ###############################################################################
 # We can also change also the opacity of the slicer.
 
-
 slicer_opacity = 0.6
 image_actor_z.opacity(slicer_opacity)
 
 ###############################################################################
 # We can add additional slicers by copying the original and adjusting the
 # ``display_extent``.
-
 
 image_actor_x = image_actor_z.copy()
 x_midpoint = int(np.round(shape[0] / 2))
@@ -122,7 +118,6 @@ image_actor_y.display_extent(0,
 ###############################################################################
 # Connect the actors with the Scene.
 
-
 scene.add(stream_actor)
 scene.add(image_actor_z)
 scene.add(image_actor_x)
@@ -130,11 +125,10 @@ scene.add(image_actor_y)
 
 ###############################################################################
 # Now we would like to change the position of each ``image_actor`` using a
-# slider. The sliders are widgets which require access to different areas of the
-# visualization pipeline and therefore we don't recommend using them with
+# slider. The sliders are widgets which require access to different areas of
+# the visualization pipeline and therefore we don't recommend using them with
 # ``show``. The more appropriate way is to use them with the ``ShowManager``
 # object which allows accessing the pipeline in different areas. Here is how:
-
 
 show_m = window.ShowManager(scene, size=(1200, 900))
 show_m.initialize()
@@ -142,7 +136,6 @@ show_m.initialize()
 ###############################################################################
 # After we have initialized the ``ShowManager`` we can go ahead and create
 # sliders to move the slices and change their opacity.
-
 
 line_slider_z = ui.LineSlider2D(min_value=0,
                                 max_value=shape[2] - 1,
@@ -169,7 +162,6 @@ opacity_slider = ui.LineSlider2D(min_value=0.0,
 
 ###############################################################################
 # Now we will write callbacks for the sliders and register them.
-
 
 
 def change_slice_z(slider):
@@ -203,7 +195,6 @@ opacity_slider.on_change = change_opacity
 # We'll also create text labels to identify the sliders.
 
 
-
 def build_label(text):
     label = ui.TextBlock2D()
     label.message = text
@@ -227,8 +218,6 @@ opacity_slider_label = build_label(text="Opacity")
 ###############################################################################
 # Now we will create a ``panel`` to contain the sliders and labels.
 
-
-
 panel = ui.Panel2D(size=(300, 200),
                    color=(1, 1, 1),
                    opacity=0.1,
@@ -249,13 +238,11 @@ scene.add(panel)
 ###############################################################################
 # Then, we can render all the widgets and everything else in the screen and
 # start the interaction using ``show_m.start()``.
-# 
-# 
-# However, if you change the window size, the panel will not update its position
-# properly. The solution to this issue is to update the position of the panel
-# using its ``re_align`` method every time the window size changes.
-
-
+#
+#
+# However, if you change the window size, the panel will not update its
+# position properly. The solution to this issue is to update the position of
+# the panel using its ``re_align`` method every time the window size changes.
 
 global size
 size = scene.GetSize()
@@ -276,7 +263,6 @@ show_m.initialize()
 # Finally, please set the following variable to ``True`` to interact with the
 # datasets in 3D.
 
-
 interactive = False
 
 scene.zoom(1.5)
@@ -294,28 +280,22 @@ else:
                   reset_camera=False)
 
 ###############################################################################
-# .. figure:: bundles_and_3_slices.png
-#    :align: center
-# 
-#    A few bundles with interactive slicing.
-
+# .. rst-class:: centered small fst-italic fw-semibold
+#
+# A few bundles with interactive slicing.
 
 del show_m
 
 ###############################################################################
-# 
 # References
 # ----------
-# 
+#
 # .. [Garyfallidis2021] Garyfallidis, Eleftherios, Serge Koudoro, Javier Guaje,
 #     Marc-Alexandre Côté, Soham Biswas, David Reagan, Nasim Anousheh,
 #     Filipi Silva, Geoffrey Fox, and Fury Contributors.
-#     "FURY: advanced scientific visualization." Journal of Open Source Software
-#     6 no. 64 (2021): 3384.
+#     "FURY: advanced scientific visualization." Journal of Open Source
+#     Software 6 no. 64 (2021): 3384.
 #     https://doi.org/10.21105/joss.03384
-# 
-# .. include:: ../links_names.inc
-# 
 
 ###############################################################################
 # .. include:: ../../links_names.inc
