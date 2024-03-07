@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>DIPY &#8212; dipy 1.8.0 documentation</title>
+    <title>DIPY &#8212; dipy 1.9.0.dev0+897.c022ef2 documentation</title>
   
   
   
@@ -44,10 +44,23 @@
   
 <link rel="stylesheet" href="../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../_static/documentation_options.js?v=de230f84"></script>
+    <script src="../../_static/documentation_options.js?v=0cc407d3"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples_built/multiprocessing/reconst_csd_parallel';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
@@ -826,8 +839,8 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/restore_dti.html">Using the RESTORE algorithm for robust tensor fitting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_sh.html">Signal Reconstruction Using Spherical Harmonics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_fwdti.html">Using the free water elimination model to remove DTI free water contamination</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_ivim.html">Intravoxel incoherent motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mcsd.html">Reconstruction with Multi-Shell Multi-Tissue CSD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mapmri.html">Continuous and analytical diffusion signal modelling with MAP-MRI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_msdki.html">Mean signal diffusion kurtosis imaging (MSDKI)</a></li>
@@ -990,34 +1003,34 @@ function.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <span class="n">default_sphere</span>
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a>
 <span class="kn">from</span> <span class="nn">dipy.direction</span> <span class="kn">import</span> <span class="n">peaks_from_model</span>
 <span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="n">ConstrainedSphericalDeconvModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="n">auto_response_ssst</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <span class="n">median_otsu</span>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a>
+<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class"><span class="n">ConstrainedSphericalDeconvModel</span></a>
+<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.auto_response_ssst" title="dipy.reconst.csdeconv.auto_response_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">auto_response_ssst</span></a>
+<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a>
 
 
-<span class="n">hardi_fname</span><span class="p">,</span> <span class="n">hardi_bval_fname</span><span class="p">,</span> <span class="n">hardi_bvec_fname</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
 
-<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">hardi_fname</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">)</span>
 
-<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">hardi_bval_fname</span><span class="p">,</span> <span class="n">hardi_bvec_fname</span><span class="p">)</span>
-<span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
+<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a><span class="p">)</span>
+<a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
 
-<span class="n">maskdata</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">median_otsu</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">vol_idx</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="n">median_radius</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="n">maskdata</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">vol_idx</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="n">median_radius</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
                              <span class="n">numpass</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autocrop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dilate</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-<span class="n">response</span><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <span class="n">auto_response_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">maskdata</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.auto_response_ssst" title="dipy.reconst.csdeconv.auto_response_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">auto_response_ssst</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="n">maskdata</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
 
 <span class="n">data</span> <span class="o">=</span> <span class="n">maskdata</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">33</span><span class="p">:</span><span class="mi">37</span><span class="p">]</span>
 <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">33</span><span class="p">:</span><span class="mi">37</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Now we are ready to import the CSD model and fit the datasets.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csd_model</span> <span class="o">=</span> <span class="n">ConstrainedSphericalDeconvModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_model</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class"><span class="n">ConstrainedSphericalDeconvModel</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">)</span>
 </pre></div>
 </div>
 <p>Compute the CSD-based ODFs using <code class="docutils literal notranslate"><span class="pre">peaks_from_model</span></code>. This function has a
@@ -1026,10 +1039,10 @@ parallel. If <code class="docutils literal notranslate"><span class="pre">num_pr
 number of CPUs available in your system. Alternatively, you can set
 <code class="docutils literal notranslate"><span class="pre">num_processes</span></code> manually. Here, we show an example where we compare the
 duration of execution with or without parallelism.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">csd_peaks_parallel</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">csd_model</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">start_time</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.time" title="time.time" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">time</span></a><span class="p">()</span>
+<span class="n">csd_peaks_parallel</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_model</span></a><span class="p">,</span>
                                       <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
-                                      <span class="n">sphere</span><span class="o">=</span><span class="n">default_sphere</span><span class="p">,</span>
+                                      <span class="n">sphere</span><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">,</span>
                                       <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                                       <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                                       <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1040,13 +1053,13 @@ duration of execution with or without parallelism.</p>
                                       <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                       <span class="n">num_processes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-<span class="n">time_parallel</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;peaks_from_model using 2 processes ran in : </span><span class="si">{</span><span class="n">time_parallel</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_parallel</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.time" title="time.time" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">time</span></a><span class="p">()</span> <span class="o">-</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">start_time</span></a>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;peaks_from_model using 2 processes ran in : </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_parallel</span></a><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
 
-<span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">csd_peaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">csd_model</span><span class="p">,</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">start_time</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.time" title="time.time" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">time</span></a><span class="p">()</span>
+<span class="n">csd_peaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_model</span></a><span class="p">,</span>
                              <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
-                             <span class="n">sphere</span><span class="o">=</span><span class="n">default_sphere</span><span class="p">,</span>
+                             <span class="n">sphere</span><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">,</span>
                              <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                              <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                              <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1057,15 +1070,15 @@ duration of execution with or without parallelism.</p>
                              <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                              <span class="n">num_processes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-<span class="n">time_single</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;peaks_from_model ran in :&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">time_single</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_single</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.time" title="time.time" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">time</span></a><span class="p">()</span> <span class="o">-</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">start_time</span></a>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;peaks_from_model ran in :&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_single</span></a><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Speedup factor : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">time_single</span> <span class="o">/</span> <span class="n">time_parallel</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Speedup factor : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_single</span></a> <span class="o">/</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_parallel</span></a><span class="p">))</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peaks_from_model using 2 processes ran in : 11.48861312866211 seconds
-peaks_from_model ran in :10.761403560638428 seconds
-Speedup factor : 0.9367017097817125
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peaks_from_model using 2 processes ran in : 11.166364431381226 seconds
+peaks_from_model ran in :11.695005893707275 seconds
+Speedup factor : 1.0473423078365944
 </pre></div>
 </div>
 <p>In Windows if you get a runtime error about frozen executable please start
@@ -1076,7 +1089,7 @@ your script by adding your code above in a <code class="docutils literal notrans
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 26.130 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 26.108 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-multiprocessing-reconst-csd-parallel-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/5abbf1d3d14145100a5a65fcf81d7601/reconst_csd_parallel.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">reconst_csd_parallel.ipynb</span></code></a></p>
@@ -1363,7 +1376,7 @@ your script by adding your code above in a <code class="docutils literal notrans
         
         <li class="pad-v-5">
           <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
-            Google supported DIPY through the Google Summer of Code Program during Summer 2015, 2016, 2018
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
             <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
           </a>
         </li>
@@ -1379,7 +1392,7 @@ your script by adding your code above in a <code class="docutils literal notrans
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2023, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>DIPY &#8212; dipy 1.8.0 documentation</title>
+    <title>DIPY &#8212; dipy 1.9.0.dev0+897.c022ef2 documentation</title>
   
   
   
@@ -44,10 +44,23 @@
   
 <link rel="stylesheet" href="../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../_static/documentation_options.js?v=de230f84"></script>
+    <script src="../../_static/documentation_options.js?v=0cc407d3"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples_built/fiber_tracking/tracking_stopping_criterion';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
@@ -830,8 +843,8 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/restore_dti.html">Using the RESTORE algorithm for robust tensor fitting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_sh.html">Signal Reconstruction Using Spherical Harmonics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_fwdti.html">Using the free water elimination model to remove DTI free water contamination</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_ivim.html">Intravoxel incoherent motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mcsd.html">Reconstruction with Multi-Shell Multi-Tissue CSD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mapmri.html">Continuous and analytical diffusion signal modelling with MAP-MRI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_msdki.html">Mean signal diffusion kurtosis imaging (MSDKI)</a></li>
@@ -1007,352 +1020,262 @@ deterministic direction getter.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <span class="n">default_sphere</span>
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a>
 <span class="kn">from</span> <span class="nn">dipy.direction</span> <span class="kn">import</span> <span class="n">DeterministicMaximumDirectionGetter</span>
 <span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">load_nifti_data</span>
-<span class="kn">from</span> <span class="nn">dipy.io.streamline</span> <span class="kn">import</span> <span class="n">save_trk</span>
-<span class="kn">from</span> <span class="nn">dipy.io.stateful_tractogram</span> <span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <span class="n">StatefulTractogram</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ConstrainedSphericalDeconvModel</span><span class="p">,</span>
-                                   <span class="n">auto_response_ssst</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="n">fractional_anisotropy</span><span class="p">,</span> <span class="n">TensorModel</span>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">,</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti_data" title="dipy.io.image.load_nifti_data" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti_data</span></a>
+<span class="kn">from</span> <span class="nn">dipy.io.streamline</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.streamline.save_trk" title="dipy.io.streamline.save_trk" class="sphx-glr-backref-module-dipy-io-streamline sphx-glr-backref-type-py-function"><span class="n">save_trk</span></a>
+<span class="kn">from</span> <span class="nn">dipy.io.stateful_tractogram</span> <span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class"><span class="n">StatefulTractogram</span></a>
+<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="p">(</span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class"><span class="n">ConstrainedSphericalDeconvModel</span></a><span class="p">,</span>
+                                   <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.auto_response_ssst" title="dipy.reconst.csdeconv.auto_response_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">auto_response_ssst</span></a><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.fractional_anisotropy" title="dipy.reconst.dti.fractional_anisotropy" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-function"><span class="n">fractional_anisotropy</span></a><span class="p">,</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorModel" title="dipy.reconst.dti.TensorModel" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-class"><span class="n">TensorModel</span></a>
 <span class="kn">from</span> <span class="nn">dipy.tracking</span> <span class="kn">import</span> <span class="n">utils</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.local_tracking</span> <span class="kn">import</span> <span class="n">LocalTracking</span>
+<span class="kn">from</span> <span class="nn">dipy.tracking.local_tracking</span> <span class="kn">import</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class"><span class="n">LocalTracking</span></a>
 <span class="kn">from</span> <span class="nn">dipy.tracking.streamline</span> <span class="kn">import</span> <span class="n">Streamlines</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.stopping_criterion</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ActStoppingCriterion</span><span class="p">,</span>
-                                              <span class="n">BinaryStoppingCriterion</span><span class="p">,</span>
-                                              <span class="n">ThresholdStoppingCriterion</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.viz</span> <span class="kn">import</span> <span class="n">window</span><span class="p">,</span> <span class="n">actor</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <span class="n">has_fury</span>
+<span class="kn">from</span> <span class="nn">dipy.tracking.stopping_criterion</span> <span class="kn">import</span> <span class="p">(</span><a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ActStoppingCriterion" title="dipy.tracking.stopping_criterion.ActStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class"><span class="n">ActStoppingCriterion</span></a><span class="p">,</span>
+                                              <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.BinaryStoppingCriterion" title="dipy.tracking.stopping_criterion.BinaryStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class"><span class="n">BinaryStoppingCriterion</span></a><span class="p">,</span>
+                                              <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ThresholdStoppingCriterion" title="dipy.tracking.stopping_criterion.ThresholdStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class"><span class="n">ThresholdStoppingCriterion</span></a><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dipy.viz</span> <span class="kn">import</span> <span class="n">window</span><span class="p">,</span> <span class="n">actor</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">has_fury</span></a>
 
 
 <span class="c1"># Enables/disables interactive visualization</span>
-<span class="n">interactive</span> <span class="o">=</span> <span class="kc">False</span>
+<a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a> <span class="o">=</span> <span class="kc">False</span>
 
-<span class="n">hardi_fname</span><span class="p">,</span> <span class="n">hardi_bval_fname</span><span class="p">,</span> <span class="n">hardi_bvec_fname</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
-<span class="n">label_fname</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_labels&#39;</span><span class="p">)</span>
-<span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">f_pve_wm</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_pve_maps&#39;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">label_fname</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_labels&#39;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f_pve_wm</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_pve_maps&#39;</span><span class="p">)</span>
 
-<span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">hardi_img</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">hardi_fname</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">label_fname</span><span class="p">)</span>
-<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">hardi_bval_fname</span><span class="p">,</span> <span class="n">hardi_bvec_fname</span><span class="p">)</span>
-<span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">hardi_img</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">labels</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti_data" title="dipy.io.image.load_nifti_data" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti_data</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">label_fname</span></a><span class="p">)</span>
+<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a><span class="p">)</span>
+<a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
 
-<span class="n">white_matter</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">f_pve_wm</span><span class="p">)</span>
+<span class="n">white_matter</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti_data" title="dipy.io.image.load_nifti_data" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti_data</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f_pve_wm</span></a><span class="p">)</span>
 
 <span class="n">seed_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">seed_mask</span><span class="p">[</span><span class="n">white_matter</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">seeds</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">seeds_from_mask</span><span class="p">(</span><span class="n">seed_mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">seeds</span> <span class="o">=</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.utils.seeds_from_mask" title="dipy.tracking.utils.seeds_from_mask" class="sphx-glr-backref-module-dipy-tracking-utils sphx-glr-backref-type-py-function"><span class="n">utils</span><span class="o">.</span><span class="n">seeds_from_mask</span></a><span class="p">(</span><span class="n">seed_mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-<span class="n">response</span><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <span class="n">auto_response_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
-<span class="n">csd_model</span> <span class="o">=</span> <span class="n">ConstrainedSphericalDeconvModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
-<span class="n">csd_fit</span> <span class="o">=</span> <span class="n">csd_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">white_matter</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.auto_response_ssst" title="dipy.reconst.csdeconv.auto_response_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">auto_response_ssst</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_model</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class"><span class="n">ConstrainedSphericalDeconvModel</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">)</span>
+<a href="../../reference/dipy.reconst.html#dipy.reconst.multi_voxel.MultiVoxelFit" title="dipy.reconst.multi_voxel.MultiVoxelFit" class="sphx-glr-backref-module-dipy-reconst-multi_voxel sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_fit</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel.fit" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel.fit" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-method"><span class="n">csd_model</span><span class="o">.</span><span class="n">fit</span></a><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">white_matter</span><span class="p">)</span>
 
-<span class="n">dg</span> <span class="o">=</span> <span class="n">DeterministicMaximumDirectionGetter</span><span class="o">.</span><span class="n">from_shcoeff</span><span class="p">(</span><span class="n">csd_fit</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
+<span class="n">dg</span> <span class="o">=</span> <a href="../../reference/dipy.direction.html#dipy.direction.closest_peak_direction_getter.PmfGenDirectionGetter.from_shcoeff" title="dipy.direction.closest_peak_direction_getter.PmfGenDirectionGetter.from_shcoeff" class="sphx-glr-backref-module-dipy-direction-closest_peak_direction_getter sphx-glr-backref-type-py-method"><span class="n">DeterministicMaximumDirectionGetter</span><span class="o">.</span><span class="n">from_shcoeff</span></a><span class="p">(</span><a href="../../reference/dipy.reconst.html#dipy.reconst.multi_voxel.MultiVoxelFit" title="dipy.reconst.multi_voxel.MultiVoxelFit" class="sphx-glr-backref-module-dipy-reconst-multi_voxel sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_fit</span></a><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
                                                       <span class="n">max_angle</span><span class="o">=</span><span class="mf">30.</span><span class="p">,</span>
-                                                      <span class="n">sphere</span><span class="o">=</span><span class="n">default_sphere</span><span class="p">)</span>
+                                                      <span class="n">sphere</span><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>  0%|                                                                                                                         | 0/77848.12 [00:00&lt;?, ?it/s]
-  0%|▎                                                                                                            | 197/77848.12 [00:00&lt;00:39, 1955.29it/s]
-  1%|▌                                                                                                            | 433/77848.12 [00:00&lt;00:35, 2183.86it/s]
-  1%|▉                                                                                                            | 690/77848.12 [00:00&lt;00:32, 2348.98it/s]
-  1%|█▎                                                                                                           | 927/77848.12 [00:00&lt;00:32, 2350.32it/s]
-  1%|█▌                                                                                                          | 1163/77848.12 [00:00&lt;00:32, 2345.91it/s]
-  2%|██                                                                                                          | 1489/77848.12 [00:00&lt;00:28, 2649.57it/s]
-  2%|██▍                                                                                                         | 1791/77848.12 [00:00&lt;00:27, 2762.65it/s]
-  3%|██▊                                                                                                         | 2068/77848.12 [00:00&lt;00:29, 2593.38it/s]
-  3%|███▏                                                                                                        | 2338/77848.12 [00:00&lt;00:28, 2618.32it/s]
-  3%|███▌                                                                                                        | 2602/77848.12 [00:01&lt;00:28, 2617.43it/s]
-  4%|███▉                                                                                                        | 2865/77848.12 [00:01&lt;00:30, 2465.48it/s]
-  4%|████▎                                                                                                       | 3142/77848.12 [00:01&lt;00:29, 2543.68it/s]
-  4%|████▋                                                                                                       | 3399/77848.12 [00:01&lt;00:29, 2544.91it/s]
-  5%|█████                                                                                                       | 3657/77848.12 [00:01&lt;00:29, 2548.52it/s]
-  5%|█████▍                                                                                                      | 3937/77848.12 [00:01&lt;00:28, 2616.16it/s]
-  5%|█████▊                                                                                                      | 4200/77848.12 [00:01&lt;00:28, 2614.07it/s]
-  6%|██████▏                                                                                                     | 4462/77848.12 [00:01&lt;00:30, 2393.96it/s]
-  6%|██████▋                                                                                                     | 4810/77848.12 [00:01&lt;00:27, 2690.95it/s]
-  7%|███████                                                                                                     | 5117/77848.12 [00:01&lt;00:26, 2791.87it/s]
-  7%|███████▍                                                                                                    | 5401/77848.12 [00:02&lt;00:27, 2661.65it/s]
-  7%|███████▉                                                                                                    | 5715/77848.12 [00:02&lt;00:25, 2790.43it/s]
-  8%|████████▎                                                                                                   | 6007/77848.12 [00:02&lt;00:25, 2822.45it/s]
-  8%|████████▋                                                                                                   | 6292/77848.12 [00:02&lt;00:25, 2807.55it/s]
-  8%|█████████                                                                                                   | 6575/77848.12 [00:02&lt;00:26, 2665.78it/s]
-  9%|█████████▋                                                                                                  | 6946/77848.12 [00:02&lt;00:23, 2954.34it/s]
-  9%|██████████                                                                                                  | 7270/77848.12 [00:02&lt;00:23, 3031.98it/s]
- 10%|██████████▌                                                                                                 | 7576/77848.12 [00:02&lt;00:24, 2823.35it/s]
- 10%|██████████▉                                                                                                 | 7863/77848.12 [00:02&lt;00:25, 2701.71it/s]
- 11%|███████████▍                                                                                                | 8245/77848.12 [00:03&lt;00:23, 3002.13it/s]
- 11%|███████████▊                                                                                                | 8551/77848.12 [00:03&lt;00:23, 3011.32it/s]
- 11%|████████████▎                                                                                               | 8856/77848.12 [00:03&lt;00:24, 2838.02it/s]
- 12%|████████████▋                                                                                               | 9144/77848.12 [00:03&lt;00:24, 2784.07it/s]
- 12%|█████████████▏                                                                                              | 9461/77848.12 [00:03&lt;00:23, 2884.41it/s]
- 13%|█████████████▌                                                                                              | 9790/77848.12 [00:03&lt;00:22, 2991.73it/s]
- 13%|█████████████▊                                                                                             | 10092/77848.12 [00:03&lt;00:22, 2990.51it/s]
- 13%|██████████████▎                                                                                            | 10393/77848.12 [00:03&lt;00:23, 2903.79it/s]
- 14%|██████████████▋                                                                                            | 10702/77848.12 [00:03&lt;00:22, 2950.24it/s]
- 14%|███████████████▏                                                                                           | 11058/77848.12 [00:04&lt;00:21, 3120.92it/s]
- 15%|███████████████▋                                                                                           | 11386/77848.12 [00:04&lt;00:21, 3160.60it/s]
- 15%|████████████████                                                                                           | 11704/77848.12 [00:04&lt;00:22, 2903.16it/s]
- 15%|████████████████▍                                                                                          | 11999/77848.12 [00:04&lt;00:22, 2909.07it/s]
- 16%|████████████████▉                                                                                          | 12321/77848.12 [00:04&lt;00:21, 2990.18it/s]
- 16%|█████████████████▎                                                                                         | 12633/77848.12 [00:04&lt;00:21, 3021.44it/s]
- 17%|█████████████████▊                                                                                         | 12938/77848.12 [00:04&lt;00:21, 3023.91it/s]
- 17%|██████████████████▏                                                                                        | 13267/77848.12 [00:04&lt;00:20, 3093.25it/s]
- 17%|██████████████████▋                                                                                        | 13581/77848.12 [00:04&lt;00:20, 3106.42it/s]
- 18%|███████████████████                                                                                        | 13910/77848.12 [00:04&lt;00:20, 3144.98it/s]
- 18%|███████████████████▌                                                                                       | 14226/77848.12 [00:05&lt;00:20, 3052.16it/s]
- 19%|███████████████████▉                                                                                       | 14535/77848.12 [00:05&lt;00:20, 3054.86it/s]
- 19%|████████████████████▍                                                                                      | 14842/77848.12 [00:05&lt;00:20, 3053.01it/s]
- 19%|████████████████████▊                                                                                      | 15148/77848.12 [00:05&lt;00:21, 2977.04it/s]
- 20%|█████████████████████▎                                                                                     | 15463/77848.12 [00:05&lt;00:20, 3020.44it/s]
- 20%|█████████████████████▋                                                                                     | 15766/77848.12 [00:05&lt;00:20, 2998.06it/s]
- 21%|██████████████████████▏                                                                                    | 16116/77848.12 [00:05&lt;00:19, 3138.79it/s]
- 21%|██████████████████████▌                                                                                    | 16447/77848.12 [00:05&lt;00:19, 3181.48it/s]
- 22%|███████████████████████                                                                                    | 16766/77848.12 [00:05&lt;00:20, 2997.34it/s]
- 22%|███████████████████████▌                                                                                   | 17124/77848.12 [00:06&lt;00:19, 3153.80it/s]
- 22%|███████████████████████▉                                                                                   | 17448/77848.12 [00:06&lt;00:19, 3171.86it/s]
- 23%|████████████████████████▍                                                                                  | 17772/77848.12 [00:06&lt;00:18, 3185.31it/s]
- 23%|████████████████████████▊                                                                                  | 18092/77848.12 [00:06&lt;00:19, 3090.82it/s]
- 24%|█████████████████████████▎                                                                                 | 18403/77848.12 [00:06&lt;00:20, 2917.39it/s]
- 24%|█████████████████████████▋                                                                                 | 18711/77848.12 [00:06&lt;00:20, 2955.93it/s]
- 24%|██████████████████████████▏                                                                                | 19039/77848.12 [00:06&lt;00:19, 3039.83it/s]
- 25%|██████████████████████████▌                                                                                | 19345/77848.12 [00:06&lt;00:19, 2968.89it/s]
- 25%|███████████████████████████                                                                                | 19644/77848.12 [00:06&lt;00:19, 2950.36it/s]
- 26%|███████████████████████████▍                                                                               | 19976/77848.12 [00:06&lt;00:18, 3051.01it/s]
- 26%|███████████████████████████▉                                                                               | 20283/77848.12 [00:07&lt;00:19, 2961.73it/s]
- 26%|████████████████████████████▎                                                                              | 20588/77848.12 [00:07&lt;00:19, 2979.01it/s]
- 27%|████████████████████████████▋                                                                              | 20891/77848.12 [00:07&lt;00:19, 2987.75it/s]
- 27%|█████████████████████████████▏                                                                             | 21191/77848.12 [00:07&lt;00:19, 2961.81it/s]
- 28%|█████████████████████████████▌                                                                             | 21501/77848.12 [00:07&lt;00:19, 2953.84it/s]
- 28%|██████████████████████████████                                                                             | 21832/77848.12 [00:07&lt;00:18, 3048.78it/s]
- 28%|██████████████████████████████▍                                                                            | 22149/77848.12 [00:07&lt;00:18, 3077.31it/s]
- 29%|██████████████████████████████▉                                                                            | 22499/77848.12 [00:07&lt;00:17, 3193.85it/s]
- 29%|███████████████████████████████▎                                                                           | 22819/77848.12 [00:07&lt;00:17, 3161.69it/s]
- 30%|███████████████████████████████▊                                                                           | 23139/77848.12 [00:07&lt;00:17, 3162.83it/s]
- 30%|████████████████████████████████▏                                                                          | 23456/77848.12 [00:08&lt;00:17, 3085.48it/s]
- 31%|████████████████████████████████▋                                                                          | 23766/77848.12 [00:08&lt;00:17, 3084.69it/s]
- 31%|█████████████████████████████████                                                                          | 24075/77848.12 [00:08&lt;00:19, 2752.09it/s]
- 31%|█████████████████████████████████▌                                                                         | 24382/77848.12 [00:08&lt;00:18, 2831.68it/s]
- 32%|█████████████████████████████████▉                                                                         | 24685/77848.12 [00:08&lt;00:18, 2882.84it/s]
- 32%|██████████████████████████████████▎                                                                        | 25003/77848.12 [00:08&lt;00:17, 2961.35it/s]
- 33%|██████████████████████████████████▊                                                                        | 25320/77848.12 [00:08&lt;00:17, 3015.67it/s]
- 33%|███████████████████████████████████▏                                                                       | 25625/77848.12 [00:08&lt;00:17, 2916.33it/s]
- 33%|███████████████████████████████████▋                                                                       | 25931/77848.12 [00:08&lt;00:17, 2952.11it/s]
- 34%|████████████████████████████████████                                                                       | 26228/77848.12 [00:09&lt;00:18, 2865.62it/s]
- 34%|████████████████████████████████████▍                                                                      | 26529/77848.12 [00:09&lt;00:17, 2898.87it/s]
- 35%|████████████████████████████████████▉                                                                      | 26879/77848.12 [00:09&lt;00:16, 3064.29it/s]
- 35%|█████████████████████████████████████▎                                                                     | 27187/77848.12 [00:09&lt;00:16, 3061.52it/s]
- 35%|█████████████████████████████████████▊                                                                     | 27495/77848.12 [00:09&lt;00:16, 3059.79it/s]
- 36%|██████████████████████████████████████▍                                                                    | 27932/77848.12 [00:09&lt;00:14, 3436.08it/s]
- 36%|██████████████████████████████████████▉                                                                    | 28343/77848.12 [00:09&lt;00:13, 3627.87it/s]
- 37%|███████████████████████████████████████▍                                                                   | 28707/77848.12 [00:09&lt;00:13, 3623.32it/s]
- 37%|███████████████████████████████████████▉                                                                   | 29070/77848.12 [00:09&lt;00:13, 3571.51it/s]
- 38%|████████████████████████████████████████▍                                                                  | 29428/77848.12 [00:10&lt;00:16, 2982.54it/s]
- 38%|████████████████████████████████████████▉                                                                  | 29743/77848.12 [00:10&lt;00:16, 2871.32it/s]
- 39%|█████████████████████████████████████████▎                                                                 | 30042/77848.12 [00:10&lt;00:16, 2898.75it/s]
- 39%|█████████████████████████████████████████▋                                                                 | 30341/77848.12 [00:10&lt;00:16, 2856.85it/s]
- 39%|██████████████████████████████████████████▏                                                                | 30652/77848.12 [00:10&lt;00:16, 2921.83it/s]
- 40%|██████████████████████████████████████████▌                                                                | 30993/77848.12 [00:10&lt;00:15, 3051.72it/s]
- 40%|███████████████████████████████████████████                                                                | 31371/77848.12 [00:10&lt;00:14, 3253.87it/s]
- 41%|███████████████████████████████████████████▋                                                               | 31771/77848.12 [00:10&lt;00:13, 3461.23it/s]
- 41%|████████████████████████████████████████████▏                                                              | 32121/77848.12 [00:10&lt;00:13, 3446.14it/s]
- 42%|████████████████████████████████████████████▋                                                              | 32468/77848.12 [00:10&lt;00:13, 3345.64it/s]
- 42%|█████████████████████████████████████████████                                                              | 32805/77848.12 [00:11&lt;00:14, 3076.38it/s]
- 43%|█████████████████████████████████████████████▌                                                             | 33127/77848.12 [00:11&lt;00:14, 3107.49it/s]
- 43%|█████████████████████████████████████████████▉                                                             | 33466/77848.12 [00:11&lt;00:13, 3180.37it/s]
- 43%|██████████████████████████████████████████████▍                                                            | 33788/77848.12 [00:11&lt;00:13, 3180.15it/s]
- 44%|██████████████████████████████████████████████▉                                                            | 34147/77848.12 [00:11&lt;00:13, 3228.54it/s]
- 44%|███████████████████████████████████████████████▍                                                           | 34472/77848.12 [00:11&lt;00:14, 3033.71it/s]
- 45%|███████████████████████████████████████████████▊                                                           | 34779/77848.12 [00:11&lt;00:14, 2954.71it/s]
- 45%|████████████████████████████████████████████████▏                                                          | 35077/77848.12 [00:11&lt;00:14, 2955.24it/s]
- 45%|████████████████████████████████████████████████▋                                                          | 35415/77848.12 [00:11&lt;00:13, 3068.59it/s]
- 46%|█████████████████████████████████████████████████▏                                                         | 35806/77848.12 [00:12&lt;00:12, 3302.10it/s]
- 46%|█████████████████████████████████████████████████▋                                                         | 36139/77848.12 [00:12&lt;00:13, 3035.25it/s]
- 47%|██████████████████████████████████████████████████                                                         | 36450/77848.12 [00:12&lt;00:13, 3047.61it/s]
- 47%|██████████████████████████████████████████████████▌                                                        | 36763/77848.12 [00:12&lt;00:13, 3062.65it/s]
- 48%|██████████████████████████████████████████████████▉                                                        | 37072/77848.12 [00:12&lt;00:13, 3063.13it/s]
- 48%|███████████████████████████████████████████████████▍                                                       | 37381/77848.12 [00:12&lt;00:13, 2910.44it/s]
- 49%|███████████████████████████████████████████████████▉                                                       | 37776/77848.12 [00:12&lt;00:12, 3195.36it/s]
- 49%|████████████████████████████████████████████████████▌                                                      | 38210/77848.12 [00:12&lt;00:11, 3519.74it/s]
- 50%|█████████████████████████████████████████████████████                                                      | 38566/77848.12 [00:12&lt;00:11, 3293.51it/s]
- 50%|█████████████████████████████████████████████████████▍                                                     | 38901/77848.12 [00:13&lt;00:13, 2963.67it/s]
- 50%|█████████████████████████████████████████████████████▉                                                     | 39207/77848.12 [00:13&lt;00:12, 2983.98it/s]
- 51%|██████████████████████████████████████████████████████▎                                                    | 39512/77848.12 [00:13&lt;00:13, 2841.18it/s]
- 51%|██████████████████████████████████████████████████████▋                                                    | 39821/77848.12 [00:13&lt;00:13, 2902.48it/s]
- 52%|███████████████████████████████████████████████████████▏                                                   | 40126/77848.12 [00:13&lt;00:12, 2938.35it/s]
- 52%|███████████████████████████████████████████████████████▌                                                   | 40436/77848.12 [00:13&lt;00:12, 2976.77it/s]
- 52%|████████████████████████████████████████████████████████                                                   | 40796/77848.12 [00:13&lt;00:11, 3148.46it/s]
- 53%|████████████████████████████████████████████████████████▌                                                  | 41123/77848.12 [00:13&lt;00:11, 3174.67it/s]
- 53%|████████████████████████████████████████████████████████▉                                                  | 41443/77848.12 [00:13&lt;00:11, 3175.50it/s]
- 54%|█████████████████████████████████████████████████████████▍                                                 | 41762/77848.12 [00:14&lt;00:11, 3099.29it/s]
- 54%|█████████████████████████████████████████████████████████▊                                                 | 42092/77848.12 [00:14&lt;00:11, 3150.76it/s]
- 55%|██████████████████████████████████████████████████████████▎                                                | 42446/77848.12 [00:14&lt;00:10, 3258.87it/s]
- 55%|██████████████████████████████████████████████████████████▊                                                | 42773/77848.12 [00:14&lt;00:11, 3141.91it/s]
- 55%|███████████████████████████████████████████████████████████▏                                               | 43089/77848.12 [00:14&lt;00:11, 3051.60it/s]
- 56%|███████████████████████████████████████████████████████████▋                                               | 43396/77848.12 [00:14&lt;00:11, 2884.44it/s]
- 56%|████████████████████████████████████████████████████████████                                               | 43687/77848.12 [00:14&lt;00:12, 2804.24it/s]
- 56%|████████████████████████████████████████████████████████████▍                                              | 43969/77848.12 [00:14&lt;00:12, 2801.28it/s]
- 57%|████████████████████████████████████████████████████████████▊                                              | 44267/77848.12 [00:14&lt;00:11, 2844.05it/s]
- 57%|█████████████████████████████████████████████████████████████▎                                             | 44604/77848.12 [00:14&lt;00:11, 2986.86it/s]
- 58%|█████████████████████████████████████████████████████████████▋                                             | 44909/77848.12 [00:15&lt;00:10, 2997.72it/s]
- 58%|██████████████████████████████████████████████████████████████▏                                            | 45212/77848.12 [00:15&lt;00:10, 2997.77it/s]
- 58%|██████████████████████████████████████████████████████████████▌                                            | 45513/77848.12 [00:15&lt;00:10, 2994.46it/s]
- 59%|██████████████████████████████████████████████████████████████▉                                            | 45813/77848.12 [00:15&lt;00:10, 2989.65it/s]
- 59%|███████████████████████████████████████████████████████████████▍                                           | 46113/77848.12 [00:15&lt;00:10, 2899.46it/s]
- 60%|███████████████████████████████████████████████████████████████▊                                           | 46410/77848.12 [00:15&lt;00:10, 2919.42it/s]
- 60%|████████████████████████████████████████████████████████████████▏                                          | 46703/77848.12 [00:15&lt;00:11, 2811.24it/s]
- 60%|████████████████████████████████████████████████████████████████▌                                          | 46986/77848.12 [00:15&lt;00:11, 2752.43it/s]
- 61%|█████████████████████████████████████████████████████████████████                                          | 47296/77848.12 [00:15&lt;00:10, 2838.23it/s]
- 61%|█████████████████████████████████████████████████████████████████▍                                         | 47592/77848.12 [00:16&lt;00:10, 2865.26it/s]
- 62%|█████████████████████████████████████████████████████████████████▊                                         | 47898/77848.12 [00:16&lt;00:10, 2914.62it/s]
- 62%|██████████████████████████████████████████████████████████████████▎                                        | 48228/77848.12 [00:16&lt;00:09, 3020.95it/s]
- 62%|██████████████████████████████████████████████████████████████████▋                                        | 48531/77848.12 [00:16&lt;00:10, 2913.36it/s]
- 63%|███████████████████████████████████████████████████████████████████                                        | 48826/77848.12 [00:16&lt;00:09, 2918.09it/s]
- 63%|███████████████████████████████████████████████████████████████████▌                                       | 49119/77848.12 [00:16&lt;00:10, 2828.75it/s]
- 63%|███████████████████████████████████████████████████████████████████▉                                       | 49403/77848.12 [00:16&lt;00:10, 2823.18it/s]
- 64%|████████████████████████████████████████████████████████████████████▎                                      | 49700/77848.12 [00:16&lt;00:09, 2858.98it/s]
- 64%|████████████████████████████████████████████████████████████████████▋                                      | 49987/77848.12 [00:16&lt;00:10, 2772.46it/s]
- 65%|█████████████████████████████████████████████████████████████████████▏                                     | 50321/77848.12 [00:16&lt;00:09, 2929.85it/s]
- 65%|█████████████████████████████████████████████████████████████████████▌                                     | 50616/77848.12 [00:17&lt;00:09, 2843.33it/s]
- 65%|█████████████████████████████████████████████████████████████████████▉                                     | 50902/77848.12 [00:17&lt;00:10, 2685.34it/s]
- 66%|██████████████████████████████████████████████████████████████████████▎                                    | 51197/77848.12 [00:17&lt;00:09, 2752.81it/s]
- 66%|██████████████████████████████████████████████████████████████████████▊                                    | 51555/77848.12 [00:17&lt;00:08, 2980.41it/s]
- 67%|███████████████████████████████████████████████████████████████████████▎                                   | 51876/77848.12 [00:17&lt;00:08, 3038.32it/s]
- 67%|███████████████████████████████████████████████████████████████████████▋                                   | 52182/77848.12 [00:17&lt;00:08, 3035.70it/s]
- 67%|████████████████████████████████████████████████████████████████████████▏                                  | 52530/77848.12 [00:17&lt;00:08, 3156.91it/s]
- 68%|████████████████████████████████████████████████████████████████████████▋                                  | 52847/77848.12 [00:17&lt;00:07, 3153.69it/s]
- 68%|█████████████████████████████████████████████████████████████████████████                                  | 53164/77848.12 [00:17&lt;00:08, 2979.09it/s]
- 69%|█████████████████████████████████████████████████████████████████████████▍                                 | 53465/77848.12 [00:18&lt;00:08, 2893.12it/s]
- 69%|█████████████████████████████████████████████████████████████████████████▉                                 | 53772/77848.12 [00:18&lt;00:08, 2931.55it/s]
- 70%|██████████████████████████████████████████████████████████████████████████▍                                | 54144/77848.12 [00:18&lt;00:07, 3152.18it/s]
- 70%|██████████████████████████████████████████████████████████████████████████▉                                | 54554/77848.12 [00:18&lt;00:06, 3419.86it/s]
- 71%|███████████████████████████████████████████████████████████████████████████▍                               | 54899/77848.12 [00:18&lt;00:07, 3059.02it/s]
- 71%|███████████████████████████████████████████████████████████████████████████▉                               | 55214/77848.12 [00:18&lt;00:07, 2993.58it/s]
- 71%|████████████████████████████████████████████████████████████████████████████▎                              | 55519/77848.12 [00:18&lt;00:07, 3000.83it/s]
- 72%|████████████████████████████████████████████████████████████████████████████▋                              | 55838/77848.12 [00:18&lt;00:07, 3046.69it/s]
- 72%|█████████████████████████████████████████████████████████████████████████████▎                             | 56215/77848.12 [00:18&lt;00:06, 3244.75it/s]
- 73%|█████████████████████████████████████████████████████████████████████████████▋                             | 56543/77848.12 [00:19&lt;00:07, 2986.26it/s]
- 73%|██████████████████████████████████████████████████████████████████████████████▏                            | 56856/77848.12 [00:19&lt;00:06, 3018.56it/s]
- 73%|██████████████████████████████████████████████████████████████████████████████▌                            | 57164/77848.12 [00:19&lt;00:06, 3027.79it/s]
- 74%|███████████████████████████████████████████████████████████████████████████████                            | 57528/77848.12 [00:19&lt;00:06, 3196.26it/s]
- 74%|███████████████████████████████████████████████████████████████████████████████▌                           | 57851/77848.12 [00:19&lt;00:06, 3109.17it/s]
- 75%|███████████████████████████████████████████████████████████████████████████████▉                           | 58165/77848.12 [00:19&lt;00:06, 3108.80it/s]
- 75%|████████████████████████████████████████████████████████████████████████████████▍                          | 58520/77848.12 [00:19&lt;00:06, 3163.34it/s]
- 76%|████████████████████████████████████████████████████████████████████████████████▊                          | 58838/77848.12 [00:19&lt;00:06, 3143.89it/s]
- 76%|█████████████████████████████████████████████████████████████████████████████████▎                         | 59154/77848.12 [00:19&lt;00:06, 3051.65it/s]
- 76%|█████████████████████████████████████████████████████████████████████████████████▋                         | 59460/77848.12 [00:19&lt;00:06, 3044.75it/s]
- 77%|██████████████████████████████████████████████████████████████████████████████████▏                        | 59766/77848.12 [00:20&lt;00:06, 2955.34it/s]
- 77%|██████████████████████████████████████████████████████████████████████████████████▋                        | 60183/77848.12 [00:20&lt;00:05, 3293.52it/s]
- 78%|███████████████████████████████████████████████████████████████████████████████████▎                       | 60609/77848.12 [00:20&lt;00:04, 3564.30it/s]
- 78%|███████████████████████████████████████████████████████████████████████████████████▊                       | 60968/77848.12 [00:20&lt;00:05, 3366.38it/s]
- 79%|████████████████████████████████████████████████████████████████████████████████████▎                      | 61309/77848.12 [00:20&lt;00:05, 3297.65it/s]
- 79%|████████████████████████████████████████████████████████████████████████████████████▋                      | 61642/77848.12 [00:20&lt;00:04, 3280.69it/s]
- 80%|█████████████████████████████████████████████████████████████████████████████████████▏                     | 61972/77848.12 [00:20&lt;00:05, 3099.98it/s]
- 80%|█████████████████████████████████████████████████████████████████████████████████████▌                     | 62285/77848.12 [00:20&lt;00:05, 3083.06it/s]
- 80%|██████████████████████████████████████████████████████████████████████████████████████                     | 62596/77848.12 [00:20&lt;00:05, 2925.84it/s]
- 81%|██████████████████████████████████████████████████████████████████████████████████████▍                    | 62891/77848.12 [00:21&lt;00:05, 2918.79it/s]
- 81%|██████████████████████████████████████████████████████████████████████████████████████▊                    | 63188/77848.12 [00:21&lt;00:05, 2925.86it/s]
- 82%|███████████████████████████████████████████████████████████████████████████████████████▎                   | 63482/77848.12 [00:21&lt;00:04, 2922.98it/s]
- 82%|███████████████████████████████████████████████████████████████████████████████████████▋                   | 63776/77848.12 [00:21&lt;00:04, 2922.50it/s]
- 82%|████████████████████████████████████████████████████████████████████████████████████████                   | 64069/77848.12 [00:21&lt;00:04, 2832.66it/s]
- 83%|████████████████████████████████████████████████████████████████████████████████████████▍                  | 64354/77848.12 [00:21&lt;00:05, 2674.57it/s]
- 83%|█████████████████████████████████████████████████████████████████████████████████████████                  | 64789/77848.12 [00:21&lt;00:04, 3133.37it/s]
- 84%|█████████████████████████████████████████████████████████████████████████████████████████▋                 | 65246/77848.12 [00:21&lt;00:03, 3532.85it/s]
- 84%|██████████████████████████████████████████████████████████████████████████████████████████▏                | 65640/77848.12 [00:21&lt;00:03, 3640.08it/s]
- 85%|██████████████████████████████████████████████████████████████████████████████████████████▋                | 66008/77848.12 [00:21&lt;00:03, 3540.25it/s]
- 85%|███████████████████████████████████████████████████████████████████████████████████████████▎               | 66409/77848.12 [00:22&lt;00:03, 3664.48it/s]
- 86%|███████████████████████████████████████████████████████████████████████████████████████████▊               | 66779/77848.12 [00:22&lt;00:03, 3463.81it/s]
- 86%|████████████████████████████████████████████████████████████████████████████████████████████▍              | 67233/77848.12 [00:22&lt;00:02, 3673.65it/s]
- 87%|█████████████████████████████████████████████████████████████████████████████████████████████              | 67725/77848.12 [00:22&lt;00:02, 4013.83it/s]
- 88%|█████████████████████████████████████████████████████████████████████████████████████████████▋             | 68136/77848.12 [00:22&lt;00:02, 4031.63it/s]
- 88%|██████████████████████████████████████████████████████████████████████████████████████████████▏            | 68542/77848.12 [00:22&lt;00:02, 3786.51it/s]
- 89%|██████████████████████████████████████████████████████████████████████████████████████████████▋            | 68926/77848.12 [00:22&lt;00:02, 3590.99it/s]
- 89%|███████████████████████████████████████████████████████████████████████████████████████████████▏           | 69290/77848.12 [00:22&lt;00:02, 3320.51it/s]
- 89%|███████████████████████████████████████████████████████████████████████████████████████████████▋           | 69628/77848.12 [00:23&lt;00:02, 3243.41it/s]
- 90%|████████████████████████████████████████████████████████████████████████████████████████████████▏          | 69956/77848.12 [00:23&lt;00:02, 3096.74it/s]
- 90%|████████████████████████████████████████████████████████████████████████████████████████████████▌          | 70273/77848.12 [00:23&lt;00:02, 3110.73it/s]
- 91%|█████████████████████████████████████████████████████████████████████████████████████████████████          | 70587/77848.12 [00:23&lt;00:02, 3094.29it/s]
- 91%|█████████████████████████████████████████████████████████████████████████████████████████████████▌         | 70969/77848.12 [00:23&lt;00:02, 3292.46it/s]
- 92%|██████████████████████████████████████████████████████████████████████████████████████████████████         | 71301/77848.12 [00:23&lt;00:02, 3041.18it/s]
- 92%|██████████████████████████████████████████████████████████████████████████████████████████████████▍        | 71610/77848.12 [00:23&lt;00:02, 2958.17it/s]
- 92%|██████████████████████████████████████████████████████████████████████████████████████████████████▊        | 71909/77848.12 [00:23&lt;00:02, 2958.86it/s]
- 93%|███████████████████████████████████████████████████████████████████████████████████████████████████▏       | 72208/77848.12 [00:23&lt;00:01, 2961.82it/s]
- 93%|███████████████████████████████████████████████████████████████████████████████████████████████████▋       | 72506/77848.12 [00:23&lt;00:01, 2876.28it/s]
- 94%|████████████████████████████████████████████████████████████████████████████████████████████████████       | 72795/77848.12 [00:24&lt;00:01, 2874.70it/s]
- 94%|████████████████████████████████████████████████████████████████████████████████████████████████████▍      | 73084/77848.12 [00:24&lt;00:01, 2791.60it/s]
- 94%|████████████████████████████████████████████████████████████████████████████████████████████████████▉      | 73445/77848.12 [00:24&lt;00:01, 3017.84it/s]
- 95%|█████████████████████████████████████████████████████████████████████████████████████████████████████▍     | 73816/77848.12 [00:24&lt;00:01, 3210.93it/s]
- 95%|█████████████████████████████████████████████████████████████████████████████████████████████████████▉     | 74154/77848.12 [00:24&lt;00:01, 3253.14it/s]
- 96%|██████████████████████████████████████████████████████████████████████████████████████████████████████▌    | 74649/77848.12 [00:24&lt;00:00, 3656.57it/s]
- 96%|███████████████████████████████████████████████████████████████████████████████████████████████████████    | 75015/77848.12 [00:24&lt;00:00, 3355.64it/s]
- 97%|███████████████████████████████████████████████████████████████████████████████████████████████████████▋   | 75444/77848.12 [00:24&lt;00:00, 3610.98it/s]
- 97%|████████████████████████████████████████████████████████████████████████████████████████████████████████▏  | 75810/77848.12 [00:24&lt;00:00, 3396.35it/s]
- 98%|████████████████████████████████████████████████████████████████████████████████████████████████████████▋  | 76155/77848.12 [00:25&lt;00:00, 3065.18it/s]
- 98%|█████████████████████████████████████████████████████████████████████████████████████████████████████████▏ | 76511/77848.12 [00:25&lt;00:00, 3187.74it/s]
- 99%|█████████████████████████████████████████████████████████████████████████████████████████████████████████▋ | 76883/77848.12 [00:25&lt;00:00, 3324.70it/s]
- 99%|██████████████████████████████████████████████████████████████████████████████████████████████████████████▏| 77223/77848.12 [00:25&lt;00:00, 3161.90it/s]
-100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████▊| 77679/77848.12 [00:25&lt;00:00, 3536.38it/s]
-78040it [00:25, 3451.45it/s]
-78391it [00:25, 3273.83it/s]
-78724it [00:25, 3192.69it/s]
-79047it [00:25, 3028.95it/s]
-79353it [00:26, 2966.07it/s]
-79773it [00:26, 3299.25it/s]
-80108it [00:26, 3289.01it/s]
-80440it [00:26, 3289.74it/s]
-80772it [00:26, 3196.82it/s]
-81094it [00:26, 3106.25it/s]
-81407it [00:26, 3106.34it/s]
-81719it [00:26, 3103.62it/s]
-82031it [00:26, 3102.32it/s]
-82342it [00:27, 3099.63it/s]
-82653it [00:27, 3093.81it/s]
-82982it [00:27, 3140.44it/s]
-83297it [00:27, 3136.68it/s]
-83636it [00:27, 3204.55it/s]
-83957it [00:27, 3189.88it/s]
-84277it [00:27, 2936.08it/s]
-84575it [00:27, 2860.71it/s]
-84864it [00:27, 2650.78it/s]
-85152it [00:28, 2708.17it/s]
-85483it [00:28, 2871.23it/s]
-85886it [00:28, 3194.72it/s]
-86210it [00:28, 2928.88it/s]
-86541it [00:28, 3027.06it/s]
-86863it [00:28, 3073.10it/s]
-87253it [00:28, 3301.38it/s]
-87605it [00:28, 3355.74it/s]
-87988it [00:28, 3485.76it/s]
-88396it [00:28, 3649.80it/s]
-88763it [00:29, 3277.53it/s]
-89099it [00:29, 3104.24it/s]
-89417it [00:29, 2958.42it/s]
-89718it [00:29, 2888.99it/s]
-90011it [00:29, 2745.81it/s]
-90416it [00:29, 3089.64it/s]
-90870it [00:29, 3481.31it/s]
-91226it [00:29, 3153.49it/s]
-91552it [00:30, 3076.88it/s]
-91867it [00:30, 3008.97it/s]
-92173it [00:30, 2874.62it/s]
-92468it [00:30, 2889.77it/s]
-92761it [00:30, 2896.80it/s]
-93053it [00:30, 2669.48it/s]
-93328it [00:30, 2685.03it/s]
-93611it [00:30, 2720.59it/s]
-93886it [00:30, 2646.15it/s]
-94153it [00:30, 2632.43it/s]
-94418it [00:31, 2631.51it/s]
-94708it [00:31, 2703.03it/s]
-94980it [00:31, 2702.67it/s]
-95251it [00:31, 2700.28it/s]
-95522it [00:31, 2545.85it/s]
-95782it [00:31, 2559.18it/s]
-96146it [00:31, 2864.84it/s]
-96496it [00:31, 3041.40it/s]
-96802it [00:31, 2870.00it/s]
-96989it [00:32, 3026.69it/s]
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>  0%|                                                                                                                                               | 0/77848.12 [00:00&lt;?, ?it/s]
+  0%|▌                                                                                                                                  | 320/77848.12 [00:00&lt;00:24, 3185.27it/s]
+  1%|█▏                                                                                                                                 | 701/77848.12 [00:00&lt;00:21, 3543.33it/s]
+  1%|█▊                                                                                                                                | 1103/77848.12 [00:00&lt;00:20, 3753.17it/s]
+  2%|██▍                                                                                                                               | 1479/77848.12 [00:00&lt;00:20, 3689.46it/s]
+  2%|███                                                                                                                               | 1849/77848.12 [00:00&lt;00:20, 3624.26it/s]
+  3%|███▋                                                                                                                              | 2212/77848.12 [00:00&lt;00:20, 3615.66it/s]
+  3%|████▎                                                                                                                             | 2617/77848.12 [00:00&lt;00:20, 3751.40it/s]
+  4%|█████                                                                                                                             | 3029/77848.12 [00:00&lt;00:19, 3862.12it/s]
+  4%|█████▊                                                                                                                            | 3447/77848.12 [00:00&lt;00:18, 3950.08it/s]
+  5%|██████▍                                                                                                                           | 3884/77848.12 [00:01&lt;00:18, 4074.16it/s]
+  6%|███████▏                                                                                                                          | 4293/77848.12 [00:01&lt;00:18, 4073.70it/s]
+  6%|███████▉                                                                                                                          | 4722/77848.12 [00:01&lt;00:17, 4134.04it/s]
+  7%|████████▋                                                                                                                         | 5181/77848.12 [00:01&lt;00:17, 4263.17it/s]
+  7%|█████████▎                                                                                                                        | 5608/77848.12 [00:01&lt;00:17, 4222.46it/s]
+  8%|██████████                                                                                                                        | 6056/77848.12 [00:01&lt;00:16, 4293.57it/s]
+  8%|██████████▊                                                                                                                       | 6486/77848.12 [00:01&lt;00:16, 4253.44it/s]
+  9%|███████████▌                                                                                                                      | 6954/77848.12 [00:01&lt;00:16, 4373.18it/s]
+ 10%|████████████▎                                                                                                                     | 7406/77848.12 [00:01&lt;00:15, 4411.92it/s]
+ 10%|█████████████                                                                                                                     | 7848/77848.12 [00:01&lt;00:15, 4382.22it/s]
+ 11%|█████████████▊                                                                                                                    | 8297/77848.12 [00:02&lt;00:15, 4408.42it/s]
+ 11%|██████████████▋                                                                                                                   | 8759/77848.12 [00:02&lt;00:15, 4464.42it/s]
+ 12%|███████████████▎                                                                                                                  | 9206/77848.12 [00:02&lt;00:15, 4421.63it/s]
+ 12%|████████████████▏                                                                                                                 | 9666/77848.12 [00:02&lt;00:15, 4473.74it/s]
+ 13%|████████████████▊                                                                                                                | 10121/77848.12 [00:02&lt;00:15, 4492.21it/s]
+ 14%|█████████████████▌                                                                                                               | 10571/77848.12 [00:02&lt;00:14, 4488.15it/s]
+ 14%|██████████████████▎                                                                                                              | 11035/77848.12 [00:02&lt;00:14, 4527.93it/s]
+ 15%|███████████████████                                                                                                              | 11502/77848.12 [00:02&lt;00:14, 4564.72it/s]
+ 15%|███████████████████▊                                                                                                             | 11959/77848.12 [00:02&lt;00:14, 4493.32it/s]
+ 16%|████████████████████▌                                                                                                            | 12442/77848.12 [00:02&lt;00:14, 4586.79it/s]
+ 17%|█████████████████████▍                                                                                                           | 12916/77848.12 [00:03&lt;00:14, 4627.96it/s]
+ 17%|██████████████████████▏                                                                                                          | 13380/77848.12 [00:03&lt;00:14, 4528.34it/s]
+ 18%|██████████████████████▉                                                                                                          | 13872/77848.12 [00:03&lt;00:13, 4634.14it/s]
+ 18%|███████████████████████▊                                                                                                         | 14363/77848.12 [00:03&lt;00:13, 4707.75it/s]
+ 19%|████████████████████████▌                                                                                                        | 14835/77848.12 [00:03&lt;00:13, 4585.09it/s]
+ 20%|█████████████████████████▎                                                                                                       | 15300/77848.12 [00:03&lt;00:13, 4599.16it/s]
+ 20%|██████████████████████████▏                                                                                                      | 15777/77848.12 [00:03&lt;00:13, 4643.70it/s]
+ 21%|██████████████████████████▉                                                                                                      | 16246/77848.12 [00:03&lt;00:13, 4644.82it/s]
+ 21%|███████████████████████████▋                                                                                                     | 16711/77848.12 [00:03&lt;00:13, 4559.19it/s]
+ 22%|████████████████████████████▍                                                                                                    | 17178/77848.12 [00:03&lt;00:13, 4587.38it/s]
+ 23%|█████████████████████████████▏                                                                                                   | 17638/77848.12 [00:04&lt;00:13, 4587.08it/s]
+ 23%|█████████████████████████████▉                                                                                                   | 18103/77848.12 [00:04&lt;00:12, 4601.45it/s]
+ 24%|██████████████████████████████▊                                                                                                  | 18564/77848.12 [00:04&lt;00:13, 4545.99it/s]
+ 24%|███████████████████████████████▌                                                                                                 | 19054/77848.12 [00:04&lt;00:12, 4644.90it/s]
+ 25%|████████████████████████████████▎                                                                                                | 19527/77848.12 [00:04&lt;00:12, 4663.04it/s]
+ 26%|█████████████████████████████████▏                                                                                               | 20000/77848.12 [00:04&lt;00:12, 4678.43it/s]
+ 26%|█████████████████████████████████▉                                                                                               | 20469/77848.12 [00:04&lt;00:12, 4676.07it/s]
+ 27%|██████████████████████████████████▋                                                                                              | 20941/77848.12 [00:04&lt;00:12, 4685.56it/s]
+ 28%|███████████████████████████████████▍                                                                                             | 21418/77848.12 [00:04&lt;00:11, 4709.26it/s]
+ 28%|████████████████████████████████████▎                                                                                            | 21889/77848.12 [00:04&lt;00:11, 4704.07it/s]
+ 29%|█████████████████████████████████████                                                                                            | 22360/77848.12 [00:05&lt;00:11, 4630.17it/s]
+ 29%|█████████████████████████████████████▊                                                                                           | 22835/77848.12 [00:05&lt;00:11, 4659.30it/s]
+ 30%|██████████████████████████████████████▋                                                                                          | 23319/77848.12 [00:05&lt;00:11, 4708.00it/s]
+ 31%|███████████████████████████████████████▍                                                                                         | 23790/77848.12 [00:05&lt;00:11, 4704.42it/s]
+ 31%|████████████████████████████████████████▏                                                                                        | 24261/77848.12 [00:05&lt;00:11, 4603.49it/s]
+ 32%|█████████████████████████████████████████                                                                                        | 24757/77848.12 [00:05&lt;00:11, 4702.86it/s]
+ 32%|█████████████████████████████████████████▊                                                                                       | 25243/77848.12 [00:05&lt;00:11, 4741.45it/s]
+ 33%|██████████████████████████████████████████▌                                                                                      | 25718/77848.12 [00:05&lt;00:11, 4709.44it/s]
+ 34%|███████████████████████████████████████████▍                                                                                     | 26190/77848.12 [00:05&lt;00:11, 4638.15it/s]
+ 34%|████████████████████████████████████████████▏                                                                                    | 26689/77848.12 [00:05&lt;00:10, 4735.53it/s]
+ 35%|█████████████████████████████████████████████                                                                                    | 27170/77848.12 [00:06&lt;00:10, 4751.62it/s]
+ 36%|█████████████████████████████████████████████▊                                                                                   | 27646/77848.12 [00:06&lt;00:10, 4749.33it/s]
+ 36%|██████████████████████████████████████████████▌                                                                                  | 28122/77848.12 [00:06&lt;00:10, 4701.07it/s]
+ 37%|███████████████████████████████████████████████▍                                                                                 | 28593/77848.12 [00:06&lt;00:10, 4683.88it/s]
+ 37%|████████████████████████████████████████████████▏                                                                                | 29065/77848.12 [00:06&lt;00:10, 4688.73it/s]
+ 38%|████████████████████████████████████████████████▉                                                                                | 29534/77848.12 [00:06&lt;00:10, 4668.75it/s]
+ 39%|█████████████████████████████████████████████████▋                                                                               | 30009/77848.12 [00:06&lt;00:10, 4686.87it/s]
+ 39%|██████████████████████████████████████████████████▌                                                                              | 30478/77848.12 [00:06&lt;00:10, 4639.74it/s]
+ 40%|███████████████████████████████████████████████████▎                                                                             | 30968/77848.12 [00:06&lt;00:09, 4711.98it/s]
+ 40%|████████████████████████████████████████████████████                                                                             | 31440/77848.12 [00:07&lt;00:09, 4712.86it/s]
+ 41%|████████████████████████████████████████████████████▉                                                                            | 31916/77848.12 [00:07&lt;00:09, 4721.10it/s]
+ 42%|█████████████████████████████████████████████████████▋                                                                           | 32404/77848.12 [00:07&lt;00:09, 4760.37it/s]
+ 42%|██████████████████████████████████████████████████████▍                                                                          | 32881/77848.12 [00:07&lt;00:09, 4699.99it/s]
+ 43%|███████████████████████████████████████████████████████▎                                                                         | 33368/77848.12 [00:07&lt;00:09, 4743.78it/s]
+ 43%|████████████████████████████████████████████████████████                                                                         | 33851/77848.12 [00:07&lt;00:09, 4763.55it/s]
+ 44%|████████████████████████████████████████████████████████▉                                                                        | 34328/77848.12 [00:07&lt;00:09, 4744.30it/s]
+ 45%|█████████████████████████████████████████████████████████▋                                                                       | 34803/77848.12 [00:07&lt;00:09, 4741.00it/s]
+ 45%|██████████████████████████████████████████████████████████▍                                                                      | 35284/77848.12 [00:07&lt;00:08, 4756.48it/s]
+ 46%|███████████████████████████████████████████████████████████▎                                                                     | 35764/77848.12 [00:07&lt;00:08, 4762.35it/s]
+ 47%|████████████████████████████████████████████████████████████                                                                     | 36249/77848.12 [00:08&lt;00:08, 4784.20it/s]
+ 47%|████████████████████████████████████████████████████████████▊                                                                    | 36735/77848.12 [00:08&lt;00:08, 4800.48it/s]
+ 48%|█████████████████████████████████████████████████████████████▋                                                                   | 37216/77848.12 [00:08&lt;00:08, 4727.56it/s]
+ 48%|██████████████████████████████████████████████████████████████▍                                                                  | 37695/77848.12 [00:08&lt;00:08, 4739.98it/s]
+ 49%|███████████████████████████████████████████████████████████████▎                                                                 | 38170/77848.12 [00:08&lt;00:08, 4738.28it/s]
+ 50%|████████████████████████████████████████████████████████████████                                                                 | 38644/77848.12 [00:08&lt;00:08, 4637.45it/s]
+ 50%|████████████████████████████████████████████████████████████████▊                                                                | 39127/77848.12 [00:08&lt;00:08, 4687.85it/s]
+ 51%|█████████████████████████████████████████████████████████████████▌                                                               | 39597/77848.12 [00:08&lt;00:08, 4656.92it/s]
+ 51%|██████████████████████████████████████████████████████████████████▍                                                              | 40071/77848.12 [00:08&lt;00:08, 4675.91it/s]
+ 52%|███████████████████████████████████████████████████████████████████▏                                                             | 40539/77848.12 [00:08&lt;00:08, 4641.90it/s]
+ 53%|███████████████████████████████████████████████████████████████████▉                                                             | 41004/77848.12 [00:09&lt;00:07, 4638.58it/s]
+ 53%|████████████████████████████████████████████████████████████████████▋                                                            | 41468/77848.12 [00:09&lt;00:08, 4520.72it/s]
+ 54%|█████████████████████████████████████████████████████████████████████▍                                                           | 41929/77848.12 [00:09&lt;00:07, 4540.82it/s]
+ 54%|██████████████████████████████████████████████████████████████████████▏                                                          | 42392/77848.12 [00:09&lt;00:07, 4561.79it/s]
+ 55%|███████████████████████████████████████████████████████████████████████                                                          | 42849/77848.12 [00:09&lt;00:07, 4557.88it/s]
+ 56%|███████████████████████████████████████████████████████████████████████▊                                                         | 43306/77848.12 [00:09&lt;00:07, 4543.72it/s]
+ 56%|████████████████████████████████████████████████████████████████████████▌                                                        | 43761/77848.12 [00:09&lt;00:07, 4446.77it/s]
+ 57%|█████████████████████████████████████████████████████████████████████████▎                                                       | 44207/77848.12 [00:09&lt;00:07, 4406.95it/s]
+ 57%|█████████████████████████████████████████████████████████████████████████▉                                                       | 44649/77848.12 [00:09&lt;00:07, 4394.15it/s]
+ 58%|██████████████████████████████████████████████████████████████████████████▋                                                      | 45089/77848.12 [00:09&lt;00:07, 4326.94it/s]
+ 59%|███████████████████████████████████████████████████████████████████████████▍                                                     | 45547/77848.12 [00:10&lt;00:07, 4389.12it/s]
+ 59%|████████████████████████████████████████████████████████████████████████████▏                                                    | 45987/77848.12 [00:10&lt;00:07, 4361.44it/s]
+ 60%|████████████████████████████████████████████████████████████████████████████▉                                                    | 46424/77848.12 [00:10&lt;00:07, 4259.06it/s]
+ 60%|█████████████████████████████████████████████████████████████████████████████▋                                                   | 46853/77848.12 [00:10&lt;00:07, 4261.63it/s]
+ 61%|██████████████████████████████████████████████████████████████████████████████▎                                                  | 47280/77848.12 [00:10&lt;00:07, 4258.97it/s]
+ 61%|███████████████████████████████████████████████████████████████████████████████                                                  | 47723/77848.12 [00:10&lt;00:07, 4302.35it/s]
+ 62%|███████████████████████████████████████████████████████████████████████████████▊                                                 | 48176/77848.12 [00:10&lt;00:06, 4364.71it/s]
+ 62%|████████████████████████████████████████████████████████████████████████████████▌                                                | 48613/77848.12 [00:10&lt;00:06, 4322.90it/s]
+ 63%|█████████████████████████████████████████████████████████████████████████████████▎                                               | 49060/77848.12 [00:10&lt;00:06, 4360.44it/s]
+ 64%|██████████████████████████████████████████████████████████████████████████████████                                               | 49497/77848.12 [00:10&lt;00:06, 4281.50it/s]
+ 64%|██████████████████████████████████████████████████████████████████████████████████▋                                              | 49926/77848.12 [00:11&lt;00:06, 4278.80it/s]
+ 65%|███████████████████████████████████████████████████████████████████████████████████▍                                             | 50382/77848.12 [00:11&lt;00:06, 4356.28it/s]
+ 65%|████████████████████████████████████████████████████████████████████████████████████▏                                            | 50818/77848.12 [00:11&lt;00:06, 4351.31it/s]
+ 66%|████████████████████████████████████████████████████████████████████████████████████▉                                            | 51261/77848.12 [00:11&lt;00:06, 4366.94it/s]
+ 66%|█████████████████████████████████████████████████████████████████████████████████████▋                                           | 51698/77848.12 [00:11&lt;00:06, 4299.19it/s]
+ 67%|██████████████████████████████████████████████████████████████████████████████████████▍                                          | 52152/77848.12 [00:11&lt;00:05, 4363.79it/s]
+ 68%|███████████████████████████████████████████████████████████████████████████████████████▏                                         | 52623/77848.12 [00:11&lt;00:05, 4462.86it/s]
+ 68%|███████████████████████████████████████████████████████████████████████████████████████▉                                         | 53072/77848.12 [00:11&lt;00:05, 4460.66it/s]
+ 69%|████████████████████████████████████████████████████████████████████████████████████████▊                                        | 53561/77848.12 [00:11&lt;00:05, 4581.42it/s]
+ 69%|█████████████████████████████████████████████████████████████████████████████████████████▌                                       | 54038/77848.12 [00:11&lt;00:05, 4631.50it/s]
+ 70%|██████████████████████████████████████████████████████████████████████████████████████████▎                                      | 54502/77848.12 [00:12&lt;00:05, 4627.21it/s]
+ 71%|███████████████████████████████████████████████████████████████████████████████████████████                                      | 54965/77848.12 [00:12&lt;00:05, 4567.76it/s]
+ 71%|███████████████████████████████████████████████████████████████████████████████████████████▉                                     | 55463/77848.12 [00:12&lt;00:04, 4683.71it/s]
+ 72%|████████████████████████████████████████████████████████████████████████████████████████████▋                                    | 55945/77848.12 [00:12&lt;00:04, 4710.53it/s]
+ 72%|█████████████████████████████████████████████████████████████████████████████████████████████▍                                   | 56417/77848.12 [00:12&lt;00:04, 4429.06it/s]
+ 73%|██████████████████████████████████████████████████████████████████████████████████████████████▎                                  | 56901/77848.12 [00:12&lt;00:04, 4541.05it/s]
+ 74%|███████████████████████████████████████████████████████████████████████████████████████████████                                  | 57359/77848.12 [00:12&lt;00:04, 4551.10it/s]
+ 74%|███████████████████████████████████████████████████████████████████████████████████████████████▊                                 | 57851/77848.12 [00:12&lt;00:04, 4653.89it/s]
+ 75%|████████████████████████████████████████████████████████████████████████████████████████████████▋                                | 58324/77848.12 [00:12&lt;00:04, 4669.83it/s]
+ 76%|█████████████████████████████████████████████████████████████████████████████████████████████████▍                               | 58806/77848.12 [00:13&lt;00:04, 4708.15it/s]
+ 76%|██████████████████████████████████████████████████████████████████████████████████████████████████▏                              | 59278/77848.12 [00:13&lt;00:03, 4691.27it/s]
+ 77%|███████████████████████████████████████████████████████████████████████████████████████████████████                              | 59748/77848.12 [00:13&lt;00:03, 4621.84it/s]
+ 77%|███████████████████████████████████████████████████████████████████████████████████████████████████▊                             | 60259/77848.12 [00:13&lt;00:03, 4758.87it/s]
+ 78%|████████████████████████████████████████████████████████████████████████████████████████████████████▋                            | 60736/77848.12 [00:13&lt;00:03, 4727.72it/s]
+ 79%|█████████████████████████████████████████████████████████████████████████████████████████████████████▍                           | 61210/77848.12 [00:13&lt;00:03, 4725.03it/s]
+ 79%|██████████████████████████████████████████████████████████████████████████████████████████████████████▏                          | 61694/77848.12 [00:13&lt;00:03, 4754.04it/s]
+ 80%|███████████████████████████████████████████████████████████████████████████████████████████████████████                          | 62170/77848.12 [00:13&lt;00:03, 4721.39it/s]
+ 81%|███████████████████████████████████████████████████████████████████████████████████████████████████████▊                         | 62674/77848.12 [00:13&lt;00:03, 4810.53it/s]
+ 81%|████████████████████████████████████████████████████████████████████████████████████████████████████████▋                        | 63169/77848.12 [00:13&lt;00:03, 4838.67it/s]
+ 82%|█████████████████████████████████████████████████████████████████████████████████████████████████████████▍                       | 63654/77848.12 [00:14&lt;00:02, 4818.83it/s]
+ 82%|██████████████████████████████████████████████████████████████████████████████████████████████████████████▎                      | 64139/77848.12 [00:14&lt;00:02, 4822.44it/s]
+ 83%|███████████████████████████████████████████████████████████████████████████████████████████████████████████                      | 64622/77848.12 [00:14&lt;00:02, 4821.07it/s]
+ 84%|███████████████████████████████████████████████████████████████████████████████████████████████████████████▉                     | 65118/77848.12 [00:14&lt;00:02, 4862.41it/s]
+ 84%|████████████████████████████████████████████████████████████████████████████████████████████████████████████▋                    | 65605/77848.12 [00:14&lt;00:02, 4860.83it/s]
+ 85%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████▌                   | 66092/77848.12 [00:14&lt;00:02, 4784.51it/s]
+ 86%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████▎                  | 66571/77848.12 [00:14&lt;00:02, 4726.04it/s]
+ 86%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████▏                 | 67092/77848.12 [00:14&lt;00:02, 4855.14it/s]
+ 87%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████▉                 | 67581/77848.12 [00:14&lt;00:02, 4857.46it/s]
+ 87%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                | 68068/77848.12 [00:14&lt;00:02, 4841.89it/s]
+ 88%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████▌               | 68553/77848.12 [00:15&lt;00:01, 4822.49it/s]
+ 89%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████▍              | 69036/77848.12 [00:15&lt;00:01, 4749.68it/s]
+ 89%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████▏             | 69549/77848.12 [00:15&lt;00:01, 4859.66it/s]
+ 90%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████             | 70038/77848.12 [00:15&lt;00:01, 4862.94it/s]
+ 91%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊            | 70525/77848.12 [00:15&lt;00:01, 4745.88it/s]
+ 91%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▋           | 71001/77848.12 [00:15&lt;00:01, 4716.64it/s]
+ 92%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▍          | 71474/77848.12 [00:15&lt;00:01, 4666.30it/s]
+ 92%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▏         | 71964/77848.12 [00:15&lt;00:01, 4730.19it/s]
+ 93%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████         | 72438/77848.12 [00:15&lt;00:01, 4699.33it/s]
+ 94%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊        | 72916/77848.12 [00:15&lt;00:01, 4718.18it/s]
+ 94%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▌       | 73389/77848.12 [00:16&lt;00:00, 4580.59it/s]
+ 95%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▍      | 73894/77848.12 [00:16&lt;00:00, 4710.99it/s]
+ 96%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▏     | 74371/77848.12 [00:16&lt;00:00, 4721.56it/s]
+ 96%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████     | 74851/77848.12 [00:16&lt;00:00, 4738.81it/s]
+ 97%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊    | 75326/77848.12 [00:16&lt;00:00, 4641.53it/s]
+ 97%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▌   | 75791/77848.12 [00:16&lt;00:00, 4624.77it/s]
+ 98%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▍  | 76266/77848.12 [00:16&lt;00:00, 4656.74it/s]
+ 99%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▏ | 76735/77848.12 [00:16&lt;00:00, 4660.25it/s]
+ 99%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▉ | 77202/77848.12 [00:16&lt;00:00, 4582.83it/s]
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊| 77721/77848.12 [00:17&lt;00:00, 4753.23it/s]
+78197it [00:17, 4735.13it/s]
+78671it [00:17, 4729.12it/s]
+79145it [00:17, 4657.30it/s]
+79683it [00:17, 4864.24it/s]
+80171it [00:17, 4821.55it/s]
+80654it [00:17, 4817.48it/s]
+81137it [00:17, 4690.07it/s]
+81649it [00:17, 4809.80it/s]
+82131it [00:17, 4798.93it/s]
+82612it [00:18, 4796.50it/s]
+83093it [00:18, 4683.89it/s]
+83593it [00:18, 4769.40it/s]
+84071it [00:18, 4769.89it/s]
+84549it [00:18, 4634.80it/s]
+85014it [00:18, 4478.00it/s]
+85493it [00:18, 4560.62it/s]
+85955it [00:18, 4571.53it/s]
+86414it [00:18, 4513.98it/s]
+86904it [00:18, 4621.93it/s]
+87367it [00:19, 4579.33it/s]
+87826it [00:19, 4510.34it/s]
+88310it [00:19, 4599.18it/s]
+88771it [00:19, 4463.80it/s]
+89219it [00:19, 4336.90it/s]
+89681it [00:19, 4411.14it/s]
+90124it [00:19, 4373.57it/s]
+90593it [00:19, 4458.12it/s]
+91040it [00:19, 4416.24it/s]
+91497it [00:20, 4450.50it/s]
+91943it [00:20, 4422.55it/s]
+92386it [00:20, 4355.12it/s]
+92834it [00:20, 4386.07it/s]
+93273it [00:20, 4254.75it/s]
+93717it [00:20, 4302.61it/s]
+94149it [00:20, 4168.23it/s]
+94585it [00:20, 4217.22it/s]
+95008it [00:20, 4150.42it/s]
+95424it [00:20, 4133.64it/s]
+95838it [00:21, 4070.12it/s]
+96246it [00:21, 3987.78it/s]
+96646it [00:21, 3951.50it/s]
+96989it [00:21, 4538.50it/s]
 </pre></div>
 </div>
 <section id="threshold-stopping-criterion">
@@ -1379,40 +1302,40 @@ reached an area outside the image where no direction data is available.
 streamline is stopping where metric_map &gt;= threshold, but there is no valid
 direction to follow.
 - ‘INVALIDPOINT’: N/A.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">tensor_model</span> <span class="o">=</span> <span class="n">TensorModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">)</span>
-<span class="n">tenfit</span> <span class="o">=</span> <span class="n">tensor_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">labels</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">FA</span> <span class="o">=</span> <span class="n">fractional_anisotropy</span><span class="p">(</span><span class="n">tenfit</span><span class="o">.</span><span class="n">evals</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorModel" title="dipy.reconst.dti.TensorModel" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tensor_model</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorModel" title="dipy.reconst.dti.TensorModel" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-class"><span class="n">TensorModel</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">)</span>
+<a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorFit" title="dipy.reconst.dti.TensorFit" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tenfit</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorModel.fit" title="dipy.reconst.dti.TensorModel.fit" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-method"><span class="n">tensor_model</span><span class="o">.</span><span class="n">fit</span></a><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">labels</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">FA</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.fractional_anisotropy" title="dipy.reconst.dti.fractional_anisotropy" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-function"><span class="n">fractional_anisotropy</span></a><span class="p">(</span><a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorFit.evals" title="dipy.reconst.dti.TensorFit.evals" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-property"><span class="n">tenfit</span><span class="o">.</span><span class="n">evals</span></a><span class="p">)</span>
 
-<span class="n">threshold_criterion</span> <span class="o">=</span> <span class="n">ThresholdStoppingCriterion</span><span class="p">(</span><span class="n">FA</span><span class="p">,</span> <span class="mf">.2</span><span class="p">)</span>
+<a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ThresholdStoppingCriterion" title="dipy.tracking.stopping_criterion.ThresholdStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">threshold_criterion</span></a> <span class="o">=</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ThresholdStoppingCriterion" title="dipy.tracking.stopping_criterion.ThresholdStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class"><span class="n">ThresholdStoppingCriterion</span></a><span class="p">(</span><span class="n">FA</span><span class="p">,</span> <span class="mf">.2</span><span class="p">)</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 <span class="n">mask_fa</span> <span class="o">=</span> <span class="n">FA</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="n">mask_fa</span><span class="p">[</span><span class="n">mask_fa</span> <span class="o">&lt;</span> <span class="mf">0.2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([])</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mask_fa</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mask_fa</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span>
            <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;threshold_fa.png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <img src="../../_images/sphx_glr_tracking_stopping_criterion_001.png" srcset="../../_images/sphx_glr_tracking_stopping_criterion_001.png" alt="tracking stopping criterion" class = "sphx-glr-single-img"/><p class="centered small fst-italic fw-semibold">Thresholded fractional anisotropy map.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">streamline_generator</span> <span class="o">=</span> <span class="n">LocalTracking</span><span class="p">(</span><span class="n">dg</span><span class="p">,</span>
-                                     <span class="n">threshold_criterion</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">streamline_generator</span></a> <span class="o">=</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class"><span class="n">LocalTracking</span></a><span class="p">(</span><span class="n">dg</span><span class="p">,</span>
+                                     <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ThresholdStoppingCriterion" title="dipy.tracking.stopping_criterion.ThresholdStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">threshold_criterion</span></a><span class="p">,</span>
                                      <span class="n">seeds</span><span class="p">,</span>
                                      <span class="n">affine</span><span class="p">,</span>
                                      <span class="n">step_size</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                                      <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><span class="n">streamline_generator</span><span class="p">)</span>
-<span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">hardi_img</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">)</span>
-<span class="n">save_trk</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="s2">&quot;tractogram_probabilistic_thresh_all.trk&quot;</span><span class="p">)</span>
+<span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">streamline_generator</span></a><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sft</span></a> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class"><span class="n">StatefulTractogram</span></a><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">hardi_img</span><span class="p">,</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.Space" title="dipy.io.stateful_tractogram.Space" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span></a><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.streamline.save_trk" title="dipy.io.streamline.save_trk" class="sphx-glr-backref-module-dipy-io-streamline sphx-glr-backref-type-py-function"><span class="n">save_trk</span></a><span class="p">(</span><a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sft</span></a><span class="p">,</span> <span class="s2">&quot;tractogram_probabilistic_thresh_all.trk&quot;</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">has_fury</span></a><span class="p">:</span>
     <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
     <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">colormap</span><span class="o">.</span><span class="n">line_colors</span><span class="p">(</span><span class="n">streamlines</span><span class="p">)))</span>
     <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;tractogram_deterministic_thresh_all.png&#39;</span><span class="p">,</span>
                   <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">800</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+    <span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
         <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1441,35 +1364,35 @@ reached an area outside the image where no direction data is available.
 streamline is stopping where mask &gt; 0, but there is no valid direction to
 follow.
 - ‘INVALIDPOINT’: N/A.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">binary_criterion</span> <span class="o">=</span> <span class="n">BinaryStoppingCriterion</span><span class="p">(</span><span class="n">white_matter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.BinaryStoppingCriterion" title="dipy.tracking.stopping_criterion.BinaryStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">binary_criterion</span></a> <span class="o">=</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.BinaryStoppingCriterion" title="dipy.tracking.stopping_criterion.BinaryStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class"><span class="n">BinaryStoppingCriterion</span></a><span class="p">(</span><span class="n">white_matter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([])</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">white_matter</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">white_matter</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
            <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
 
 <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;white_matter_mask.png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <img src="../../_images/sphx_glr_tracking_stopping_criterion_003.png" srcset="../../_images/sphx_glr_tracking_stopping_criterion_003.png" alt="tracking stopping criterion" class = "sphx-glr-single-img"/><p class="centered small fst-italic fw-semibold">White matter binary mask.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">streamline_generator</span> <span class="o">=</span> <span class="n">LocalTracking</span><span class="p">(</span><span class="n">dg</span><span class="p">,</span>
-                                     <span class="n">binary_criterion</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">streamline_generator</span></a> <span class="o">=</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class"><span class="n">LocalTracking</span></a><span class="p">(</span><span class="n">dg</span><span class="p">,</span>
+                                     <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.BinaryStoppingCriterion" title="dipy.tracking.stopping_criterion.BinaryStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">binary_criterion</span></a><span class="p">,</span>
                                      <span class="n">seeds</span><span class="p">,</span>
                                      <span class="n">affine</span><span class="p">,</span>
                                      <span class="n">step_size</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                                      <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><span class="n">streamline_generator</span><span class="p">)</span>
-<span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">hardi_img</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">)</span>
-<span class="n">save_trk</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="s2">&quot;tractogram_deterministic_binary_all.trk&quot;</span><span class="p">)</span>
+<span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">streamline_generator</span></a><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sft</span></a> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class"><span class="n">StatefulTractogram</span></a><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">hardi_img</span><span class="p">,</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.Space" title="dipy.io.stateful_tractogram.Space" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span></a><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.streamline.save_trk" title="dipy.io.streamline.save_trk" class="sphx-glr-backref-module-dipy-io-streamline sphx-glr-backref-type-py-function"><span class="n">save_trk</span></a><span class="p">(</span><a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sft</span></a><span class="p">,</span> <span class="s2">&quot;tractogram_deterministic_binary_all.trk&quot;</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">has_fury</span></a><span class="p">:</span>
     <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
     <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">colormap</span><span class="o">.</span><span class="n">line_colors</span><span class="p">(</span><span class="n">streamlines</span><span class="p">)))</span>
     <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;tractogram_deterministic_binary_all.png&#39;</span><span class="p">,</span>
                   <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">800</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+    <span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
         <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1507,31 +1430,31 @@ streamline is stopping where <code class="docutils literal notranslate"><span cl
 but there is no valid direction to follow.
 - ‘INVALIDPOINT’: <code class="docutils literal notranslate"><span class="pre">exclude_map</span></code> &gt; 0.5; the streamline reach a position
 which is anatomically not plausible.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">f_pve_csf</span><span class="p">,</span> <span class="n">f_pve_gm</span><span class="p">,</span> <span class="n">f_pve_wm</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_pve_maps&#39;</span><span class="p">)</span>
-<span class="n">pve_csf_data</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">f_pve_csf</span><span class="p">)</span>
-<span class="n">pve_gm_data</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">f_pve_gm</span><span class="p">)</span>
-<span class="n">pve_wm_data</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">f_pve_wm</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f_pve_csf</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f_pve_gm</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f_pve_wm</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_pve_maps&#39;</span><span class="p">)</span>
+<span class="n">pve_csf_data</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti_data" title="dipy.io.image.load_nifti_data" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti_data</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f_pve_csf</span></a><span class="p">)</span>
+<span class="n">pve_gm_data</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti_data" title="dipy.io.image.load_nifti_data" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti_data</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f_pve_gm</span></a><span class="p">)</span>
+<span class="n">pve_wm_data</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti_data" title="dipy.io.image.load_nifti_data" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti_data</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f_pve_wm</span></a><span class="p">)</span>
 
-<span class="n">background</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">pve_gm_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">background</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pve_gm_data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">)</span>
 <span class="n">background</span><span class="p">[(</span><span class="n">pve_gm_data</span> <span class="o">+</span> <span class="n">pve_wm_data</span> <span class="o">+</span> <span class="n">pve_csf_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="n">include_map</span> <span class="o">=</span> <span class="n">pve_gm_data</span>
 <span class="n">include_map</span><span class="p">[</span><span class="n">background</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">exclude_map</span> <span class="o">=</span> <span class="n">pve_csf_data</span>
 
-<span class="n">act_criterion</span> <span class="o">=</span> <span class="n">ActStoppingCriterion</span><span class="p">(</span><span class="n">include_map</span><span class="p">,</span> <span class="n">exclude_map</span><span class="p">)</span>
+<a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ActStoppingCriterion" title="dipy.tracking.stopping_criterion.ActStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">act_criterion</span></a> <span class="o">=</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ActStoppingCriterion" title="dipy.tracking.stopping_criterion.ActStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class"><span class="n">ActStoppingCriterion</span></a><span class="p">(</span><span class="n">include_map</span><span class="p">,</span> <span class="n">exclude_map</span><span class="p">)</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([])</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">include_map</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">include_map</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
            <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([])</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">exclude_map</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">exclude_map</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
            <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
 
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
@@ -1539,22 +1462,22 @@ which is anatomically not plausible.</p>
 </pre></div>
 </div>
 <img src="../../_images/sphx_glr_tracking_stopping_criterion_005.png" srcset="../../_images/sphx_glr_tracking_stopping_criterion_005.png" alt="tracking stopping criterion" class = "sphx-glr-single-img"/><p class="centered small fst-italic fw-semibold">Include (left) and exclude (right) maps for ACT.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">streamline_generator</span> <span class="o">=</span> <span class="n">LocalTracking</span><span class="p">(</span><span class="n">dg</span><span class="p">,</span>
-                                     <span class="n">act_criterion</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">streamline_generator</span></a> <span class="o">=</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class"><span class="n">LocalTracking</span></a><span class="p">(</span><span class="n">dg</span><span class="p">,</span>
+                                     <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ActStoppingCriterion" title="dipy.tracking.stopping_criterion.ActStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">act_criterion</span></a><span class="p">,</span>
                                      <span class="n">seeds</span><span class="p">,</span>
                                      <span class="n">affine</span><span class="p">,</span>
                                      <span class="n">step_size</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                                      <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><span class="n">streamline_generator</span><span class="p">)</span>
-<span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">hardi_img</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">)</span>
-<span class="n">save_trk</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="s2">&quot;tractogram_deterministic_act_all.trk&quot;</span><span class="p">)</span>
+<span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">streamline_generator</span></a><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sft</span></a> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class"><span class="n">StatefulTractogram</span></a><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">hardi_img</span><span class="p">,</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.Space" title="dipy.io.stateful_tractogram.Space" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span></a><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.streamline.save_trk" title="dipy.io.streamline.save_trk" class="sphx-glr-backref-module-dipy-io-streamline sphx-glr-backref-type-py-function"><span class="n">save_trk</span></a><span class="p">(</span><a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sft</span></a><span class="p">,</span> <span class="s2">&quot;tractogram_deterministic_act_all.trk&quot;</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">has_fury</span></a><span class="p">:</span>
     <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
     <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">colormap</span><span class="o">.</span><span class="n">line_colors</span><span class="p">(</span><span class="n">streamlines</span><span class="p">)))</span>
     <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;tractogram_deterministic_act_all.png&#39;</span><span class="p">,</span>
                   <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">800</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+    <span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
         <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1562,22 +1485,22 @@ which is anatomically not plausible.</p>
 <dt>Corpus Callosum using deterministic tractography with ACT stopping</dt><dd><p>criterion.</p>
 </dd>
 </dl>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">streamline_generator</span> <span class="o">=</span> <span class="n">LocalTracking</span><span class="p">(</span><span class="n">dg</span><span class="p">,</span>
-                                     <span class="n">act_criterion</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">streamline_generator</span></a> <span class="o">=</span> <a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class"><span class="n">LocalTracking</span></a><span class="p">(</span><span class="n">dg</span><span class="p">,</span>
+                                     <a href="../../reference/dipy.tracking.html#dipy.tracking.stopping_criterion.ActStoppingCriterion" title="dipy.tracking.stopping_criterion.ActStoppingCriterion" class="sphx-glr-backref-module-dipy-tracking-stopping_criterion sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">act_criterion</span></a><span class="p">,</span>
                                      <span class="n">seeds</span><span class="p">,</span>
                                      <span class="n">affine</span><span class="p">,</span>
                                      <span class="n">step_size</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                                      <span class="n">return_all</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><span class="n">streamline_generator</span><span class="p">)</span>
-<span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">hardi_img</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">)</span>
-<span class="n">save_trk</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="s2">&quot;tractogram_deterministic_act_valid.trk&quot;</span><span class="p">)</span>
+<span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><a href="../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking" title="dipy.tracking.local_tracking.LocalTracking" class="sphx-glr-backref-module-dipy-tracking-local_tracking sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">streamline_generator</span></a><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sft</span></a> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class"><span class="n">StatefulTractogram</span></a><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">hardi_img</span><span class="p">,</span> <a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.Space" title="dipy.io.stateful_tractogram.Space" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span></a><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.streamline.save_trk" title="dipy.io.streamline.save_trk" class="sphx-glr-backref-module-dipy-io-streamline sphx-glr-backref-type-py-function"><span class="n">save_trk</span></a><span class="p">(</span><a href="../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram" title="dipy.io.stateful_tractogram.StatefulTractogram" class="sphx-glr-backref-module-dipy-io-stateful_tractogram sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sft</span></a><span class="p">,</span> <span class="s2">&quot;tractogram_deterministic_act_valid.trk&quot;</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">has_fury</span></a><span class="p">:</span>
     <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
     <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">colormap</span><span class="o">.</span><span class="n">line_colors</span><span class="p">(</span><span class="n">streamlines</span><span class="p">)))</span>
     <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;tractogram_deterministic_act_valid.png&#39;</span><span class="p">,</span>
                   <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">800</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+    <span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
         <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1614,7 +1537,7 @@ Towards quantitative connectivity analysis: reducing tractography biases.
 NeuroImage, 98, 266-278, 2014.</p>
 </div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 17.628 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 59.866 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-fiber-tracking-tracking-stopping-criterion-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/c647ff2e080021d4296d0e10243cc4a4/tracking_stopping_criterion.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">tracking_stopping_criterion.ipynb</span></code></a></p>
@@ -1923,7 +1846,7 @@ NeuroImage, 98, 266-278, 2014.</p>
         
         <li class="pad-v-5">
           <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
-            Google supported DIPY through the Google Summer of Code Program during Summer 2015, 2016, 2018
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
             <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
           </a>
         </li>
@@ -1939,7 +1862,7 @@ NeuroImage, 98, 266-278, 2014.</p>
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2023, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

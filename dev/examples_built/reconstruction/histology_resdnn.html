@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>DIPY &#8212; dipy 1.8.0 documentation</title>
+    <title>DIPY &#8212; dipy 1.9.0.dev0+897.c022ef2 documentation</title>
   
   
   
@@ -44,10 +44,23 @@
   
 <link rel="stylesheet" href="../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../_static/documentation_options.js?v=de230f84"></script>
+    <script src="../../_static/documentation_options.js?v=0cc407d3"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples_built/reconstruction/histology_resdnn';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
@@ -830,8 +843,8 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="restore_dti.html">Using the RESTORE algorithm for robust tensor fitting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_sh.html">Signal Reconstruction Using Spherical Harmonics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_fwdti.html">Using the free water elimination model to remove DTI free water contamination</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_ivim.html">Intravoxel incoherent motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_mcsd.html">Reconstruction with Multi-Shell Multi-Tissue CSD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_mapmri.html">Continuous and analytical diffusion signal modelling with MAP-MRI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_msdki.html">Mean signal diffusion kurtosis imaging (MSDKI)</a></li>
@@ -995,67 +1008,55 @@ and validated on a third. A second validation was performed on HCP datasets.</p>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">ndi</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <span class="n">get_sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <a href="../../reference/dipy.data.html#dipy.data.get_sphere" title="dipy.data.get_sphere" class="sphx-glr-backref-module-dipy-data sphx-glr-backref-type-py-function"><span class="n">get_sphere</span></a>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">,</span> <a href="../../reference/dipy.io.html#dipy.io.image.save_nifti" title="dipy.io.image.save_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">save_nifti</span></a>
 <span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.nn.histo_resdnn</span> <span class="kn">import</span> <span class="n">HistoResDNN</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">sh_to_sf_matrix</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <span class="n">median_otsu</span>
+<span class="kn">from</span> <span class="nn">dipy.nn.histo_resdnn</span> <span class="kn">import</span> <a href="../../reference/dipy.nn.html#dipy.nn.histo_resdnn.HistoResDNN" title="dipy.nn.histo_resdnn.HistoResDNN" class="sphx-glr-backref-module-dipy-nn-histo_resdnn sphx-glr-backref-type-py-class"><span class="n">HistoResDNN</span></a>
+<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.shm.sh_to_sf_matrix" title="dipy.reconst.shm.sh_to_sf_matrix" class="sphx-glr-backref-module-dipy-reconst-shm sphx-glr-backref-type-py-function"><span class="n">sh_to_sf_matrix</span></a>
+<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a>
 <span class="kn">from</span> <span class="nn">dipy.viz</span> <span class="kn">import</span> <span class="n">window</span><span class="p">,</span> <span class="n">actor</span>
 
 
 <span class="c1"># Disable oneDNN warning</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TF_CPP_MIN_LOG_LEVEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
+<a href="https://docs.python.org/3/library/os.html#os.environ" title="os.environ" class="sphx-glr-backref-module-os sphx-glr-backref-type-py-data"><span class="n">os</span><span class="o">.</span><span class="n">environ</span></a><span class="p">[</span><span class="s1">&#39;TF_CPP_MIN_LOG_LEVEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
 </pre></div>
 </div>
 <p>This ResDNN model requires single-shell data with one or more b0s, the data
 is fetched and a gradient table is constructed from bvals/bvecs.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fetch DWI and GTAB</span>
-<span class="n">hardi_fname</span><span class="p">,</span> <span class="n">hardi_bval_fname</span><span class="p">,</span> <span class="n">hardi_bvec_fname</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
-<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">hardi_fname</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">)</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">hardi_bval_fname</span><span class="p">,</span> <span class="n">hardi_bvec_fname</span><span class="p">)</span>
-<span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
+<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a><span class="p">)</span>
+<a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>To accelerate computation, a brain mask must be computed. The resulting mask
 is saved for visual inspection.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">mean_b0</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">mean_b0</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span>
 <span class="n">mean_b0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mean_b0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">_</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">median_otsu</span><span class="p">(</span><span class="n">mean_b0</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_</span></a><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a><span class="p">(</span><span class="n">mean_b0</span><span class="p">)</span>
 
-<span class="n">mask_labeled</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+<span class="n">mask_labeled</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_</span></a> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 <span class="n">unique</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">mask_labeled</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">val</span> <span class="o">=</span> <span class="n">unique</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">count</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
 <span class="n">mask</span><span class="p">[</span><span class="n">mask_labeled</span> <span class="o">!=</span> <span class="n">val</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
-<span class="n">save_nifti</span><span class="p">(</span><span class="s1">&#39;mask.nii.gz&#39;</span><span class="p">,</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="n">affine</span><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.image.save_nifti" title="dipy.io.image.save_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">save_nifti</span></a><span class="p">(</span><span class="s1">&#39;mask.nii.gz&#39;</span><span class="p">,</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="n">affine</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Using a ResDNN for sh_order 8 (default) and load the appropriate weights.
 Fit the data and save the resulting fODF.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">resdnn_model</span> <span class="o">=</span> <span class="n">HistoResDNN</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">resdnn_model</span><span class="o">.</span><span class="n">fetch_default_weights</span><span class="p">()</span>
-<span class="n">predicted_sh</span> <span class="o">=</span> <span class="n">resdnn_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.nn.html#dipy.nn.histo_resdnn.HistoResDNN" title="dipy.nn.histo_resdnn.HistoResDNN" class="sphx-glr-backref-module-dipy-nn-histo_resdnn sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">resdnn_model</span></a> <span class="o">=</span> <a href="../../reference/dipy.nn.html#dipy.nn.histo_resdnn.HistoResDNN" title="dipy.nn.histo_resdnn.HistoResDNN" class="sphx-glr-backref-module-dipy-nn-histo_resdnn sphx-glr-backref-type-py-class"><span class="n">HistoResDNN</span></a><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a href="../../reference/dipy.nn.html#dipy.nn.histo_resdnn.HistoResDNN.fetch_default_weights" title="dipy.nn.histo_resdnn.HistoResDNN.fetch_default_weights" class="sphx-glr-backref-module-dipy-nn-histo_resdnn sphx-glr-backref-type-py-method"><span class="n">resdnn_model</span><span class="o">.</span><span class="n">fetch_default_weights</span></a><span class="p">()</span>
+<span class="n">predicted_sh</span> <span class="o">=</span> <a href="../../reference/dipy.nn.html#dipy.nn.histo_resdnn.HistoResDNN.predict" title="dipy.nn.histo_resdnn.HistoResDNN.predict" class="sphx-glr-backref-module-dipy-nn-histo_resdnn sphx-glr-backref-type-py-method"><span class="n">resdnn_model</span><span class="o">.</span><span class="n">predict</span></a><span class="p">(</span><span class="n">data</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
 
-<span class="n">save_nifti</span><span class="p">(</span><span class="s1">&#39;predicted_sh.nii.gz&#39;</span><span class="p">,</span> <span class="n">predicted_sh</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+<a href="../../reference/dipy.io.html#dipy.io.image.save_nifti" title="dipy.io.image.save_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">save_nifti</span></a><span class="p">(</span><span class="s1">&#39;predicted_sh.nii.gz&#39;</span><span class="p">,</span> <span class="n">predicted_sh</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>  0%|                                                                                                                              | 0/20 [00:00&lt;?, ? MB/s]
- 10%|███████████▊                                                                                                          | 2/20 [00:00&lt;00:01, 16.75 MB/s]
- 20%|███████████████████████▌                                                                                              | 4/20 [00:00&lt;00:00, 17.72 MB/s]
- 45%|█████████████████████████████████████████████████████                                                                 | 9/20 [00:00&lt;00:00, 27.25 MB/s]
-100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 20/20 [00:00&lt;00:00, 43.68 MB/s]
-
- 1/32 [..............................] - ETA: 6s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 910us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span> 1/32 [..............................] - ETA: 1:02
+32/32 [==============================] - 2s 2ms/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
@@ -1067,7 +1068,112 @@ Fit the data and save the resulting fODF.</p>
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 976us/step
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 996us/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
@@ -1079,19 +1185,112 @@ Fit the data and save the resulting fODF.</p>
 32/32 [==============================] - 0s 975us/step
 
  1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 941us/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 974us/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
@@ -1106,14 +1305,16 @@ Fit the data and save the resulting fODF.</p>
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 978us/step
+32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
+32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-21/32 [==================&gt;...........] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
@@ -1127,15 +1328,6 @@ Fit the data and save the resulting fODF.</p>
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
 
- 1/32 [..............................] - ETA: 1s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
 
@@ -1143,10 +1335,169 @@ Fit the data and save the resulting fODF.</p>
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
+32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1000us/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 988us/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1000us/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 994us/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 968us/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 972us/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
+
+ 1/32 [..............................] - ETA: 0s
+32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
@@ -1173,342 +1524,9 @@ Fit the data and save the resulting fODF.</p>
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 973us/step
-
- 1/32 [..............................] - ETA: 0s
-26/32 [=======================&gt;......] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-25/32 [======================&gt;.......] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-31/32 [============================&gt;.] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 976us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 973us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 1s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 977us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 977us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-29/32 [==========================&gt;...] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 1s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 977us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-29/32 [==========================&gt;...] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 976us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-29/32 [==========================&gt;...] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-26/32 [=======================&gt;......] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 977us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 976us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 978us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 973us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 910us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-29/32 [==========================&gt;...] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 977us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 976us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
-
- 1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
@@ -1516,15 +1534,6 @@ Fit the data and save the resulting fODF.</p>
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 974us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 2ms/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
@@ -1536,34 +1545,21 @@ Fit the data and save the resulting fODF.</p>
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
+32/32 [==============================] - 0s 1000us/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 977us/step
+32/32 [==============================] - 0s 979us/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 976us/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
-
- 1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 975us/step
-
- 1/32 [..............................] - ETA: 0s
-21/32 [==================&gt;...........] - ETA: 0s
-32/32 [==============================] - 0s 3ms/step
-
- 1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
@@ -1582,7 +1578,7 @@ Fit the data and save the resulting fODF.</p>
 32/32 [==============================] - 0s 1ms/step
 
  1/32 [..............................] - ETA: 0s
-32/32 [==============================] - 0s 1ms/step
+32/32 [==============================] - 0s 971us/step
 
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
@@ -1596,17 +1592,17 @@ Fit the data and save the resulting fODF.</p>
  1/32 [..............................] - ETA: 0s
 32/32 [==============================] - 0s 1ms/step
 
- 1/23 [&gt;.............................] - ETA: 0s
-23/23 [==============================] - 0s 2ms/step
+1/8 [==&gt;...........................] - ETA: 0s
+8/8 [==============================] - 0s 1ms/step
 </pre></div>
 </div>
 <p>Preparing the scene using FURY. The ODF slicer and the background image are
 added as actors and a mid-coronal slice is selected.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">interactive</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="n">sphere</span> <span class="o">=</span> <span class="n">get_sphere</span><span class="p">(</span><span class="s1">&#39;repulsion724&#39;</span><span class="p">)</span>
-<span class="n">B</span><span class="p">,</span> <span class="n">invB</span> <span class="o">=</span> <span class="n">sh_to_sf_matrix</span><span class="p">(</span><span class="n">sphere</span><span class="p">,</span> <span class="n">sh_order</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-                          <span class="n">basis_type</span><span class="o">=</span><span class="n">resdnn_model</span><span class="o">.</span><span class="n">basis_type</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mf">0.0006</span><span class="p">)</span>
-<span class="n">fod_spheres</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">odf_slicer</span><span class="p">(</span><span class="n">predicted_sh</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a> <span class="o">=</span> <span class="kc">False</span>
+<a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a> <span class="o">=</span> <a href="../../reference/dipy.data.html#dipy.data.get_sphere" title="dipy.data.get_sphere" class="sphx-glr-backref-module-dipy-data sphx-glr-backref-type-py-function"><span class="n">get_sphere</span></a><span class="p">(</span><span class="s1">&#39;repulsion724&#39;</span><span class="p">)</span>
+<span class="n">B</span><span class="p">,</span> <span class="n">invB</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.shm.sh_to_sf_matrix" title="dipy.reconst.shm.sh_to_sf_matrix" class="sphx-glr-backref-module-dipy-reconst-shm sphx-glr-backref-type-py-function"><span class="n">sh_to_sf_matrix</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="p">,</span> <span class="n">sh_order</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                          <span class="n">basis_type</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">resdnn_model</span><span class="o">.</span><span class="n">basis_type</span></a><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mf">0.0006</span><span class="p">)</span>
+<span class="n">fod_spheres</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">odf_slicer</span><span class="p">(</span><span class="n">predicted_sh</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="p">,</span>
                                <span class="n">scale</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">B_matrix</span><span class="o">=</span><span class="n">B</span><span class="p">)</span>
 
 <span class="n">mean_sh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">predicted_sh</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -1614,14 +1610,14 @@ added as actors and a mid-coronal slice is selected.</p>
                               <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
 
 <span class="c1"># Select the mid coronal slice for slicer</span>
-<span class="n">ori_shape</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
-<span class="n">slice_index</span> <span class="o">=</span> <span class="n">ori_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
-<span class="n">fod_spheres</span><span class="o">.</span><span class="n">display_extent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ori_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                           <span class="n">slice_index</span><span class="p">,</span> <span class="n">slice_index</span><span class="p">,</span>
-                           <span class="mi">0</span><span class="p">,</span> <span class="n">ori_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-<span class="n">background_img</span><span class="o">.</span><span class="n">display_extent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ori_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                              <span class="n">slice_index</span><span class="p">,</span> <span class="n">slice_index</span><span class="p">,</span>
-                              <span class="mi">0</span><span class="p">,</span> <span class="n">ori_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mask</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">slice_index</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+<span class="n">fod_spheres</span><span class="o">.</span><span class="n">display_extent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                           <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">slice_index</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">slice_index</span></a><span class="p">,</span>
+                           <span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">background_img</span><span class="o">.</span><span class="n">display_extent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                              <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">slice_index</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">slice_index</span></a><span class="p">,</span>
+                              <span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
 <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
 <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fod_spheres</span><span class="p">)</span>
@@ -1632,25 +1628,25 @@ added as actors and a mid-coronal slice is selected.</p>
 screenshot the resulting prediction. FODF should be aligned with the
 curvature of the corpus callosum and a single-fiber population should be
 visible.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">camera</span> <span class="o">=</span> <span class="p">{</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">camera</span></a> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;zoom_factor&#39;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
     <span class="s1">&#39;view_position&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-        <span class="p">(</span><span class="n">ori_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
-        <span class="nb">max</span><span class="p">(</span><span class="n">ori_shape</span><span class="p">),</span>
-        <span class="p">(</span><span class="n">ori_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.5</span><span class="p">]),</span>
+        <span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="nb">max</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">),</span>
+        <span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.5</span><span class="p">]),</span>
     <span class="s1">&#39;view_center&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-        <span class="p">(</span><span class="n">ori_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
-        <span class="n">slice_index</span><span class="p">,</span>
-        <span class="p">(</span><span class="n">ori_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.5</span><span class="p">]),</span>
+        <span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
+        <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">slice_index</span></a><span class="p">,</span>
+        <span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ori_shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.5</span><span class="p">]),</span>
     <span class="s1">&#39;up_vector&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
 <span class="p">}</span>
 
-<span class="n">scene</span><span class="o">.</span><span class="n">set_camera</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">camera</span><span class="p">[</span><span class="s1">&#39;view_position&#39;</span><span class="p">],</span>
-                 <span class="n">focal_point</span><span class="o">=</span><span class="n">camera</span><span class="p">[</span><span class="s1">&#39;view_center&#39;</span><span class="p">],</span>
-                 <span class="n">view_up</span><span class="o">=</span><span class="n">camera</span><span class="p">[</span><span class="s1">&#39;up_vector&#39;</span><span class="p">])</span>
-<span class="n">scene</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="n">camera</span><span class="p">[</span><span class="s1">&#39;zoom_factor&#39;</span><span class="p">])</span>
+<span class="n">scene</span><span class="o">.</span><span class="n">set_camera</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">camera</span></a><span class="p">[</span><span class="s1">&#39;view_position&#39;</span><span class="p">],</span>
+                 <span class="n">focal_point</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">camera</span></a><span class="p">[</span><span class="s1">&#39;view_center&#39;</span><span class="p">],</span>
+                 <span class="n">view_up</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">camera</span></a><span class="p">[</span><span class="s1">&#39;up_vector&#39;</span><span class="p">])</span>
+<span class="n">scene</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">camera</span></a><span class="p">[</span><span class="s1">&#39;zoom_factor&#39;</span><span class="p">])</span>
 
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">reset_camera</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;pred_fODF.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
@@ -1678,7 +1674,7 @@ distributions than constrained spherical deconvolution.
 arXiv preprint arXiv:1911.07927.</p>
 </aside>
 </aside>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 54.420 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 50.404 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-reconstruction-histology-resdnn-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/62b8086c6137d406eb594e2d5652e8db/histology_resdnn.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">histology_resdnn.ipynb</span></code></a></p>
@@ -1980,7 +1976,7 @@ arXiv preprint arXiv:1911.07927.</p>
         
         <li class="pad-v-5">
           <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
-            Google supported DIPY through the Google Summer of Code Program during Summer 2015, 2016, 2018
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
             <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
           </a>
         </li>
@@ -1996,7 +1992,7 @@ arXiv preprint arXiv:1911.07927.</p>
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2023, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

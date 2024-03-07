@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>DIPY &#8212; dipy 1.8.0 documentation</title>
+    <title>DIPY &#8212; dipy 1.9.0.dev0+897.c022ef2 documentation</title>
   
   
   
@@ -44,10 +44,23 @@
   
 <link rel="stylesheet" href="../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../_static/documentation_options.js?v=de230f84"></script>
+    <script src="../../_static/documentation_options.js?v=0cc407d3"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples_built/preprocessing/gradients_spheres';</script>
     <script>
@@ -831,8 +844,8 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/restore_dti.html">Using the RESTORE algorithm for robust tensor fitting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_sh.html">Signal Reconstruction Using Spherical Harmonics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_fwdti.html">Using the free water elimination model to remove DTI free water contamination</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_ivim.html">Intravoxel incoherent motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mcsd.html">Reconstruction with Multi-Shell Multi-Tissue CSD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mapmri.html">Continuous and analytical diffusion signal modelling with MAP-MRI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_msdki.html">Mean signal diffusion kurtosis imaging (MSDKI)</a></li>
@@ -1002,40 +1015,40 @@ we want to have the points on the sphere evenly distributed.</p>
 electrostatic repulsion <a class="reference internal" href="#jones1999" id="id1"><span>[Jones1999]</span></a>.</p>
 <p>Let’s start by importing the necessary modules.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
-<span class="kn">from</span> <span class="nn">dipy.core.sphere</span> <span class="kn">import</span> <span class="n">disperse_charges</span><span class="p">,</span> <span class="n">Sphere</span><span class="p">,</span> <span class="n">HemiSphere</span>
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
+<span class="kn">from</span> <span class="nn">dipy.core.sphere</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.disperse_charges" title="dipy.core.sphere.disperse_charges" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-function"><span class="n">disperse_charges</span></a><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class"><span class="n">Sphere</span></a><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class"><span class="n">HemiSphere</span></a>
 <span class="kn">from</span> <span class="nn">dipy.viz</span> <span class="kn">import</span> <span class="n">window</span><span class="p">,</span> <span class="n">actor</span>
 </pre></div>
 </div>
 <p>We can first create some random points on a <code class="docutils literal notranslate"><span class="pre">HemiSphere</span></code> using spherical
 polar coordinates.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
-<span class="n">n_pts</span> <span class="o">=</span> <span class="mi">64</span>
-<span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n_pts</span><span class="p">)</span>
-<span class="n">phi</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n_pts</span><span class="p">)</span>
-<span class="n">hsph_initial</span> <span class="o">=</span> <span class="n">HemiSphere</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="o">=</span><span class="n">phi</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_pts</span></a> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">theta</span> <span class="o">=</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">pi</span></a> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_pts</span></a><span class="p">)</span>
+<span class="n">phi</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">pi</span></a> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_pts</span></a><span class="p">)</span>
+<a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hsph_initial</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class"><span class="n">HemiSphere</span></a><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="o">=</span><span class="n">phi</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Next, we call <code class="docutils literal notranslate"><span class="pre">disperse_charges</span></code> which will iteratively move the points so
 that the electrostatic potential energy is minimized.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">hsph_updated</span><span class="p">,</span> <span class="n">potential</span> <span class="o">=</span> <span class="n">disperse_charges</span><span class="p">(</span><span class="n">hsph_initial</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hsph_updated</span></a><span class="p">,</span> <span class="n">potential</span> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.disperse_charges" title="dipy.core.sphere.disperse_charges" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-function"><span class="n">disperse_charges</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hsph_initial</span></a><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In <code class="docutils literal notranslate"><span class="pre">hsph_updated</span></code> we have the updated <code class="docutils literal notranslate"><span class="pre">HemiSphere</span></code> with the points nicely
 distributed on the hemisphere. Let’s visualize them.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enables/disables interactive visualization</span>
-<span class="n">interactive</span> <span class="o">=</span> <span class="kc">False</span>
+<a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
 <span class="n">scene</span><span class="o">.</span><span class="n">SetBackground</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-<span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">hsph_initial</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">red</span><span class="p">,</span>
+<span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hsph_initial</span></a><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">red</span></a><span class="p">,</span>
                       <span class="n">point_radius</span><span class="o">=</span><span class="mf">0.05</span><span class="p">))</span>
-<span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">hsph_updated</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">green</span><span class="p">,</span>
+<span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hsph_updated</span></a><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">green</span></a><span class="p">,</span>
                       <span class="n">point_radius</span><span class="o">=</span><span class="mf">0.05</span><span class="p">))</span>
 
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;initial_vs_updated.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1043,13 +1056,13 @@ distributed on the hemisphere. Let’s visualize them.</p>
 green points.</p>
 <p>We can also create a sphere from the hemisphere and show it in the
 following way.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">sph</span> <span class="o">=</span> <span class="n">Sphere</span><span class="p">(</span><span class="n">xyz</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">hsph_updated</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="o">-</span><span class="n">hsph_updated</span><span class="o">.</span><span class="n">vertices</span><span class="p">)))</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sph</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class"><span class="n">Sphere</span></a><span class="p">(</span><span class="n">xyz</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hsph_updated</span></a><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="o">-</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hsph_updated</span></a><span class="o">.</span><span class="n">vertices</span><span class="p">)))</span>
 
 <span class="n">scene</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-<span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">sph</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">green</span><span class="p">,</span> <span class="n">point_radius</span><span class="o">=</span><span class="mf">0.05</span><span class="p">))</span>
+<span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sph</span></a><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">green</span></a><span class="p">,</span> <span class="n">point_radius</span><span class="o">=</span><span class="mf">0.05</span><span class="p">))</span>
 
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;full_sphere.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1057,8 +1070,8 @@ following way.</p>
 <p>It is time to create the Gradients. For this purpose we will use the
 function <code class="docutils literal notranslate"><span class="pre">gradient_table</span></code> and fill it with the <code class="docutils literal notranslate"><span class="pre">hsph_updated</span></code> vectors
 that we created above.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">vertices</span> <span class="o">=</span> <span class="n">hsph_updated</span><span class="o">.</span><span class="n">vertices</span>
-<span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">vertices</span> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hsph_updated</span></a><span class="o">.</span><span class="n">vertices</span>
+<span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>We need two stacks of <code class="docutils literal notranslate"><span class="pre">vertices</span></code>, one for every shell, and we need two sets
@@ -1069,8 +1082,8 @@ previously.</p>
 </pre></div>
 </div>
 <p>We can also add some b0s. Let’s add one at the beginning and one at the end.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">bvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">bvecs</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">bvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">bvals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">bvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">bvecs</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bvecs</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">bvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bvals</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">bvals</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">bvecs</span><span class="p">)</span>
@@ -1087,157 +1100,157 @@ previously.</p>
  2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500.
  2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500.
  2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500. 2500.    0.]
-[[ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
- [ 4.27885155e-01 -3.64159326e-01  8.27225652e-01]
- [-7.04956532e-01  4.14476942e-03  7.09238401e-01]
- [ 6.48231836e-03  4.14724759e-02  9.99118618e-01]
- [-2.00922316e-01  9.45151719e-01  2.57523690e-01]
- [ 4.64420512e-01  9.15781188e-02  8.80867207e-01]
- [-4.95126627e-01 -8.65137634e-01  7.99155582e-02]
- [ 2.60252416e-01 -9.00425673e-02  9.61332937e-01]
- [ 6.90254498e-01 -6.27307059e-01  3.60603081e-01]
- [-8.47183356e-01 -2.20574051e-01  4.83350236e-01]
- [ 6.14125513e-01  2.69816089e-01  7.41652973e-01]
- [-3.65810184e-01  7.09091550e-01  6.02803519e-01]
- [ 7.37797281e-01  6.66794736e-01  1.05071178e-01]
- [ 5.30152910e-01 -8.47732225e-01  1.69695667e-02]
- [ 2.43331519e-01 -9.69521432e-01  2.86000650e-02]
- [ 5.22564143e-01 -5.81940542e-01  6.23114694e-01]
- [-2.00411690e-01  5.18859166e-01  8.31035692e-01]
- [ 9.09236625e-01 -4.16271490e-01  2.60896368e-03]
- [ 7.80550544e-01  3.23850748e-01  5.34660211e-01]
- [-3.96064718e-01 -8.52281460e-01  3.41685604e-01]
- [-9.09835740e-01  8.95468440e-02  4.05191670e-01]
- [ 9.51188733e-01  3.00786901e-01  6.90451676e-02]
- [ 7.93070189e-01  5.12520447e-01  3.29184549e-01]
- [-9.66782014e-01  2.01089180e-01  1.57783647e-01]
- [-1.01069525e-01 -9.18025460e-01  3.83424315e-01]
- [-5.11557516e-01  1.80938562e-01  8.39982228e-01]
- [-9.61383543e-01 -1.75562311e-01  2.11942345e-01]
- [-7.07862309e-01 -4.95208621e-01  5.03685788e-01]
- [-7.63824336e-01  6.00533276e-01  2.36499825e-01]
- [-1.32508829e-01 -2.89067045e-01  9.48093695e-01]
- [-1.12065103e-01 -9.91460692e-01  6.66866436e-02]
- [ 2.47163529e-01 -6.20706070e-01  7.44065968e-01]
- [ 1.26151379e-01  5.47377861e-01  8.27322976e-01]
- [-3.01437214e-01 -6.82193078e-03  9.53461624e-01]
- [ 1.97581082e-01  2.82253815e-01  9.38772869e-01]
- [ 7.99438100e-01 -6.43088764e-02  5.97296486e-01]
- [-9.37956803e-02  7.61572643e-01  6.41256174e-01]
- [ 6.13171913e-01 -1.66345739e-01  7.72236557e-01]
- [ 3.53787832e-01  8.38142282e-01  4.15152605e-01]
- [-2.64290833e-01 -7.51043362e-01  6.05048944e-01]
- [ 1.37789170e-01 -3.67265431e-01  9.19853384e-01]
- [-4.47688569e-01 -5.58048740e-01  6.98682008e-01]
- [ 8.71511170e-02 -7.91995691e-01  6.04274365e-01]
- [ 9.20178672e-01 -2.75742692e-01  2.77915777e-01]
- [-4.09793985e-01 -2.64951228e-01  8.72851497e-01]
- [-8.47828696e-01 -5.11290023e-01  1.40602328e-01]
- [-5.17479328e-01  4.49340714e-01  7.28222540e-01]
- [-4.58545459e-01  8.19730483e-01  3.43187991e-01]
- [-1.08331445e-01 -5.73162399e-01  8.12249446e-01]
- [ 5.64081315e-01  6.39019407e-01  5.22940214e-01]
- [ 9.91596059e-01 -1.48597307e-04  1.29372460e-01]
- [ 1.74627718e-01  7.76592265e-01  6.05317780e-01]
- [ 4.64336996e-01  8.67491316e-01  1.78465601e-01]
- [-1.87691754e-01  2.73805354e-01  9.43293397e-01]
- [ 1.94403472e-01 -9.27721773e-01  3.18652792e-01]
- [ 8.59382086e-02  9.55431988e-01  2.82425816e-01]
- [-6.58213108e-01 -6.86074216e-01  3.09931726e-01]
- [ 7.67597364e-01 -3.77106875e-01  5.18251571e-01]
- [-6.33868483e-01 -2.87414687e-01  7.18055391e-01]
- [ 4.46964089e-01 -8.09944164e-01  3.79754597e-01]
- [-7.78018827e-01  2.86908466e-01  5.58900919e-01]
- [ 4.17480219e-01  4.99431568e-01  7.59130012e-01]
- [-6.65355974e-01  5.65040013e-01  4.87884425e-01]
- [ 7.50682215e-01 -6.56091908e-01  7.75862147e-02]
- [ 9.13578748e-01  1.02792752e-01  3.93455869e-01]
- [ 4.27885155e-01 -3.64159326e-01  8.27225652e-01]
- [-7.04956532e-01  4.14476942e-03  7.09238401e-01]
- [ 6.48231836e-03  4.14724759e-02  9.99118618e-01]
- [-2.00922316e-01  9.45151719e-01  2.57523690e-01]
- [ 4.64420512e-01  9.15781188e-02  8.80867207e-01]
- [-4.95126627e-01 -8.65137634e-01  7.99155582e-02]
- [ 2.60252416e-01 -9.00425673e-02  9.61332937e-01]
- [ 6.90254498e-01 -6.27307059e-01  3.60603081e-01]
- [-8.47183356e-01 -2.20574051e-01  4.83350236e-01]
- [ 6.14125513e-01  2.69816089e-01  7.41652973e-01]
- [-3.65810184e-01  7.09091550e-01  6.02803519e-01]
- [ 7.37797281e-01  6.66794736e-01  1.05071178e-01]
- [ 5.30152910e-01 -8.47732225e-01  1.69695667e-02]
- [ 2.43331519e-01 -9.69521432e-01  2.86000650e-02]
- [ 5.22564143e-01 -5.81940542e-01  6.23114694e-01]
- [-2.00411690e-01  5.18859166e-01  8.31035692e-01]
- [ 9.09236625e-01 -4.16271490e-01  2.60896368e-03]
- [ 7.80550544e-01  3.23850748e-01  5.34660211e-01]
- [-3.96064718e-01 -8.52281460e-01  3.41685604e-01]
- [-9.09835740e-01  8.95468440e-02  4.05191670e-01]
- [ 9.51188733e-01  3.00786901e-01  6.90451676e-02]
- [ 7.93070189e-01  5.12520447e-01  3.29184549e-01]
- [-9.66782014e-01  2.01089180e-01  1.57783647e-01]
- [-1.01069525e-01 -9.18025460e-01  3.83424315e-01]
- [-5.11557516e-01  1.80938562e-01  8.39982228e-01]
- [-9.61383543e-01 -1.75562311e-01  2.11942345e-01]
- [-7.07862309e-01 -4.95208621e-01  5.03685788e-01]
- [-7.63824336e-01  6.00533276e-01  2.36499825e-01]
- [-1.32508829e-01 -2.89067045e-01  9.48093695e-01]
- [-1.12065103e-01 -9.91460692e-01  6.66866436e-02]
- [ 2.47163529e-01 -6.20706070e-01  7.44065968e-01]
- [ 1.26151379e-01  5.47377861e-01  8.27322976e-01]
- [-3.01437214e-01 -6.82193078e-03  9.53461624e-01]
- [ 1.97581082e-01  2.82253815e-01  9.38772869e-01]
- [ 7.99438100e-01 -6.43088764e-02  5.97296486e-01]
- [-9.37956803e-02  7.61572643e-01  6.41256174e-01]
- [ 6.13171913e-01 -1.66345739e-01  7.72236557e-01]
- [ 3.53787832e-01  8.38142282e-01  4.15152605e-01]
- [-2.64290833e-01 -7.51043362e-01  6.05048944e-01]
- [ 1.37789170e-01 -3.67265431e-01  9.19853384e-01]
- [-4.47688569e-01 -5.58048740e-01  6.98682008e-01]
- [ 8.71511170e-02 -7.91995691e-01  6.04274365e-01]
- [ 9.20178672e-01 -2.75742692e-01  2.77915777e-01]
- [-4.09793985e-01 -2.64951228e-01  8.72851497e-01]
- [-8.47828696e-01 -5.11290023e-01  1.40602328e-01]
- [-5.17479328e-01  4.49340714e-01  7.28222540e-01]
- [-4.58545459e-01  8.19730483e-01  3.43187991e-01]
- [-1.08331445e-01 -5.73162399e-01  8.12249446e-01]
- [ 5.64081315e-01  6.39019407e-01  5.22940214e-01]
- [ 9.91596059e-01 -1.48597307e-04  1.29372460e-01]
- [ 1.74627718e-01  7.76592265e-01  6.05317780e-01]
- [ 4.64336996e-01  8.67491316e-01  1.78465601e-01]
- [-1.87691754e-01  2.73805354e-01  9.43293397e-01]
- [ 1.94403472e-01 -9.27721773e-01  3.18652792e-01]
- [ 8.59382086e-02  9.55431988e-01  2.82425816e-01]
- [-6.58213108e-01 -6.86074216e-01  3.09931726e-01]
- [ 7.67597364e-01 -3.77106875e-01  5.18251571e-01]
- [-6.33868483e-01 -2.87414687e-01  7.18055391e-01]
- [ 4.46964089e-01 -8.09944164e-01  3.79754597e-01]
- [-7.78018827e-01  2.86908466e-01  5.58900919e-01]
- [ 4.17480219e-01  4.99431568e-01  7.59130012e-01]
- [-6.65355974e-01  5.65040013e-01  4.87884425e-01]
- [ 7.50682215e-01 -6.56091908e-01  7.75862147e-02]
- [ 9.13578748e-01  1.02792752e-01  3.93455869e-01]
- [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]]
+[[ 0.          0.          0.        ]
+ [-0.63996136 -0.44439965  0.62686395]
+ [-0.75440897  0.60871441  0.24562956]
+ [ 0.98294554 -0.14395517  0.11443327]
+ [-0.18514446 -0.01717564  0.98256121]
+ [-0.17136791 -0.94579123  0.275884  ]
+ [ 0.07448775  0.44526699  0.89229417]
+ [ 0.44912135  0.7311377   0.51354424]
+ [ 0.88021744 -0.30340889  0.36491137]
+ [ 0.0172223   0.91751007  0.39733949]
+ [ 0.41930481 -0.40200301  0.81398836]
+ [ 0.74877952  0.58356541  0.31429389]
+ [-0.94831563 -0.26376272  0.17642761]
+ [ 0.41410954 -0.89837931  0.14638274]
+ [ 0.30459549  0.90434746  0.29896029]
+ [-0.24093597  0.80997809  0.53468248]
+ [-0.66565665  0.22575477  0.71129178]
+ [ 0.57358735  0.7945475   0.19922806]
+ [-0.45769216 -0.29507511  0.83871841]
+ [ 0.43966987  0.30361358  0.84528646]
+ [ 0.06501272  0.16615552  0.98395411]
+ [-0.48054011  0.8575286   0.18364614]
+ [-0.20228912  0.96198486  0.18347819]
+ [-0.8435801  -0.2955378   0.44836371]
+ [-0.16049732  0.6128623   0.77371856]
+ [ 0.6989936   0.1631694   0.6962641 ]
+ [-0.91194621  0.40706569  0.05149406]
+ [ 0.67053713 -0.46543199  0.57771362]
+ [ 0.12064139 -0.72301164  0.68022042]
+ [ 0.84962835  0.32092277  0.4184976 ]
+ [-0.1730404  -0.59255945  0.78672124]
+ [ 0.67932634 -0.73321564  0.03017523]
+ [ 0.1180453  -0.98296197  0.14089383]
+ [ 0.10691311  0.75643611  0.64527048]
+ [-0.42459631 -0.64326575  0.63712412]
+ [-0.4818426  -0.79257411  0.37370307]
+ [ 0.13915753 -0.17824287  0.97409684]
+ [-0.14708067 -0.82789599  0.54125365]
+ [ 0.20950968 -0.88100869  0.42418084]
+ [-0.87723032  0.30385801  0.37166824]
+ [ 0.3499303   0.04065808  0.935893  ]
+ [ 0.32479054  0.56888321  0.755568  ]
+ [-0.17332499 -0.31859342  0.93191023]
+ [-0.69023219  0.48037198  0.54113056]
+ [-0.74284626 -0.57792813  0.33790312]
+ [ 0.41623113 -0.66251656  0.62275473]
+ [ 0.55127069 -0.13630237  0.82311742]
+ [ 0.56848304 -0.73523947  0.36912052]
+ [ 0.91224815  0.02624222  0.40879661]
+ [-0.6942519  -0.10853653  0.71150131]
+ [-0.44846801  0.50062334  0.74044089]
+ [ 0.12500718  0.99037073  0.0594896 ]
+ [ 0.80271906 -0.54954735  0.23160273]
+ [ 0.1267564  -0.47100083  0.87297826]
+ [-0.98201323  0.05729855  0.17990803]
+ [ 0.8732449   0.48622748  0.03203404]
+ [-0.26209575  0.30970766  0.91399507]
+ [-0.51089319  0.72505232  0.46183036]
+ [-0.69355897 -0.71593672  0.08006601]
+ [-0.42084449 -0.9041882   0.07303165]
+ [ 0.62875702  0.47753322  0.61369914]
+ [-0.46735473  0.05715018  0.88222073]
+ [-0.87290169  0.01891337  0.48752941]
+ [ 0.7663917  -0.15248476  0.62401295]
+ [ 0.97351627  0.18840973  0.12949072]
+ [-0.63996136 -0.44439965  0.62686395]
+ [-0.75440897  0.60871441  0.24562956]
+ [ 0.98294554 -0.14395517  0.11443327]
+ [-0.18514446 -0.01717564  0.98256121]
+ [-0.17136791 -0.94579123  0.275884  ]
+ [ 0.07448775  0.44526699  0.89229417]
+ [ 0.44912135  0.7311377   0.51354424]
+ [ 0.88021744 -0.30340889  0.36491137]
+ [ 0.0172223   0.91751007  0.39733949]
+ [ 0.41930481 -0.40200301  0.81398836]
+ [ 0.74877952  0.58356541  0.31429389]
+ [-0.94831563 -0.26376272  0.17642761]
+ [ 0.41410954 -0.89837931  0.14638274]
+ [ 0.30459549  0.90434746  0.29896029]
+ [-0.24093597  0.80997809  0.53468248]
+ [-0.66565665  0.22575477  0.71129178]
+ [ 0.57358735  0.7945475   0.19922806]
+ [-0.45769216 -0.29507511  0.83871841]
+ [ 0.43966987  0.30361358  0.84528646]
+ [ 0.06501272  0.16615552  0.98395411]
+ [-0.48054011  0.8575286   0.18364614]
+ [-0.20228912  0.96198486  0.18347819]
+ [-0.8435801  -0.2955378   0.44836371]
+ [-0.16049732  0.6128623   0.77371856]
+ [ 0.6989936   0.1631694   0.6962641 ]
+ [-0.91194621  0.40706569  0.05149406]
+ [ 0.67053713 -0.46543199  0.57771362]
+ [ 0.12064139 -0.72301164  0.68022042]
+ [ 0.84962835  0.32092277  0.4184976 ]
+ [-0.1730404  -0.59255945  0.78672124]
+ [ 0.67932634 -0.73321564  0.03017523]
+ [ 0.1180453  -0.98296197  0.14089383]
+ [ 0.10691311  0.75643611  0.64527048]
+ [-0.42459631 -0.64326575  0.63712412]
+ [-0.4818426  -0.79257411  0.37370307]
+ [ 0.13915753 -0.17824287  0.97409684]
+ [-0.14708067 -0.82789599  0.54125365]
+ [ 0.20950968 -0.88100869  0.42418084]
+ [-0.87723032  0.30385801  0.37166824]
+ [ 0.3499303   0.04065808  0.935893  ]
+ [ 0.32479054  0.56888321  0.755568  ]
+ [-0.17332499 -0.31859342  0.93191023]
+ [-0.69023219  0.48037198  0.54113056]
+ [-0.74284626 -0.57792813  0.33790312]
+ [ 0.41623113 -0.66251656  0.62275473]
+ [ 0.55127069 -0.13630237  0.82311742]
+ [ 0.56848304 -0.73523947  0.36912052]
+ [ 0.91224815  0.02624222  0.40879661]
+ [-0.6942519  -0.10853653  0.71150131]
+ [-0.44846801  0.50062334  0.74044089]
+ [ 0.12500718  0.99037073  0.0594896 ]
+ [ 0.80271906 -0.54954735  0.23160273]
+ [ 0.1267564  -0.47100083  0.87297826]
+ [-0.98201323  0.05729855  0.17990803]
+ [ 0.8732449   0.48622748  0.03203404]
+ [-0.26209575  0.30970766  0.91399507]
+ [-0.51089319  0.72505232  0.46183036]
+ [-0.69355897 -0.71593672  0.08006601]
+ [-0.42084449 -0.9041882   0.07303165]
+ [ 0.62875702  0.47753322  0.61369914]
+ [-0.46735473  0.05715018  0.88222073]
+ [-0.87290169  0.01891337  0.48752941]
+ [ 0.7663917  -0.15248476  0.62401295]
+ [ 0.97351627  0.18840973  0.12949072]
+ [ 0.          0.          0.        ]]
 </pre></div>
 </div>
 <p>Both b-values and b-vectors look correct. Let’s now create the
 <code class="docutils literal notranslate"><span class="pre">GradientTable</span></code>.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
 
 <span class="n">scene</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>We can also visualize the gradients. Let’s color the first shell blue and
 the second shell cyan.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">colors_b1000</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">blue</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="n">colors_b2500</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">cyan</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">colors_b1000</span> <span class="o">=</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">blue</span></a> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span></a><span class="p">)</span>
+<span class="n">colors_b2500</span> <span class="o">=</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">window</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">cyan</span></a> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span></a><span class="p">)</span>
 <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">colors_b1000</span><span class="p">,</span> <span class="n">colors_b2500</span><span class="p">))</span>
-<span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">colors</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
 
-<span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">gtab</span><span class="o">.</span><span class="n">gradients</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">point_radius</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
+<span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="o">.</span><span class="n">gradients</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">point_radius</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
 
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;gradients.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1252,7 +1265,7 @@ in anisotropic systems by magnetic resonance imaging, Magnetic Resonance
 in Medicine, vol 42, no 3, 515-525, 1999.</p>
 </div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 4.129 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 3.973 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-preprocessing-gradients-spheres-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/c23a098f954d7d76ca59fdf495e7e2d1/gradients_spheres.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">gradients_spheres.ipynb</span></code></a></p>
@@ -1554,7 +1567,7 @@ in Medicine, vol 42, no 3, 515-525, 1999.</p>
         
         <li class="pad-v-5">
           <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
-            Google supported DIPY through the Google Summer of Code Program during Summer 2015, 2016, 2018
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
             <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
           </a>
         </li>
@@ -1570,7 +1583,7 @@ in Medicine, vol 42, no 3, 515-525, 1999.</p>
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2023, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

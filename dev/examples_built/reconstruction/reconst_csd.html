@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>DIPY &#8212; dipy 1.8.0 documentation</title>
+    <title>DIPY &#8212; dipy 1.9.0.dev0+897.c022ef2 documentation</title>
   
   
   
@@ -44,10 +44,23 @@
   
 <link rel="stylesheet" href="../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../_static/documentation_options.js?v=de230f84"></script>
+    <script src="../../_static/documentation_options.js?v=0cc407d3"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples_built/reconstruction/reconst_csd';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
@@ -56,8 +69,8 @@
     <link rel="icon" href="../../_static/dipy-favicon.png"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Intravoxel incoherent motion" href="reconst_ivim.html" />
-    <link rel="prev" title="Using the free water elimination model to remove DTI free water contamination" href="reconst_fwdti.html" />
+    <link rel="next" title="Reconstruction with Multi-Shell Multi-Tissue CSD" href="reconst_mcsd.html" />
+    <link rel="prev" title="Intravoxel incoherent motion" href="reconst_ivim.html" />
   <meta name="keywords" content="DIPY, dMRI, DTI, DSI, diffusion MRI, Tensor,
   neuroimaging, python, neuroscience, Eleftherios, Garyfallidis, tractography,
   streamlines, fiber tracking">
@@ -830,8 +843,8 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="restore_dti.html">Using the RESTORE algorithm for robust tensor fitting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_sh.html">Signal Reconstruction Using Spherical Harmonics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_fwdti.html">Using the free water elimination model to remove DTI free water contamination</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_ivim.html">Intravoxel incoherent motion</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Reconstruction with Constrained Spherical Deconvolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_mcsd.html">Reconstruction with Multi-Shell Multi-Tissue CSD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_mapmri.html">Continuous and analytical diffusion signal modelling with MAP-MRI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconst_msdki.html">Mean signal diffusion kurtosis imaging (MSDKI)</a></li>
@@ -1004,27 +1017,27 @@ obtain the underlying fiber distribution.</p>
 with b-value 2000.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <span class="n">default_sphere</span>
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a>
 <span class="kn">from</span> <span class="nn">dipy.direction</span> <span class="kn">import</span> <span class="n">peaks_from_model</span>
 <span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a>
 <span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">TensorModel</span><span class="p">,</span> <span class="n">fractional_anisotropy</span><span class="p">,</span> <span class="n">mean_diffusivity</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="p">(</span><span class="n">auto_response_ssst</span><span class="p">,</span>
-                                   <span class="n">mask_for_response_ssst</span><span class="p">,</span>
-                                   <span class="n">response_from_mask_ssst</span><span class="p">,</span>
-                                   <span class="n">recursive_response</span><span class="p">,</span>
-                                   <span class="n">ConstrainedSphericalDeconvModel</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.sims.voxel</span> <span class="kn">import</span> <span class="n">single_tensor_odf</span>
+    <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorModel" title="dipy.reconst.dti.TensorModel" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-class"><span class="n">TensorModel</span></a><span class="p">,</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.fractional_anisotropy" title="dipy.reconst.dti.fractional_anisotropy" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-function"><span class="n">fractional_anisotropy</span></a><span class="p">,</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.mean_diffusivity" title="dipy.reconst.dti.mean_diffusivity" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-function"><span class="n">mean_diffusivity</span></a><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="p">(</span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.auto_response_ssst" title="dipy.reconst.csdeconv.auto_response_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">auto_response_ssst</span></a><span class="p">,</span>
+                                   <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.mask_for_response_ssst" title="dipy.reconst.csdeconv.mask_for_response_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">mask_for_response_ssst</span></a><span class="p">,</span>
+                                   <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.response_from_mask_ssst" title="dipy.reconst.csdeconv.response_from_mask_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">response_from_mask_ssst</span></a><span class="p">,</span>
+                                   <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.recursive_response" title="dipy.reconst.csdeconv.recursive_response" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">recursive_response</span></a><span class="p">,</span>
+                                   <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class"><span class="n">ConstrainedSphericalDeconvModel</span></a><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dipy.sims.voxel</span> <span class="kn">import</span> <a href="../../reference/dipy.sims.html#dipy.sims.voxel.single_tensor_odf" title="dipy.sims.voxel.single_tensor_odf" class="sphx-glr-backref-module-dipy-sims-voxel sphx-glr-backref-type-py-function"><span class="n">single_tensor_odf</span></a>
 <span class="kn">from</span> <span class="nn">dipy.viz</span> <span class="kn">import</span> <span class="n">window</span><span class="p">,</span> <span class="n">actor</span>
 
-<span class="n">hardi_fname</span><span class="p">,</span> <span class="n">hardi_bval_fname</span><span class="p">,</span> <span class="n">hardi_bvec_fname</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
 
-<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">hardi_fname</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">)</span>
 
-<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">hardi_bval_fname</span><span class="p">,</span> <span class="n">hardi_bvec_fname</span><span class="p">)</span>
-<span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
+<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a><span class="p">)</span>
+<a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>You can verify the b-values of the dataset by looking at the attribute
@@ -1042,7 +1055,7 @@ find single fibers from the corpus callosum. The <code class="docutils literal n
 function will calculate FA for a cuboid ROI of radii equal to <code class="docutils literal notranslate"><span class="pre">roi_radii</span></code>
 in the center of the volume and return the response function estimated in
 that region for the voxels with FA higher than 0.7.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <span class="n">auto_response_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse" title="dipy.reconst.csdeconv.AxSymShResponse" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.auto_response_ssst" title="dipy.reconst.csdeconv.auto_response_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">auto_response_ssst</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Note that the <code class="docutils literal notranslate"><span class="pre">auto_response_ssst</span></code> function calls two functions that can be
@@ -1053,11 +1066,11 @@ to also apply an external mask (a WM mask for example). Second, the function
 <code class="docutils literal notranslate"><span class="pre">response_from_mask_ssst</span></code> takes the mask and returns the response function
 calculated within the mask. If no changes are made to the mask between the
 two calls, the resulting responses should be identical.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask_for_response_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.mask_for_response_ssst" title="dipy.reconst.csdeconv.mask_for_response_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">mask_for_response_ssst</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
 <span class="n">nvoxels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">nvoxels</span><span class="p">)</span>
 
-<span class="n">response</span><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <span class="n">response_from_mask_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+<a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse" title="dipy.reconst.csdeconv.AxSymShResponse" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.response_from_mask_ssst" title="dipy.reconst.csdeconv.response_from_mask_ssst" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">response_from_mask_ssst</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>1254
@@ -1069,7 +1082,7 @@ this response.</p>
 <p>It is good practice to always validate the result of auto_response_ssst. For
 this purpose we can print the elements of <code class="docutils literal notranslate"><span class="pre">response</span></code> and have a look at
 their values.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse" title="dipy.reconst.csdeconv.AxSymShResponse" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">)</span>
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>(array([0.00139919, 0.0003007 , 0.0003007 ]), 416.7372408293461)
@@ -1082,28 +1095,28 @@ this tensor should be around 5 times larger than the radial diffusivity.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">ratio</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>0.21491283972219186
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>0.21491283972217437
 </pre></div>
 </div>
 <p>We can double-check that we have a good response function by visualizing the
 response function’s ODF. Here is how you would do that:</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enables/disables interactive visualization</span>
-<span class="n">interactive</span> <span class="o">=</span> <span class="kc">False</span>
+<a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
-<span class="n">evals</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">evals</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse" title="dipy.reconst.csdeconv.AxSymShResponse" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">evecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span>
 
 
-<span class="n">response_odf</span> <span class="o">=</span> <span class="n">single_tensor_odf</span><span class="p">(</span><span class="n">default_sphere</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">evals</span><span class="p">,</span> <span class="n">evecs</span><span class="p">)</span>
+<span class="n">response_odf</span> <span class="o">=</span> <a href="../../reference/dipy.sims.html#dipy.sims.voxel.single_tensor_odf" title="dipy.sims.voxel.single_tensor_odf" class="sphx-glr-backref-module-dipy-sims-voxel sphx-glr-backref-type-py-function"><span class="n">single_tensor_odf</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">evals</span><span class="p">,</span> <span class="n">evecs</span><span class="p">)</span>
 <span class="c1"># transform our data from 1D to 4D</span>
 <span class="n">response_odf</span> <span class="o">=</span> <span class="n">response_odf</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-<span class="n">response_actor</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">odf_slicer</span><span class="p">(</span><span class="n">response_odf</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="n">default_sphere</span><span class="p">,</span>
+<span class="n">response_actor</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">odf_slicer</span><span class="p">(</span><span class="n">response_odf</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">,</span>
                                   <span class="n">colormap</span><span class="o">=</span><span class="s1">&#39;plasma&#39;</span><span class="p">)</span>
 <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">response_actor</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving illustration as csd_response.png&#39;</span><span class="p">)</span>
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;csd_response.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1129,15 +1142,15 @@ convergence is reached. Here we calibrate the response function on a small
 part of the data.</p>
 <p>A WM mask can shorten computation time for the whole dataset. Here it is
 created based on the DTI fit.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">tenmodel</span> <span class="o">=</span> <span class="n">TensorModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">)</span>
-<span class="n">tenfit</span> <span class="o">=</span> <span class="n">tenmodel</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">200</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorModel" title="dipy.reconst.dti.TensorModel" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tenmodel</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorModel" title="dipy.reconst.dti.TensorModel" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-class"><span class="n">TensorModel</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">)</span>
+<a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorFit" title="dipy.reconst.dti.TensorFit" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tenfit</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorModel.fit" title="dipy.reconst.dti.TensorModel.fit" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-method"><span class="n">tenmodel</span><span class="o">.</span><span class="n">fit</span></a><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">200</span><span class="p">)</span>
 
-<span class="n">FA</span> <span class="o">=</span> <span class="n">fractional_anisotropy</span><span class="p">(</span><span class="n">tenfit</span><span class="o">.</span><span class="n">evals</span><span class="p">)</span>
-<span class="n">MD</span> <span class="o">=</span> <span class="n">mean_diffusivity</span><span class="p">(</span><span class="n">tenfit</span><span class="o">.</span><span class="n">evals</span><span class="p">)</span>
+<span class="n">FA</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.fractional_anisotropy" title="dipy.reconst.dti.fractional_anisotropy" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-function"><span class="n">fractional_anisotropy</span></a><span class="p">(</span><a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorFit.evals" title="dipy.reconst.dti.TensorFit.evals" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-property"><span class="n">tenfit</span><span class="o">.</span><span class="n">evals</span></a><span class="p">)</span>
+<span class="n">MD</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.dti.mean_diffusivity" title="dipy.reconst.dti.mean_diffusivity" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-function"><span class="n">mean_diffusivity</span></a><span class="p">(</span><a href="../../reference/dipy.reconst.html#dipy.reconst.dti.TensorFit.evals" title="dipy.reconst.dti.TensorFit.evals" class="sphx-glr-backref-module-dipy-reconst-dti sphx-glr-backref-type-py-property"><span class="n">tenfit</span><span class="o">.</span><span class="n">evals</span></a><span class="p">)</span>
 <span class="n">wm_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">FA</span> <span class="o">&gt;=</span> <span class="mf">0.4</span><span class="p">,</span>
                          <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">FA</span> <span class="o">&gt;=</span> <span class="mf">0.15</span><span class="p">,</span> <span class="n">MD</span> <span class="o">&gt;=</span> <span class="mf">0.0011</span><span class="p">))))</span>
 
-<span class="n">response</span> <span class="o">=</span> <span class="n">recursive_response</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">wm_mask</span><span class="p">,</span> <span class="n">sh_order</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+<a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse" title="dipy.reconst.csdeconv.AxSymShResponse" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.recursive_response" title="dipy.reconst.csdeconv.recursive_response" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-function"><span class="n">recursive_response</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">wm_mask</span><span class="p">,</span> <span class="n">sh_order</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
                               <span class="n">peak_thr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">init_fa</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span>
                               <span class="n">init_trace</span><span class="o">=</span><span class="mf">0.0021</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
                               <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_processes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -1145,10 +1158,10 @@ created based on the DTI fit.</p>
 </div>
 <p>We can check the shape of the signal of the response function, which should
 be like  a pancake:</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">response_signal</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">on_sphere</span><span class="p">(</span><span class="n">default_sphere</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">response_signal</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse.on_sphere" title="dipy.reconst.csdeconv.AxSymShResponse.on_sphere" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-method"><span class="n">response</span><span class="o">.</span><span class="n">on_sphere</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">)</span>
 <span class="c1"># transform our data from 1D to 4D</span>
 <span class="n">response_signal</span> <span class="o">=</span> <span class="n">response_signal</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-<span class="n">response_actor</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">odf_slicer</span><span class="p">(</span><span class="n">response_signal</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="n">default_sphere</span><span class="p">,</span>
+<span class="n">response_actor</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">odf_slicer</span><span class="p">(</span><span class="n">response_signal</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">,</span>
                                   <span class="n">colormap</span><span class="o">=</span><span class="s1">&#39;plasma&#39;</span><span class="p">)</span>
 
 <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
@@ -1156,7 +1169,7 @@ be like  a pancake:</p>
 <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">response_actor</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving illustration as csd_recursive_response.png&#39;</span><span class="p">)</span>
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;csd_recursive_response.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1173,34 +1186,33 @@ be like  a pancake:</p>
 <p>After estimating a response function for one of the strategies shown above,
 we are ready to start the deconvolution process. Let’s import the CSD model
 and fit the datasets.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csd_model</span> <span class="o">=</span> <span class="n">ConstrainedSphericalDeconvModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_model</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class"><span class="n">ConstrainedSphericalDeconvModel</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse" title="dipy.reconst.csdeconv.AxSymShResponse" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">response</span></a><span class="p">)</span>
 </pre></div>
 </div>
 <p>For illustration purposes we will fit only a small portion of the data.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">data_small</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">20</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span> <span class="mi">55</span><span class="p">:</span><span class="mi">85</span><span class="p">,</span> <span class="mi">38</span><span class="p">:</span><span class="mi">39</span><span class="p">]</span>
-<span class="n">csd_fit</span> <span class="o">=</span> <span class="n">csd_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data_small</span><span class="p">)</span>
+<a href="../../reference/dipy.reconst.html#dipy.reconst.multi_voxel.MultiVoxelFit" title="dipy.reconst.multi_voxel.MultiVoxelFit" class="sphx-glr-backref-module-dipy-reconst-multi_voxel sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_fit</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel.fit" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel.fit" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-method"><span class="n">csd_model</span><span class="o">.</span><span class="n">fit</span></a><span class="p">(</span><span class="n">data_small</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>  0%|                                                                                                                              | 0/900 [00:00&lt;?, ?it/s]
- 28%|████████████████████████████████▍                                                                                 | 256/900 [00:00&lt;00:00, 2551.66it/s]
- 57%|████████████████████████████████████████████████████████████████▊                                                 | 512/900 [00:00&lt;00:00, 2281.36it/s]
- 89%|█████████████████████████████████████████████████████████████████████████████████████████████████████▉            | 805/900 [00:00&lt;00:00, 2554.97it/s]
-100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 900/900 [00:00&lt;00:00, 2510.95it/s]
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>  0%|                                                                                                                                           | 0/900 [00:00&lt;?, ?it/s]
+ 46%|██████████████████████████████████████████████████████████▊                                                                    | 417/900 [00:00&lt;00:00, 4152.40it/s]
+ 93%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▋         | 834/900 [00:00&lt;00:00, 4144.70it/s]
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 900/900 [00:00&lt;00:00, 4163.63it/s]
 </pre></div>
 </div>
 <p>Show the CSD-based ODFs also known as FODFs (fiber ODFs).</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csd_odf</span> <span class="o">=</span> <span class="n">csd_fit</span><span class="o">.</span><span class="n">odf</span><span class="p">(</span><span class="n">default_sphere</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csd_odf</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.multi_voxel.CallableArray" title="dipy.reconst.multi_voxel.CallableArray" class="sphx-glr-backref-module-dipy-reconst-multi_voxel sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_fit</span><span class="o">.</span><span class="n">odf</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">)</span>
 </pre></div>
 </div>
 <p>Here we visualize only a 30x30 region.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">fodf_spheres</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">odf_slicer</span><span class="p">(</span><span class="n">csd_odf</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="n">default_sphere</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">fodf_spheres</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">odf_slicer</span><span class="p">(</span><span class="n">csd_odf</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
                                 <span class="n">norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s1">&#39;plasma&#39;</span><span class="p">)</span>
 
 <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fodf_spheres</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving illustration as csd_odfs.png&#39;</span><span class="p">)</span>
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;csd_odfs.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">600</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1210,9 +1222,9 @@ and fit the datasets.</p>
 <p class="centered small fst-italic fw-semibold">CSD ODFs.</p>
 <p>In DIPY we also provide tools for finding the peak directions (maxima) of the
 ODFs. For this purpose we recommend using <code class="docutils literal notranslate"><span class="pre">peaks_from_model</span></code>.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csd_peaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">csd_model</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csd_peaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><a href="../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" title="dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel" class="sphx-glr-backref-module-dipy-reconst-csdeconv sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csd_model</span></a><span class="p">,</span>
                              <span class="n">data</span><span class="o">=</span><span class="n">data_small</span><span class="p">,</span>
-                             <span class="n">sphere</span><span class="o">=</span><span class="n">default_sphere</span><span class="p">,</span>
+                             <span class="n">sphere</span><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.HemiSphere" title="dipy.core.sphere.HemiSphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">default_sphere</span></a><span class="p">,</span>
                              <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                              <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                              <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1224,7 +1236,7 @@ ODFs. For this purpose we recommend using <code class="docutils literal notransl
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving illustration as csd_peaks.png&#39;</span><span class="p">)</span>
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;csd_peaks.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">600</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1239,7 +1251,7 @@ ODFs. For this purpose we recommend using <code class="docutils literal notransl
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Saving illustration as csd_both.png&#39;</span><span class="p">)</span>
 <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="s1">&#39;csd_both.png&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">600</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">interactive</span></a><span class="p">:</span>
     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1265,7 +1277,7 @@ deconvolution of diffusion MRI data”, Neuroimage, vol. 86, pp. 67-80,
 2014.</p>
 </div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (3 minutes 23.314 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 56.877 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-reconstruction-reconst-csd-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/fe62a6c4f1c3879e85f49b76f818add3/reconst_csd.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">reconst_csd.ipynb</span></code></a></p>
@@ -1291,20 +1303,20 @@ deconvolution of diffusion MRI data”, Neuroimage, vol. 86, pp. 67-80,
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="reconst_fwdti.html"
+       href="reconst_ivim.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Using the free water elimination model to remove DTI free water contamination</p>
+        <p class="prev-next-title">Intravoxel incoherent motion</p>
       </div>
     </a>
     <a class="right-next"
-       href="reconst_ivim.html"
+       href="reconst_mcsd.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Intravoxel incoherent motion</p>
+        <p class="prev-next-title">Reconstruction with Multi-Shell Multi-Tissue CSD</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1572,7 +1584,7 @@ deconvolution of diffusion MRI data”, Neuroimage, vol. 86, pp. 67-80,
         
         <li class="pad-v-5">
           <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
-            Google supported DIPY through the Google Summer of Code Program during Summer 2015, 2016, 2018
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
             <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
           </a>
         </li>
@@ -1588,7 +1600,7 @@ deconvolution of diffusion MRI data”, Neuroimage, vol. 86, pp. 67-80,
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2023, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024, DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>
