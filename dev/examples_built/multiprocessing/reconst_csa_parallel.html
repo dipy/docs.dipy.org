@@ -64,7 +64,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples_built/multiprocessing/reconst_csa_parallel';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.8.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'development';
         </script>
     <link rel="icon" href="../../_static/dipy-favicon.png"/>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -397,7 +397,7 @@
 document.write(`
   <div class="version-switcher__container dropdown">
     <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.8.0  <!-- this text may get changed later by javascript -->
+      development  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
     <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
@@ -727,7 +727,7 @@ document.write(`
 document.write(`
   <div class="version-switcher__container dropdown">
     <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
-      1.8.0  <!-- this text may get changed later by javascript -->
+      development  <!-- this text may get changed later by javascript -->
       <span class="caret"></span>
     </button>
     <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
@@ -998,28 +998,28 @@ to download the full example code</p>
 Angle model (see Aganj et al. (MRM 2010)) and <cite>peaks_from_model</cite>.</p>
 <p>Import modules, fetch and read data, and compute the mask.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <a href="../../reference/dipy.data.html#dipy.data.get_sphere" title="dipy.data.get_sphere" class="sphx-glr-backref-module-dipy-data sphx-glr-backref-type-py-function"><span class="n">get_sphere</span></a>
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <span class="n">get_sphere</span>
 <span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.shm.CsaOdfModel" title="dipy.reconst.shm.CsaOdfModel" class="sphx-glr-backref-module-dipy-reconst-shm sphx-glr-backref-type-py-class"><span class="n">CsaOdfModel</span></a>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">CsaOdfModel</span>
 <span class="kn">from</span> <span class="nn">dipy.direction</span> <span class="kn">import</span> <span class="n">peaks_from_model</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a>
+<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <span class="n">median_otsu</span>
 
 
 <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="s1">&#39;stanford_hardi&#39;</span><span class="p">)</span>
 
-<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">)</span>
 
 <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a><span class="p">)</span>
-<a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
+<span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
 
-<span class="n">maskdata</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">vol_idx</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="n">median_radius</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="n">maskdata</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">median_otsu</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">vol_idx</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="n">median_radius</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
                              <span class="n">numpass</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autocrop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dilate</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We instantiate our CSA model with spherical harmonic order (l) of 4</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.reconst.html#dipy.reconst.shm.CsaOdfModel" title="dipy.reconst.shm.CsaOdfModel" class="sphx-glr-backref-module-dipy-reconst-shm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csamodel</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.shm.CsaOdfModel" title="dipy.reconst.shm.CsaOdfModel" class="sphx-glr-backref-module-dipy-reconst-shm sphx-glr-backref-type-py-class"><span class="n">CsaOdfModel</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csamodel</span> <span class="o">=</span> <span class="n">CsaOdfModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><cite>Peaks_from_model</cite> is used to calculate properties of the ODFs (Orientation
@@ -1028,7 +1028,7 @@ example the peaks and their indices, or GFA which is similar to FA but for
 ODF based models. This function mainly needs a reconstruction model, the
 data and a sphere as input. The sphere is an object that represents the
 spherical discrete grid where the ODF values will be evaluated.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a> <span class="o">=</span> <a href="../../reference/dipy.data.html#dipy.data.get_sphere" title="dipy.data.get_sphere" class="sphx-glr-backref-module-dipy-data sphx-glr-backref-type-py-function"><span class="n">get_sphere</span></a><span class="p">(</span><span class="s1">&#39;repulsion724&#39;</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">sphere</span> <span class="o">=</span> <span class="n">get_sphere</span><span class="p">(</span><span class="s1">&#39;repulsion724&#39;</span><span class="p">)</span>
 
 <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">start_time</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.time" title="time.time" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">time</span></a><span class="p">()</span>
 </pre></div>
@@ -1039,9 +1039,9 @@ total number of processors from the operating system and use this number as
 <cite>num_processes</cite>. Sometimes it makes sense to use only a few of the processes
 in order to allow resources for other applications. However, most of the
 times using the default option will be sufficient.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csapeaks_parallel</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><a href="../../reference/dipy.reconst.html#dipy.reconst.shm.CsaOdfModel" title="dipy.reconst.shm.CsaOdfModel" class="sphx-glr-backref-module-dipy-reconst-shm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csamodel</span></a><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">csapeaks_parallel</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">csamodel</span><span class="p">,</span>
                                      <span class="n">data</span><span class="o">=</span><span class="n">maskdata</span><span class="p">,</span>
-                                     <a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="p">,</span>
+                                     <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
                                      <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                                      <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                                      <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1056,14 +1056,14 @@ times using the default option will be sufficient.</p>
       <span class="nb">str</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_parallel</span></a><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peaks_from_model using 2 processes ran in : 45.984891414642334 seconds
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peaks_from_model using 2 processes ran in : 7335.389787197113 seconds
 </pre></div>
 </div>
 <p>If we don’t use parallelism then we need to set <cite>parallel=False</cite>:</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">start_time</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.time" title="time.time" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">time</span></a><span class="p">()</span>
-<span class="n">csapeaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><a href="../../reference/dipy.reconst.html#dipy.reconst.shm.CsaOdfModel" title="dipy.reconst.shm.CsaOdfModel" class="sphx-glr-backref-module-dipy-reconst-shm sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">csamodel</span></a><span class="p">,</span>
+<span class="n">csapeaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">csamodel</span><span class="p">,</span>
                             <span class="n">data</span><span class="o">=</span><span class="n">maskdata</span><span class="p">,</span>
-                            <a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="p">,</span>
+                            <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
                             <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                             <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                             <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1079,8 +1079,8 @@ times using the default option will be sufficient.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Speedup factor : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_single</span></a> <span class="o">/</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">time_parallel</span></a><span class="p">))</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peaks_from_model ran in : 67.26631188392639 seconds
-Speedup factor : 1.4627915781596845
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peaks_from_model ran in : 34.35319805145264 seconds
+Speedup factor : 0.004683213714342937
 </pre></div>
 </div>
 <p>In Windows if you get a runtime error about frozen executable please start
@@ -1091,7 +1091,7 @@ your script by adding your code above in a <code class="docutils literal notrans
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 55.855 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (122 minutes 52.239 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-multiprocessing-reconst-csa-parallel-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/ba3b14a89a2ddadc26e189ad00c2a8da/reconst_csa_parallel.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">reconst_csa_parallel.ipynb</span></code></a></p>
