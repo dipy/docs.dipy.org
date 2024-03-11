@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>DIPY &#8212; dipy 1.10.0.dev0+199.e3b0e11 documentation</title>
+    <title>DIPY &#8212; dipy 1.10.0.dev0+201.7f9d143 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../_static/documentation_options.js?v=611e7fdb"></script>
+    <script src="../../_static/documentation_options.js?v=d42da050"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=36754332"></script>
@@ -1003,11 +1003,11 @@ to diffusion MRI datasets. You can think of GQI as an analytical version of
 DSI orientation distribution function (ODF) (Garyfallidis, PhD thesis, 2012).</p>
 <p>First import the necessary modules:</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <span class="n">get_sphere</span>
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span><span class="p">,</span> <a href="../../reference/dipy.data.html#dipy.data.get_sphere" title="dipy.data.get_sphere" class="sphx-glr-backref-module-dipy-data sphx-glr-backref-type-py-function"><span class="n">get_sphere</span></a>
 <span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.gqi</span> <span class="kn">import</span> <span class="n">GeneralizedQSamplingModel</span>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a>
+<span class="kn">from</span> <span class="nn">dipy.reconst.gqi</span> <span class="kn">import</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.gqi.GeneralizedQSamplingModel" title="dipy.reconst.gqi.GeneralizedQSamplingModel" class="sphx-glr-backref-module-dipy-reconst-gqi sphx-glr-backref-type-py-class"><span class="n">GeneralizedQSamplingModel</span></a>
 <span class="kn">from</span> <span class="nn">dipy.direction</span> <span class="kn">import</span> <span class="n">peaks_from_model</span>
 </pre></div>
 </div>
@@ -1018,15 +1018,15 @@ DSI orientation distribution function (ODF) (Garyfallidis, PhD thesis, 2012).</p
 <p>img contains a nibabel Nifti1Image object (data) and gtab contains a
 <code class="docutils literal notranslate"><span class="pre">GradientTable</span></code> object (gradient information e.g. b-values). For example
 to read the b-values it is possible to write:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="o">.</span><span class="n">bvals</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Load the raw diffusion data and the affine.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">voxel_size</span></a> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fraw</span></a><span class="p">,</span> <span class="n">return_voxsize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">voxel_size</span></a> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fraw</span></a><span class="p">,</span> <span class="n">return_voxsize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbval</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbvec</span></a><span class="p">)</span>
 <span class="n">bvecs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">bvecs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">/</span>
                  <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bvecs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">*</span> <span class="n">bvecs</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))[:,</span> <span class="kc">None</span><span class="p">])</span>
-<span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
+<a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;data.shape (</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">)</span>
 </pre></div>
 </div>
@@ -1035,7 +1035,7 @@ to read the b-values it is possible to write:</p>
 </div>
 <p>This dataset has anisotropic voxel sizes, therefore reslicing is necessary.</p>
 <p>Instantiate the model and apply it to the data.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">gqmodel</span> <span class="o">=</span> <span class="n">GeneralizedQSamplingModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sampling_length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.reconst.html#dipy.reconst.gqi.GeneralizedQSamplingModel" title="dipy.reconst.gqi.GeneralizedQSamplingModel" class="sphx-glr-backref-module-dipy-reconst-gqi sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gqmodel</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.gqi.GeneralizedQSamplingModel" title="dipy.reconst.gqi.GeneralizedQSamplingModel" class="sphx-glr-backref-module-dipy-reconst-gqi sphx-glr-backref-type-py-class"><span class="n">GeneralizedQSamplingModel</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span> <span class="n">sampling_length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The parameter <code class="docutils literal notranslate"><span class="pre">sampling_length</span></code> is used here to</p>
@@ -1044,19 +1044,19 @@ to read the b-values it is possible to write:</p>
 
 <span class="n">mask</span> <span class="o">=</span> <span class="n">dataslice</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">50</span>
 
-<span class="n">gqfit</span> <span class="o">=</span> <span class="n">gqmodel</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">dataslice</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+<a href="../../reference/dipy.reconst.html#dipy.reconst.multi_voxel.MultiVoxelFit" title="dipy.reconst.multi_voxel.MultiVoxelFit" class="sphx-glr-backref-module-dipy-reconst-multi_voxel sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gqfit</span></a> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.gqi.GeneralizedQSamplingModel.fit" title="dipy.reconst.gqi.GeneralizedQSamplingModel.fit" class="sphx-glr-backref-module-dipy-reconst-gqi sphx-glr-backref-type-py-method"><span class="n">gqmodel</span><span class="o">.</span><span class="n">fit</span></a><span class="p">(</span><span class="n">dataslice</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>  0%|          | 0/4733 [00:00&lt;?, ?it/s]
-100%|██████████| 4733/4733 [00:00&lt;00:00, 1234171.02it/s]
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>  0%|                                                                                                                                          | 0/4733 [00:00&lt;?, ?it/s]
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4733/4733 [00:00&lt;00:00, 424379.85it/s]
 </pre></div>
 </div>
 <p>Load an ODF reconstruction sphere</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">sphere</span> <span class="o">=</span> <span class="n">get_sphere</span><span class="p">(</span><span class="s1">&#39;repulsion724&#39;</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a> <span class="o">=</span> <a href="../../reference/dipy.data.html#dipy.data.get_sphere" title="dipy.data.get_sphere" class="sphx-glr-backref-module-dipy-data sphx-glr-backref-type-py-function"><span class="n">get_sphere</span></a><span class="p">(</span><span class="s1">&#39;repulsion724&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Calculate the ODFs with this specific sphere</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">ODF</span> <span class="o">=</span> <span class="n">gqfit</span><span class="o">.</span><span class="n">odf</span><span class="p">(</span><span class="n">sphere</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">ODF</span> <span class="o">=</span> <a href="../../reference/dipy.reconst.html#dipy.reconst.multi_voxel.CallableArray" title="dipy.reconst.multi_voxel.CallableArray" class="sphx-glr-backref-module-dipy-reconst-multi_voxel sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gqfit</span><span class="o">.</span><span class="n">odf</span></a><span class="p">(</span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ODF.shape (</span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ODF</span><span class="o">.</span><span class="n">shape</span></a><span class="p">)</span>
 </pre></div>
@@ -1066,9 +1066,9 @@ to read the b-values it is possible to write:</p>
 </div>
 <p>Using <code class="docutils literal notranslate"><span class="pre">peaks_from_model</span></code> we can find the main peaks of the ODFs and other
 properties.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">gqpeaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">gqmodel</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">gqpeaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><a href="../../reference/dipy.reconst.html#dipy.reconst.gqi.GeneralizedQSamplingModel" title="dipy.reconst.gqi.GeneralizedQSamplingModel" class="sphx-glr-backref-module-dipy-reconst-gqi sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gqmodel</span></a><span class="p">,</span>
                            <span class="n">data</span><span class="o">=</span><span class="n">dataslice</span><span class="p">,</span>
-                           <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+                           <a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="p">,</span>
                            <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                            <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                            <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1093,9 +1093,9 @@ properties.</p>
 </div>
 <p>With parameter <code class="docutils literal notranslate"><span class="pre">return_odf=True</span></code> we can obtain the ODF using
 <code class="docutils literal notranslate"><span class="pre">gqpeaks.ODF</span></code></p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">gqpeaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">gqmodel</span><span class="p">,</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">gqpeaks</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><a href="../../reference/dipy.reconst.html#dipy.reconst.gqi.GeneralizedQSamplingModel" title="dipy.reconst.gqi.GeneralizedQSamplingModel" class="sphx-glr-backref-module-dipy-reconst-gqi sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gqmodel</span></a><span class="p">,</span>
                            <span class="n">data</span><span class="o">=</span><span class="n">dataslice</span><span class="p">,</span>
-                           <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+                           <a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="o">=</span><a href="../../reference/dipy.core.html#dipy.core.sphere.Sphere" title="dipy.core.sphere.Sphere" class="sphx-glr-backref-module-dipy-core-sphere sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">sphere</span></a><span class="p">,</span>
                            <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span>
                            <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
                            <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1122,7 +1122,7 @@ only once and saves it or deletes if it is not necessary to keep.</p>
 Transactions on Medical Imaging, vol 29, no 9, 2010.</p>
 </div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 6.549 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 5.341 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-reconstruction-reconst-gqi-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/df74c652832f0c5d45ea2010ce5d0970/reconst_gqi.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">reconst_gqi.ipynb</span></code></a></p>
