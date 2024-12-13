@@ -1,0 +1,176 @@
+.. dipy_fit_dti:
+
+============
+dipy_fit_dti
+============
+
+Synopsis
+--------
+
+Workflow for tensor reconstruction and for computing DTI metrics using Weighted  Least-Squares.
+
+Performs a tensor reconstruction :footcite:p:`Basser1994b`, :footcite:p:`Basser1996` on the files by 'globing' ``input_files`` and saves the DTI metrics in a directory specified by ``out_dir``.
+
+Usage
+-----
+
+.. code-block:: bash
+
+    dipy_fit_dti [OPTIONS] input_files bvalues_files bvectors_files mask_files
+
+Input Parameters
+----------------
+
+* ``input_files``
+
+  Path to the input volumes. This path may contain wildcards to
+  process multiple inputs at once.
+
+* ``bvalues_files``
+
+  Path to the bvalues files. This path may contain wildcards to use
+  multiple bvalues files at once.
+
+* ``bvectors_files``
+
+  Path to the bvectors files. This path may contain wildcards to use
+  multiple bvectors files at once.
+
+* ``mask_files``
+
+  Path to the input masks. This path may contain wildcards to use
+  multiple masks at once.
+
+General Options
+---------------
+
+* ``--fit_method``
+
+  can be one of the following:
+  'WLS' for weighted least squares :footcite:p:`Chung2006`
+  'LS' or 'OLS' for ordinary least squares :footcite:p:`Chung2006`
+  'NLLS' for non-linear least-squares
+  'RT' or 'restore' or 'RESTORE' for RESTORE robust tensor fitting
+  :footcite:p:`Chang2005`.
+
+* ``--b0_threshold``
+
+  Threshold used to find b0 volumes.
+
+* ``--bvecs_tol``
+
+  Threshold used to check that norm(bvec) = 1 +/- bvecs_tol
+
+* ``--npeaks``
+
+  Number of peaks/eigen vectors to save in each voxel. DTI generates
+  3 eigen values and eigen vectors. The principal eigenvector is
+  saved by default.
+
+* ``--sigma``
+
+  An estimate of the variance. :footcite:t:`Chang2005` recommend to
+  use 1.5267 * std(background_noise), where background_noise is
+  estimated from some part of the image known to contain no signal
+  (only noise) b-vectors are unit vectors.
+
+* ``--save_metrics``
+
+  List of metrics to save.
+  Possible values: fa, ga, rgb, md, ad, rd, mode, tensor, evec, eval
+
+* ``--nifti_tensor``
+
+  Whether the tensor is saved in the standard Nifti format or in an
+  alternate format that is used by other software (e.g., FSL): a
+  4-dimensional volume (shape (i, j, k, 6)) with
+  Dxx, Dxy, Dxz, Dyy, Dyz, Dzz on the last dimension.
+
+* ``--extract_pam_values``
+
+  Save or not to save pam volumes as single nifti files.
+
+Output Options
+--------------
+
+* ``--out_dir``
+
+  Output directory. (default current directory)
+
+* ``--out_tensor``
+
+  Name of the tensors volume to be saved.
+  Per default, this will be saved following the nifti standard:
+  with the tensor elements as Dxx, Dxy, Dyy, Dxz, Dyz, Dzz on the
+  last (5th) dimension of the volume (shape: (i, j, k, 1, 6)). If
+  `nifti_tensor` is False, this will be saved in an alternate format
+  that is used by other software (e.g., FSL): a
+  4-dimensional volume (shape (i, j, k, 6)) with Dxx, Dxy, Dxz, Dyy,
+  Dyz, Dzz on the last dimension.
+
+* ``--out_fa``
+
+  Name of the fractional anisotropy volume to be saved.
+
+* ``--out_ga``
+
+  Name of the geodesic anisotropy volume to be saved.
+
+* ``--out_rgb``
+
+  Name of the color fa volume to be saved.
+
+* ``--out_md``
+
+  Name of the mean diffusivity volume to be saved.
+
+* ``--out_ad``
+
+  Name of the axial diffusivity volume to be saved.
+
+* ``--out_rd``
+
+  Name of the radial diffusivity volume to be saved.
+
+* ``--out_mode``
+
+  Name of the mode volume to be saved.
+
+* ``--out_evec``
+
+  Name of the eigenvectors volume to be saved.
+
+* ``--out_eval``
+
+  Name of the eigenvalues to be saved.
+
+* ``--out_pam``
+
+  Name of the peaks volume to be saved.
+
+* ``--out_peaks_dir``
+
+  Name of the peaks directions volume to be saved.
+
+* ``--out_peaks_values``
+
+  Name of the peaks values volume to be saved.
+
+* ``--out_peaks_indices``
+
+  Name of the peaks indices volume to be saved.
+
+* ``--out_sphere``
+
+  Sphere vertices name to be saved.
+
+* ``--out_qa``
+
+  Name of the Quantitative Anisotropy to be saved.
+
+References
+----------
+
+.. footbibliography::
+
+Garyfallidis, E., M. Brett, B. Amirbekian, A. Rokem, S. Van Der Walt, M. Descoteaux, and I. Nimmo-Smith. Dipy, a library for the analysis of diffusion MRI data. Frontiers in Neuroinformatics, 1-18, 2014.
