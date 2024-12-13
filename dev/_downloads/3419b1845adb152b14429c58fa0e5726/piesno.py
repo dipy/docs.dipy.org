@@ -5,10 +5,10 @@ Noise estimation using PIESNO
 
 Often, one is interested in estimating the noise in the diffusion signal. One
 of the methods to do this is the Probabilistic Identification and Estimation of
-Noise (PIESNO) framework [Koay2009]_. Using this method, one can detect the
-standard deviation of the noise from Diffusion-Weighted Imaging (DWI). PIESNO
-also works with multiple channel DWI datasets that are acquired from N array
-coils for both SENSE and GRAPPA reconstructions.
+Noise (PIESNO) framework :footcite:p:`Koay2009b`. Using this method, one can
+detect the standard deviation of the noise from Diffusion-Weighted Imaging
+(DWI). PIESNO also works with multiple channel DWI datasets that are acquired
+from N array coils for both SENSE and GRAPPA reconstructions.
 
 The PIESNO method works in two steps:
 
@@ -34,17 +34,17 @@ In this example, we will demonstrate the use of PIESNO with a 3-shell data-set.
 We start by importing necessary modules and functions:
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-from dipy.denoise.noise_estimate import piesno
 from dipy.data import get_fnames
+from dipy.denoise.noise_estimate import piesno
 from dipy.io.image import load_nifti, save_nifti
 
 ###############################################################################
 # Then we load the data and the affine:
 
-dwi_fname, dwi_bval_fname, dwi_bvec_fname = get_fnames('sherbrooke_3shell')
+dwi_fname, dwi_bval_fname, dwi_bvec_fname = get_fnames(name="sherbrooke_3shell")
 data, affine = load_nifti(dwi_fname)
 
 
@@ -66,14 +66,14 @@ axial = data[:, :, data.shape[2] // 2, 0].T
 axial_piesno = mask[:, :, data.shape[2] // 2].T
 
 fig, ax = plt.subplots(1, 2)
-ax[0].imshow(axial, cmap='gray', origin='lower')
-ax[0].set_title('Axial slice of the b=0 data')
-ax[1].imshow(axial_piesno, cmap='gray', origin='lower')
-ax[1].set_title('Background voxels from the data')
+ax[0].imshow(axial, cmap="gray", origin="lower")
+ax[0].set_title("Axial slice of the b=0 data")
+ax[1].imshow(axial_piesno, cmap="gray", origin="lower")
+ax[1].set_title("Background voxels from the data")
 for a in ax:
     a.set_axis_off()
 
-plt.savefig('piesno.png', bbox_inches='tight')
+plt.savefig("piesno.png", bbox_inches="tight")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -81,11 +81,10 @@ plt.savefig('piesno.png', bbox_inches='tight')
 # Showing the mid axial slice of the b=0 image (left) and estimated
 # background voxels (right) used to estimate the noise standard deviation.
 
-save_nifti('mask_piesno.nii.gz', mask.astype(np.uint8), affine)
+save_nifti("mask_piesno.nii.gz", mask.astype(np.uint8), affine)
 
-print('The noise standard deviation is sigma = ', sigma)
-print('The std of the background is =',
-      np.std(data[mask[..., :].astype(bool)]))
+print("The noise standard deviation is sigma = ", sigma)
+print("The std of the background is =", np.std(data[mask[..., :].astype(bool)]))
 
 ###############################################################################
 # Here, we obtained a noise standard deviation of 7.26. For comparison, a
@@ -96,9 +95,8 @@ print('The std of the background is =',
 # References
 # ----------
 #
-# .. [Koay2009] Koay C.G., E. Ozarslan, C. Pierpaoli. Probabilistic
-#    Identification and Estimation of Noise (PIESNO): A self-consistent
-#    approach and its applications in MRI. JMR, 199(1):94-103, 2009.
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

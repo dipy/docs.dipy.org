@@ -4,14 +4,14 @@ Crossing-preserving contextual enhancement
 ==========================================
 
 This demo presents an example of crossing-preserving contextual enhancement of
-FOD/ODF fields [Meesters2016]_, implementing the contextual PDE framework
-of [Portegies2015a]_ for processing HARDI data. The aim is to enhance the
-alignment of elongated structures in the data such that crossing/junctions are
-maintained while reducing noise and small incoherent structures. This is
-achieved via a hypo-elliptic 2nd order PDE in the domain of coupled positions
-and orientations :math:`\\mathbb{R}^3 \\rtimes S^2`. This domain carries a
-non-flat geometrical differential structure that allows including a notion of
-alignment between neighboring points.
+FOD/ODF fields :footcite:p:`Meesters2016a`, implementing the contextual PDE
+framework of :footcite:p:`Portegies2015b` for processing HARDI data. The aim is
+to enhance the alignment of elongated structures in the data such that
+crossing/junctions are maintained while reducing noise and small incoherent
+structures. This is achieved via a hypo-elliptic 2nd order PDE in the domain of
+coupled positions and orientations :math:`\\mathbb{R}^3 \\rtimes S^2`. This
+domain carries a non-flat geometrical differential structure that allows
+including a notion of alignment between neighboring points.
 
 Let :math:`({\\bf y},{\\bf n}) \\in \\mathbb{R}^3\rtimes S^2` where
 :math:`{\\bf y} \\in \\mathbb{R}^{3}` denotes the spatial part, and
@@ -58,7 +58,7 @@ Note that the shift-twist convolution differs from a Euclidean convolution and
 takes into account the non-flat structure of the space
 :math:`\\mathbb{R}^3\\rtimes S^2`.
 
-The kernel :math:`P_t` has a stochastic interpretation [DuitsAndFranken2011]_.
+The kernel :math:`P_t` has a stochastic interpretation :footcite:p:`Duits2011`.
 It can be seen as the limiting distribution obtained by accumulating random
 walks of particles in the position/orientation domain, where in each step the
 particles can (randomly) move forward/backward along their current orientation,
@@ -71,28 +71,30 @@ the process for contour enhancement of 2D images.
 
    The random motion of particles (a) and its corresponding probability map
    (b) in 2D. The 3D kernel is shown on the right. Adapted from
-   [Portegies2015a]_.
+   :footcite:p:`Portegies2015b`.
 
 In practice, as the exact analytical formulas for the kernel :math:`P_t`
-are unknown, we use the approximation given in [Portegies2015b]_.
+are unknown, we use the approximation given in :footcite:p:`Portegies2015a`.
 
 """
 
 import numpy as np
+
 from dipy.core.gradients import gradient_table
-from dipy.data import get_fnames, default_sphere
+from dipy.data import default_sphere, get_fnames
 from dipy.denoise.enhancement_kernel import EnhancementKernel
 from dipy.denoise.shift_twist_convolution import convolve
-from dipy.io.image import load_nifti_data
 from dipy.io.gradients import read_bvals_bvecs
+from dipy.io.image import load_nifti_data
+from dipy.reconst.csdeconv import (
+    ConstrainedSphericalDeconvModel,
+    auto_response_ssst,
+    odf_sh_to_sharp,
+)
+from dipy.reconst.shm import sf_to_sh, sh_to_sf
 from dipy.segment.mask import median_otsu
 from dipy.sims.voxel import add_noise
-from dipy.reconst.csdeconv import odf_sh_to_sharp
-from dipy.reconst.shm import sf_to_sh, sh_to_sf
-from dipy.reconst.csdeconv import (
-   auto_response_ssst, ConstrainedSphericalDeconvModel)
-
-from dipy.viz import window, actor
+from dipy.viz import actor, window
 
 ###############################################################################
 # The enhancement is evaluated on the Stanford HARDI dataset
@@ -100,24 +102,25 @@ from dipy.viz import window, actor
 # spherical deconvolution is used to model the fiber orientations.
 
 # Read data
-hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames('stanford_hardi')
+hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames(name="stanford_hardi")
 data = load_nifti_data(hardi_fname)
 bvals, bvecs = read_bvals_bvecs(hardi_bval_fname, hardi_bvec_fname)
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 # Add Rician noise
 b0_slice = data[:, :, :, 1]
 b0_mask, mask = median_otsu(b0_slice)
 rng = np.random.default_rng(1)
-data_noisy = add_noise(data, 10.0, np.mean(b0_slice[mask]),
-                       noise_type='rician', rng=rng)
+data_noisy = add_noise(
+    data, 10.0, np.mean(b0_slice[mask]), noise_type="rician", rng=rng
+)
 
 # Select a small part of it.
 padding = 3  # Include a larger region to avoid boundary effects
-data_small = data[25-padding:40+padding, 65-padding:80+padding, 35:42]
-data_noisy_small = data_noisy[25-padding:40+padding,
-                              65-padding:80+padding,
-                              35:42]
+data_small = data[25 - padding : 40 + padding, 65 - padding : 80 + padding, 35:42]
+data_noisy_small = data_noisy[
+    25 - padding : 40 + padding, 65 - padding : 80 + padding, 35:42
+]
 
 ###############################################################################
 # Enables/disables interactive visualization
@@ -135,14 +138,13 @@ csd_fit_orig = csd_model_orig.fit(data_small)
 csd_shm_orig = csd_fit_orig.shm_coeff
 
 # Perform CSD on the original data + noise
-response, ratio = auto_response_ssst(gtab, data_noisy, roi_radii=10,
-                                     fa_thr=0.7)
+response, ratio = auto_response_ssst(gtab, data_noisy, roi_radii=10, fa_thr=0.7)
 csd_model_noisy = ConstrainedSphericalDeconvModel(gtab, response)
 csd_fit_noisy = csd_model_noisy.fit(data_noisy_small)
 csd_shm_noisy = csd_fit_noisy.shm_coeff
 
 ###############################################################################
-# Inspired by [Rodrigues2010]_, a lookup-table is created, containing
+# Inspired by :footcite:p:`Rodrigues2010`, a lookup-table is created, containing
 # rotated versions of the kernel :math:`P_t` sampled over a discrete set of
 # orientations. In order to ensure rotationally invariant processing, the
 # discrete orientations are required to be equally distributed over a sphere.
@@ -162,18 +164,18 @@ scene = window.Scene()
 # convolve kernel with delta spike
 spike = np.zeros((7, 7, 7, k.get_orientations().shape[0]), dtype=np.float64)
 spike[3, 3, 3, 0] = 1
-spike_shm_conv = convolve(sf_to_sh(spike, k.get_sphere(), sh_order_max=8), k,
-                          sh_order_max=8, test_mode=True)
+spike_shm_conv = convolve(
+    sf_to_sh(spike, k.get_sphere(), sh_order_max=8), k, sh_order_max=8, test_mode=True
+)
 
 spike_sf_conv = sh_to_sf(spike_shm_conv, default_sphere, sh_order_max=8)
-model_kernel = actor.odf_slicer(spike_sf_conv * 6,
-                                sphere=default_sphere,
-                                norm=False,
-                                scale=0.4)
+model_kernel = actor.odf_slicer(
+    spike_sf_conv * 6, sphere=default_sphere, norm=False, scale=0.4
+)
 model_kernel.display(x=3)
 scene.add(model_kernel)
 scene.set_camera(position=(30, 0, 0), focal_point=(0, 0, 0), view_up=(0, 0, 1))
-window.record(scene, out_path='kernel.png', size=(900, 900))
+window.record(scene=scene, out_path="kernel.png", size=(900, 900))
 if interactive:
     window.show(scene)
 
@@ -194,10 +196,9 @@ csd_shm_enh = convolve(csd_shm_noisy, k, sh_order_max=8)
 
 # Sharpen via the Sharpening Deconvolution Transform
 
-csd_shm_enh_sharp = odf_sh_to_sharp(csd_shm_enh,
-                                    default_sphere,
-                                    sh_order_max=8,
-                                    lambda_=0.1)
+csd_shm_enh_sharp = odf_sh_to_sharp(
+    csd_shm_enh, default_sphere, sh_order_max=8, lambda_=0.1
+)
 
 # Convert raw and enhanced data to discrete form
 csd_sf_orig = sh_to_sf(csd_shm_orig, default_sphere, sh_order_max=8)
@@ -216,39 +217,38 @@ csd_sf_enh_sharp /= np.amax(csd_sf_enh_sharp) * 1.25
 scene = window.Scene()
 
 # original ODF field
-fodf_spheres_org = actor.odf_slicer(csd_sf_orig,
-                                    sphere=default_sphere,
-                                    scale=0.4,
-                                    norm=False)
+fodf_spheres_org = actor.odf_slicer(
+    csd_sf_orig, sphere=default_sphere, scale=0.4, norm=False
+)
 fodf_spheres_org.display(z=3)
 fodf_spheres_org.SetPosition(0, 25, 0)
 scene.add(fodf_spheres_org)
 
 # ODF field with added noise
-fodf_spheres = actor.odf_slicer(csd_sf_noisy,
-                                sphere=default_sphere,
-                                scale=0.4,
-                                norm=False,)
+fodf_spheres = actor.odf_slicer(
+    csd_sf_noisy,
+    sphere=default_sphere,
+    scale=0.4,
+    norm=False,
+)
 fodf_spheres.SetPosition(0, 0, 0)
 scene.add(fodf_spheres)
 
 # Enhancement of noisy ODF field
-fodf_spheres_enh = actor.odf_slicer(csd_sf_enh,
-                                    sphere=default_sphere,
-                                    scale=0.4,
-                                    norm=False)
+fodf_spheres_enh = actor.odf_slicer(
+    csd_sf_enh, sphere=default_sphere, scale=0.4, norm=False
+)
 fodf_spheres_enh.SetPosition(25, 0, 0)
 scene.add(fodf_spheres_enh)
 
 # Additional sharpening
-fodf_spheres_enh_sharp = actor.odf_slicer(csd_sf_enh_sharp,
-                                          sphere=default_sphere,
-                                          scale=0.4,
-                                          norm=False)
+fodf_spheres_enh_sharp = actor.odf_slicer(
+    csd_sf_enh_sharp, sphere=default_sphere, scale=0.4, norm=False
+)
 fodf_spheres_enh_sharp.SetPosition(25, 25, 0)
 scene.add(fodf_spheres_enh_sharp)
 
-window.record(scene, out_path='enhancements.png', size=(900, 900))
+window.record(scene=scene, out_path="enhancements.png", size=(900, 900))
 if interactive:
     window.show(scene)
 
@@ -264,29 +264,8 @@ if interactive:
 # References
 # ----------
 #
-# .. [Meesters2016] S. Meesters, G. Sanguinetti, E. Garyfallidis, J. Portegies,
-#    R. Duits. (2016) Fast implementations of contextual PDE’s for HARDI data
-#    processing in DIPY. ISMRM 2016 conference.
+# .. footbibliography::
 #
-# .. [Portegies2015a] J. Portegies, R. Fick, G. Sanguinetti, S. Meesters,
-#    G.Girard, and R. Duits. (2015) Improving Fiber Alignment in HARDI by
-#    Combining Contextual PDE flow with Constrained Spherical Deconvolution.
-#    PLoS One.
-#
-# .. [Portegies2015b] J. Portegies, G. Sanguinetti, S. Meesters, and R. Duits.
-#    (2015) New Approximation of a Scale Space Kernel on SE(3) and Applications
-#    in Neuroimaging. Fifth International Conference on Scale Space and
-#    Variational Methods in Computer Vision.
-#
-# .. [DuitsAndFranken2011] R. Duits and E. Franken (2011) Left-invariant
-#    diffusions on the space of positions and orientations and their
-#    application to crossing-preserving smoothing of HARDI images.
-#    International Journal of Computer Vision, 92:231-264.
-#
-# .. [Rodrigues2010] P. Rodrigues, R. Duits, B. Romeny, A. Vilanova (2010).
-#    Accelerated Diffusion Operators for Enhancing DW-MRI. Eurographics
-#    Workshop on Visual Computing for Biology and Medicine. The Eurographics
-#    Association.
 
 ###############################################################################
 # .. include:: ../../links_names.inc

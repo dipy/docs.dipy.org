@@ -12,16 +12,21 @@ import os
 
 from dipy.data import fetch_bundles_2_subjects
 from dipy.io.image import load_nifti, load_nifti_data
-from dipy.viz import window, actor, ui
+from dipy.viz import actor, ui, window
 
 ###############################################################################
 # Let's download and load a T1.
 
 fetch_bundles_2_subjects()
 
-fname_t1 = os.path.join(os.path.expanduser('~'), '.dipy',
-                        'exp_bundles_and_maps', 'bundles_2_subjects',
-                        'subj_1', 't1_warped.nii.gz')
+fname_t1 = os.path.join(
+    os.path.expanduser("~"),
+    ".dipy",
+    "exp_bundles_and_maps",
+    "bundles_2_subjects",
+    "subj_1",
+    "t1_warped.nii.gz",
+)
 
 data, affine = load_nifti(fname_t1)
 
@@ -46,7 +51,7 @@ value_range = (mean - 0.5 * std, mean + 1.5 * std)
 # transformation matrix. The default behavior of this function is to show the
 # middle slice of the last dimension of the resampled data.
 
-slice_actor = actor.slicer(data, affine, value_range)
+slice_actor = actor.slicer(data, affine=affine, value_range=value_range)
 
 ###############################################################################
 # The ``slice_actor`` contains an axial slice.
@@ -64,7 +69,7 @@ slice_actor2 = slice_actor.copy()
 # Now we have a new ``slice_actor`` which displays the middle slice of the
 # sagittal plane.
 
-slice_actor2.display(slice_actor2.shape[0]//2, None, None)
+slice_actor2.display(x=slice_actor2.shape[0] // 2, y=None, z=None)
 
 scene.add(slice_actor2)
 
@@ -79,8 +84,7 @@ scene.zoom(1.4)
 ###############################################################################
 # Otherwise, you can save a screenshot using the following command.
 
-window.record(scene, out_path='slices.png', size=(600, 600),
-              reset_camera=False)
+window.record(scene=scene, out_path="slices.png", size=(600, 600), reset_camera=False)
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -95,22 +99,29 @@ window.record(scene, out_path='slices.png', size=(600, 600),
 # loading an FA image and showing it in a non-standard way using an HSV
 # colormap.
 
-fname_fa = os.path.join(os.path.expanduser('~'), '.dipy',
-                        'exp_bundles_and_maps', 'bundles_2_subjects',
-                        'subj_1', 'fa_1x1x1.nii.gz')
+fname_fa = os.path.join(
+    os.path.expanduser("~"),
+    ".dipy",
+    "exp_bundles_and_maps",
+    "bundles_2_subjects",
+    "subj_1",
+    "fa_1x1x1.nii.gz",
+)
 
 fa = load_nifti_data(fname_fa)
 
-lut = actor.colormap_lookup_table(scale_range=(fa.min(), fa.max()*0.8),
-                                  hue_range=(0.4, 1.),
-                                  saturation_range=(1, 1.),
-                                  value_range=(0., 1.))
+lut = actor.colormap_lookup_table(
+    scale_range=(fa.min(), fa.max() * 0.8),
+    hue_range=(0.4, 1.0),
+    saturation_range=(1, 1.0),
+    value_range=(0.0, 1.0),
+)
 
 ###############################################################################
 # This is because the lookup table is applied in the slice after interpolating
 # to (0, 255).
 
-fa_actor = actor.slicer(fa, affine, lookup_colormap=lut)
+fa_actor = actor.slicer(fa, affine=affine, lookup_colormap=lut)
 
 scene.clear()
 scene.add(fa_actor)
@@ -120,8 +131,9 @@ scene.zoom(1.4)
 
 # window.show(scene, size=(600, 600), reset_camera=False)
 
-window.record(scene, out_path='slices_lut.png', size=(600, 600),
-              reset_camera=False)
+window.record(
+    scene=scene, out_path="slices_lut.png", size=(600, 600), reset_camera=False
+)
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -137,23 +149,21 @@ window.record(scene, out_path='slices_lut.png', size=(600, 600),
 # the ``ShowManager`` object, which allows accessing the pipeline in different
 # areas.
 
-show_m = window.ShowManager(scene, size=(1200, 900))
+show_m = window.ShowManager(scene=scene, size=(1200, 900))
 show_m.initialize()
 
 ###############################################################################
 # We'll start by creating the panel and adding it to the ``ShowManager``
 
-label_position = ui.TextBlock2D(text='Position:')
-label_value = ui.TextBlock2D(text='Value:')
+label_position = ui.TextBlock2D(text="Position:")
+label_value = ui.TextBlock2D(text="Value:")
 
-result_position = ui.TextBlock2D(text='')
-result_value = ui.TextBlock2D(text='')
+result_position = ui.TextBlock2D(text="")
+result_value = ui.TextBlock2D(text="")
 
-panel_picking = ui.Panel2D(size=(250, 125),
-                           position=(20, 20),
-                           color=(0, 0, 0),
-                           opacity=0.75,
-                           align="left")
+panel_picking = ui.Panel2D(
+    size=(250, 125), position=(20, 20), color=(0, 0, 0), opacity=0.75, align="left"
+)
 
 panel_picking.add_element(label_position, (0.1, 0.55))
 panel_picking.add_element(label_value, (0.1, 0.25))
@@ -175,12 +185,12 @@ def left_click_callback(obj, ev):
     obj.picker.Pick(event_pos[0], event_pos[1], 0, scene)
 
     i, j, k = obj.picker.GetPointIJK()
-    result_position.message = '({}, {}, {})'.format(str(i), str(j), str(k))
-    result_value.message = '%.8f' % data[i, j, k]
+    result_position.message = f"({str(i)}, {str(j)}, {str(k)})"
+    result_value.message = f"{data[i, j, k]:.8f}"
 
 
 fa_actor.SetInterpolate(False)
-fa_actor.AddObserver('LeftButtonPressEvent', left_click_callback, 1.0)
+fa_actor.AddObserver("LeftButtonPressEvent", left_click_callback, 1.0)
 
 # show_m.start()
 
@@ -195,12 +205,12 @@ fa_actor.AddObserver('LeftButtonPressEvent', left_click_callback, 1.0)
 # parallel. We'll also need a new show manager and an associated callback.
 
 scene.clear()
-scene.projection('parallel')
+scene.projection("parallel")
 
-result_position.message = ''
-result_value.message = ''
+result_position.message = ""
+result_value.message = ""
 
-show_m_mosaic = window.ShowManager(scene, size=(1200, 900))
+show_m_mosaic = window.ShowManager(scene=scene, size=(1200, 900))
 show_m_mosaic.initialize()
 
 
@@ -211,8 +221,8 @@ def left_click_callback_mosaic(obj, ev):
     obj.picker.Pick(event_pos[0], event_pos[1], 0, scene)
 
     i, j, k = obj.picker.GetPointIJK()
-    result_position.message = '({}, {}, {})'.format(str(i), str(j), str(k))
-    result_value.message = '%.8f' % data[i, j, k]
+    result_position.message = f"({str(i)}, {str(j)}, {str(k)})"
+    result_value.message = f"{data[i, j, k]:.8f}"
 
 
 ###############################################################################
@@ -231,14 +241,14 @@ border = 10
 for j in range(rows):
     for i in range(cols):
         slice_mosaic = slice_actor.copy()
-        slice_mosaic.display(None, None, cnt)
-        slice_mosaic.SetPosition((X + border) * i,
-                                 0.5 * cols * (Y + border) - (Y + border) * j,
-                                 0)
+        slice_mosaic.display(z=cnt)
+        slice_mosaic.SetPosition(
+            (X + border) * i, 0.5 * cols * (Y + border) - (Y + border) * j, 0
+        )
         slice_mosaic.SetInterpolate(False)
-        slice_mosaic.AddObserver('LeftButtonPressEvent',
-                                 left_click_callback_mosaic,
-                                 1.0)
+        slice_mosaic.AddObserver(
+            "LeftButtonPressEvent", left_click_callback_mosaic, 1.0
+        )
         scene.add(slice_mosaic)
         cnt += 1
         if cnt > Z:
@@ -257,8 +267,7 @@ scene.zoom(1.0)
 # the mosaic up/down and left/right using the middle mouse button drag,
 # zoom in/out using the scroll wheel, and pick voxels with left click.
 
-window.record(scene, out_path='mosaic.png', size=(900, 600),
-              reset_camera=False)
+window.record(scene=scene, out_path="mosaic.png", size=(900, 600), reset_camera=False)
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold

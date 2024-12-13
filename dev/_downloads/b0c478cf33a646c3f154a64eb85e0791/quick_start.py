@@ -32,25 +32,25 @@ fetch_sherbrooke_3shell()
 # By default these datasets will go in the ``.dipy`` folder inside your home
 # directory. Here is how you can access them.
 
-home = expanduser('~')
+home = expanduser("~")
 
 ###############################################################################
 # ``dname`` holds the directory name where the 3 files are in.
 
-dname = join(home, '.dipy', 'sherbrooke_3shell')
+dname = join(home, ".dipy", "sherbrooke_3shell")
 
 ###############################################################################
 # Here, we show the complete filenames of the 3 files
 
-fdwi = join(dname, 'HARDI193.nii.gz')
+fdwi = join(dname, "HARDI193.nii.gz")
 
 print(fdwi)
 
-fbval = join(dname, 'HARDI193.bval')
+fbval = join(dname, "HARDI193.bval")
 
 print(fbval)
 
-fbvec = join(dname, 'HARDI193.bvec')
+fbvec = join(dname, "HARDI193.bvec")
 
 print(fbvec)
 
@@ -82,13 +82,13 @@ print(img.header.get_zooms()[:3])
 # let's show here the middle axial slices of volume 0 and volume 10.
 
 axial_middle = data.shape[2] // 2
-plt.figure('Showing the datasets')
+plt.figure("Showing the datasets")
 plt.subplot(1, 2, 1).set_axis_off()
-plt.imshow(data[:, :, axial_middle, 0].T, cmap='gray', origin='lower')
+plt.imshow(data[:, :, axial_middle, 0].T, cmap="gray", origin="lower")
 plt.subplot(1, 2, 2).set_axis_off()
-plt.imshow(data[:, :, axial_middle, 10].T, cmap='gray', origin='lower')
+plt.imshow(data[:, :, axial_middle, 10].T, cmap="gray", origin="lower")
 plt.show()
-plt.savefig('data.png', bbox_inches='tight')
+plt.savefig("data.png", bbox_inches="tight")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -108,7 +108,7 @@ bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
 # acquisition specific parameters, e.g. b-values, b-vectors, timings and
 # others. To create this object you can use the function ``gradient_table``.
 
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 ###############################################################################
 # Finally, you can use ``gtab`` (the GradientTable object) to show some
@@ -127,6 +127,12 @@ print(gtab.bvals)
 print(gtab.bvecs[:10, :])
 
 ###############################################################################
+# You can get the number of gradients (including the number of b0 values)
+# calling ``len`` on the ``GradientTable`` instance:
+
+print(len(gtab))
+
+###############################################################################
 # ``gtab``  can be used to tell what part of the data is the S0 volumes
 # (volumes which correspond to b-values of 0).
 
@@ -140,7 +146,7 @@ print(S0s.shape)
 ###############################################################################
 # Just, for fun let's save this in a new Nifti file.
 
-save_nifti('HARDI193_S0.nii.gz', S0s, affine)
+save_nifti("HARDI193_S0.nii.gz", S0s, affine)
 
 ###############################################################################
 # Now, that we learned how to load dMRI datasets we can start the analysis.

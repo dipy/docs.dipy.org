@@ -3,29 +3,30 @@
 Tractography Clustering with QuickBundles
 =========================================
 
-This example explains how we can use QuickBundles [Garyfallidis12]_ to
-simplify/cluster streamlines.
+This example explains how we can use QuickBundles
+:footcite:p:`Garyfallidis2012a` to simplify/cluster streamlines.
 
 First import the necessary modules.
 """
 
 import numpy as np
+
+from dipy.data import get_fnames
+from dipy.io.pickles import save_pickle
 from dipy.io.streamline import load_tractogram
 from dipy.segment.clustering import QuickBundles
-from dipy.io.pickles import save_pickle
-from dipy.data import get_fnames
-from dipy.viz import window, actor, colormap
+from dipy.viz import actor, colormap, window
 
 ###############################################################################
 # For educational purposes we will try to cluster a small streamline bundle
 # known from neuroanatomy as the fornix.
 
-fname = get_fnames('fornix')
+fname = get_fnames(name="fornix")
 
 ###############################################################################
 # Load fornix streamlines.
 
-fornix = load_tractogram(fname, 'same', bbox_valid_check=False)
+fornix = load_tractogram(fname, "same", bbox_valid_check=False)
 streamlines = fornix.streamlines
 
 ###############################################################################
@@ -36,7 +37,7 @@ streamlines = fornix.streamlines
 # downsampled/upsampled so they have only 12 points (To set manually the
 # number of points, see :ref:`clustering-examples-ResampleFeature`).
 
-qb = QuickBundles(threshold=10.)
+qb = QuickBundles(threshold=10.0)
 clusters = qb.cluster(streamlines)
 
 ###############################################################################
@@ -61,8 +62,8 @@ interactive = False
 
 scene = window.Scene()
 scene.SetBackground(1, 1, 1)
-scene.add(actor.streamtube(streamlines, window.colors.white))
-window.record(scene, out_path='fornix_initial.png', size=(600, 600))
+scene.add(actor.streamtube(streamlines, colors=window.colors.white))
+window.record(scene=scene, out_path="fornix_initial.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -78,9 +79,9 @@ colormap = colormap.create_colormap(np.arange(len(clusters)))
 
 scene.clear()
 scene.SetBackground(1, 1, 1)
-scene.add(actor.streamtube(streamlines, window.colors.white, opacity=0.05))
-scene.add(actor.streamtube(clusters.centroids, colormap, linewidth=0.4))
-window.record(scene, out_path='fornix_centroids.png', size=(600, 600))
+scene.add(actor.streamtube(streamlines, colors=window.colors.white, opacity=0.05))
+scene.add(actor.streamtube(clusters.centroids, colors=colormap, linewidth=0.4))
+window.record(scene=scene, out_path="fornix_centroids.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -98,8 +99,8 @@ for cluster, color in zip(clusters, colormap):
 
 scene.clear()
 scene.SetBackground(1, 1, 1)
-scene.add(actor.streamtube(streamlines, colormap_full))
-window.record(scene, out_path='fornix_clusters.png', size=(600, 600))
+scene.add(actor.streamtube(streamlines, colors=colormap_full))
+window.record(scene=scene, out_path="fornix_clusters.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -111,7 +112,7 @@ if interactive:
 #
 # It is also possible to save the complete `ClusterMap` object with pickling.
 
-save_pickle('QB.pkl', clusters)
+save_pickle("QB.pkl", clusters)
 
 ###############################################################################
 # Finally, here is a video of QuickBundles applied on a larger dataset.
@@ -124,9 +125,8 @@ save_pickle('QB.pkl', clusters)
 # References
 # ----------
 #
-# .. [Garyfallidis12] Garyfallidis E. et al., QuickBundles a method for
-#                     tractography simplification, Frontiers in Neuroscience,
-#                     vol 6, no 175, 2012.
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

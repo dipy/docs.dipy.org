@@ -19,15 +19,16 @@ For both shells let's say that we want a specific number of gradients (64) and
 we want to have the points on the sphere evenly distributed.
 
 This is possible using the ``disperse_charges`` which is an implementation of
-electrostatic repulsion [Jones1999]_.
+electrostatic repulsion :footcite:t:`Jones1999` .
 
 Let's start by importing the necessary modules.
 """
 
 import numpy as np
+
 from dipy.core.gradients import gradient_table
-from dipy.core.sphere import disperse_charges, Sphere, HemiSphere
-from dipy.viz import window, actor
+from dipy.core.sphere import HemiSphere, Sphere, disperse_charges
+from dipy.viz import actor, window
 
 ###############################################################################
 # We can first create some random points on a ``HemiSphere`` using spherical
@@ -55,12 +56,10 @@ interactive = False
 scene = window.Scene()
 scene.SetBackground(1, 1, 1)
 
-scene.add(actor.point(hsph_initial.vertices, window.colors.red,
-                      point_radius=0.05))
-scene.add(actor.point(hsph_updated.vertices, window.colors.green,
-                      point_radius=0.05))
+scene.add(actor.point(hsph_initial.vertices, window.colors.red, point_radius=0.05))
+scene.add(actor.point(hsph_updated.vertices, window.colors.green, point_radius=0.05))
 
-window.record(scene, out_path='initial_vs_updated.png', size=(300, 300))
+window.record(scene=scene, out_path="initial_vs_updated.png", size=(300, 300))
 if interactive:
     window.show(scene)
 
@@ -79,7 +78,7 @@ sph = Sphere(xyz=np.vstack((hsph_updated.vertices, -hsph_updated.vertices)))
 scene.clear()
 scene.add(actor.point(sph.vertices, window.colors.green, point_radius=0.05))
 
-window.record(scene, out_path='full_sphere.png', size=(300, 300))
+window.record(scene=scene, out_path="full_sphere.png", size=(300, 300))
 if interactive:
     window.show(scene)
 
@@ -117,7 +116,7 @@ print(bvecs)
 # Both b-values and b-vectors look correct. Let's now create the
 # ``GradientTable``.
 
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 scene.clear()
 
@@ -133,7 +132,7 @@ colors = np.ascontiguousarray(colors)
 
 scene.add(actor.point(gtab.gradients, colors, point_radius=100))
 
-window.record(scene, out_path='gradients.png', size=(300, 300))
+window.record(scene=scene, out_path="gradients.png", size=(300, 300))
 if interactive:
     window.show(scene)
 
@@ -146,9 +145,7 @@ if interactive:
 # References
 # ----------
 #
-# .. [Jones1999] Jones, DK. et al. Optimal strategies for measuring diffusion
-#    in anisotropic systems by magnetic resonance imaging, Magnetic Resonance
-#    in Medicine, vol 42, no 3, 515-525, 1999.
+# .. footbibliography::
 
 ###############################################################################
 # .. include:: ../../links_names.inc

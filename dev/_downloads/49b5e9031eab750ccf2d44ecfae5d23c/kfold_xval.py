@@ -13,14 +13,14 @@ approximates the diffusion pattern as a 3D Gaussian distribution, and has only
 models are also not nested, so they cannot be compared using the
 log-likelihood ratio.
 
-A general way to perform model comparison is cross-validation [Hastie2008]_. In
-this method, a model is fit to some of the data (a *learning set*) and the
-model is then used to predict a held-out set (a *testing set*). The model
-predictions can then be compared to estimate prediction error on the held out
-set. This method has been used for comparison of models such as DTI and CSD
-[Rokem2014]_, and has the advantage that it the comparison is imprevious to
-differences in the number of parameters in the model, and it can be used to
-compare models that are not nested.
+A general way to perform model comparison is cross-validation
+:footcite:p:`Hastie2009`. In this method, a model is fit to some of the data (a
+*learning set*) and the model is then used to predict a held-out set (a
+*testing set*). The model predictions can then be compared to estimate
+prediction error on the held out set. This method has been used for comparison
+of models such as DTI and CSD :footcite:p:`Rokem2014`, and has the advantage
+that it the comparison is imprevious to differences in the number of
+in the model, and it can be used to compare models that are not nested.
 
 In DIPY_, we include an implementation of k-fold cross-validation. In this
 method, the data is divided into $k$ different segments. In each iteration
@@ -34,17 +34,17 @@ First, we import that modules needed for this example. In particular, the
 
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
-
-import dipy.data as dpd
-import dipy.reconst.cross_validation as xval
-import dipy.reconst.dti as dti
-import dipy.reconst.csdeconv as csd
+import numpy as np
 import scipy.stats as stats
+
 from dipy.core.gradients import gradient_table
-from dipy.io.image import load_nifti
+import dipy.data as dpd
 from dipy.io.gradients import read_bvals_bvecs
+from dipy.io.image import load_nifti
+import dipy.reconst.cross_validation as xval
+import dipy.reconst.csdeconv as csd
+import dipy.reconst.dti as dti
 
 np.random.seed(2014)
 
@@ -54,12 +54,11 @@ np.random.seed(2014)
 # semiovale (cso), a part of the brain known to contain multiple crossing
 # white matter fiber populations.
 
-hardi_fname, hardi_bval_fname, hardi_bvec_fname = dpd.get_fnames(
-    'stanford_hardi')
+hardi_fname, hardi_bval_fname, hardi_bvec_fname = dpd.get_fnames(name="stanford_hardi")
 
 data, affine = load_nifti(hardi_fname)
 bvals, bvecs = read_bvals_bvecs(hardi_bval_fname, hardi_bvec_fname)
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 
 cc_vox = data[40, 70, 38]
@@ -95,19 +94,39 @@ csd_cso = xval.kfold_xval(csd_model, cso_vox, 2, response, rng=rng)
 
 fig, ax = plt.subplots(1, 2)
 fig.set_size_inches([12, 6])
-ax[0].plot(cc_vox[gtab.b0s_mask == 0], dti_cc[gtab.b0s_mask == 0], 'o',
-           color='b', label='DTI in CC')
-ax[0].plot(cc_vox[gtab.b0s_mask == 0], csd_cc[gtab.b0s_mask == 0], 'o',
-           color='r', label='CSD in CC')
-ax[1].plot(cso_vox[gtab.b0s_mask == 0], dti_cso[gtab.b0s_mask == 0], 'o',
-           color='b', label='DTI in CSO')
-ax[1].plot(cso_vox[gtab.b0s_mask == 0], csd_cso[gtab.b0s_mask == 0], 'o',
-           color='r', label='CSD in CSO')
-ax[0].legend(loc='upper left')
-ax[1].legend(loc='upper left')
+ax[0].plot(
+    cc_vox[gtab.b0s_mask == 0],
+    dti_cc[gtab.b0s_mask == 0],
+    "o",
+    color="b",
+    label="DTI in CC",
+)
+ax[0].plot(
+    cc_vox[gtab.b0s_mask == 0],
+    csd_cc[gtab.b0s_mask == 0],
+    "o",
+    color="r",
+    label="CSD in CC",
+)
+ax[1].plot(
+    cso_vox[gtab.b0s_mask == 0],
+    dti_cso[gtab.b0s_mask == 0],
+    "o",
+    color="b",
+    label="DTI in CSO",
+)
+ax[1].plot(
+    cso_vox[gtab.b0s_mask == 0],
+    csd_cso[gtab.b0s_mask == 0],
+    "o",
+    color="r",
+    label="CSD in CSO",
+)
+ax[0].legend(loc="upper left")
+ax[1].legend(loc="upper left")
 for this_ax in ax:
-    this_ax.set_xlabel('Data (relative to S0)')
-    this_ax.set_ylabel('Model prediction (relative to S0)')
+    this_ax.set_xlabel("Data (relative to S0)")
+    this_ax.set_ylabel("Model prediction (relative to S0)")
 fig.savefig("model_predictions.png")
 
 ###############################################################################
@@ -120,22 +139,28 @@ fig.savefig("model_predictions.png")
 # We can also quantify the goodness of fit of the models by calculating an
 # R-squared score:
 
-cc_dti_r2 = stats.pearsonr(cc_vox[gtab.b0s_mask == 0],
-                           dti_cc[gtab.b0s_mask == 0])[0]**2
-cc_csd_r2 = stats.pearsonr(cc_vox[gtab.b0s_mask == 0],
-                           csd_cc[gtab.b0s_mask == 0])[0]**2
-cso_dti_r2 = stats.pearsonr(cso_vox[gtab.b0s_mask == 0],
-                            dti_cso[gtab.b0s_mask == 0])[0]**2
-cso_csd_r2 = stats.pearsonr(cso_vox[gtab.b0s_mask == 0],
-                            csd_cso[gtab.b0s_mask == 0])[0]**2
+cc_dti_r2 = (
+    stats.pearsonr(cc_vox[gtab.b0s_mask == 0], dti_cc[gtab.b0s_mask == 0])[0] ** 2
+)
+cc_csd_r2 = (
+    stats.pearsonr(cc_vox[gtab.b0s_mask == 0], csd_cc[gtab.b0s_mask == 0])[0] ** 2
+)
+cso_dti_r2 = (
+    stats.pearsonr(cso_vox[gtab.b0s_mask == 0], dti_cso[gtab.b0s_mask == 0])[0] ** 2
+)
+cso_csd_r2 = (
+    stats.pearsonr(cso_vox[gtab.b0s_mask == 0], csd_cso[gtab.b0s_mask == 0])[0] ** 2
+)
 
-print("Corpus callosum\n"
-      "DTI R2 : %s\n"
-      "CSD R2 : %s\n"
-      "\n"
-      "Centrum Semiovale\n"
-      "DTI R2 : %s\n"
-      "CSD R2 : %s\n" % (cc_dti_r2, cc_csd_r2, cso_dti_r2, cso_csd_r2))
+print(
+    "Corpus callosum\n"
+    f"DTI R2 : {cc_dti_r2}\n"
+    f"CSD R2 : {cc_csd_r2}\n"
+    "\n"
+    "Centrum Semiovale\n"
+    f"DTI R2 : {cso_dti_r2}\n"
+    f"CSD R2 : {cso_csd_r2}\n"
+)
 
 ###############################################################################
 # As you can see, DTI is a pretty good model for describing the signal in the
@@ -146,13 +171,8 @@ print("Corpus callosum\n"
 # References
 # ----------
 #
-# .. [Hastie2008] Hastie, T., Tibshirani, R., Friedman, J. (2008). The Elements
-#    of Statistical Learning: Data Mining, Inference and
-#    Prediction. Springer-Verlag, Berlin
+# .. footbibliography::
 #
-# .. [Rokem2014] Rokem, A., Chan, K.L. Yeatman, J.D., Pestilli, F., Mezer, A.,
-#    Wandell, B.A., 2014. Evaluating the accuracy of diffusion models at
-#    multiple b-values with cross-validation. ISMRM 2014.
 
 ###############################################################################
 # .. include:: ../../links_names.inc

@@ -16,16 +16,25 @@ familiar with the tractography clustering framework, read the
 
 Let's import the necessary modules.
 """
+
 import numpy as np
 
 from dipy.segment.clustering import QuickBundles
-from dipy.segment.metric import (
-    AveragePointwiseEuclideanMetric, EuclideanMetric, CosineMetric)
 from dipy.segment.featurespeed import (
-    IdentityFeature, ResampleFeature, CenterOfMassFeature, MidpointFeature,
-    ArcLengthFeature, VectorOfEndpointsFeature)
+    ArcLengthFeature,
+    CenterOfMassFeature,
+    IdentityFeature,
+    MidpointFeature,
+    ResampleFeature,
+    VectorOfEndpointsFeature,
+)
+from dipy.segment.metric import (
+    AveragePointwiseEuclideanMetric,
+    CosineMetric,
+    EuclideanMetric,
+)
 from dipy.tracking.streamline import set_number_of_points
-from dipy.viz import window, actor, colormap as cmap
+from dipy.viz import actor, colormap as cmap, window
 
 ###############################################################################
 # .. note::
@@ -40,12 +49,12 @@ def get_streamlines():
     from dipy.io.streamline import load_tractogram
     from dipy.tracking.streamline import Streamlines
 
-    fname = get_fnames('fornix')
-    fornix = load_tractogram(fname, 'same',
-                             bbox_valid_check=False).streamlines
+    fname = get_fnames(name="fornix")
+    fornix = load_tractogram(fname, "same", bbox_valid_check=False).streamlines
 
     streamlines = Streamlines(fornix)
     return streamlines
+
 
 ###############################################################################
 # .. _clustering-examples-IdentityFeature:
@@ -62,7 +71,7 @@ def get_streamlines():
 # since it will require less computation (i.e. no resampling). However, it
 # highly depends on the number of points streamlines have. By default,
 # QuickBundles resamples streamlines so that they have 12 points each
-# [Garyfallidis12]_.
+# :footcite:p:`Garyfallidis2012a`.
 #
 # *Unless stated otherwise, it is the default feature used by `Metric` objects
 # in the clustering framework.*
@@ -77,7 +86,7 @@ streamlines = set_number_of_points(streamlines, nb_points=12)
 # Create an instance of `IdentityFeature` and tell metric to use it.
 feature = IdentityFeature()
 metric = AveragePointwiseEuclideanMetric(feature=feature)
-qb = QuickBundles(threshold=10., metric=metric)
+qb = QuickBundles(threshold=10.0, metric=metric)
 clusters = qb.cluster(streamlines)
 
 print("Nb. clusters:", len(clusters))
@@ -94,12 +103,12 @@ print("Cluster sizes:", list(map(len, clusters)))
 #
 # **When:** The QuickBundles algorithm requires streamlines to have the same
 # number of points. By default, QuickBundles uses `ResampleFeature` to resample
-# streamlines so that they have 12 points each [Garyfallidis12]_. If you want
-# to use a different number of points for the resampling, you should provide
-# your own instance of `ResampleFeature` (see following example).
+# streamlines so that they have 12 points each :footcite:p:`Garyfallidis2012a`.
+# If you want to use a different number of points for the resampling, you should
+# provide your own instance of `ResampleFeature` (see following example).
 #
 # **Note:** Resampling streamlines has an impact on clustering results both in
-# term of speed and quality. Setting the number of points too low will result
+# terms of speed and quality. Setting the number of points too low will result
 # in a loss of information about the shape of the streamlines. On the contrary,
 # setting the number of points too high will slow down the clustering process.
 
@@ -109,7 +118,7 @@ streamlines = get_streamlines()  # Previously defined.
 # Streamlines will be resampled to 24 points on the fly.
 feature = ResampleFeature(nb_points=24)
 metric = AveragePointwiseEuclideanMetric(feature=feature)  # a.k.a. MDF
-qb = QuickBundles(threshold=10., metric=metric)
+qb = QuickBundles(threshold=10.0, metric=metric)
 clusters = qb.cluster(streamlines)
 
 print("Nb. clusters:", len(clusters))
@@ -141,7 +150,7 @@ streamlines = get_streamlines()  # Previously defined.
 feature = CenterOfMassFeature()
 metric = EuclideanMetric(feature)
 
-qb = QuickBundles(threshold=5., metric=metric)
+qb = QuickBundles(threshold=5.0, metric=metric)
 clusters = qb.cluster(streamlines)
 
 # Extract feature of every streamline.
@@ -157,10 +166,11 @@ for cluster, color in zip(clusters, colormap):
 scene = window.Scene()
 scene.clear()
 scene.SetBackground(0, 0, 0)
-scene.add(actor.streamtube(streamlines, window.colors.white, opacity=0.05))
+scene.add(actor.streamtube(streamlines, colors=window.colors.white, opacity=0.05))
 scene.add(actor.point(centers[:, 0, :], colormap_full, point_radius=0.2))
-window.record(scene, n_frames=1, out_path='center_of_mass_feature.png',
-              size=(600, 600))
+window.record(
+    scene=scene, n_frames=1, out_path="center_of_mass_feature.png", size=(600, 600)
+)
 if interactive:
     window.show(scene)
 
@@ -189,7 +199,7 @@ streamlines = get_streamlines()  # Previously defined.
 feature = MidpointFeature()
 metric = EuclideanMetric(feature)
 
-qb = QuickBundles(threshold=5., metric=metric)
+qb = QuickBundles(threshold=5.0, metric=metric)
 clusters = qb.cluster(streamlines)
 
 # Extract feature of every streamline.
@@ -206,9 +216,8 @@ scene = window.Scene()
 scene.clear()
 scene.SetBackground(0, 0, 0)
 scene.add(actor.point(midpoints[:, 0, :], colormap_full, point_radius=0.2))
-scene.add(actor.streamtube(streamlines, window.colors.white, opacity=0.05))
-window.record(scene, n_frames=1, out_path='midpoint_feature.png',
-              size=(600, 600))
+scene.add(actor.streamtube(streamlines, colors=window.colors.white, opacity=0.05))
+window.record(scene=scene, n_frames=1, out_path="midpoint_feature.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -235,7 +244,7 @@ streamlines = get_streamlines()  # Previously defined.
 
 feature = ArcLengthFeature()
 metric = EuclideanMetric(feature)
-qb = QuickBundles(threshold=2., metric=metric)
+qb = QuickBundles(threshold=2.0, metric=metric)
 clusters = qb.cluster(streamlines)
 
 # Color each streamline according to the cluster they belong to.
@@ -248,8 +257,8 @@ for cluster, color in zip(clusters, colormap):
 scene = window.Scene()
 scene.clear()
 scene.SetBackground(0, 0, 0)
-scene.add(actor.streamtube(streamlines, colormap_full))
-window.record(scene, out_path='arclength_feature.png', size=(600, 600))
+scene.add(actor.streamtube(streamlines, colors=colormap_full))
+window.record(scene=scene, out_path="arclength_feature.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -293,9 +302,8 @@ for cluster, color in zip(clusters, colormap):
 scene = window.Scene()
 scene.clear()
 scene.SetBackground(0, 0, 0)
-scene.add(actor.streamtube(streamlines, colormap_full))
-window.record(scene, out_path='vector_of_endpoints_feature.png',
-              size=(600, 600))
+scene.add(actor.streamtube(streamlines, colors=colormap_full))
+window.record(scene=scene, out_path="vector_of_endpoints_feature.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -307,9 +315,9 @@ if interactive:
 #
 # References
 # ----------
-# .. [Garyfallidis12] Garyfallidis E. et al., QuickBundles a method for
-#    tractography simplification, Frontiers in Neuroscience, vol 6, no 175,
-#    2012.
+#
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

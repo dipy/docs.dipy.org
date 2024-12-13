@@ -3,7 +3,7 @@
 Fast Streamline Search
 ======================
 
-This example explains how Fast Streamline Search [StOnge2022]_
+This example explains how Fast Streamline Search :footcite:p:`StOnge2022`
 can be used to find all similar streamlines.
 
 First import the necessary modules.
@@ -11,8 +11,12 @@ First import the necessary modules.
 
 import numpy as np
 
-from dipy.data import (get_target_tractogram_hcp, get_two_hcp842_bundles,
-                       fetch_bundle_atlas_hcp842, fetch_target_tractogram_hcp)
+from dipy.data import (
+    fetch_bundle_atlas_hcp842,
+    fetch_target_tractogram_hcp,
+    get_target_tractogram_hcp,
+    get_two_hcp842_bundles,
+)
 from dipy.io.streamline import load_trk
 from dipy.segment.fss import FastStreamlineSearch, nearest_from_matrix_row
 from dipy.viz import actor, window
@@ -37,7 +41,7 @@ scene.add(actor.line(streamlines))
 if interactive:
     window.show(scene)
 else:
-    window.record(scene, out_path='tractograms_initial.png', size=(600, 600))
+    window.record(scene=scene, out_path="tractograms_initial.png", size=(600, 600))
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -57,14 +61,15 @@ model_af_l = sft_af_l.streamlines
 scene = window.Scene()
 scene.SetBackground(1, 1, 1)
 scene.add(actor.line(model_af_l, colors=(0, 1, 0)))
-scene.set_camera(focal_point=(-18.17281532, -19.55606842, 6.92485857),
-                 position=(-360.11, -30.46, -40.44),
-                 view_up=(-0.03, 0.028, 0.89))
+scene.set_camera(
+    focal_point=(-18.17281532, -19.55606842, 6.92485857),
+    position=(-360.11, -30.46, -40.44),
+    view_up=(-0.03, 0.028, 0.89),
+)
 if interactive:
     window.show(scene)
 else:
-    window.record(scene, out_path='AF_L_model_bundle.png',
-                  size=(600, 600))
+    window.record(scene=scene, out_path="AF_L_model_bundle.png", size=(600, 600))
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -74,7 +79,7 @@ else:
 #
 #
 #
-# Search for all similar streamlines  [StOnge2022]_
+# Search for all similar streamlines :footcite:p:`StOnge2022`
 #
 # Fast Streamline Search can do a radius search to find all streamlines that
 # are similar to from one tractogram to another. It returns the distance
@@ -88,6 +93,7 @@ else:
 # - max_radius : is the maximum distance that can be used with radius search
 #
 # Then, the ``radius_search()`` method needs the following arguments:
+#
 # - radius : for each streamline search find all similar ones in the
 #   "ref_streamlines" that are within the given radius
 #
@@ -96,8 +102,7 @@ else:
 # radius is from 1 to 10 mm.
 
 radius = 7.0
-fs_tree_af = FastStreamlineSearch(ref_streamlines=model_af_l,
-                                  max_radius=radius)
+fs_tree_af = FastStreamlineSearch(ref_streamlines=model_af_l, max_radius=radius)
 coo_mdist_mtx = fs_tree_af.radius_search(streamlines, radius=radius)
 
 ###############################################################################
@@ -114,14 +119,15 @@ recognized_af_l = streamlines[ids_s].copy()
 scene = window.Scene()
 scene.SetBackground(1, 1, 1)
 scene.add(actor.line(recognized_af_l, colors=(0, 0, 1)))
-scene.set_camera(focal_point=(-18.17281532, -19.55606842, 6.92485857),
-                 position=(-360.11, -30.46, -40.44),
-                 view_up=(-0.03, 0.028, 0.89))
+scene.set_camera(
+    focal_point=(-18.17281532, -19.55606842, 6.92485857),
+    position=(-360.11, -30.46, -40.44),
+    view_up=(-0.03, 0.028, 0.89),
+)
 if interactive:
     window.show(scene)
 else:
-    window.record(scene, out_path='AF_L_recognized_bundle.png',
-                  size=(600, 600))
+    window.record(scene=scene, out_path="AF_L_recognized_bundle.png", size=(600, 600))
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -139,15 +145,18 @@ scene = window.Scene()
 scene.SetBackground(1, 1, 1)
 cmap = actor.colormap_lookup_table(scale_range=(nn_dist.min(), nn_dist.max()))
 scene.add(actor.line(recognized_af_l, colors=nn_dist, lookup_colormap=cmap))
-scene.add(actor.scalar_bar(cmap, title="distance to atlas (mm)"))
-scene.set_camera(focal_point=(-18.17281532, -19.55606842, 6.92485857),
-                 position=(-360.11, -30.46, -40.44),
-                 view_up=(-0.03, 0.028, 0.89))
+scene.add(actor.scalar_bar(lookup_table=cmap, title="distance to atlas (mm)"))
+scene.set_camera(
+    focal_point=(-18.17281532, -19.55606842, 6.92485857),
+    position=(-360.11, -30.46, -40.44),
+    view_up=(-0.03, 0.028, 0.89),
+)
 if interactive:
     window.show(scene)
 else:
-    window.record(scene, out_path='AF_L_recognized_bundle_dist.png',
-                  size=(600, 600))
+    window.record(
+        scene=scene, out_path="AF_L_recognized_bundle_dist.png", size=(600, 600)
+    )
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -167,16 +176,19 @@ ref_color[ids_ref] = (0.0, 1.0, 0.0)
 
 scene = window.Scene()
 scene.SetBackground(1, 1, 1)
-scene.add(actor.line(model_af_l, ref_color))
-scene.set_camera(focal_point=(-18.17281532, -19.55606842, 6.92485857),
-                 position=(-360.11, -30.46, -40.44),
-                 view_up=(-0.03, 0.028, 0.89))
+scene.add(actor.line(model_af_l, colors=ref_color))
+scene.set_camera(
+    focal_point=(-18.17281532, -19.55606842, 6.92485857),
+    position=(-360.11, -30.46, -40.44),
+    view_up=(-0.03, 0.028, 0.89),
+)
 
 if interactive:
     window.show(scene)
 else:
-    window.record(scene, out_path='AF_L_model_bundle_reached.png',
-                  size=(600, 600))
+    window.record(
+        scene=scene, out_path="AF_L_model_bundle_reached.png", size=(600, 600)
+    )
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -189,9 +201,8 @@ else:
 # References
 # ----------
 #
-# .. [StOnge2022] St-Onge E. et al. Fast Streamline Search:
-#                 An Exact Technique for Diffusion MRI Tractography.
-#                 Neuroinformatics, 2022.
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

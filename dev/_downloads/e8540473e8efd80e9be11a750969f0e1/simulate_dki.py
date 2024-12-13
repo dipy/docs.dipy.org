@@ -1,7 +1,4 @@
 """
-
-.. _simulate_dki:
-
 ==========================
 DKI MultiTensor Simulation
 ==========================
@@ -12,25 +9,26 @@ properties of water diffusion which is a consequence of the existence of tissue
 barriers and compartments. In these simulations compartmental heterogeneity is
 taken into account by modeling different compartments for the intra- and
 extra-cellular media of two populations of fibers. These simulations are
-performed according to [RNH2015]_.
+performed according to :footcite:p:`NetoHenriques2015`.
 
 We first import all relevant modules.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
-from dipy.sims.voxel import (multi_tensor_dki, single_tensor)
+import numpy as np
+
+from dipy.core.gradients import gradient_table
 from dipy.data import get_fnames
 from dipy.io.gradients import read_bvals_bvecs
-from dipy.core.gradients import gradient_table
-from dipy.reconst.dti import (decompose_tensor, from_lower_triangular)
+from dipy.reconst.dti import decompose_tensor, from_lower_triangular
+from dipy.sims.voxel import multi_tensor_dki, single_tensor
 
 ###############################################################################
 # For the simulation we will need a GradientTable with the b-values and
 # b-vectors. Here we use the GradientTable of the sample DIPY_ dataset
 # ``small_64D``.
 
-fimg, fbvals, fbvecs = get_fnames('small_64D')
+fimg, fbvals, fbvecs = get_fnames(name="small_64D")
 bvals, bvecs = read_bvals_bvecs(fbvals, fbvecs)
 
 ###############################################################################
@@ -45,7 +43,7 @@ bvecs = np.concatenate((bvecs, bvecs), axis=0)
 # The b-values and gradient directions are then converted to DIPY's
 # ``GradientTable`` format.
 
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 ###############################################################################
 # In ``mevals`` we save the eigenvalues of each tensor. To simulate crossing
@@ -55,10 +53,14 @@ gtab = gradient_table(bvals, bvecs)
 # the first fiber population while the others correspond to the media of the
 # second fiber population)
 
-mevals = np.array([[0.00099, 0, 0],
-                   [0.00226, 0.00087, 0.00087],
-                   [0.00099, 0, 0],
-                   [0.00226, 0.00087, 0.00087]])
+mevals = np.array(
+    [
+        [0.00099, 0, 0],
+        [0.00226, 0.00087, 0.00087],
+        [0.00099, 0, 0],
+        [0.00226, 0.00087, 0.00087],
+    ]
+)
 
 ###############################################################################
 # In ``angles`` we save in polar coordinates (:math:`\theta, \phi`) the
@@ -75,7 +77,7 @@ angles = [(90, 0), (90, 0), (20, 0), (20, 0)]
 # of each fiber population and the water fraction of each different medium
 
 fie = 0.49  # intra-axonal water fraction
-fractions = [fie*50, (1 - fie)*50, fie*50, (1 - fie)*50]
+fractions = [fie * 50, (1 - fie) * 50, fie * 50, (1 - fie) * 50]
 
 ###############################################################################
 # Having defined the parameters for all tissue compartments, the elements of
@@ -83,15 +85,16 @@ fractions = [fie*50, (1 - fie)*50, fie*50, (1 - fie)*50]
 # DW signals simulated from the DKI model can be obtain using the function
 # ``multi_tensor_dki``.
 
-signal_dki, dt, kt = multi_tensor_dki(gtab, mevals, S0=200, angles=angles,
-                                      fractions=fractions, snr=None)
+signal_dki, dt, kt = multi_tensor_dki(
+    gtab, mevals, S0=200, angles=angles, fractions=fractions, snr=None
+)
 
 ###############################################################################
 # We can also add Rician noise with a specific SNR.
 
-signal_noisy, dt, kt = multi_tensor_dki(gtab, mevals, S0=200,
-                                        angles=angles, fractions=fractions,
-                                        snr=10)
+signal_noisy, dt, kt = multi_tensor_dki(
+    gtab, mevals, S0=200, angles=angles, fractions=fractions, snr=10
+)
 
 ###############################################################################
 # For comparison purposes, we also compute the DW signal if only the diffusion
@@ -100,18 +103,17 @@ signal_noisy, dt, kt = multi_tensor_dki(gtab, mevals, S0=200,
 # and eigenvectors.
 
 dt_evals, dt_evecs = decompose_tensor(from_lower_triangular(dt))
-signal_dti = single_tensor(gtab, S0=200, evals=dt_evals, evecs=dt_evecs,
-                           snr=None)
+signal_dti = single_tensor(gtab, S0=200, evals=dt_evals, evecs=dt_evecs, snr=None)
 
 ###############################################################################
 # Finally, we can visualize the values of the different version of simulated
 # signals for all assumed gradient directions and bvalues.
 
-plt.plot(signal_dti, label='noiseless dti')
-plt.plot(signal_dki, label='noiseless dki')
-plt.plot(signal_noisy, label='with noise')
+plt.plot(signal_dti, label="noiseless dti")
+plt.plot(signal_dki, label="noiseless dki")
+plt.plot(signal_noisy, label="with noise")
 plt.legend()
-plt.savefig('simulated_dki_signal.png', bbox_inches='tight')
+plt.savefig("simulated_dki_signal.png", bbox_inches="tight")
 
 
 ###############################################################################
@@ -130,10 +132,8 @@ plt.savefig('simulated_dki_signal.png', bbox_inches='tight')
 # References
 # ----------
 #
-# .. [RNH2015] R. Neto Henriques et al., "Exploring the 3D geometry of the
-#    diffusion kurtosis tensor - Impact on the development of robust
-#    tractography procedures and novel biomarkers", NeuroImage (2015) 111,
-#    85-99.
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

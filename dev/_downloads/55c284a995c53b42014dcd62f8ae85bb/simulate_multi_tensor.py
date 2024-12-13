@@ -10,11 +10,11 @@ single voxel using a MultiTensor.
 import matplotlib.pyplot as plt
 import numpy as np
 
-from dipy.core.sphere import disperse_charges, HemiSphere
 from dipy.core.gradients import gradient_table
+from dipy.core.sphere import HemiSphere, disperse_charges
 from dipy.data import get_sphere
 from dipy.sims.voxel import multi_tensor, multi_tensor_odf
-from dipy.viz import window, actor
+from dipy.viz import actor, window
 
 ###############################################################################
 # For the simulation we will need a GradientTable with the b-values and
@@ -54,13 +54,12 @@ bvals = np.insert(bvals, (0, bvals.shape[0]), 0)
 ###############################################################################
 # Let's now create the ``GradientTable``.
 
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 ###############################################################################
 # In ``mevals`` we save the eigenvalues of each tensor.
 
-mevals = np.array([[0.0015, 0.0003, 0.0003],
-                   [0.0015, 0.0003, 0.0003]])
+mevals = np.array([[0.0015, 0.0003, 0.0003], [0.0015, 0.0003, 0.0003]])
 
 ###############################################################################
 # In ``angles`` we save in polar coordinates (:math:`\theta, \phi`) the
@@ -77,21 +76,23 @@ fractions = [50, 50]
 # The function ``multi_tensor`` will return the simulated signal and an array
 # with the principal axes of the tensors in cartesian coordinates.
 
-signal, sticks = multi_tensor(gtab, mevals, S0=100, angles=angles,
-                              fractions=fractions, snr=None)
+signal, sticks = multi_tensor(
+    gtab, mevals, S0=100, angles=angles, fractions=fractions, snr=None
+)
 
 ###############################################################################
 # We can also add Rician noise with a specific SNR.
 
-signal_noisy, sticks = multi_tensor(gtab, mevals, S0=100, angles=angles,
-                                    fractions=fractions, snr=20)
+signal_noisy, sticks = multi_tensor(
+    gtab, mevals, S0=100, angles=angles, fractions=fractions, snr=20
+)
 
-plt.plot(signal, label='noiseless')
+plt.plot(signal, label="noiseless")
 
-plt.plot(signal_noisy, label='with noise')
+plt.plot(signal_noisy, label="with noise")
 plt.legend()
 # plt.show()
-plt.savefig('simulated_signal.png', bbox_inches='tight')
+plt.savefig("simulated_signal.png", bbox_inches="tight")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -105,8 +106,8 @@ plt.savefig('simulated_signal.png', bbox_inches='tight')
 # resolution. We generate that by subdividing the triangles of one of DIPY_'s
 # cached spheres, which we can read in the following way.
 
-sphere = get_sphere('repulsion724')
-sphere = sphere.subdivide(2)
+sphere = get_sphere(name="repulsion724")
+sphere = sphere.subdivide(n=2)
 
 odf = multi_tensor_odf(sphere.vertices, mevals, angles, fractions)
 
@@ -115,14 +116,13 @@ interactive = False
 
 scene = window.Scene()
 
-odf_actor = actor.odf_slicer(odf[None, None, None, :], sphere=sphere,
-                             colormap='plasma')
+odf_actor = actor.odf_slicer(odf[None, None, None, :], sphere=sphere, colormap="plasma")
 odf_actor.RotateX(90)
 
 scene.add(odf_actor)
 
-print('Saving illustration as multi_tensor_simulation')
-window.record(scene, out_path='multi_tensor_simulation.png', size=(300, 300))
+print("Saving illustration as multi_tensor_simulation")
+window.record(scene=scene, out_path="multi_tensor_simulation.png", size=(300, 300))
 if interactive:
     window.show(scene)
 

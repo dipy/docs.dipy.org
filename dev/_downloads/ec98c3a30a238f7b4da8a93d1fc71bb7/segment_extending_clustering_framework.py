@@ -3,9 +3,10 @@
 Enhancing QuickBundles with different metrics and features
 ==========================================================
 
-QuickBundles [Garyfallidis12]_ is a flexible algorithm that requires only a
-distance metric and an adjacency threshold to perform clustering. There is a
-wide variety of metrics that could be used to cluster streamlines.
+QuickBundles :footcite:p:`Garyfallidis2012a` is a flexible algorithm that
+requires only a distance metric and an adjacency threshold to perform
+clustering. There is a wide variety of metrics that could be used to cluster
+streamlines.
 
 The purpose of this tutorial is to show how to easily create new ``Feature``
 and new ``Metric`` classes that can be used by QuickBundles.
@@ -64,12 +65,11 @@ import numpy as np
 
 from dipy.data import get_fnames
 from dipy.io.streamline import load_tractogram
-from dipy.tracking.streamline import Streamlines
-from dipy.viz import window, actor, colormap
 from dipy.segment.clustering import QuickBundles
 from dipy.segment.featurespeed import Feature, VectorOfEndpointsFeature
 from dipy.segment.metric import Metric, SumPointwiseEuclideanMetric
-from dipy.tracking.streamline import length
+from dipy.tracking.streamline import Streamlines, length
+from dipy.viz import actor, colormap, window
 
 ###############################################################################
 # We now define the class ``ArcLengthFeature`` that will perform the desired
@@ -83,19 +83,21 @@ from dipy.tracking.streamline import length
 
 
 class ArcLengthFeature(Feature):
-    """ Computes the arc length of a streamline. """
+    """Computes the arc length of a streamline."""
+
     def __init__(self):
         # The arc length stays the same even if the streamline is reversed.
         super(ArcLengthFeature, self).__init__(is_order_invariant=True)
 
     def infer_shape(self, streamline):
-        """ Infers the shape of features extracted from `streamline`. """
+        """Infers the shape of features extracted from `streamline`."""
         # Arc length is a scalar
         return 1
 
     def extract(self, streamline):
-        """ Extracts features from `streamline`. """
+        """Extracts features from `streamline`."""
         return length(streamline)
+
 
 ###############################################################################
 # The new feature extraction ``ArcLengthFeature`` is ready to be used. Let's
@@ -105,9 +107,8 @@ class ArcLengthFeature(Feature):
 #
 # We start by loading the fornix streamlines.
 
-fname = get_fnames('fornix')
-fornix = load_tractogram(fname, 'same',
-                         bbox_valid_check=False).streamlines
+fname = get_fnames(name="fornix")
+fornix = load_tractogram(fname, "same", bbox_valid_check=False).streamlines
 
 streamlines = Streamlines(fornix)
 
@@ -116,7 +117,7 @@ streamlines = Streamlines(fornix)
 # ``SumPointwiseEuclideanMetric`` and our ``ArcLengthFeature``.
 
 metric = SumPointwiseEuclideanMetric(feature=ArcLengthFeature())
-qb = QuickBundles(threshold=2., metric=metric)
+qb = QuickBundles(threshold=2.0, metric=metric)
 clusters = qb.cluster(streamlines)
 
 ###############################################################################
@@ -130,8 +131,8 @@ for cluster, color in zip(clusters, cmap):
 
 scene = window.Scene()
 scene.SetBackground(1, 1, 1)
-scene.add(actor.streamtube(streamlines, colormap_full))
-window.record(scene, out_path='fornix_clusters_arclength.png', size=(600, 600))
+scene.add(actor.streamtube(streamlines, colors=colormap_full))
+window.record(scene=scene, out_path="fornix_clusters_arclength.png", size=(600, 600))
 
 # Enables/disables interactive visualization
 interactive = False
@@ -166,6 +167,7 @@ if interactive:
 
 class CosineMetric(Metric):
     """Compute the cosine distance between two streamlines."""
+
     def __init__(self):
         # For simplicity, features will be the vector between endpoints of a
         # streamline.
@@ -181,12 +183,15 @@ class CosineMetric(Metric):
 
     def dist(self, v1, v2):
         """Compute a the cosine distance between two vectors."""
-        norm = lambda x: np.sqrt(np.sum(x**2))
-        cos_theta = np.dot(v1, v2.T) / (norm(v1)*norm(v2))
+
+        def norm(x):
+            return np.sqrt(np.sum(x**2))
+
+        cos_theta = np.dot(v1, v2.T) / (norm(v1) * norm(v2))
 
         # Make sure it's in [-1, 1], i.e. within domain of arccosine
-        cos_theta = np.minimum(cos_theta, 1.)
-        cos_theta = np.maximum(cos_theta, -1.)
+        cos_theta = np.minimum(cos_theta, 1.0)
+        cos_theta = np.maximum(cos_theta, -1.0)
         return np.arccos(cos_theta) / np.pi  # Normalized cosine distance
 
 
@@ -198,8 +203,8 @@ class CosineMetric(Metric):
 #
 # We start by loading the fornix streamlines.
 
-fname = get_fnames('fornix')
-fornix = load_tractogram(fname, 'same', bbox_valid_check=False)
+fname = get_fnames(name="fornix")
+fornix = load_tractogram(fname, "same", bbox_valid_check=False)
 streamlines = fornix.streamlines
 
 ###############################################################################
@@ -220,8 +225,8 @@ for cluster, color in zip(clusters, cmap):
 
 scene = window.Scene()
 scene.SetBackground(1, 1, 1)
-scene.add(actor.streamtube(streamlines, colormap_full))
-window.record(scene, out_path='fornix_clusters_cosine.png', size=(600, 600))
+scene.add(actor.streamtube(streamlines, colors=colormap_full))
+window.record(scene=scene, out_path="fornix_clusters_cosine.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -235,9 +240,8 @@ if interactive:
 # References
 # ----------
 #
-# .. [Garyfallidis12] Garyfallidis E. et al., QuickBundles a method for
-#    tractography simplification, Frontiers in Neuroscience, vol 6, no 175,
-#    2012.
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

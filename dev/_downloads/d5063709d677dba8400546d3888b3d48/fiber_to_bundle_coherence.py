@@ -5,9 +5,9 @@ Fiber to bundle coherence measures
 
 This demo presents the fiber to bundle coherence (FBC) quantitative
 measure of the alignment of each fiber with the surrounding fiber bundles
-[Meesters2016]_. These measures are useful in 'cleaning' the results of
-tractography algorithms, since low FBCs indicate which fibers are isolated and
-poorly aligned with their neighbors, as shown in the figure below.
+:footcite:p:`Meesters2016b`. These measures are useful in 'cleaning' the results
+of tractography algorithms, since low FBCs indicate which fibers are isolated
+and poorly aligned with their neighbors, as shown in the figure below.
 
 .. _fiber_to_bundle_coherence:
 
@@ -22,7 +22,7 @@ poorly aligned with their neighbors, as shown in the figure below.
    evaluating the kernel density estimator along the fibers. One spurious
    fiber is present which is isolated and badly aligned with the other fibers,
    and can be identified by a low LFBC value in the region where it deviates
-   from the bundle. Figure adapted from [Portegies2015]_.
+   from the bundle. Figure adapted from :footcite:p:`Portegies2015b`.
 
 Here we implement FBC measures based on kernel density estimation in the
 non-flat 5D position-orientation domain. First we compute the kernel density
@@ -31,7 +31,7 @@ and orientations) of the tractography. Then, the Local FBC (LFBC) is the
 result of evaluating the estimator along each element of the lifted fiber.
 A whole fiber measure, the relative FBC (RFBC), is calculated
 by the minimum of the moving average LFBC along the fiber.
-Details of the computation of FBC can be found in [Portegies2015]_.
+Details of the computation of FBC can be found in :footcite:p:`Portegies2015b`.
 
 
 
@@ -39,23 +39,23 @@ The FBC measures are evaluated on the Stanford HARDI dataset
 (150 orientations, b=2000 $s/mm^2$) which is one of the standard example
 datasets in DIPY_.
 """
+
 import numpy as np
 
 from dipy.core.gradients import gradient_table
-from dipy.data import get_fnames, default_sphere
+from dipy.data import default_sphere, get_fnames
 from dipy.denoise.enhancement_kernel import EnhancementKernel
-from dipy.direction import peaks_from_model, ProbabilisticDirectionGetter
-from dipy.io.image import load_nifti_data, load_nifti
+from dipy.direction import ProbabilisticDirectionGetter, peaks_from_model
 from dipy.io.gradients import read_bvals_bvecs
+from dipy.io.image import load_nifti, load_nifti_data
+from dipy.reconst.csdeconv import ConstrainedSphericalDeconvModel, auto_response_ssst
 from dipy.reconst.shm import CsaOdfModel
-from dipy.reconst.csdeconv import (
-  auto_response_ssst, ConstrainedSphericalDeconvModel)
 from dipy.tracking import utils
+from dipy.tracking.fbcmeasures import FBCMeasures
 from dipy.tracking.local_tracking import LocalTracking
 from dipy.tracking.stopping_criterion import ThresholdStoppingCriterion
 from dipy.tracking.streamline import Streamlines
-from dipy.tracking.fbcmeasures import FBCMeasures
-from dipy.viz import window, actor
+from dipy.viz import actor, window
 
 # Enables/disables interactive visualization
 interactive = False
@@ -63,22 +63,22 @@ interactive = False
 rng = np.random.default_rng(1)
 
 # Read data
-hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames('stanford_hardi')
-label_fname = get_fnames('stanford_labels')
-t1_fname = get_fnames('stanford_t1')
+hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames(name="stanford_hardi")
+label_fname = get_fnames(name="stanford_labels")
+t1_fname = get_fnames(name="stanford_t1")
 
 data, affine = load_nifti(hardi_fname)
 labels = load_nifti_data(label_fname)
 t1_data = load_nifti_data(t1_fname)
 bvals, bvecs = read_bvals_bvecs(hardi_bval_fname, hardi_bvec_fname)
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 # Select a relevant part of the data (left hemisphere)
 # Coordinates given in x bounds, y bounds, z bounds
 dshape = data.shape[:-1]
 xa, xb, ya, yb, za, zb = [15, 42, 10, 65, 18, 65]
 data_small = data[xa:xb, ya:yb, za:zb]
-selectionmask = np.zeros(dshape, 'bool')
+selectionmask = np.zeros(dshape, "bool")
 selectionmask[xa:xb, ya:yb, za:zb] = True
 
 ###############################################################################
@@ -90,10 +90,14 @@ selectionmask[xa:xb, ya:yb, za:zb] = True
 
 # Perform CSA
 csa_model = CsaOdfModel(gtab, sh_order_max=6)
-csa_peaks = peaks_from_model(csa_model, data, default_sphere,
-                             relative_peak_threshold=.6,
-                             min_separation_angle=45,
-                             mask=selectionmask)
+csa_peaks = peaks_from_model(
+    csa_model,
+    data,
+    default_sphere,
+    relative_peak_threshold=0.6,
+    min_separation_angle=45,
+    mask=selectionmask,
+)
 
 # Stopping Criterion
 stopping_criterion = ThresholdStoppingCriterion(csa_peaks.gfa, 0.25)
@@ -110,15 +114,16 @@ stopping_criterion = ThresholdStoppingCriterion(csa_peaks.gfa, 0.25)
 response, ratio = auto_response_ssst(gtab, data, roi_radii=10, fa_thr=0.7)
 csd_model = ConstrainedSphericalDeconvModel(gtab, response)
 csd_fit = csd_model.fit(data_small)
-csd_fit_shm = np.lib.pad(csd_fit.shm_coeff, ((xa, dshape[0]-xb),
-                                             (ya, dshape[1]-yb),
-                                             (za, dshape[2]-zb),
-                                             (0, 0)), 'constant')
+csd_fit_shm = np.pad(
+    csd_fit.shm_coeff,
+    ((xa, dshape[0] - xb), (ya, dshape[1] - yb), (za, dshape[2] - zb), (0, 0)),
+    "constant",
+)
 
 # Probabilistic direction getting for fiber tracking
-prob_dg = ProbabilisticDirectionGetter.from_shcoeff(csd_fit_shm,
-                                                    max_angle=30.,
-                                                    sphere=default_sphere)
+prob_dg = ProbabilisticDirectionGetter.from_shcoeff(
+    csd_fit_shm, max_angle=30.0, sphere=default_sphere
+)
 
 ###############################################################################
 # The optic radiation is reconstructed by tracking fibers from the calcarine
@@ -127,9 +132,9 @@ prob_dg = ProbabilisticDirectionGetter.from_shcoeff(csd_fit_shm,
 # dimensions 3x3x3 voxels.
 
 # Set a seed region region for tractography.
-mask = np.zeros(data.shape[:-1], 'bool')
+mask = np.zeros(data.shape[:-1], "bool")
 rad = 3
-mask[26-rad:26+rad, 29-rad:29+rad, 31-rad:31+rad] = True
+mask[26 - rad : 26 + rad, 29 - rad : 29 + rad, 31 - rad : 31 + rad] = True
 seeds = utils.seeds_from_mask(mask, affine, density=[4, 4, 4])
 
 ###############################################################################
@@ -137,8 +142,9 @@ seeds = utils.seeds_from_mask(mask, affine, density=[4, 4, 4])
 # direction getter along with the stopping criterion and seeds as input.
 
 # Perform tracking using Local Tracking
-streamlines_generator = LocalTracking(prob_dg, stopping_criterion, seeds,
-                                      affine, step_size=.5)
+streamlines_generator = LocalTracking(
+    prob_dg, stopping_criterion, seeds, affine, step_size=0.5
+)
 
 # Compute streamlines.
 streamlines = Streamlines(streamlines_generator)
@@ -149,9 +155,9 @@ streamlines = Streamlines(streamlines_generator)
 # find the fibers that traverse through this ROI.
 
 # Set a mask for the lateral geniculate nucleus (LGN)
-mask_lgn = np.zeros(data.shape[:-1], 'bool')
+mask_lgn = np.zeros(data.shape[:-1], "bool")
 rad = 5
-mask_lgn[35-rad:35+rad, 42-rad:42+rad, 28-rad:28+rad] = True
+mask_lgn[35 - rad : 35 + rad, 42 - rad : 42 + rad, 28 - rad : 28 + rad] = True
 
 # Select all the fibers that enter the LGN and discard all others
 filtered_fibers2 = utils.near_roi(streamlines, affine, mask_lgn, tol=1.8)
@@ -163,9 +169,9 @@ for i in range(len(streamlines)):
 streamlines = Streamlines(sfil)
 
 ###############################################################################
-# Inspired by [Rodrigues2010]_, a lookup-table is created, containing rotated
-# versions of the fiber propagation kernel :math:`P_t` [DuitsAndFranken2011]_
-# rotated over a discrete set of orientations. See the
+# Inspired by :footcite:p:`Rodrigues2010`, a lookup-table is created, containing
+# rotated versions of the fiber propagation kernel :math:`P_t`
+# :footcite:p:`Duits2011` rotated over a discrete set of orientations. See the
 # :ref:`sphx_glr_examples_built_contextual_enhancement_contextual_enhancement.py`
 # example for more details regarding the kernel. In order to ensure
 # rotationally invariant processing, the discrete orientations are required
@@ -193,24 +199,24 @@ fbc = FBCMeasures(streamlines, k)
 # are included) and 0.2 (removing the 20 percent most spurious fibers).
 
 # Calculate LFBC for original fibers
-fbc_sl_orig, clrs_orig, rfbc_orig = \
-  fbc.get_points_rfbc_thresholded(0, emphasis=0.01)
+fbc_sl_orig, clrs_orig, rfbc_orig = fbc.get_points_rfbc_thresholded(0, emphasis=0.01)
 
 # Apply a threshold on the RFBC to remove spurious fibers
-fbc_sl_thres, clrs_thres, rfbc_thres = \
-  fbc.get_points_rfbc_thresholded(0.125, emphasis=0.01)
+fbc_sl_thres, clrs_thres, rfbc_thres = fbc.get_points_rfbc_thresholded(
+    0.125, emphasis=0.01
+)
 
 ###############################################################################
 # The results of FBC measures are visualized, showing the original fibers
-# colored by LFBC (see :ref:`optic_radiation_before_cleaning`), and the fibers
-# after the cleaning procedure via RFBC thresholding (see
-# :ref:`optic_radiation_after_cleaning`).
+# colored by LFBC (see :ref:`this figure <optic_radiation_before_cleaning>`),
+# and the fibers after the cleaning procedure via RFBC thresholding (see
+# :ref:`this other figure <optic_radiation_after_cleaning>`).
 
 # Create scene
 scene = window.Scene()
 
 # Original lines colored by LFBC
-lineactor = actor.line(fbc_sl_orig, np.vstack(clrs_orig), linewidth=0.2)
+lineactor = actor.line(fbc_sl_orig, colors=np.vstack(clrs_orig), linewidth=0.2)
 scene.add(lineactor)
 
 # Horizontal (axial) slice of T1 data
@@ -224,17 +230,15 @@ vol_actor2.display(x=35)
 scene.add(vol_actor2)
 
 # Show original fibers
-scene.set_camera(position=(-264, 285, 155),
-                 focal_point=(0, -14, 9),
-                 view_up=(0, 0, 1))
-window.record(scene, n_frames=1, out_path='OR_before.png', size=(900, 900))
+scene.set_camera(position=(-264, 285, 155), focal_point=(0, -14, 9), view_up=(0, 0, 1))
+window.record(scene=scene, n_frames=1, out_path="OR_before.png", size=(900, 900))
 if interactive:
     window.show(scene)
 
 # Show thresholded fibers
 scene.rm(lineactor)
-scene.add(actor.line(fbc_sl_thres, np.vstack(clrs_thres), linewidth=0.2))
-window.record(scene, n_frames=1, out_path='OR_after.png', size=(900, 900))
+scene.add(actor.line(fbc_sl_thres, colors=np.vstack(clrs_thres), linewidth=0.2))
+window.record(scene=scene, n_frames=1, out_path="OR_after.png", size=(900, 900))
 if interactive:
     window.show(scene)
 
@@ -263,25 +267,8 @@ if interactive:
 # References
 # ----------
 #
-# .. [Meesters2016] S. Meesters, G. Sanguinetti, E. Garyfallidis, J. Portegies,
-#    P. Ossenblok, R. Duits. (2016) Cleaning output of tractography via fiber
-#    to bundle coherence, a new open source implementation. Human Brain Mapping
-#    Conference 2016.
+# .. footbibliography::
 #
-# .. [Portegies2015] J. Portegies, R. Fick, G. Sanguinetti, S. Meesters,
-#    G.Girard, and R. Duits. (2015) Improving Fiber Alignment in HARDI by
-#    Combining Contextual PDE flow with Constrained Spherical Deconvolution.
-#    PLoS One.
-#
-# .. [DuitsAndFranken2011] R. Duits and E. Franken (2011) Left-invariant
-#    diffusions on the space of positions and orientations and their
-#    application to crossing-preserving smoothing of HARDI images.
-#    International Journal of Computer Vision, 92:231-264.
-#
-# .. [Rodrigues2010] P. Rodrigues, R. Duits, B. Romeny, A. Vilanova (2010).
-#    Accelerated Diffusion Operators for Enhancing DW-MRI. Eurographics
-#    Workshop on Visual Computing for Biology and Medicine. The Eurographics
-#    Association.
 
 ###############################################################################
 # .. include:: ../../links_names.inc

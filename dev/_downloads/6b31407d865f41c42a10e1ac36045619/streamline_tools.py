@@ -1,6 +1,4 @@
 """
-.. _streamline_tools:
-
 =========================================================
 Connectivity Matrices, ROI Intersections and Density Maps
 =========================================================
@@ -20,23 +18,23 @@ modules and download the data we'll be using.
 Let's load the necessary modules:
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.ndimage import binary_dilation
 
 from dipy.core.gradients import gradient_table
 from dipy.data import get_fnames
+from dipy.direction import peaks
 from dipy.io.gradients import read_bvals_bvecs
-from dipy.io.image import load_nifti_data, load_nifti, save_nifti
+from dipy.io.image import load_nifti, load_nifti_data, save_nifti
 from dipy.io.stateful_tractogram import Space, StatefulTractogram
 from dipy.io.streamline import save_trk
-from dipy.direction import peaks
 from dipy.reconst import shm
 from dipy.tracking import utils
 from dipy.tracking.local_tracking import LocalTracking
 from dipy.tracking.stopping_criterion import BinaryStoppingCriterion
 from dipy.tracking.streamline import Streamlines
-from dipy.viz import window, actor, colormap as cmap
+from dipy.viz import actor, colormap as cmap, window
 
 ###############################################################################
 # We'll be using the Stanford HARDI dataset which consists of a single
@@ -44,15 +42,15 @@ from dipy.viz import window, actor, colormap as cmap
 # same space as the T1. We'll use the ``get_fnames`` function to download the
 # files we need and set the file names to variables.
 
-hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames('stanford_hardi')
-label_fname = get_fnames('stanford_labels')
-t1_fname = get_fnames('stanford_t1')
+hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames(name="stanford_hardi")
+label_fname = get_fnames(name="stanford_labels")
+t1_fname = get_fnames(name="stanford_t1")
 
-data, affine, hardi_img = load_nifti(hardi_fname, return_img=True)
+data, _, hardi_img = load_nifti(hardi_fname, return_img=True)
 labels = load_nifti_data(label_fname)
 t1_data = load_nifti_data(t1_fname)
 bvals, bvecs = read_bvals_bvecs(hardi_bval_fname, hardi_bvec_fname)
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 ###############################################################################
 # We've loaded an image called ``labels_img`` which is a map of tissue types
@@ -65,25 +63,29 @@ gtab = gradient_table(bvals, bvecs)
 
 white_matter = binary_dilation((labels == 1) | (labels == 2))
 csamodel = shm.CsaOdfModel(gtab, 6)
-csapeaks = peaks.peaks_from_model(model=csamodel,
-                                  data=data,
-                                  sphere=peaks.default_sphere,
-                                  relative_peak_threshold=.8,
-                                  min_separation_angle=45,
-                                  mask=white_matter)
+csapeaks = peaks.peaks_from_model(
+    model=csamodel,
+    data=data,
+    sphere=peaks.default_sphere,
+    relative_peak_threshold=0.8,
+    min_separation_angle=45,
+    mask=white_matter,
+)
 
 ###############################################################################
-# Now we can use EuDX to track all of the white matter. To keep things
-# reasonably fast we use ``density=1`` which will result in 1 seeds per voxel.
-# The stopping criterion, determining when the tracking stops, is set to stop
-# when the tracking exits the white matter.
+# Now we can use EuDX to track all of the white matter. We define an identity
+# matrix for the affine transformation [#]_ of the seeding locations. To keep
+# things reasonably fast we use ``density=1`` which will result in 1 seeds per
+# voxel. The stopping criterion, determining when the tracking stops, is set to
+# stop when the tracking exits the white matter.
 
 affine = np.eye(4)
 seeds = utils.seeds_from_mask(white_matter, affine, density=1)
 stopping_criterion = BinaryStoppingCriterion(white_matter)
 
-streamline_generator = LocalTracking(csapeaks, stopping_criterion, seeds,
-                                     affine=affine, step_size=0.5)
+streamline_generator = LocalTracking(
+    csapeaks, stopping_criterion, seeds, affine=affine, step_size=0.5
+)
 streamlines = Streamlines(streamline_generator)
 
 ###############################################################################
@@ -103,8 +105,7 @@ cc_slice = labels == 2
 cc_streamlines = utils.target(streamlines, affine, cc_slice)
 cc_streamlines = Streamlines(cc_streamlines)
 
-other_streamlines = utils.target(streamlines, affine, cc_slice,
-                                 include=False)
+other_streamlines = utils.target(streamlines, affine, cc_slice, include=False)
 other_streamlines = Streamlines(other_streamlines)
 assert len(other_streamlines) + len(cc_streamlines) == len(streamlines)
 
@@ -118,10 +119,10 @@ interactive = False
 
 # Make display objects
 color = cmap.line_colors(cc_streamlines)
-cc_streamlines_actor = actor.line(cc_streamlines,
-                                  cmap.line_colors(cc_streamlines))
-cc_ROI_actor = actor.contour_from_roi(cc_slice, color=(1., 1., 0.),
-                                      opacity=0.5)
+cc_streamlines_actor = actor.line(
+    cc_streamlines, colors=cmap.line_colors(cc_streamlines)
+)
+cc_ROI_actor = actor.contour_from_roi(cc_slice, color=(1.0, 1.0, 0.0), opacity=0.5)
 
 vol_actor = actor.slicer(t1_data)
 
@@ -137,13 +138,15 @@ scene.add(cc_streamlines_actor)
 scene.add(cc_ROI_actor)
 
 # Save figures
-window.record(scene, n_frames=1, out_path='corpuscallosum_axial.png',
-              size=(800, 800))
+window.record(
+    scene=scene, n_frames=1, out_path="corpuscallosum_axial.png", size=(800, 800)
+)
 if interactive:
     window.show(scene)
 scene.set_camera(position=[-1, 0, 0], focal_point=[0, 0, 0], view_up=[0, 0, 1])
-window.record(scene, n_frames=1, out_path='corpuscallosum_sagittal.png',
-              size=(800, 800))
+window.record(
+    scene=scene, n_frames=1, out_path="corpuscallosum_sagittal.png", size=(800, 800)
+)
 if interactive:
     window.show(scene)
 
@@ -162,10 +165,13 @@ if interactive:
 # streamlines grouped by their endpoints. Notice that this function only
 # considers the endpoints of each streamline.
 
-M, grouping = utils.connectivity_matrix(cc_streamlines, affine,
-                                        labels.astype(np.uint8),
-                                        return_mapping=True,
-                                        mapping_as_streamlines=True)
+M, grouping = utils.connectivity_matrix(
+    cc_streamlines,
+    affine,
+    labels.astype(np.uint8),
+    return_mapping=True,
+    mapping_as_streamlines=True,
+)
 M[:3, :] = 0
 M[:, :3] = 0
 
@@ -182,7 +188,7 @@ M[:, :3] = 0
 # We can now display this matrix using matplotlib. We display it using a log
 # scale to make small values in the matrix easier to see.
 
-plt.imshow(np.log1p(M), interpolation='nearest')
+plt.imshow(np.log1p(M), interpolation="nearest")
 plt.savefig("connectivity.png")
 
 ###############################################################################
@@ -233,12 +239,11 @@ save_trk(sft, "lr-superiorfrontal.trk")
 #
 # .. [#] The image `aparc-reduced.nii.gz`, which we load as ``labels_img``, is
 #        a modified version of label map `aparc+aseg.mgz` created by
-#        `FreeSurfer <https://surfer.nmr.mgh.harvard.edu/>`_. The corpus
-#        callosum region is a combination of the FreeSurfer labels 251-255.
-#        The remaining FreeSurfer labels were re-mapped and reduced so that
-#        they lie between 0 and 88. To see the FreeSurfer region, label and
-#        name, represented by each value, see `label_info.txt` in
-#        `~/.dipy/stanford_hardi`.
+#        FreeSurfer_. The corpus  callosum region is a combination of the
+#        FreeSurfer labels 251-255. The remaining FreeSurfer labels were
+#        re-mapped and reduced so that they lie between 0 and 88. To see the
+#        FreeSurfer region, label and name, represented by each value, see
+#        `label_info.txt` in `~/.dipy/stanford_hardi`.
 # .. [#] An affine transformation is a mapping between two coordinate systems
 #        that can represent scaling, rotation, shear, translation and
 #        reflection. Affine transformations are often represented using a 4x4

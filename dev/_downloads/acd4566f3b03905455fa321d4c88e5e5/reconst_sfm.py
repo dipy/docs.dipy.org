@@ -1,24 +1,23 @@
 """
-.. _reconst_sfm:
+===================================================
+Reconstruction with the Sparse Fascicle Model (SFM)
+===================================================
 
-==============================================
-Reconstruction with the Sparse Fascicle Model
-==============================================
-
-In this example, we will use the Sparse Fascicle Model (SFM) [Rokem2015]_, to
-reconstruct the fiber Orientation Distribution Function (fODF) in every voxel.
+In this example, we will use the Sparse Fascicle Model (SFM)
+:footcite:p:`Rokem2015`, to reconstruct the fiber Orientation Distribution
+Function (fODF) in every voxel.
 
 First, we import the modules we will use in this example:
 """
 
-import dipy.reconst.sfm as sfm
+from dipy.core.gradients import gradient_table
 import dipy.data as dpd
 import dipy.direction.peaks as dpp
-from dipy.io.image import load_nifti
 from dipy.io.gradients import read_bvals_bvecs
-from dipy.core.gradients import gradient_table
+from dipy.io.image import load_nifti
 from dipy.reconst.csdeconv import auto_response_ssst
-from dipy.viz import window, actor
+import dipy.reconst.sfm as sfm
+from dipy.viz import actor, window
 
 ###############################################################################
 # For the purpose of this example, we will use the Stanford HARDI dataset (150
@@ -28,12 +27,11 @@ from dipy.viz import window, actor
 # run this example. The data will be stored for subsequent runs, and for use
 # with other examples.
 
-hardi_fname, hardi_bval_fname, hardi_bvec_fname = dpd.get_fnames(
-    'stanford_hardi')
+hardi_fname, hardi_bval_fname, hardi_bvec_fname = dpd.get_fnames(name="stanford_hardi")
 data, affine = load_nifti(hardi_fname)
 
 bvals, bvecs = read_bvals_bvecs(hardi_bval_fname, hardi_bvec_fname)
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 # Enables/disables interactive visualization
 interactive = False
@@ -41,8 +39,9 @@ interactive = False
 ###############################################################################
 # Reconstruction of the fiber ODF in each voxel guides subsequent tracking
 # steps. Here, the model is the Sparse Fascicle Model, described in
-# [Rokem2014]_. This model reconstructs the diffusion signal as a combination
-# of the signals from different fascicles. This model can be written as:
+# :footcite:p:`Rokem2015`. This model reconstructs the diffusion signal as a
+# combination of the signals from different fascicles. This model can be written
+# as:
 #
 # .. math::
 #
@@ -58,13 +57,13 @@ interactive = False
 # (e.g. in corpus callosum).
 #
 # Sparsity constraints on the fiber ODF ($\beta$) are set through the Elastic
-# Net algorithm [Zou2005]_.
+# Net algorithm :footcite:p:`Zou2005`.
 #
 # Elastic Net optimizes the following cost function:
 #
 # .. math::
 #
-#     \sum_{i=1}^{n}{(y_i - \hat{y}_i)^2} + \alpha (\lambda \sum_{j=1}^{m}{w_j}+(1-\lambda) \sum_{j=1}^{m}{w^2_j}
+#     \sum_{i=1}^{n}{(y_i - \hat{y}_i)^2} + \alpha (\lambda \sum_{j=1}^{m}{w_j}+(1-\lambda) \sum_{j=1}^{m}{w^2_j}  # noqa: E501
 #
 # where $\hat{y}$ is the signal predicted for a particular setting of $\beta$,
 # such that the left part of this expression is the squared loss function;
@@ -99,9 +98,9 @@ print(response)
 # in the model
 
 sphere = dpd.get_sphere()
-sf_model = sfm.SparseFascicleModel(gtab, sphere=sphere,
-                                   l1_ratio=0.5, alpha=0.001,
-                                   response=response[0])
+sf_model = sfm.SparseFascicleModel(
+    gtab, sphere=sphere, l1_ratio=0.5, alpha=0.001, response=response[0]
+)
 
 ###############################################################################
 # For the purpose of the example, we will consider a small volume of data
@@ -116,32 +115,33 @@ data_small = data[20:50, 55:85, 38:39]
 sf_fit = sf_model.fit(data_small)
 sf_odf = sf_fit.odf(sphere)
 
-fodf_spheres = actor.odf_slicer(sf_odf, sphere=sphere, scale=0.8,
-                                colormap='plasma')
+fodf_spheres = actor.odf_slicer(sf_odf, sphere=sphere, scale=0.8, colormap="plasma")
 
 scene = window.Scene()
 scene.add(fodf_spheres)
 
-window.record(scene, out_path='sf_odfs.png', size=(1000, 1000))
+window.record(scene=scene, out_path="sf_odfs.png", size=(1000, 1000))
 if interactive:
     window.show(scene)
 
 ###############################################################################
 # We can extract the peaks from the ODF, and plot these as well
 
-sf_peaks = dpp.peaks_from_model(sf_model,
-                                data_small,
-                                sphere,
-                                relative_peak_threshold=.5,
-                                min_separation_angle=25,
-                                return_sh=False)
+sf_peaks = dpp.peaks_from_model(
+    sf_model,
+    data_small,
+    sphere,
+    relative_peak_threshold=0.5,
+    min_separation_angle=25,
+    return_sh=False,
+)
 
 
 scene.clear()
-fodf_peaks = actor.peak_slicer(sf_peaks.peak_dirs, sf_peaks.peak_values)
+fodf_peaks = actor.peak_slicer(sf_peaks.peak_dirs, peaks_values=sf_peaks.peak_values)
 scene.add(fodf_peaks)
 
-window.record(scene, out_path='sf_peaks.png', size=(1000, 1000))
+window.record(scene=scene, out_path="sf_peaks.png", size=(1000, 1000))
 if interactive:
     window.show(scene)
 
@@ -151,7 +151,7 @@ if interactive:
 fodf_spheres.GetProperty().SetOpacity(0.4)
 scene.add(fodf_spheres)
 
-window.record(scene, out_path='sf_both.png', size=(1000, 1000))
+window.record(scene=scene, out_path="sf_both.png", size=(1000, 1000))
 if interactive:
     window.show(scene)
 
@@ -161,18 +161,14 @@ if interactive:
 # SFM Peaks and ODFs.
 #
 #
-# To see how to use this information in tracking, proceed to :ref:`sfm-track`.
+# To see how to use this information in tracking, proceed to
+# :ref:`sphx_glr_examples_built_fiber_tracking_tracking_sfm.py`.
 #
 # References
 # ----------
 #
-# .. [Rokem2015] Ariel Rokem, Jason D. Yeatman, Franco Pestilli, Kendrick
-#    N. Kay, Aviv Mezer, Stefan van der Walt, Brian A. Wandell
-#    (2015). Evaluating the accuracy of diffusion MRI models in white
-#    matter. PLoS ONE 10(4): e0123272. doi:10.1371/journal.pone.0123272
+# .. footbibliography::
 #
-# .. [Zou2005] Zou H, Hastie T (2005). Regularization and variable
-#    selection via the elastic net. J R Stat Soc B:301-320
 
 ###############################################################################
 # .. include:: ../../links_names.inc

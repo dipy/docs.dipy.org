@@ -1,16 +1,16 @@
 """
-===========================================
-Reconstruct with Diffusion Spectrum Imaging
-===========================================
+=================================================
+Reconstruct with Diffusion Spectrum Imaging (DSI)
+=================================================
 
-We show how to apply Diffusion Spectrum Imaging [Wedeen08]_ to
+We show how to apply Diffusion Spectrum Imaging :footcite:p:`Wedeen2005` to
 diffusion MRI datasets of Cartesian keyhole diffusion gradients.
 
 First import the necessary modules:
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from dipy.core.gradients import gradient_table
 from dipy.core.ndindex import ndindex
@@ -23,7 +23,7 @@ from dipy.reconst.odf import gfa
 ###############################################################################
 # Download and get the data filenames for this tutorial.
 
-fraw, fbval, fbvec = get_fnames('taiwan_ntu_dsi')
+fraw, fbval, fbvec = get_fnames(name="taiwan_ntu_dsi")
 
 ###############################################################################
 # img contains a nibabel Nifti1Image object (data) and gtab contains a
@@ -34,10 +34,9 @@ fraw, fbval, fbvec = get_fnames('taiwan_ntu_dsi')
 
 data, affine, voxel_size = load_nifti(fraw, return_voxsize=True)
 bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
-bvecs[1:] = (bvecs[1:] /
-                 np.sqrt(np.sum(bvecs[1:] * bvecs[1:], axis=1))[:, None])
-gtab = gradient_table(bvals, bvecs)
-print('data.shape (%d, %d, %d, %d)' % data.shape)
+bvecs[1:] = bvecs[1:] / np.sqrt(np.sum(bvecs[1:] * bvecs[1:], axis=1))[:, None]
+gtab = gradient_table(bvals, bvecs=bvecs)
+print(f"data.shape {data.shape}")
 
 ###############################################################################
 # This dataset has anisotropic voxel sizes, therefore reslicing is necessary.
@@ -56,14 +55,14 @@ dsfit = dsmodel.fit(dataslice)
 ###############################################################################
 # Load an odf reconstruction sphere
 
-sphere = get_sphere('repulsion724')
+sphere = get_sphere(name="repulsion724")
 
 ###############################################################################
 # Calculate the ODFs with this specific sphere
 
 ODF = dsfit.odf(sphere)
 
-print('ODF.shape (%d, %d, %d)' % ODF.shape)
+print(f"ODF.shape {ODF.shape}")
 
 ###############################################################################
 # In a similar fashion it is possible to calculate the PDFs of all voxels
@@ -71,7 +70,7 @@ print('ODF.shape (%d, %d, %d)' % ODF.shape)
 
 PDF = dsfit.pdf()
 
-print('PDF.shape (%d, %d, %d, %d, %d)' % PDF.shape)
+print(f"PDF.shape {PDF.shape}")
 
 ###############################################################################
 # We see that even for a single slice this PDF array is close to 345 MBytes
@@ -92,14 +91,14 @@ for index in ndindex(dataslice.shape[:2]):
 # when reasonable spheres (with < 1000 vertices) are used.
 #
 # Let's now calculate a map of Generalized Fractional Anisotropy (GFA)
-# [Tuch04]_ using the DSI ODFs.
+# :footcite:p:`Tuch2004` using the DSI ODFs.
 
 GFA = gfa(ODF)
 
 fig_hist, ax = plt.subplots(1)
 ax.set_axis_off()
 plt.imshow(GFA.T)
-plt.savefig('dsi_gfa.png', bbox_inches='tight')
+plt.savefig("dsi_gfa.png", bbox_inches="tight")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -108,11 +107,11 @@ plt.savefig('dsi_gfa.png', bbox_inches='tight')
 # for calculating different types of DSI maps.
 #
 #
-# .. [Wedeen08] Wedeen et al., Diffusion spectrum magnetic resonance imaging
-#               (DSI) tractography of crossing fibers, Neuroimage, vol 41, no
-#               4, 1267-1277, 2008.
+# References
+# ----------
 #
-# .. [Tuch04] Tuch, D.S, Q-ball imaging, MRM, vol 52, no 6, 1358-1372, 2004.
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

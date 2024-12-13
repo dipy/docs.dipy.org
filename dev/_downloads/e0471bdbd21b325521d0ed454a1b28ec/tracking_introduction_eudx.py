@@ -1,7 +1,4 @@
 """
-
-.. _intro_basic_tracking:
-
 ==============================
 Introduction to Basic Tracking
 ==============================
@@ -13,7 +10,7 @@ can integrate along those directions to build a complete representation of that
 structure. Local fiber tracking is widely used in the field of diffusion MRI
 because it is simple and robust.
 
-In order to perform local fiber tracking, three things are needed::
+In order to perform local fiber tracking, three things are needed:
 
 1. A method for getting directions from a diffusion dataset.
 2. A method for identifying when the tracking must stop.
@@ -25,23 +22,21 @@ to create a tractography reconstruction from a diffusion data set.
 Let's begin by importing the necessary modules.
 """
 
+import matplotlib.pyplot as plt
+
 from dipy.core.gradients import gradient_table
-from dipy.data import get_fnames, default_sphere
+from dipy.data import default_sphere, get_fnames
 from dipy.direction import peaks_from_model
 from dipy.io.gradients import read_bvals_bvecs
 from dipy.io.image import load_nifti, load_nifti_data
 from dipy.io.stateful_tractogram import Space, StatefulTractogram
 from dipy.io.streamline import save_trk
-from dipy.reconst.csdeconv import auto_response_ssst
 from dipy.reconst.shm import CsaOdfModel
-from dipy.tracking.stopping_criterion import ThresholdStoppingCriterion
 from dipy.tracking import utils
 from dipy.tracking.local_tracking import LocalTracking
+from dipy.tracking.stopping_criterion import ThresholdStoppingCriterion
 from dipy.tracking.streamline import Streamlines
-
-from dipy.viz import window, actor, has_fury, colormap
-
-import matplotlib.pyplot as plt
+from dipy.viz import actor, colormap, has_fury, window
 
 ###############################################################################
 # Now, let's load an HARDI dataset from Stanford. If you have
@@ -52,13 +47,13 @@ import matplotlib.pyplot as plt
 # Enables/disables interactive visualization
 interactive = False
 
-hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames('stanford_hardi')
-label_fname = get_fnames('stanford_labels')
+hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames(name="stanford_hardi")
+label_fname = get_fnames(name="stanford_labels")
 
 data, affine, hardi_img = load_nifti(hardi_fname, return_img=True)
 labels = load_nifti_data(label_fname)
 bvals, bvecs = read_bvals_bvecs(hardi_bval_fname, hardi_bvec_fname)
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 ###############################################################################
 # This dataset provides a label map in which all white matter tissues are
@@ -80,12 +75,15 @@ white_matter = (labels == 1) | (labels == 2)
 # the image. Here, we use ``peaks_from_model`` to fit the data and calculate
 # the fiber directions in all voxels of the white matter.
 
-response, ratio = auto_response_ssst(gtab, data, roi_radii=10, fa_thr=0.7)
 csa_model = CsaOdfModel(gtab, sh_order_max=6)
-csa_peaks = peaks_from_model(csa_model, data, default_sphere,
-                             relative_peak_threshold=.8,
-                             min_separation_angle=45,
-                             mask=white_matter)
+csa_peaks = peaks_from_model(
+    csa_model,
+    data,
+    default_sphere,
+    relative_peak_threshold=0.8,
+    min_separation_angle=45,
+    mask=white_matter,
+)
 
 ###############################################################################
 # For quality assurance we can also visualize a slice from the direction field
@@ -94,11 +92,13 @@ csa_peaks = peaks_from_model(csa_model, data, default_sphere,
 
 if has_fury:
     scene = window.Scene()
-    scene.add(actor.peak_slicer(csa_peaks.peak_dirs,
-                                csa_peaks.peak_values,
-                                colors=None))
+    scene.add(
+        actor.peak_slicer(
+            csa_peaks.peak_dirs, peaks_values=csa_peaks.peak_values, colors=None
+        )
+    )
 
-    window.record(scene, out_path='csa_direction_field.png', size=(900, 900))
+    window.record(scene=scene, out_path="csa_direction_field.png", size=(900, 900))
 
     if interactive:
         window.show(scene, size=(800, 800))
@@ -117,21 +117,21 @@ if has_fury:
 # the ODF shows significant restricted diffusion by thresholding on
 # the generalized fractional anisotropy (GFA).
 
-stopping_criterion = ThresholdStoppingCriterion(csa_peaks.gfa, .25)
+stopping_criterion = ThresholdStoppingCriterion(csa_peaks.gfa, 0.25)
 
 ###############################################################################
 # Again, for quality assurance, we can also visualize a slice of the GFA and
 # the resulting tracking mask.
 
 sli = csa_peaks.gfa.shape[2] // 2
-plt.figure('GFA')
+plt.figure("GFA")
 plt.subplot(1, 2, 1).set_axis_off()
-plt.imshow(csa_peaks.gfa[:, :, sli].T, cmap='gray', origin='lower')
+plt.imshow(csa_peaks.gfa[:, :, sli].T, cmap="gray", origin="lower")
 
 plt.subplot(1, 2, 2).set_axis_off()
-plt.imshow((csa_peaks.gfa[:, :, sli] > 0.25).T, cmap='gray', origin='lower')
+plt.imshow((csa_peaks.gfa[:, :, sli] > 0.25).T, cmap="gray", origin="lower")
 
-plt.savefig('gfa_tracking_mask.png')
+plt.savefig("gfa_tracking_mask.png")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -150,19 +150,20 @@ plt.savefig('gfa_tracking_mask.png')
 # corpus callosum. Tracking from this region will give us a model of the
 # corpus callosum tract. This slice has label value ``2`` in the label's image.
 
-seed_mask = (labels == 2)
+seed_mask = labels == 2
 seeds = utils.seeds_from_mask(seed_mask, affine, density=[2, 2, 2])
 
 ###############################################################################
 # Finally, we can bring it all together using ``LocalTracking``, using
-# the EuDX algorithm [Garyfallidis12]_. ``EuDX`` [Garyfallidis12]_ is a fast
+# the EuDX algorithm :footcite:p:`Garyfallidis2012b`. ``EuDX`` is a fast
 # algorithm that we use here to generate streamlines. This algorithm is what is
 # used here and the default option when providing the output of peaks directly
 # in LocalTracking.
 
 # Initialization of LocalTracking. The computation happens in the next step.
-streamlines_generator = LocalTracking(csa_peaks, stopping_criterion, seeds,
-                                      affine=affine, step_size=.5)
+streamlines_generator = LocalTracking(
+    csa_peaks, stopping_criterion, seeds, affine=affine, step_size=0.5
+)
 # Generate streamlines object
 streamlines = Streamlines(streamlines_generator)
 
@@ -174,15 +175,16 @@ if has_fury:
     # Prepare the display objects.
     color = colormap.line_colors(streamlines)
 
-    streamlines_actor = actor.line(streamlines,
-                                   colormap.line_colors(streamlines))
+    streamlines_actor = actor.line(
+        streamlines, colors=colormap.line_colors(streamlines)
+    )
 
     # Create the 3D display.
     scene = window.Scene()
     scene.add(streamlines_actor)
 
     # Save still images for this static example. Or for interactivity use
-    window.record(scene, out_path='tractogram_EuDX.png', size=(800, 800))
+    window.record(scene=scene, out_path="tractogram_EuDX.png", size=(800, 800))
     if interactive:
         window.show(scene)
 
@@ -204,8 +206,9 @@ save_trk(sft, "tractogram_EuDX.trk", streamlines)
 ###############################################################################
 # References
 # ----------
-# .. [Garyfallidis12] Garyfallidis E., "Towards an accurate brain tractography"
-# PhD thesis, University of Cambridge, 2012.
+#
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

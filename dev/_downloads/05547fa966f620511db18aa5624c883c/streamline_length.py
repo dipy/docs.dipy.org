@@ -14,12 +14,13 @@ numpy arrays of size :math:`(N_i \times 3)` for :math:`i=1:M` where $M$ is the
 number of streamlines in the set.
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
+
 from dipy.tracking.distances import approx_polygon_track
 from dipy.tracking.streamline import set_number_of_points
 from dipy.tracking.utils import length
-import matplotlib.pyplot as plt
-from dipy.viz import window, actor
+from dipy.viz import actor, window
 
 ###############################################################################
 # Let's first create a simple simulation of a bundle of streamlines using
@@ -27,28 +28,29 @@ from dipy.viz import window, actor
 
 
 def simulated_bundles(no_streamlines=50, n_pts=100):
-   rng = np.random.default_rng()
+    rng = np.random.default_rng()
 
-   t = np.linspace(-10, 10, n_pts)
+    t = np.linspace(-10, 10, n_pts)
 
-   bundle = []
-   for i in np.linspace(3, 5, no_streamlines):
-      pts = np.vstack((np.cos(2 * t/np.pi), np.zeros(t.shape) + i, t )).T
-      bundle.append(pts)
+    bundle = []
+    for i in np.linspace(3, 5, no_streamlines):
+        pts = np.vstack((np.cos(2 * t / np.pi), np.zeros(t.shape) + i, t)).T
+        bundle.append(pts)
 
-   start = rng.integers(10, 30, no_streamlines)
-   end = rng.integers(60, 100, no_streamlines)
+    start = rng.integers(10, 30, no_streamlines)
+    end = rng.integers(60, 100, no_streamlines)
 
-   bundle = [10 * streamline[start[i]:end[i]]
-             for (i, streamline) in enumerate(bundle)]
-   bundle = [np.ascontiguousarray(streamline) for streamline in bundle]
+    bundle = [
+        10 * streamline[start[i] : end[i]] for (i, streamline) in enumerate(bundle)
+    ]
+    bundle = [np.ascontiguousarray(streamline) for streamline in bundle]
 
-   return bundle
+    return bundle
 
 
 bundle = simulated_bundles()
 
-print('This bundle has %d streamlines' % len(bundle))
+print(f"This bundle has {len(bundle)} streamlines")
 
 ###############################################################################
 # Using the ``length`` function we can retrieve the lengths of each streamline.
@@ -57,12 +59,12 @@ print('This bundle has %d streamlines' % len(bundle))
 lengths = list(length(bundle))
 
 fig_hist, ax = plt.subplots(1)
-ax.hist(lengths, color='burlywood')
-ax.set_xlabel('Length')
-ax.set_ylabel('Count')
+ax.hist(lengths, color="burlywood")
+ax.set_xlabel("Length")
+ax.set_ylabel("Count")
 # plt.show()
 plt.legend()
-plt.savefig('length_histogram.png')
+plt.savefig("length_histogram.png")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -91,7 +93,7 @@ n_pts = [len(streamline) for streamline in bundle]
 # points of a streamline at a specific number and at the same time enforce
 # that all the segments of the streamline will have equal length.
 
-bundle_downsampled = set_number_of_points(bundle, 12)
+bundle_downsampled = set_number_of_points(bundle, nb_points=12)
 n_pts_ds = [len(s) for s in bundle_downsampled]
 
 ###############################################################################
@@ -112,25 +114,27 @@ interactive = False
 
 scene = window.Scene()
 scene.SetBackground(*window.colors.white)
-bundle_actor = actor.streamtube(bundle, window.colors.red, linewidth=0.3)
+bundle_actor = actor.streamtube(bundle, colors=window.colors.red, linewidth=0.3)
 
 scene.add(bundle_actor)
 
-bundle_actor2 = actor.streamtube(bundle_downsampled, window.colors.red,
-                                 linewidth=0.3)
+bundle_actor2 = actor.streamtube(
+    bundle_downsampled, colors=window.colors.red, linewidth=0.3
+)
 bundle_actor2.SetPosition(0, 40, 0)
 
-bundle_actor3 = actor.streamtube(bundle_downsampled2, window.colors.red,
-                                 linewidth=0.3)
+bundle_actor3 = actor.streamtube(
+    bundle_downsampled2, colors=window.colors.red, linewidth=0.3
+)
 bundle_actor3.SetPosition(0, 80, 0)
 
 scene.add(bundle_actor2)
 scene.add(bundle_actor3)
 
 scene.set_camera(position=(0, 0, 0), focal_point=(30, 0, 0))
-window.record(scene, out_path='simulated_cosine_bundle.png', size=(900, 900))
+window.record(scene=scene, out_path="simulated_cosine_bundle.png", size=(900, 900))
 if interactive:
-   window.show(scene)
+    window.show(scene)
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -145,17 +149,15 @@ if interactive:
 # amount the size of the initial dataset.
 
 fig_hist, ax = plt.subplots(1)
-ax.hist(n_pts, color='r', histtype='step', label='initial')
-ax.hist(n_pts_ds, color='g', histtype='step',
-        label='set_number_of_points (12)')
-ax.hist(n_pts_ds2, color='b', histtype='step',
-        label='approx_polygon_track (0.25)')
-ax.set_xlabel('Number of points')
-ax.set_ylabel('Count')
+ax.hist(n_pts, color="r", histtype="step", label="initial")
+ax.hist(n_pts_ds, color="g", histtype="step", label="set_number_of_points (12)")
+ax.hist(n_pts_ds2, color="b", histtype="step", label="approx_polygon_track (0.25)")
+ax.set_xlabel("Number of points")
+ax.set_ylabel("Count")
 
 # plt.show()
 plt.legend()
-plt.savefig('n_pts_histogram.png')
+plt.savefig("n_pts_histogram.png")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -170,15 +172,15 @@ lengths_downsampled = list(length(bundle_downsampled))
 lengths_downsampled2 = list(length(bundle_downsampled2))
 
 fig, ax = plt.subplots(1)
-ax.plot(lengths, color='r', label='initial')
-ax.plot(lengths_downsampled, color='g', label='set_number_of_points (12)')
-ax.plot(lengths_downsampled2, color='b', label='approx_polygon_track (0.25)')
-ax.set_xlabel('Streamline ID')
-ax.set_ylabel('Length')
+ax.plot(lengths, color="r", label="initial")
+ax.plot(lengths_downsampled, color="g", label="set_number_of_points (12)")
+ax.plot(lengths_downsampled2, color="b", label="approx_polygon_track (0.25)")
+ax.set_xlabel("Streamline ID")
+ax.set_ylabel("Length")
 
 # plt.show()
 plt.legend()
-plt.savefig('lengths_plots.png')
+plt.savefig("lengths_plots.png")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold

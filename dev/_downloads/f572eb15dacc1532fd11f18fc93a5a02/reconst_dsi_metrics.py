@@ -4,14 +4,15 @@ Calculate DSI-based scalar maps
 ===============================
 
 We show how to calculate two DSI-based scalar maps: return to origin
-probability (RTOP) [Descoteaux2011]_ and mean square displacement (MSD)
-[Wu2007]_, [Wu2008]_ on your dataset.
+probability (RTOP) :footcite:p:`Descoteaux2011` and mean square displacement
+(MSD) :footcite:p:`Wu2007`, :footcite:p:`Wu2008` on your dataset.
 
 First import the necessary modules:
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from dipy.core.gradients import gradient_table
 from dipy.data import get_fnames
 from dipy.io.gradients import read_bvals_bvecs
@@ -21,7 +22,7 @@ from dipy.reconst.dsi import DiffusionSpectrumModel
 ###############################################################################
 # Download and get the data filenames for this tutorial.
 
-fraw, fbval, fbvec = get_fnames('taiwan_ntu_dsi')
+fraw, fbval, fbvec = get_fnames(name="taiwan_ntu_dsi")
 
 ###############################################################################
 # img contains a nibabel Nifti1Image object (data) and gtab contains a
@@ -32,11 +33,10 @@ fraw, fbval, fbvec = get_fnames('taiwan_ntu_dsi')
 
 data, affine = load_nifti(fraw)
 bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
-bvecs[1:] = (bvecs[1:] /
-                 np.sqrt(np.sum(bvecs[1:] * bvecs[1:], axis=1))[:, None])
-gtab = gradient_table(bvals, bvecs)
+bvecs[1:] = bvecs[1:] / np.sqrt(np.sum(bvecs[1:] * bvecs[1:], axis=1))[:, None]
+gtab = gradient_table(bvals, bvecs=bvecs)
 
-print('data.shape (%d, %d, %d, %d)' % data.shape)
+print(f"data.shape {data.shape}")
 
 ###############################################################################
 # Instantiate the Model and apply it to the data.
@@ -57,7 +57,7 @@ dataslice = dataslice / (dataslice[..., 0, None]).astype(float)
 # Calculate the return to origin probability on the signal
 # that corresponds to the integral of the signal.
 
-print('Calculating... rtop_signal')
+print("Calculating... rtop_signal")
 rtop_signal = dsmodel.fit(dataslice).rtop_signal()
 
 ###############################################################################
@@ -68,7 +68,7 @@ rtop_signal = dsmodel.fit(dataslice).rtop_signal()
 # with the RTOP previously calculated on the signal we turn the normalized
 # parameter to false.
 
-print('Calculating... rtop_pdf')
+print("Calculating... rtop_pdf")
 rtop_pdf = dsmodel.fit(dataslice).rtop_pdf(normalized=False)
 
 ###############################################################################
@@ -76,45 +76,45 @@ rtop_pdf = dsmodel.fit(dataslice).rtop_pdf(normalized=False)
 # to show that we calculate the mean square error on this two measures.
 
 mse = np.sum((rtop_signal - rtop_pdf) ** 2) / rtop_signal.size
-print("mse = %f" % mse)
+print(f"mse = {mse:f}")
 
 ###############################################################################
 # Leaving the normalized parameter to the default changes the values of the
 # RTOP but not the contrast between the voxels.
 
-print('Calculating... rtop_pdf_norm')
+print("Calculating... rtop_pdf_norm")
 rtop_pdf_norm = dsmodel.fit(dataslice).rtop_pdf()
 
 ###############################################################################
 # Let's calculate the mean square displacement on the normalized propagator.
 
-print('Calculating... msd_norm')
+print("Calculating... msd_norm")
 msd_norm = dsmodel.fit(dataslice).msd_discrete()
 
 ###############################################################################
 # Turning the normalized parameter to false makes it possible to calculate
 # the mean square displacement on the propagator without normalization.
 
-print('Calculating... msd')
+print("Calculating... msd")
 msd = dsmodel.fit(dataslice).msd_discrete(normalized=False)
 
 ###############################################################################
 # Show the RTOP images and save them in rtop.png.
 
 fig = plt.figure(figsize=(6, 6))
-ax1 = fig.add_subplot(2, 2, 1, title='rtop_signal')
+ax1 = fig.add_subplot(2, 2, 1, title="rtop_signal")
 ax1.set_axis_off()
-ind = ax1.imshow(rtop_signal.T, interpolation='nearest', origin='lower')
+ind = ax1.imshow(rtop_signal.T, interpolation="nearest", origin="lower")
 plt.colorbar(ind)
-ax2 = fig.add_subplot(2, 2, 2, title='rtop_pdf_norm')
+ax2 = fig.add_subplot(2, 2, 2, title="rtop_pdf_norm")
 ax2.set_axis_off()
-ind = ax2.imshow(rtop_pdf_norm.T, interpolation='nearest', origin='lower')
+ind = ax2.imshow(rtop_pdf_norm.T, interpolation="nearest", origin="lower")
 plt.colorbar(ind)
-ax3 = fig.add_subplot(2, 2, 3, title='rtop_pdf')
+ax3 = fig.add_subplot(2, 2, 3, title="rtop_pdf")
 ax3.set_axis_off()
-ind = ax3.imshow(rtop_pdf.T, interpolation='nearest', origin='lower')
+ind = ax3.imshow(rtop_pdf.T, interpolation="nearest", origin="lower")
 plt.colorbar(ind)
-plt.savefig('rtop.png')
+plt.savefig("rtop.png")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -125,15 +125,15 @@ plt.savefig('rtop.png')
 # Show the MSD images and save them in msd.png.
 
 fig = plt.figure(figsize=(7, 3))
-ax1 = fig.add_subplot(1, 2, 1, title='msd_norm')
+ax1 = fig.add_subplot(1, 2, 1, title="msd_norm")
 ax1.set_axis_off()
-ind = ax1.imshow(msd_norm.T, interpolation='nearest', origin='lower')
+ind = ax1.imshow(msd_norm.T, interpolation="nearest", origin="lower")
 plt.colorbar(ind)
-ax2 = fig.add_subplot(1, 2, 2, title='msd')
+ax2 = fig.add_subplot(1, 2, 2, title="msd")
 ax2.set_axis_off()
-ind = ax2.imshow(msd.T, interpolation='nearest', origin='lower')
+ind = ax2.imshow(msd.T, interpolation="nearest", origin="lower")
 plt.colorbar(ind)
-plt.savefig('msd.png')
+plt.savefig("msd.png")
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -141,16 +141,11 @@ plt.savefig('msd.png')
 # Mean square displacement.
 #
 #
-# .. [Descoteaux2011] Descoteaux M. et al., "Multiple q-shell diffusion
-#    propagator imaging", Medical Image Analysis, vol 15, no 4, p. 603-621,
-#    2011.
+# References
+# ----------
 #
-# .. [Wu2007] Wu Y. et al., "Hybrid diffusion imaging", NeuroImage, vol 36,
-#    p. 617-629, 2007.
+# .. footbibliography::
 #
-# .. [Wu2008] Wu Y. et al., "Computation of Diffusion Function Measures in
-#    q-Space Using Magnetic Resonance Hybrid Diffusion Imaging", IEEE
-#    Transactions on Medical Imaging, vol 27, no 6, p. 858-865, 2008.
 
 ###############################################################################
 # .. include:: ../../links_names.inc

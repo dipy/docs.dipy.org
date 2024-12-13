@@ -2,12 +2,12 @@
 
 .. _reconst-csd:
 
-=======================================================
-Reconstruction with Constrained Spherical Deconvolution
-=======================================================
+===================================================================
+Reconstruction with Constrained Spherical Deconvolution model (CSD)
+===================================================================
 
 This example shows how to use Constrained Spherical Deconvolution (CSD)
-introduced by Tournier et al. [Tournier2007]_.
+introduced by :footcite:p:`Tournier2007`.
 
 This method is mainly useful with datasets with gradient directions acquired on
 a spherical grid.
@@ -18,6 +18,7 @@ obtain the underlying fiber distribution.
 
 In this way, the reconstruction of the fiber orientation distribution function
 (fODF) in CSD involves two steps:
+
     1. Estimation of the fiber response function
     2. Use the response function to reconstruct the fODF
 
@@ -28,26 +29,27 @@ with b-value 2000.
 import numpy as np
 
 from dipy.core.gradients import gradient_table
-from dipy.data import get_fnames, default_sphere
+from dipy.data import default_sphere, get_fnames
 from dipy.direction import peaks_from_model
 from dipy.io.gradients import read_bvals_bvecs
 from dipy.io.image import load_nifti
-from dipy.reconst.dti import (
-    TensorModel, fractional_anisotropy, mean_diffusivity)
-from dipy.reconst.csdeconv import (auto_response_ssst,
-                                   mask_for_response_ssst,
-                                   response_from_mask_ssst,
-                                   recursive_response,
-                                   ConstrainedSphericalDeconvModel)
+from dipy.reconst.csdeconv import (
+    ConstrainedSphericalDeconvModel,
+    auto_response_ssst,
+    mask_for_response_ssst,
+    recursive_response,
+    response_from_mask_ssst,
+)
+from dipy.reconst.dti import TensorModel, fractional_anisotropy, mean_diffusivity
 from dipy.sims.voxel import single_tensor_odf
-from dipy.viz import window, actor
+from dipy.viz import actor, window
 
-hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames('stanford_hardi')
+hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames(name="stanford_hardi")
 
 data, affine = load_nifti(hardi_fname)
 
 bvals, bvecs = read_bvals_bvecs(hardi_bval_fname, hardi_bvec_fname)
-gtab = gradient_table(bvals, bvecs)
+gtab = gradient_table(bvals, bvecs=bvecs)
 
 ###############################################################################
 # You can verify the b-values of the dataset by looking at the attribute
@@ -118,14 +120,15 @@ evals = response[0]
 evecs = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]]).T
 
 
-response_odf = single_tensor_odf(default_sphere.vertices, evals, evecs)
+response_odf = single_tensor_odf(default_sphere.vertices, evals=evals, evecs=evecs)
 # transform our data from 1D to 4D
 response_odf = response_odf[None, None, None, :]
-response_actor = actor.odf_slicer(response_odf, sphere=default_sphere,
-                                  colormap='plasma')
+response_actor = actor.odf_slicer(
+    response_odf, sphere=default_sphere, colormap="plasma"
+)
 scene.add(response_actor)
-print('Saving illustration as csd_response.png')
-window.record(scene, out_path='csd_response.png', size=(200, 200))
+print("Saving illustration as csd_response.png")
+window.record(scene=scene, out_path="csd_response.png", size=(200, 200))
 if interactive:
     window.show(scene)
 
@@ -142,7 +145,7 @@ scene.rm(response_actor)
 # possible response function. For one, it depends on the diffusion tensor
 # (FA and first eigenvector), which has lower accuracy at high
 # b-values. Alternatively, the response function can be calibrated in a
-# data-driven manner [Tax2014]_.
+# data-driven manner :footcite:p:`Tax2014`.
 #
 # First, the data is deconvolved with a 'fat' response function. All voxels
 # that are considered to contain only one peak in this deconvolution (as
@@ -161,13 +164,21 @@ tenfit = tenmodel.fit(data, mask=data[..., 0] > 200)
 
 FA = fractional_anisotropy(tenfit.evals)
 MD = mean_diffusivity(tenfit.evals)
-wm_mask = (np.logical_or(FA >= 0.4,
-                         (np.logical_and(FA >= 0.15, MD >= 0.0011))))
+wm_mask = np.logical_or(FA >= 0.4, (np.logical_and(FA >= 0.15, MD >= 0.0011)))
 
-response = recursive_response(gtab, data, mask=wm_mask, sh_order_max=8,
-                              peak_thr=0.01, init_fa=0.08,
-                              init_trace=0.0021, iter=8, convergence=0.001,
-                              parallel=True, num_processes=2)
+response = recursive_response(
+    gtab,
+    data,
+    mask=wm_mask,
+    sh_order_max=8,
+    peak_thr=0.01,
+    init_fa=0.08,
+    init_trace=0.0021,
+    iter=8,
+    convergence=0.001,
+    parallel=True,
+    num_processes=2,
+)
 
 
 ###############################################################################
@@ -177,14 +188,15 @@ response = recursive_response(gtab, data, mask=wm_mask, sh_order_max=8,
 response_signal = response.on_sphere(default_sphere)
 # transform our data from 1D to 4D
 response_signal = response_signal[None, None, None, :]
-response_actor = actor.odf_slicer(response_signal, sphere=default_sphere,
-                                  colormap='plasma')
+response_actor = actor.odf_slicer(
+    response_signal, sphere=default_sphere, colormap="plasma"
+)
 
 scene = window.Scene()
 
 scene.add(response_actor)
-print('Saving illustration as csd_recursive_response.png')
-window.record(scene, out_path='csd_recursive_response.png', size=(200, 200))
+print("Saving illustration as csd_recursive_response.png")
+window.record(scene=scene, out_path="csd_recursive_response.png", size=(200, 200))
 if interactive:
     window.show(scene)
 
@@ -219,13 +231,14 @@ csd_odf = csd_fit.odf(default_sphere)
 ###############################################################################
 # Here we visualize only a 30x30 region.
 
-fodf_spheres = actor.odf_slicer(csd_odf, sphere=default_sphere, scale=0.9,
-                                norm=False, colormap='plasma')
+fodf_spheres = actor.odf_slicer(
+    csd_odf, sphere=default_sphere, scale=0.9, norm=False, colormap="plasma"
+)
 
 scene.add(fodf_spheres)
 
-print('Saving illustration as csd_odfs.png')
-window.record(scene, out_path='csd_odfs.png', size=(600, 600))
+print("Saving illustration as csd_odfs.png")
+window.record(scene=scene, out_path="csd_odfs.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -238,20 +251,22 @@ if interactive:
 # In DIPY we also provide tools for finding the peak directions (maxima) of the
 # ODFs. For this purpose we recommend using ``peaks_from_model``.
 
-csd_peaks = peaks_from_model(model=csd_model,
-                             data=data_small,
-                             sphere=default_sphere,
-                             relative_peak_threshold=.5,
-                             min_separation_angle=25,
-                             parallel=True,
-                             num_processes=2)
+csd_peaks = peaks_from_model(
+    model=csd_model,
+    data=data_small,
+    sphere=default_sphere,
+    relative_peak_threshold=0.5,
+    min_separation_angle=25,
+    parallel=True,
+    num_processes=2,
+)
 
 scene.clear()
-fodf_peaks = actor.peak_slicer(csd_peaks.peak_dirs, csd_peaks.peak_values)
+fodf_peaks = actor.peak_slicer(csd_peaks.peak_dirs, peaks_values=csd_peaks.peak_values)
 scene.add(fodf_peaks)
 
-print('Saving illustration as csd_peaks.png')
-window.record(scene, out_path='csd_peaks.png', size=(600, 600))
+print("Saving illustration as csd_peaks.png")
+window.record(scene=scene, out_path="csd_peaks.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -267,8 +282,8 @@ fodf_spheres.GetProperty().SetOpacity(0.4)
 
 scene.add(fodf_spheres)
 
-print('Saving illustration as csd_both.png')
-window.record(scene, out_path='csd_both.png', size=(600, 600))
+print("Saving illustration as csd_both.png")
+window.record(scene=scene, out_path="csd_both.png", size=(600, 600))
 if interactive:
     window.show(scene)
 
@@ -281,15 +296,8 @@ if interactive:
 # References
 # ----------
 #
-# .. [Tournier2007] J-D. Tournier, F. Calamante and A. Connelly, "Robust
-#    determination of the fibre orientation distribution in diffusion MRI:
-#    Non-negativity constrained super-resolved spherical deconvolution",
-#    Neuroimage, vol. 35, no. 4, pp. 1459-1472, 2007.
+# .. footbibliography::
 #
-# .. [Tax2014] C.M.W. Tax, B. Jeurissen, S.B. Vos, M.A. Viergever, A. Leemans,
-#    "Recursive calibration of the fiber response function for spherical
-#    deconvolution of diffusion MRI data", Neuroimage, vol. 86, pp. 67-80,
-#    2014.
 
 ###############################################################################
 # .. include:: ../../links_names.inc

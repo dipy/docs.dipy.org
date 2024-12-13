@@ -1,50 +1,51 @@
 """
-========================
-DSI Deconvolution vs DSI
-========================
+===============================
+DSI Deconvolution (DSID) vs DSI
+===============================
 
-An alternative method to DSI is the method proposed by [Canales10]_ which is
-called DSI with Deconvolution. This algorithm is using Lucy-Richardson
-deconvolution in the diffusion propagator with the goal to create sharper ODFs
-with higher angular resolution.
+An alternative method to DSI is the method proposed by
+:footcite:p:`CanalesRodriguez2010` which is called DSI with Deconvolution. This
+algorithm is using Lucy-Richardson deconvolution in the diffusion propagator
+with the goal to create sharper ODFs with higher angular resolution.
 
 In this example we will show with simulated data how this method's ODF
 performs against standard DSI ODF and a ground truth multi tensor ODF.
 """
 
 import numpy as np
-from dipy.sims.voxel import multi_tensor, multi_tensor_odf
-from dipy.data import get_fnames, get_sphere
+
 from dipy.core.gradients import gradient_table
-from dipy.reconst.dsi import (DiffusionSpectrumDeconvModel,
-                              DiffusionSpectrumModel)
-from dipy.viz import window, actor
+from dipy.data import get_fnames, get_sphere
+from dipy.reconst.dsi import DiffusionSpectrumDeconvModel, DiffusionSpectrumModel
+from dipy.sims.voxel import multi_tensor, multi_tensor_odf
+from dipy.viz import actor, window
 
 ###############################################################################
 # For the simulation we will use a standard DSI acquisition scheme with 514
 # gradient directions and 1 S0.
 
-btable = np.loadtxt(get_fnames('dsi515btable'))
+btable = np.loadtxt(get_fnames(name="dsi515btable"))
 
-gtab = gradient_table(btable[:, 0], btable[:, 1:])
+gtab = gradient_table(btable[:, 0], bvecs=btable[:, 1:])
 
 ###############################################################################
 # Let's create a multi tensor with 2 fiber directions at 60 degrees.
 
-evals = np.array([[0.0015, 0.0003, 0.0003],
-                  [0.0015, 0.0003, 0.0003]])
+evals = np.array([[0.0015, 0.0003, 0.0003], [0.0015, 0.0003, 0.0003]])
 
 directions = [(-30, 0), (30, 0)]
 
 fractions = [50, 50]
 
-signal, _ = multi_tensor(gtab, evals, 100, angles=directions,
-                         fractions=fractions, snr=None)
+signal, _ = multi_tensor(
+    gtab, evals, S0=100, angles=directions, fractions=fractions, snr=None
+)
 
-sphere = get_sphere('repulsion724').subdivide(1)
+sphere = get_sphere(name="repulsion724").subdivide(n=1)
 
-odf_gt = multi_tensor_odf(sphere.vertices, evals, angles=directions,
-                          fractions=fractions)
+odf_gt = multi_tensor_odf(
+    sphere.vertices, evals, angles=directions, fractions=fractions
+)
 
 ###############################################################################
 # Perform the reconstructions with standard DSI and DSI with deconvolution.
@@ -70,12 +71,12 @@ scene = window.Scene()
 
 # concatenate data as 4D array
 odfs = np.vstack((odf_gt, dsi_odf, dsid_odf))[:, None, None]
-odf_actor = actor.odf_slicer(odfs, sphere=sphere, scale=0.5, colormap='plasma')
+odf_actor = actor.odf_slicer(odfs, sphere=sphere, scale=0.5, colormap="plasma")
 
 odf_actor.display(y=0)
 odf_actor.RotateX(90)
 scene.add(odf_actor)
-window.record(scene, out_path='dsid.png', size=(300, 300))
+window.record(scene=scene, out_path="dsid.png", size=(300, 300))
 if interactive:
     window.show(scene)
 
@@ -87,8 +88,9 @@ if interactive:
 #
 # References
 # ----------
-# .. [Canales10] Canales-Rodriguez et al., Deconvolution in Diffusion Spectrum
-#                Imaging, Neuroimage, vol 50, no 1, p. 136-149, 2010.
+#
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc

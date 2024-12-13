@@ -4,24 +4,29 @@ Surface seeding for tractography
 ========================================
 
 Surface seeding is a way to generate initial position for tractography
-from cortical surfaces position [Stonge2018]_.
+from cortical surfaces position :footcite:p:`StOnge2018`.
 """
 
+from fury.io import load_polydata
+from fury.utils import (
+    get_actor_from_polydata,
+    get_polydata_triangles,
+    get_polydata_vertices,
+    normals_from_v_f,
+)
 import numpy as np
 
-from dipy.viz import window, actor
 from dipy.data import get_fnames
-from dipy.tracking.mesh import (random_coordinates_from_surface,
-                                seeds_from_surface_coordinates)
-
-from fury.io import load_polydata
-from fury.utils import (get_polydata_triangles, get_polydata_vertices,
-                        get_actor_from_polydata, normals_from_v_f)
+from dipy.tracking.mesh import (
+    random_coordinates_from_surface,
+    seeds_from_surface_coordinates,
+)
+from dipy.viz import actor, window
 
 ###############################################################################
 # Fetch and load a surface
 
-brain_lh = get_fnames("fury_surface")
+brain_lh = get_fnames(name="fury_surface")
 polydata = load_polydata(brain_lh)
 
 ###############################################################################
@@ -40,12 +45,11 @@ scene = window.Scene()
 surface_actor = get_actor_from_polydata(polydata)
 
 scene.add(surface_actor)
-scene.set_camera(position=(-500, 0, 0),
-                 view_up=(0.0, 0.0, 1))
+scene.set_camera(position=(-500, 0, 0), view_up=(0.0, 0.0, 1))
 
 # Uncomment the line below to show to display the window
 # window.show(scene, size=(600, 600), reset_camera=False)
-window.record(scene, out_path='surface_seed1.png', size=(600, 600))
+window.record(scene=scene, out_path="surface_seed1.png", size=(600, 600))
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -103,12 +107,11 @@ scene.add(surface_actor)
 scene.add(seed_actors)
 scene.add(normal_in_actor)
 scene.add(normal_out_actor)
-scene.set_camera(position=(-500, 0, 0),
-                 view_up=(0.0, 0.0, 1))
+scene.set_camera(position=(-500, 0, 0), view_up=(0.0, 0.0, 1))
 
 # Uncomment the line below to show to display the window
 # window.show(scene, size=(600, 600), reset_camera=False)
-window.record(scene, out_path='surface_seed2.png', size=(600, 600))
+window.record(scene=scene, out_path="surface_seed2.png", size=(600, 600))
 
 ###############################################################################
 # .. rst-class:: centered small fst-italic fw-semibold
@@ -118,8 +121,9 @@ window.record(scene, out_path='surface_seed2.png', size=(600, 600))
 #
 # References
 # ----------
-# .. [Stonge2018] St-Onge, E., Daducci, A., Girard, G., & Descoteaux, M.
-#     Surface-enhanced tractography (SET). NeuroImage, 169, 524-539, 2018.
+#
+# .. footbibliography::
+#
 
 ###############################################################################
 # .. include:: ../../links_names.inc
