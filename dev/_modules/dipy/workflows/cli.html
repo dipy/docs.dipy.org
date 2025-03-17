@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DIPY &#8212; dipy 1.11.0.dev0+git20241213.932dcbd documentation</title>
+    <title>dipy.workflows.cli &#8212; dipy 1.11.0 documentation</title>
   
   
   
@@ -30,11 +30,11 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -44,10 +44,10 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e000a0f7"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -65,7 +65,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'development';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
         </script>
     <link rel="icon" href="../../../_static/dipy-favicon.png"/>
@@ -870,7 +870,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">DIPY</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.workflows.cli</li>
   </ul>
 </nav>
 </div>
@@ -889,6 +889,7 @@ document.write(`
                   
   <h1>Source code for dipy.workflows.cli</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!python</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
@@ -903,27 +904,41 @@ document.write(`
     <span class="s2">&quot;dipy_buan_shapes&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.stats&quot;</span><span class="p">,</span> <span class="s2">&quot;BundleShapeAnalysis&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_buan_profiles&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.stats&quot;</span><span class="p">,</span> <span class="s2">&quot;BundleAnalysisTractometryFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_bundlewarp&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.align&quot;</span><span class="p">,</span> <span class="s2">&quot;BundleWarpFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_classify_tissue&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.segment&quot;</span><span class="p">,</span> <span class="s2">&quot;ClassifyTissueFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_correct_motion&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.align&quot;</span><span class="p">,</span> <span class="s2">&quot;MotionCorrectionFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_correct_biasfield&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.nn&quot;</span><span class="p">,</span> <span class="s2">&quot;BiasFieldCorrectionFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_concatenate_tractograms&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;ConcatenateTractogramFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_convert_tractogram&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;ConvertTractogramFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_convert_tensors&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;ConvertTensorsFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_convert_sh&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;ConvertSHFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_denoise_nlmeans&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.denoise&quot;</span><span class="p">,</span> <span class="s2">&quot;NLMeansFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_denoise_lpca&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.denoise&quot;</span><span class="p">,</span> <span class="s2">&quot;LPCAFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_denoise_mppca&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.denoise&quot;</span><span class="p">,</span> <span class="s2">&quot;MPPCAFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_denoise_patch2self&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.denoise&quot;</span><span class="p">,</span> <span class="s2">&quot;Patch2SelfFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_evac_plus&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.nn&quot;</span><span class="p">,</span> <span class="s2">&quot;EVACPlusFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_fetch&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;FetchFlow&quot;</span><span class="p">),</span>
-    <span class="s2">&quot;dipy_fit_csa&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstCSAFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_fit_csa&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstQBallBaseFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_fit_csd&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstCSDFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_fit_dki&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstDkiFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_fit_dti&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstDtiFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_fit_dsi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstDsiFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_fit_dsid&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstDsiFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_fit_forecast&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstForecastFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_fit_gqi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstGQIFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_fit_ivim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstIvimFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_fit_mapmri&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstMAPMRIFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_fit_opdt&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstQBallBaseFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_fit_qball&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstQBallBaseFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_fit_sdt&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstSDTFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_fit_sfm&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.reconst&quot;</span><span class="p">,</span> <span class="s2">&quot;ReconstSFMFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_gibbs_ringing&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.denoise&quot;</span><span class="p">,</span> <span class="s2">&quot;GibbsRingingFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_horizon&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.viz&quot;</span><span class="p">,</span> <span class="s2">&quot;HorizonFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_info&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;IoInfoFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_extract_b0&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;ExtractB0Flow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_extract_shell&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;ExtractShellFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_extract_volume&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;ExtractVolumeFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_labelsbundles&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.segment&quot;</span><span class="p">,</span> <span class="s2">&quot;LabelsBundlesFlow&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dipy_math&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;MathFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_mask&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.mask&quot;</span><span class="p">,</span> <span class="s2">&quot;MaskFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_median_otsu&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.segment&quot;</span><span class="p">,</span> <span class="s2">&quot;MedianOtsuFlow&quot;</span><span class="p">),</span>
     <span class="s2">&quot;dipy_nifti2pam&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;dipy.workflows.io&quot;</span><span class="p">,</span> <span class="s2">&quot;NiftisToPamFlow&quot;</span><span class="p">),</span>
@@ -951,7 +966,50 @@ document.write(`
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available flows: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cli_flows</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">mod</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="n">mod_name</span><span class="p">)</span>
-    <span class="n">run_flow</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">flow_name</span><span class="p">)())</span></div>
+
+    <span class="k">if</span> <span class="n">script_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;dipy_sh_convert_mrtrix&quot;</span><span class="p">]:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;`dipy_sh_convert_mrtrix` CLI is deprecated since DIPY 1.11.0. It will be &quot;</span>
+            <span class="s2">&quot;removed on later release. Please use the `dipy_convert_sh` CLI instead.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">script_name</span> <span class="o">==</span> <span class="s2">&quot;dipy_fit_dsid&quot;</span><span class="p">:</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;remove_convolution&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;dest&quot;</span><span class="p">:</span> <span class="s2">&quot;remove_convolution&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="k">elif</span> <span class="n">script_name</span> <span class="o">==</span> <span class="s2">&quot;dipy_fit_csa&quot;</span><span class="p">:</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dest&quot;</span><span class="p">:</span> <span class="s2">&quot;method&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;metavar&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;csa&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="k">elif</span> <span class="n">script_name</span> <span class="o">==</span> <span class="s2">&quot;dipy_fit_opdt&quot;</span><span class="p">:</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dest&quot;</span><span class="p">:</span> <span class="s2">&quot;method&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;metavar&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;opdt&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="k">elif</span> <span class="n">script_name</span> <span class="o">==</span> <span class="s2">&quot;dipy_fit_qball&quot;</span><span class="p">:</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dest&quot;</span><span class="p">:</span> <span class="s2">&quot;method&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;metavar&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;qball&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="n">run_flow</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">flow_name</span><span class="p">)(),</span> <span class="n">extra_args</span><span class="o">=</span><span class="n">extra_args</span><span class="p">)</span></div>
 
 </pre></div>
 
@@ -1224,7 +1282,7 @@ document.write(`
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

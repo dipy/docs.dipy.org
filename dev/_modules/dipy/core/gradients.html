@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DIPY &#8212; dipy 1.11.0.dev0+git20241213.932dcbd documentation</title>
+    <title>dipy.core.gradients &#8212; dipy 1.11.0 documentation</title>
   
   
   
@@ -30,11 +30,11 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -44,10 +44,10 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e000a0f7"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -65,7 +65,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'development';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
         </script>
     <link rel="icon" href="../../../_static/dipy-favicon.png"/>
@@ -870,7 +870,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">DIPY</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.core.gradients</li>
   </ul>
 </nav>
 </div>
@@ -2317,6 +2317,150 @@ document.write(`
     <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">uniq</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)}:</span>
         <span class="nb">print</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">uniq</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="extract_b0">
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.extract_b0">[docs]</a>
+<span class="k">def</span> <span class="nf">extract_b0</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">b0_mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">group_contiguous_b0</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract a set of b0 volumes from a dwi dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dwi: ndarray</span>
+<span class="sd">        4D diffusion-weighted imaging data (X, Y, Z, N), where N is the number of</span>
+<span class="sd">        volumes.</span>
+<span class="sd">    b0_mask: ndarray of bool</span>
+<span class="sd">        Mask over the time dimension (4th) identifying b0 volumes.</span>
+<span class="sd">    group_contiguous_b0: bool, optional</span>
+<span class="sd">        If True, each contiguous b0 volumes are grouped together.</span>
+<span class="sd">    strategy: str, optional</span>
+<span class="sd">        The extraction strategy, of either:</span>
+
+<span class="sd">            - first: select the first b0 found.</span>
+<span class="sd">            - all: select them all.</span>
+<span class="sd">            - mean: average them.</span>
+
+<span class="sd">        When used in conjunction with the batch parameter set to True, the strategy</span>
+<span class="sd">        is applied individually on each continuous set found.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    b0_data : ndarray</span>
+<span class="sd">        Extracted b0 volumes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b0_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="n">b0_mask</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">b0_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;b0_mask must be a boolean array.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="n">dwi</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dwi must be a 4D numpy array.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dwi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b0_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The last dimension of dwi must match the length of b0_mask.&quot;</span><span class="p">)</span>
+
+    <span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Invalid strategy: </span><span class="si">{}</span><span class="s2">. Valid strategies are: &quot;</span> <span class="s2">&quot;first, all, mean.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">strategy</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">group_contiguous_b0</span><span class="p">:</span>
+        <span class="n">b0_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">b0_mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">b0_indices</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">b0_indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">grouped_b0</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+            <span class="n">group_data</span> <span class="o">=</span> <span class="n">dwi</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">group</span> <span class="o">-</span> <span class="n">b0_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;first&quot;</span><span class="p">:</span>
+                <span class="n">grouped_b0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group_data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+                <span class="n">grouped_b0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">group_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># &quot;all&quot;</span>
+                <span class="n">grouped_b0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">grouped_b0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">b0_data</span> <span class="o">=</span> <span class="n">dwi</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">b0_mask</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;first&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">b0_data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">b0_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">b0_data</span></div>
+
+
+
+<div class="viewcode-block" id="extract_dwi_shell">
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.extract_dwi_shell">[docs]</a>
+<span class="k">def</span> <span class="nf">extract_dwi_shell</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">bvals_to_extract</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">group_shells</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract diffusion-weighted imaging (DWI) volumes based on b-value shells.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dwi : ndarray</span>
+<span class="sd">        4D diffusion-weighted imaging data (X, Y, Z, N), where N is the number of</span>
+<span class="sd">        volumes.</span>
+<span class="sd">    gtab : GradientTable</span>
+<span class="sd">        The gradient table associated with the DWI dataset.</span>
+<span class="sd">    bvals_to_extract : list of int</span>
+<span class="sd">        List of b-values to extract. If None, all b-values are included.</span>
+<span class="sd">    tol : int, optional</span>
+<span class="sd">        Tolerance range for b-value selection. A value of 20 means volumes with b-values</span>
+<span class="sd">        within ±20 units of the specified b-values will be extracted.</span>
+<span class="sd">    group_shells : bool, optional</span>
+<span class="sd">        If True, extracted volumes are grouped into a single array. If False,</span>
+<span class="sd">        returns a list of separate volumes.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    indices : ndarray</span>
+<span class="sd">        Indices of the extracted volumes corresponding to the specified b-values.</span>
+<span class="sd">    shell_data : ndarray or list of ndarrays</span>
+<span class="sd">        Extracted DWI volumes, grouped if `group_shells=True`, otherwise returned as</span>
+<span class="sd">        a list.</span>
+<span class="sd">    output_bvals : ndarray</span>
+<span class="sd">        The b-values of the selected volumes.</span>
+<span class="sd">    output_bvecs : ndarray</span>
+<span class="sd">        The b-vectors of the selected volumes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bvals</span> <span class="o">=</span> <span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span>
+    <span class="n">bvecs</span> <span class="o">=</span> <span class="n">gtab</span><span class="o">.</span><span class="n">bvecs</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bvals_to_extract</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;No b-values specified. All b-values will be included.&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bvals_to_extract</span>
+        <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">bvals</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bvals_to_extract</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">tol</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">indices</span><span class="o">.</span><span class="n">size</span> <span class="ow">and</span> <span class="n">bvals_to_extract</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No volumes found with the specified b-values.&quot;</span><span class="p">)</span>
+
+    <span class="n">shell_data</span><span class="p">,</span> <span class="n">output_bvals</span><span class="p">,</span> <span class="n">output_bvecs</span><span class="p">,</span> <span class="n">output_indices</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">group_shells</span><span class="p">:</span>
+        <span class="n">shell_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dwi</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">indices</span><span class="p">])</span>
+        <span class="n">output_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="n">output_bvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bvals</span><span class="p">[</span><span class="n">indices</span><span class="p">])</span>
+        <span class="n">output_bvecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bvecs</span><span class="p">[</span><span class="n">indices</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">bvals_to_extract</span><span class="p">:</span>
+            <span class="n">selected_indices</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span>
+                <span class="p">(</span><span class="n">bvals</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">tol</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">bvals</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">tol</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">output_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">selected_indices</span><span class="p">)</span>
+            <span class="n">output_bvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bvals</span><span class="p">[</span><span class="n">selected_indices</span><span class="p">])</span>
+            <span class="n">output_bvecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bvecs</span><span class="p">[</span><span class="n">selected_indices</span><span class="p">])</span>
+            <span class="n">shell_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dwi</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">selected_indices</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">output_indices</span><span class="p">,</span> <span class="n">shell_data</span><span class="p">,</span> <span class="n">output_bvals</span><span class="p">,</span> <span class="n">output_bvecs</span></div>
+
 </pre></div>
 
                 </article>
@@ -2588,7 +2732,7 @@ document.write(`
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

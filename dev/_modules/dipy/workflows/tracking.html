@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DIPY &#8212; dipy 1.11.0.dev0+git20241213.932dcbd documentation</title>
+    <title>dipy.workflows.tracking &#8212; dipy 1.11.0 documentation</title>
   
   
   
@@ -30,11 +30,11 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -44,10 +44,10 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e000a0f7"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -65,7 +65,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'development';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
         </script>
     <link rel="icon" href="../../../_static/dipy-favicon.png"/>
@@ -870,7 +870,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">DIPY</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.workflo...</li>
   </ul>
 </nav>
 </div>
@@ -891,22 +891,26 @@ document.write(`
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">dipy.direction</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ClosestPeakDirectionGetter</span><span class="p">,</span>
-    <span class="n">DeterministicMaximumDirectionGetter</span><span class="p">,</span>
-    <span class="n">ProbabilisticDirectionGetter</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">SPHERE_FILES</span><span class="p">,</span> <span class="n">get_sphere</span>
 <span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span>
 <span class="kn">from</span> <span class="nn">dipy.io.peaks</span> <span class="kn">import</span> <span class="n">load_pam</span>
 <span class="kn">from</span> <span class="nn">dipy.io.stateful_tractogram</span> <span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <span class="n">StatefulTractogram</span>
 <span class="kn">from</span> <span class="nn">dipy.io.streamline</span> <span class="kn">import</span> <span class="n">save_tractogram</span>
 <span class="kn">from</span> <span class="nn">dipy.tracking</span> <span class="kn">import</span> <span class="n">utils</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.local_tracking</span> <span class="kn">import</span> <span class="n">LocalTracking</span><span class="p">,</span> <span class="n">ParticleFilteringTracking</span>
 <span class="kn">from</span> <span class="nn">dipy.tracking.stopping_criterion</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">BinaryStoppingCriterion</span><span class="p">,</span>
     <span class="n">CmcStoppingCriterion</span><span class="p">,</span>
     <span class="n">ThresholdStoppingCriterion</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dipy.tracking.tracker</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">closestpeak_tracking</span><span class="p">,</span>
+    <span class="n">deterministic_tracking</span><span class="p">,</span>
+    <span class="n">eudx_tracking</span><span class="p">,</span>
+    <span class="n">pft_tracking</span><span class="p">,</span>
+    <span class="n">probabilistic_tracking</span><span class="p">,</span>
+    <span class="n">ptt_tracking</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
 
@@ -921,112 +925,6 @@ document.write(`
         <span class="k">return</span> <span class="s2">&quot;track_local&quot;</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_get_direction_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy_name</span><span class="p">,</span> <span class="n">pam</span><span class="p">,</span> <span class="n">pmf_threshold</span><span class="p">,</span> <span class="n">max_angle</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get Tracking Direction Getter object.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        strategy_name : str</span>
-<span class="sd">            String representing direction getter name.</span>
-<span class="sd">        pam : instance of PeaksAndMetrics</span>
-<span class="sd">            An object with ``gfa``, ``peak_directions``, ``peak_values``,</span>
-<span class="sd">            ``peak_indices``, ``odf``, ``shm_coeffs`` as attributes.</span>
-<span class="sd">        pmf_threshold : float</span>
-<span class="sd">            Threshold for ODF functions.</span>
-<span class="sd">        max_angle : float</span>
-<span class="sd">            Maximum angle between streamline segments.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        direction_getter : instance of DirectionGetter</span>
-<span class="sd">            Used to get directions for fiber tracking.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">dg</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">strategy_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;deterministic&quot;</span><span class="p">,</span> <span class="s2">&quot;det&quot;</span><span class="p">]:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Deterministic&quot;</span>
-            <span class="n">dg</span> <span class="o">=</span> <span class="n">DeterministicMaximumDirectionGetter</span><span class="o">.</span><span class="n">from_shcoeff</span><span class="p">(</span>
-                <span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
-                <span class="n">sphere</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span>
-                <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
-                <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">strategy_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;probabilistic&quot;</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">]:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Probabilistic&quot;</span>
-            <span class="n">dg</span> <span class="o">=</span> <span class="n">ProbabilisticDirectionGetter</span><span class="o">.</span><span class="n">from_shcoeff</span><span class="p">(</span>
-                <span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
-                <span class="n">sphere</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span>
-                <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
-                <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">strategy_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;closestpeaks&quot;</span><span class="p">,</span> <span class="s2">&quot;cp&quot;</span><span class="p">]:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;ClosestPeaks&quot;</span>
-            <span class="n">dg</span> <span class="o">=</span> <span class="n">ClosestPeakDirectionGetter</span><span class="o">.</span><span class="n">from_shcoeff</span><span class="p">(</span>
-                <span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
-                <span class="n">sphere</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span>
-                <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
-                <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">strategy_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span>
-            <span class="s2">&quot;eudx&quot;</span><span class="p">,</span>
-        <span class="p">]:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Eudx&quot;</span>
-            <span class="n">dg</span> <span class="o">=</span> <span class="n">pam</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;No direction getter defined. Eudx&quot;</span>
-            <span class="n">dg</span> <span class="o">=</span> <span class="n">pam</span>
-
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> direction getter strategy selected&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">dg</span>
-
-    <span class="k">def</span> <span class="nf">_core_run</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">stopping_path</span><span class="p">,</span>
-        <span class="n">use_binary_mask</span><span class="p">,</span>
-        <span class="n">stopping_thr</span><span class="p">,</span>
-        <span class="n">seeding_path</span><span class="p">,</span>
-        <span class="n">seed_density</span><span class="p">,</span>
-        <span class="n">step_size</span><span class="p">,</span>
-        <span class="n">direction_getter</span><span class="p">,</span>
-        <span class="n">out_tract</span><span class="p">,</span>
-        <span class="n">save_seeds</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="n">stop</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">stopping_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">use_binary_mask</span><span class="p">:</span>
-            <span class="n">stopping_criterion</span> <span class="o">=</span> <span class="n">BinaryStoppingCriterion</span><span class="p">(</span><span class="n">stop</span> <span class="o">&gt;</span> <span class="n">stopping_thr</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">stopping_criterion</span> <span class="o">=</span> <span class="n">ThresholdStoppingCriterion</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="n">stopping_thr</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;stopping criterion done&quot;</span><span class="p">)</span>
-        <span class="n">seed_mask</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">seeding_path</span><span class="p">)</span>
-        <span class="n">seeds</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">seeds_from_mask</span><span class="p">(</span>
-            <span class="n">seed_mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="p">[</span><span class="n">seed_density</span><span class="p">,</span> <span class="n">seed_density</span><span class="p">,</span> <span class="n">seed_density</span><span class="p">]</span>
-        <span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;seeds done&quot;</span><span class="p">)</span>
-
-        <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">LocalTracking</span><span class="p">(</span>
-            <span class="n">direction_getter</span><span class="p">,</span>
-            <span class="n">stopping_criterion</span><span class="p">,</span>
-            <span class="n">seeds</span><span class="p">,</span>
-            <span class="n">affine</span><span class="p">,</span>
-            <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span>
-            <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;LocalTracking initiated&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">save_seeds</span><span class="p">:</span>
-            <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">tracking_result</span><span class="p">)</span>
-            <span class="n">seeds</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;seeds&quot;</span><span class="p">:</span> <span class="n">seeds</span><span class="p">}</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">streamlines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tracking_result</span><span class="p">)</span>
-            <span class="n">seeds</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span>
-            <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeding_path</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">,</span> <span class="n">data_per_streamline</span><span class="o">=</span><span class="n">seeds</span>
-        <span class="p">)</span>
-        <span class="n">save_tractogram</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="n">out_tract</span><span class="p">,</span> <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved </span><span class="si">{</span><span class="n">out_tract</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
 <div class="viewcode-block" id="LocalFiberTrackingPAMFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.tracking.LocalFiberTrackingPAMFlow.run">[docs]</a>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
@@ -1037,13 +935,19 @@ document.write(`
         <span class="n">use_binary_mask</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">stopping_thr</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
         <span class="n">seed_density</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">minlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">maxlen</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
         <span class="n">step_size</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-        <span class="n">tracking_method</span><span class="o">=</span><span class="s2">&quot;eudx&quot;</span><span class="p">,</span>
+        <span class="n">tracking_method</span><span class="o">=</span><span class="s2">&quot;deterministic&quot;</span><span class="p">,</span>
         <span class="n">pmf_threshold</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">max_angle</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+        <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">random_seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">out_tractogram</span><span class="o">=</span><span class="s2">&quot;tractogram.trk&quot;</span><span class="p">,</span>
-        <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow for Local Fiber Tracking.</span>
 
@@ -1070,32 +974,52 @@ document.write(`
 <span class="sd">            tracking has to stop.</span>
 <span class="sd">        seed_density : int, optional</span>
 <span class="sd">            Number of seeds per dimension inside voxel.</span>
-<span class="sd">             For example, seed_density of 2 means 8 regularly distributed</span>
-<span class="sd">             points in the voxel. And seed density of 1 means 1 point at the</span>
-<span class="sd">             center of the voxel.</span>
+<span class="sd">            For example, seed_density of 2 means 8 regularly distributed</span>
+<span class="sd">            points in the voxel. And seed density of 1 means 1 point at the</span>
+<span class="sd">            center of the voxel.</span>
+<span class="sd">        minlen : int, optional</span>
+<span class="sd">            Minimum length (nb points) of the streamlines.</span>
+<span class="sd">        maxlen : int, optional</span>
+<span class="sd">            Maximum length (nb points) of the streamlines.</span>
 <span class="sd">        step_size : float, optional</span>
 <span class="sd">            Step size (in mm) used for tracking.</span>
 <span class="sd">        tracking_method : string, optional</span>
-<span class="sd">            Select direction getter strategy :</span>
-<span class="sd">             - &quot;eudx&quot; (Uses the peaks saved in the pam_files)</span>
-<span class="sd">             - &quot;deterministic&quot; or &quot;det&quot; for a deterministic tracking</span>
-<span class="sd">               (Uses the sh saved in the pam_files, default)</span>
-<span class="sd">             - &quot;probabilistic&quot; or &quot;prob&quot; for a Probabilistic tracking</span>
-<span class="sd">               (Uses the sh saved in the pam_files)</span>
-<span class="sd">             - &quot;closestpeaks&quot; or &quot;cp&quot; for a ClosestPeaks tracking</span>
-<span class="sd">               (Uses the sh saved in the pam_files)</span>
+<span class="sd">            Select direction getter strategy:</span>
+<span class="sd">                - &quot;eudx&quot; (Uses the peaks saved in the pam_files)</span>
+<span class="sd">                - &quot;deterministic&quot; or &quot;det&quot; for a deterministic tracking</span>
+<span class="sd">                - &quot;probabilistic&quot; or &quot;prob&quot; for a Probabilistic tracking</span>
+<span class="sd">                - &quot;closestpeaks&quot; or &quot;cp&quot; for a ClosestPeaks tracking</span>
+<span class="sd">                - &quot;ptt&quot; for Parallel Transport Tractography</span>
+
+<span class="sd">            By default, the sh coefficients saved in the pam_files are used.</span>
 <span class="sd">        pmf_threshold : float, optional</span>
 <span class="sd">            Threshold for ODF functions.</span>
 <span class="sd">        max_angle : float, optional</span>
 <span class="sd">            Maximum angle between streamline segments (range [0, 90]).</span>
-<span class="sd">        out_dir : string, optional</span>
-<span class="sd">           Output directory. (default current directory)</span>
-<span class="sd">        out_tractogram : string, optional</span>
-<span class="sd">           Name of the tractogram file to be saved.</span>
+<span class="sd">        sphere_name : string, optional</span>
+<span class="sd">            The sphere used for tracking. If None, the sphere saved in the</span>
+<span class="sd">            pam_files is used. For faster tracking, use a smaller</span>
+<span class="sd">            sphere (e.g. &#39;repulsion200&#39;).</span>
 <span class="sd">        save_seeds : bool, optional</span>
 <span class="sd">            If true, save the seeds associated to their streamline</span>
 <span class="sd">            in the &#39;data_per_streamline&#39; Tractogram dictionary using</span>
 <span class="sd">            &#39;seeds&#39; as the key.</span>
+<span class="sd">        nbr_threads : int, optional</span>
+<span class="sd">            Number of threads to use for the processing. By default, all available</span>
+<span class="sd">            threads will be used.</span>
+<span class="sd">        random_seed : int, optional</span>
+<span class="sd">            Seed for the random number generator, must be &gt;= 0. A value of greater</span>
+<span class="sd">            than 0 will all produce the same streamline trajectory for a given seed</span>
+<span class="sd">            coordinate. A value of 0 may produces various streamline tracjectories</span>
+<span class="sd">            for a given seed coordinate.</span>
+<span class="sd">        seed_buffer_fraction : float, optional</span>
+<span class="sd">            Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
+<span class="sd">            buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
+<span class="sd">            a way to reduce memory usage.</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">           Output directory.</span>
+<span class="sd">        out_tractogram : string, optional</span>
+<span class="sd">           Name of the tractogram file to be saved.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -1104,25 +1028,139 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
 
+        <span class="n">tracking_method</span> <span class="o">=</span> <span class="n">tracking_method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">sphere_name</span> <span class="o">=</span> <span class="n">SPHERE_FILES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sphere_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">pams_path</span><span class="p">,</span> <span class="n">stopping_path</span><span class="p">,</span> <span class="n">seeding_path</span><span class="p">,</span> <span class="n">out_tract</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Local tracking on </span><span class="si">{</span><span class="n">pams_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tracking_method</span> <span class="o">==</span> <span class="s2">&quot;eudx&quot;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;EuDX Deterministic tracking on </span><span class="si">{</span><span class="n">pams_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tracking_method</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="si">}</span><span class="s2"> tracking on </span><span class="si">{</span><span class="n">pams_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">pam</span> <span class="o">=</span> <span class="n">load_pam</span><span class="p">(</span><span class="n">pams_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">dg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_direction_getter</span><span class="p">(</span>
-                <span class="n">tracking_method</span><span class="p">,</span> <span class="n">pam</span><span class="p">,</span> <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span> <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span>
+            <span class="n">sphere</span> <span class="o">=</span> <span class="n">pam</span><span class="o">.</span><span class="n">sphere</span> <span class="k">if</span> <span class="n">sphere_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">get_sphere</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">sphere_name</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading stopping criterion&quot;</span><span class="p">)</span>
+            <span class="n">stop</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">stopping_path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">use_binary_mask</span><span class="p">:</span>
+                <span class="n">stopping_criterion</span> <span class="o">=</span> <span class="n">BinaryStoppingCriterion</span><span class="p">(</span><span class="n">stop</span> <span class="o">&gt;</span> <span class="n">stopping_thr</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stopping_criterion</span> <span class="o">=</span> <span class="n">ThresholdStoppingCriterion</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="n">stopping_thr</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading seeds&quot;</span><span class="p">)</span>
+            <span class="n">seed_mask</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">seeding_path</span><span class="p">)</span>
+            <span class="n">seeds</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">seeds_from_mask</span><span class="p">(</span>
+                <span class="n">seed_mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="p">[</span><span class="n">seed_density</span><span class="p">,</span> <span class="n">seed_density</span><span class="p">,</span> <span class="n">seed_density</span><span class="p">]</span>
             <span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_core_run</span><span class="p">(</span>
-                <span class="n">stopping_path</span><span class="p">,</span>
-                <span class="n">use_binary_mask</span><span class="p">,</span>
-                <span class="n">stopping_thr</span><span class="p">,</span>
-                <span class="n">seeding_path</span><span class="p">,</span>
-                <span class="n">seed_density</span><span class="p">,</span>
-                <span class="n">step_size</span><span class="p">,</span>
-                <span class="n">dg</span><span class="p">,</span>
-                <span class="n">out_tract</span><span class="p">,</span>
-                <span class="n">save_seeds</span><span class="p">,</span>
-            <span class="p">)</span></div>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting to track&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;closestpeaks&quot;</span><span class="p">,</span> <span class="s2">&quot;cp&quot;</span><span class="p">]:</span>
+                <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">closestpeak_tracking</span><span class="p">(</span>
+                    <span class="n">seeds</span><span class="p">,</span>
+                    <span class="n">stopping_criterion</span><span class="p">,</span>
+                    <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
+                    <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
+                    <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+                    <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
+                    <span class="n">min_len</span><span class="o">=</span><span class="n">minlen</span><span class="p">,</span>
+                    <span class="n">max_len</span><span class="o">=</span><span class="n">maxlen</span><span class="p">,</span>
+                    <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span>
+                    <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
+                    <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+                    <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
+                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;eudx&quot;</span><span class="p">,</span>
+            <span class="p">]:</span>
+                <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">eudx_tracking</span><span class="p">(</span>
+                    <span class="n">seeds</span><span class="p">,</span>
+                    <span class="n">stopping_criterion</span><span class="p">,</span>
+                    <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
+                    <span class="n">pam</span><span class="o">=</span><span class="n">pam</span><span class="p">,</span>
+                    <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
+                    <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+                    <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
+                    <span class="n">min_len</span><span class="o">=</span><span class="n">minlen</span><span class="p">,</span>
+                    <span class="n">max_len</span><span class="o">=</span><span class="n">maxlen</span><span class="p">,</span>
+                    <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span>
+                    <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
+                    <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+                    <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
+                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;deterministic&quot;</span><span class="p">,</span> <span class="s2">&quot;det&quot;</span><span class="p">]:</span>
+                <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">deterministic_tracking</span><span class="p">(</span>
+                    <span class="n">seeds</span><span class="p">,</span>
+                    <span class="n">stopping_criterion</span><span class="p">,</span>
+                    <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
+                    <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
+                    <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+                    <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
+                    <span class="n">min_len</span><span class="o">=</span><span class="n">minlen</span><span class="p">,</span>
+                    <span class="n">max_len</span><span class="o">=</span><span class="n">maxlen</span><span class="p">,</span>
+                    <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span>
+                    <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
+                    <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+                    <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
+                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;probabilistic&quot;</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">]:</span>
+                <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">probabilistic_tracking</span><span class="p">(</span>
+                    <span class="n">seeds</span><span class="p">,</span>
+                    <span class="n">stopping_criterion</span><span class="p">,</span>
+                    <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
+                    <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
+                    <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+                    <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
+                    <span class="n">min_len</span><span class="o">=</span><span class="n">minlen</span><span class="p">,</span>
+                    <span class="n">max_len</span><span class="o">=</span><span class="n">maxlen</span><span class="p">,</span>
+                    <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span>
+                    <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
+                    <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+                    <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
+                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ptt&quot;</span><span class="p">]:</span>
+                <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">ptt_tracking</span><span class="p">(</span>
+                    <span class="n">seeds</span><span class="p">,</span>
+                    <span class="n">stopping_criterion</span><span class="p">,</span>
+                    <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
+                    <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
+                    <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+                    <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
+                    <span class="n">min_len</span><span class="o">=</span><span class="n">minlen</span><span class="p">,</span>
+                    <span class="n">max_len</span><span class="o">=</span><span class="n">maxlen</span><span class="p">,</span>
+                    <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span>
+                    <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
+                    <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+                    <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
+                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Unknown tracking method: </span><span class="si">{</span><span class="n">tracking_method</span><span class="si">}</span><span class="s2">. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Please use one of the following: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;eudx&#39;, &#39;deterministic&#39;, &#39;probabilistic&#39;, &#39;closestpeaks&#39;, &#39;ptt&#39;&quot;</span>
+                <span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">save_seeds</span><span class="p">:</span>
+                <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">tracking_result</span><span class="p">)</span>
+                <span class="n">seeds</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;seeds&quot;</span><span class="p">:</span> <span class="n">seeds</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">streamlines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tracking_result</span><span class="p">)</span>
+                <span class="n">seeds</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span>
+                <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeding_path</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">,</span> <span class="n">data_per_streamline</span><span class="o">=</span><span class="n">seeds</span>
+            <span class="p">)</span>
+            <span class="n">save_tractogram</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="n">out_tract</span><span class="p">,</span> <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved </span><span class="si">{</span><span class="n">out_tract</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 </div>
 
 
@@ -1150,13 +1188,18 @@ document.write(`
         <span class="n">seed_density</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">pmf_threshold</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">max_angle</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+        <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">pft_back</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="n">pft_front</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">pft_count</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
-        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">out_tractogram</span><span class="o">=</span><span class="s2">&quot;tractogram.trk&quot;</span><span class="p">,</span>
+        <span class="n">pft_max_trial</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
         <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">min_wm_pve_before_stopping</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">random_seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_tractogram</span><span class="o">=</span><span class="s2">&quot;tractogram.trk&quot;</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow for Particle Filtering Tracking.</span>
 
@@ -1182,13 +1225,17 @@ document.write(`
 <span class="sd">            Step size (in mm) used for tracking.</span>
 <span class="sd">        seed_density : int, optional</span>
 <span class="sd">            Number of seeds per dimension inside voxel.</span>
-<span class="sd">             For example, seed_density of 2 means 8 regularly distributed</span>
-<span class="sd">             points in the voxel. And seed density of 1 means 1 point at the</span>
-<span class="sd">             center of the voxel.</span>
+<span class="sd">            For example, seed_density of 2 means 8 regularly distributed</span>
+<span class="sd">            points in the voxel. And seed density of 1 means 1 point at the</span>
+<span class="sd">            center of the voxel.</span>
 <span class="sd">        pmf_threshold : float, optional</span>
 <span class="sd">            Threshold for ODF functions.</span>
 <span class="sd">        max_angle : float, optional</span>
 <span class="sd">            Maximum angle between streamline segments (range [0, 90]).</span>
+<span class="sd">        sphere_name : string, optional</span>
+<span class="sd">            The sphere used for tracking. If None, the sphere saved in the</span>
+<span class="sd">            pam_files is used. For faster tracking, use a smaller</span>
+<span class="sd">            sphere (e.g. &#39;repulsion200&#39;).</span>
 <span class="sd">        pft_back : float, optional</span>
 <span class="sd">            Distance in mm to back track before starting the particle filtering</span>
 <span class="sd">            tractography. The total particle filtering</span>
@@ -1201,10 +1248,8 @@ document.write(`
 <span class="sd">            front_tracking_dist.</span>
 <span class="sd">        pft_count : int, optional</span>
 <span class="sd">            Number of particles to use in the particle filter.</span>
-<span class="sd">        out_dir : string, optional</span>
-<span class="sd">           Output directory. (default current directory)</span>
-<span class="sd">        out_tractogram : string, optional</span>
-<span class="sd">           Name of the tractogram file to be saved.</span>
+<span class="sd">        pft_max_trial : int, optional</span>
+<span class="sd">            Maximum number of trials to run the particle filtering tractography.</span>
 <span class="sd">        save_seeds : bool, optional</span>
 <span class="sd">            If true, save the seeds associated to their streamline</span>
 <span class="sd">            in the &#39;data_per_streamline&#39; Tractogram dictionary using</span>
@@ -1213,6 +1258,22 @@ document.write(`
 <span class="sd">            Minimum white matter pve (1 - stopping_criterion.include_map -</span>
 <span class="sd">            stopping_criterion.exclude_map) to reach before allowing the</span>
 <span class="sd">            tractography to stop.</span>
+<span class="sd">        nbr_threads : int, optional</span>
+<span class="sd">            Number of threads to use for the processing. By default, all available</span>
+<span class="sd">            threads will be used.</span>
+<span class="sd">        random_seed : int, optional</span>
+<span class="sd">            Seed for the random number generator, must be &gt;= 0. A value of greater</span>
+<span class="sd">            than 0 will all produce the same streamline trajectory for a given seed</span>
+<span class="sd">            coordinate. A value of 0 may produces various streamline tracjectories</span>
+<span class="sd">            for a given seed coordinate.</span>
+<span class="sd">        seed_buffer_fraction : float, optional</span>
+<span class="sd">            Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
+<span class="sd">            buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
+<span class="sd">            a way to reduce memory usage.</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">           Output directory.</span>
+<span class="sd">        out_tractogram : string, optional</span>
+<span class="sd">           Name of the tractogram file to be saved.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -1220,49 +1281,50 @@ document.write(`
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+        <span class="n">sphere_name</span> <span class="o">=</span> <span class="n">SPHERE_FILES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sphere_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">pams_path</span><span class="p">,</span> <span class="n">wm_path</span><span class="p">,</span> <span class="n">gm_path</span><span class="p">,</span> <span class="n">csf_path</span><span class="p">,</span> <span class="n">seeding_path</span><span class="p">,</span> <span class="n">out_tract</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Particle Filtering tracking on </span><span class="si">{</span><span class="n">pams_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">pam</span> <span class="o">=</span> <span class="n">load_pam</span><span class="p">(</span><span class="n">pams_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">sphere</span> <span class="o">=</span> <span class="n">pam</span><span class="o">.</span><span class="n">sphere</span> <span class="k">if</span> <span class="n">sphere_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">get_sphere</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">sphere_name</span><span class="p">)</span>
 
             <span class="n">wm</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">wm_path</span><span class="p">,</span> <span class="n">return_voxsize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">gm</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">gm_path</span><span class="p">)</span>
             <span class="n">csf</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">csf_path</span><span class="p">)</span>
             <span class="n">avs</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>  <span class="c1"># average_voxel_size</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Preparing stopping criterion&quot;</span><span class="p">)</span>
             <span class="n">stopping_criterion</span> <span class="o">=</span> <span class="n">CmcStoppingCriterion</span><span class="o">.</span><span class="n">from_pve</span><span class="p">(</span>
                 <span class="n">wm</span><span class="p">,</span> <span class="n">gm</span><span class="p">,</span> <span class="n">csf</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span> <span class="n">average_voxel_size</span><span class="o">=</span><span class="n">avs</span>
             <span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;stopping criterion done&quot;</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Seeding in mask&quot;</span><span class="p">)</span>
             <span class="n">seed_mask</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">seeding_path</span><span class="p">)</span>
             <span class="n">seeds</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">seeds_from_mask</span><span class="p">(</span>
                 <span class="n">seed_mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="p">[</span><span class="n">seed_density</span><span class="p">,</span> <span class="n">seed_density</span><span class="p">,</span> <span class="n">seed_density</span><span class="p">]</span>
             <span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;seeds done&quot;</span><span class="p">)</span>
-            <span class="n">dg</span> <span class="o">=</span> <span class="n">ProbabilisticDirectionGetter</span>
 
-            <span class="n">direction_getter</span> <span class="o">=</span> <span class="n">dg</span><span class="o">.</span><span class="n">from_shcoeff</span><span class="p">(</span>
-                <span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
-                <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
-                <span class="n">sphere</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span>
-                <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
-            <span class="p">)</span>
-
-            <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">ParticleFilteringTracking</span><span class="p">(</span>
-                <span class="n">direction_getter</span><span class="p">,</span>
-                <span class="n">stopping_criterion</span><span class="p">,</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Start tracking&quot;</span><span class="p">)</span>
+            <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">pft_tracking</span><span class="p">(</span>
                 <span class="n">seeds</span><span class="p">,</span>
+                <span class="n">stopping_criterion</span><span class="p">,</span>
                 <span class="n">affine</span><span class="p">,</span>
+                <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
+                <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
                 <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span>
                 <span class="n">pft_back_tracking_dist</span><span class="o">=</span><span class="n">pft_back</span><span class="p">,</span>
                 <span class="n">pft_front_tracking_dist</span><span class="o">=</span><span class="n">pft_front</span><span class="p">,</span>
-                <span class="n">pft_max_trial</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                <span class="n">pft_max_trial</span><span class="o">=</span><span class="n">pft_max_trial</span><span class="p">,</span>
                 <span class="n">particle_count</span><span class="o">=</span><span class="n">pft_count</span><span class="p">,</span>
                 <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
                 <span class="n">min_wm_pve_before_stopping</span><span class="o">=</span><span class="n">min_wm_pve_before_stopping</span><span class="p">,</span>
+                <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
+                <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
+                <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
+                <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
+                <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
             <span class="p">)</span>
-
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ParticleFilteringTracking initiated&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">save_seeds</span><span class="p">:</span>
                 <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">tracking_result</span><span class="p">)</span>
@@ -1549,7 +1611,7 @@ document.write(`
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

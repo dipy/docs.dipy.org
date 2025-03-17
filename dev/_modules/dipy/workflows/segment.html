@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DIPY &#8212; dipy 1.11.0.dev0+git20241213.932dcbd documentation</title>
+    <title>dipy.workflows.segment &#8212; dipy 1.11.0 documentation</title>
   
   
   
@@ -30,11 +30,11 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -44,10 +44,10 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e000a0f7"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -65,7 +65,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'development';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
         </script>
     <link rel="icon" href="../../../_static/dipy-favicon.png"/>
@@ -870,7 +870,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">DIPY</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.workflo...</li>
   </ul>
 </nav>
 </div>
@@ -889,15 +889,19 @@ document.write(`
                   
   <h1>Source code for dipy.workflows.segment</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
 <span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
 <span class="kn">from</span> <span class="nn">dipy.io.stateful_tractogram</span> <span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <span class="n">StatefulTractogram</span>
 <span class="kn">from</span> <span class="nn">dipy.io.streamline</span> <span class="kn">import</span> <span class="n">load_tractogram</span><span class="p">,</span> <span class="n">save_tractogram</span>
 <span class="kn">from</span> <span class="nn">dipy.segment.bundles</span> <span class="kn">import</span> <span class="n">RecoBundles</span>
 <span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <span class="n">median_otsu</span>
+<span class="kn">from</span> <span class="nn">dipy.segment.tissue</span> <span class="kn">import</span> <span class="n">TissueClassifierHMRF</span><span class="p">,</span> <span class="n">dam_classifier</span>
 <span class="kn">from</span> <span class="nn">dipy.tracking</span> <span class="kn">import</span> <span class="n">Streamlines</span>
 <span class="kn">from</span> <span class="nn">dipy.workflows.utils</span> <span class="kn">import</span> <span class="n">handle_vol_idx</span>
 <span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
@@ -961,7 +965,7 @@ document.write(`
 <span class="sd">            Whether to remove potential holes or islands.</span>
 <span class="sd">            Useful for solving minor errors.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_mask : string, optional</span>
 <span class="sd">            Name of the mask volume to be saved.</span>
 <span class="sd">        out_masked : string, optional</span>
@@ -1082,7 +1086,7 @@ document.write(`
 <span class="sd">            Don&#39;t enable Refine local Streamline-based Linear</span>
 <span class="sd">            Registration.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_recognized_transf : string, optional</span>
 <span class="sd">            Recognized bundle in the space of the model bundle.</span>
 <span class="sd">        out_recognized_labels : string, optional</span>
@@ -1255,7 +1259,7 @@ document.write(`
 <span class="sd">        labels_files : string</span>
 <span class="sd">            The path of model bundle files.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_bundle : string, optional</span>
 <span class="sd">            Recognized bundle in the space of the model bundle.</span>
 
@@ -1283,6 +1287,163 @@ document.write(`
             <span class="n">new_sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">sft</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">)</span>
             <span class="n">save_tractogram</span><span class="p">(</span><span class="n">new_sft</span><span class="p">,</span> <span class="n">out_bundle</span><span class="p">,</span> <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">out_bundle</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ClassifyTissueFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClassifyTissueFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">ClassifyTissueFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="ClassifyTissueFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClassifyTissueFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;extracttissue&quot;</span></div>
+
+
+<div class="viewcode-block" id="ClassifyTissueFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClassifyTissueFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">bvals_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">wm_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">low_signal_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">nclass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">beta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_tissue</span><span class="o">=</span><span class="s2">&quot;tissue_classified.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_pve</span><span class="o">=</span><span class="s2">&quot;tissue_classified_pve.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract tissue from a volume.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        bvals_file : string, optional</span>
+<span class="sd">            Path to the b-values file. Required for &#39;dam&#39; method.</span>
+<span class="sd">        method : string, optional</span>
+<span class="sd">            Method to use for tissue extraction. Options are:</span>
+<span class="sd">                - &#39;hmrf&#39;: Markov Random Fields modeling approach.</span>
+<span class="sd">                - &#39;dam&#39;: Directional Average Maps, proposed by :footcite:p:`Cheng2020`.</span>
+
+<span class="sd">            &#39;hmrf&#39; method is recommended for T1w images, while &#39;dam&#39; method is</span>
+<span class="sd">            recommended for DWI Multishell images (single shell are not recommended).</span>
+<span class="sd">        wm_threshold : float, optional</span>
+<span class="sd">            The threshold below which a voxel is considered white matter. For data like</span>
+<span class="sd">            HCP, threshold of 0.5 proves to be a good choice. For data like cfin, higher</span>
+<span class="sd">            threshold values like 0.7 or 0.8 are more suitable. Used for &#39;dam&#39; method.</span>
+<span class="sd">        b0_threshold : float, optional</span>
+<span class="sd">            The intensity threshold for a b=0 image. used only for &#39;dam&#39; method.</span>
+<span class="sd">        low_signal_threshold : float, optional</span>
+<span class="sd">            The threshold below which a voxel is considered to have low signal.</span>
+<span class="sd">            Used only for &#39;dam&#39; method.</span>
+<span class="sd">        nclass : int, optional</span>
+<span class="sd">            Number of desired classes. Used only for &#39;hmrf&#39; method.</span>
+<span class="sd">        beta : float, optional</span>
+<span class="sd">            Smoothing parameter, the higher this number the smoother the</span>
+<span class="sd">            output will be. Used only for &#39;hmrf&#39; method.</span>
+<span class="sd">        tolerance : float, optional</span>
+<span class="sd">            Value that defines the percentage of change tolerated to</span>
+<span class="sd">            prevent the ICM loop to stop. Default is 1e-05.</span>
+<span class="sd">            If you want tolerance check to be disabled put &#39;tolerance = 0&#39;.</span>
+<span class="sd">            Used only for &#39;hmrf&#39; method.</span>
+<span class="sd">        max_iter : int, optional</span>
+<span class="sd">            Fixed number of desired iterations. Default is 100.</span>
+<span class="sd">            This parameter defines the maximum number of iterations the</span>
+<span class="sd">            algorithm will perform. The loop may terminate early if the</span>
+<span class="sd">            change in energy sum between iterations falls below the</span>
+<span class="sd">            threshold defined by `tolerance`. However, if `tolerance` is</span>
+<span class="sd">            explicitly set to 0, this early stopping mechanism is disabled,</span>
+<span class="sd">            and the algorithm will run for the specified number of</span>
+<span class="sd">            iterations unless another stopping criterion is met.</span>
+<span class="sd">            Used only for &#39;hmrf&#39; method.</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_tissue : string, optional</span>
+<span class="sd">            Name of the tissue volume to be saved.</span>
+<span class="sd">        out_pve : string, optional</span>
+<span class="sd">            Name of the pve volume to be saved.</span>
+
+<span class="sd">        REFERENCES</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">method</span> <span class="ow">or</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;hmrf&quot;</span><span class="p">,</span> <span class="s2">&quot;dam&quot;</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown method &#39;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39; for tissue extraction. &quot;</span>
+                <span class="s2">&quot;Choose &#39;--method hmrf&#39; (for T1w) or &#39;--method dam&#39; (for DWI)&quot;</span>
+            <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;t1&quot;</span> <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;hmrf&quot;</span> <span class="k">else</span> <span class="s2">&quot;dwi&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flat_outputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;tissue_classified.nii.gz&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">flat_outputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                    <span class="s2">&quot;tissue_classified.nii.gz&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">_tissue_classified.nii.gz&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;tissue_classified_pve.nii.gz&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">flat_outputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                    <span class="s2">&quot;tissue_classified_pve.nii.gz&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">_tissue_classified_pve.nii.gz&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_flat_outputs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flat_outputs</span><span class="p">,</span> <span class="n">io_it</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">tissue_out_path</span><span class="p">,</span> <span class="n">opve</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracting tissue from </span><span class="si">{</span><span class="n">fpath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;hmrf&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">nclass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;Number of classes is required for &#39;hmrf&#39; method. &quot;</span>
+                        <span class="s2">&quot;For example, Use &#39;--nclass 4&#39; to specify the number of &quot;</span>
+                        <span class="s2">&quot;classes.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">classifier</span> <span class="o">=</span> <span class="n">TissueClassifierHMRF</span><span class="p">()</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">segmentation_final</span><span class="p">,</span> <span class="n">PVE</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span>
+                    <span class="n">data</span><span class="p">,</span> <span class="n">nclass</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span>
+                <span class="p">)</span>
+
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">tissue_out_path</span><span class="p">,</span> <span class="n">segmentation_final</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">opve</span><span class="p">,</span> <span class="n">PVE</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;dam&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">bvals_file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">bvals_file</span><span class="p">):</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;&#39;--bvals filename&#39; is required for &#39;dam&#39; method&quot;</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">bvals</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bvals_file</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">wm_mask</span><span class="p">,</span> <span class="n">gm_mask</span> <span class="o">=</span> <span class="n">dam_classifier</span><span class="p">(</span>
+                    <span class="n">data</span><span class="p">,</span>
+                    <span class="n">bvals</span><span class="p">,</span>
+                    <span class="n">wm_threshold</span><span class="o">=</span><span class="n">wm_threshold</span><span class="p">,</span>
+                    <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span>
+                    <span class="n">low_signal_threshold</span><span class="o">=</span><span class="n">low_signal_threshold</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">wm_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">wm_mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">gm_mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">tissue_out_path</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span>
+                    <span class="n">opve</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">wm_mask</span><span class="p">,</span> <span class="n">gm_mask</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">affine</span>
+                <span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tissue saved as </span><span class="si">{</span><span class="n">tissue_out_path</span><span class="si">}</span><span class="s2"> and PVE as </span><span class="si">{</span><span class="n">opve</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">io_it</span></div>
 </div>
 
 </pre></div>
@@ -1556,7 +1717,7 @@ document.write(`
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

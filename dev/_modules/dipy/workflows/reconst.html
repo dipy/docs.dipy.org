@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DIPY &#8212; dipy 1.11.0.dev0+git20241213.932dcbd documentation</title>
+    <title>dipy.workflows.reconst &#8212; dipy 1.11.0 documentation</title>
   
   
   
@@ -30,11 +30,11 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -44,10 +44,10 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e000a0f7"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -65,7 +65,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'development';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
         </script>
     <link rel="icon" href="../../../_static/dipy-favicon.png"/>
@@ -870,7 +870,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">DIPY</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.workflo...</li>
   </ul>
 </nav>
 </div>
@@ -905,9 +905,13 @@ document.write(`
 <span class="kn">from</span> <span class="nn">dipy.io.peaks</span> <span class="kn">import</span> <span class="n">niftis_to_pam</span><span class="p">,</span> <span class="n">pam_to_niftis</span><span class="p">,</span> <span class="n">save_pam</span><span class="p">,</span> <span class="n">tensor_to_pam</span>
 <span class="kn">from</span> <span class="nn">dipy.io.utils</span> <span class="kn">import</span> <span class="n">nifti1_symmat</span>
 <span class="kn">from</span> <span class="nn">dipy.reconst</span> <span class="kn">import</span> <span class="n">mapmri</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="n">ConstrainedSphericalDeconvModel</span><span class="p">,</span> <span class="n">auto_response_ssst</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ConstrainedSDTModel</span><span class="p">,</span>
+    <span class="n">ConstrainedSphericalDeconvModel</span><span class="p">,</span>
+    <span class="n">auto_response_ssst</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">dipy.reconst.dki</span> <span class="kn">import</span> <span class="n">DiffusionKurtosisModel</span><span class="p">,</span> <span class="n">split_dki_param</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dsi</span> <span class="kn">import</span> <span class="n">DiffusionSpectrumModel</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.dsi</span> <span class="kn">import</span> <span class="n">DiffusionSpectrumDeconvModel</span><span class="p">,</span> <span class="n">DiffusionSpectrumModel</span>
 <span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">TensorModel</span><span class="p">,</span>
     <span class="n">axial_diffusivity</span><span class="p">,</span>
@@ -919,9 +923,12 @@ document.write(`
     <span class="n">mode</span> <span class="k">as</span> <span class="n">get_mode</span><span class="p">,</span>
     <span class="n">radial_diffusivity</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.forecast</span> <span class="kn">import</span> <span class="n">ForecastModel</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.gqi</span> <span class="kn">import</span> <span class="n">GeneralizedQSamplingModel</span>
 <span class="kn">from</span> <span class="nn">dipy.reconst.ivim</span> <span class="kn">import</span> <span class="n">IvimModel</span>
 <span class="kn">from</span> <span class="nn">dipy.reconst.rumba</span> <span class="kn">import</span> <span class="n">RumbaSDModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">CsaOdfModel</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.sfm</span> <span class="kn">import</span> <span class="n">SparseFascicleModel</span>
+<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">CsaOdfModel</span><span class="p">,</span> <span class="n">OpdtModel</span><span class="p">,</span> <span class="n">QballModel</span>
 <span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
 <span class="kn">from</span> <span class="nn">dipy.utils.deprecator</span> <span class="kn">import</span> <span class="n">deprecated_params</span>
 <span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
@@ -1034,7 +1041,7 @@ document.write(`
 <span class="sd">        extract_pam_values : bool, optional</span>
 <span class="sd">            Save or not to save pam volumes as single nifti files.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default: current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_rtop : string, optional</span>
 <span class="sd">            Name of the rtop to be saved.</span>
 <span class="sd">        out_lapnorm : string, optional</span>
@@ -1296,7 +1303,7 @@ document.write(`
 <span class="sd">        extract_pam_values : bool, optional</span>
 <span class="sd">            Save or not to save pam volumes as single nifti files.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_tensor : string, optional</span>
 <span class="sd">            Name of the tensors volume to be saved.</span>
 <span class="sd">            Per default, this will be saved following the nifti standard:</span>
@@ -1532,6 +1539,7 @@ document.write(`
         <span class="n">r_end</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span>
         <span class="n">r_step</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
         <span class="n">filter_width</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">remove_convolution</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">normalize_peaks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
@@ -1552,6 +1560,10 @@ document.write(`
         <span class="n">out_qa</span><span class="o">=</span><span class="s2">&quot;qa.nii.gz&quot;</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Diffusion Spectrum Imaging (DSI) reconstruction workflow.</span>
+
+<span class="sd">        In DSI, the diffusion signal is sampled on a Cartesian grid in q-space.</span>
+<span class="sd">        When using remove_convolution=True, the convolution on the DSI propagator that</span>
+<span class="sd">        is caused by the truncation of the q-space in the DSI sampling is removed.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1580,6 +1592,9 @@ document.write(`
 <span class="sd">            Step size of the ODf sampling from r_start to r_end</span>
 <span class="sd">        filter_width : float, optional</span>
 <span class="sd">            Strength of the hanning filter</span>
+<span class="sd">        remove_convolution : bool, optional</span>
+<span class="sd">            Whether to remove the convolution on the DSI propagator that is</span>
+<span class="sd">            caused by the truncation of the q-space in the DSI sampling.</span>
 <span class="sd">        normalize_peaks : bool, optional</span>
 <span class="sd">            Whether to normalize the peaks</span>
 <span class="sd">        sphere_name : string, optional</span>
@@ -1603,7 +1618,7 @@ document.write(`
 <span class="sd">            of cores minus ``num_processes + 1`` is used (enter -1 to use as</span>
 <span class="sd">            many cores as possible). 0 raises an error.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_pam : string, optional</span>
 <span class="sd">            Name of the peaks volume to be saved.</span>
 <span class="sd">        out_shm : string, optional</span>
@@ -1624,6 +1639,9 @@ document.write(`
 <span class="sd">            Name of the Quantitative Anisotropy to be saved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">remove_convolution</span><span class="p">:</span>
+            <span class="n">filter_width</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
         <span class="k">for</span> <span class="p">(</span>
             <span class="n">dwi</span><span class="p">,</span>
@@ -1647,7 +1665,12 @@ document.write(`
             <span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">)</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
 
-            <span class="n">dsi_model</span> <span class="o">=</span> <span class="n">DiffusionSpectrumModel</span><span class="p">(</span>
+            <span class="n">DSIModel</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">DiffusionSpectrumDeconvModel</span>
+                <span class="k">if</span> <span class="n">remove_convolution</span>
+                <span class="k">else</span> <span class="n">DiffusionSpectrumModel</span>
+            <span class="p">)</span>
+            <span class="n">dsi_model</span> <span class="o">=</span> <span class="n">DSIModel</span><span class="p">(</span>
                 <span class="n">gtab</span><span class="p">,</span>
                 <span class="n">qgrid_size</span><span class="o">=</span><span class="n">qgrid_size</span><span class="p">,</span>
                 <span class="n">r_start</span><span class="o">=</span><span class="n">r_start</span><span class="p">,</span>
@@ -1796,7 +1819,7 @@ document.write(`
 <span class="sd">            of cores minus ``num_processes + 1`` is used (enter -1 to use as</span>
 <span class="sd">            many cores as possible). 0 raises an error.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_pam : string, optional</span>
 <span class="sd">            Name of the peaks volume to be saved.</span>
 <span class="sd">        out_shm : string, optional</span>
@@ -1950,18 +1973,18 @@ document.write(`
 
 
 
-<div class="viewcode-block" id="ReconstCSAFlow">
-<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstCSAFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstCSAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
-<div class="viewcode-block" id="ReconstCSAFlow.get_short_name">
-<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstCSAFlow.get_short_name">[docs]</a>
+<div class="viewcode-block" id="ReconstQBallBaseFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstQBallBaseFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">ReconstQBallBaseFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="ReconstQBallBaseFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstQBallBaseFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;csa&quot;</span></div>
+        <span class="k">return</span> <span class="s2">&quot;qballbase&quot;</span></div>
 
 
-<div class="viewcode-block" id="ReconstCSAFlow.run">
-<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstCSAFlow.run">[docs]</a>
+<div class="viewcode-block" id="ReconstQBallBaseFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstQBallBaseFlow.run">[docs]</a>
     <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1969,6 +1992,11 @@ document.write(`
         <span class="n">bvalues_files</span><span class="p">,</span>
         <span class="n">bvectors_files</span><span class="p">,</span>
         <span class="n">mask_files</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;csa&quot;</span><span class="p">,</span>
+        <span class="n">smooth</span><span class="o">=</span><span class="mf">0.006</span><span class="p">,</span>
+        <span class="n">min_signal</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">assume_normed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">b0_threshold</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
         <span class="n">bvecs_tol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
         <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -2007,6 +2035,21 @@ document.write(`
 <span class="sd">        mask_files : string</span>
 <span class="sd">            Path to the input masks. This path may contain wildcards to use</span>
 <span class="sd">            multiple masks at once. (default: No mask used)</span>
+<span class="sd">        method : string, optional</span>
+<span class="sd">            Method to use for the reconstruction. Can be one of the following:</span>
+<span class="sd">            &#39;csa&#39; for Constant Solid Angle reconstruction</span>
+<span class="sd">            &#39;qball&#39; for Q-Ball reconstruction</span>
+<span class="sd">            &#39;opdt&#39; for Orientation Probability Density Transform reconstruction</span>
+<span class="sd">        smooth : float, optional</span>
+<span class="sd">            The regularization parameter of the model.</span>
+<span class="sd">        min_signal : float, optional</span>
+<span class="sd">            During fitting, all signal values less than `min_signal` are</span>
+<span class="sd">            clipped to `min_signal`. This is done primarily to avoid values</span>
+<span class="sd">            less than or equal to zero when taking logs.</span>
+<span class="sd">        assume_normed : bool, optional</span>
+<span class="sd">            If True, clipping and normalization of the data with respect to the</span>
+<span class="sd">            mean B0 signal are skipped during mode fitting. This is an advanced</span>
+<span class="sd">            feature and should be used with care.</span>
 <span class="sd">        b0_threshold : float, optional</span>
 <span class="sd">            Threshold used to find b0 volumes.</span>
 <span class="sd">        bvecs_tol : float, optional</span>
@@ -2032,7 +2075,7 @@ document.write(`
 <span class="sd">            of cores minus ``num_processes + 1`` is used (enter -1 to use as</span>
 <span class="sd">            many cores as possible). 0 raises an error.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_pam : string, optional</span>
 <span class="sd">            Name of the peaks volume to be saved.</span>
 <span class="sd">        out_shm : string, optional</span>
@@ -2058,6 +2101,18 @@ document.write(`
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;csa&quot;</span><span class="p">,</span> <span class="s2">&quot;qball&quot;</span><span class="p">,</span> <span class="s2">&quot;opdt&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Method </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> not recognized. &quot;</span>
+                <span class="s2">&quot;Please choose between &#39;csa&#39;, &#39;qball&#39;, &#39;opdt&#39;.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">model_list</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;csa&quot;</span><span class="p">:</span> <span class="n">CsaOdfModel</span><span class="p">,</span>
+            <span class="s2">&quot;qball&quot;</span><span class="p">:</span> <span class="n">QballModel</span><span class="p">,</span>
+            <span class="s2">&quot;opdt&quot;</span><span class="p">:</span> <span class="n">OpdtModel</span><span class="p">,</span>
+        <span class="p">}</span>
 
         <span class="k">for</span> <span class="p">(</span>
             <span class="n">dwi</span><span class="p">,</span>
@@ -2097,12 +2152,18 @@ document.write(`
             <span class="k">if</span> <span class="n">sphere_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">peaks_sphere</span> <span class="o">=</span> <span class="n">get_sphere</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">sphere_name</span><span class="p">)</span>
 
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting CSA computations </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting </span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2"> computations </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="n">csa_model</span> <span class="o">=</span> <span class="n">CsaOdfModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="p">)</span>
+            <span class="n">qball_base_model</span> <span class="o">=</span> <span class="n">model_list</span><span class="p">[</span><span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()](</span>
+                <span class="n">gtab</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">,</span>
+                <span class="n">min_signal</span><span class="o">=</span><span class="n">min_signal</span><span class="p">,</span>
+                <span class="n">assume_normed</span><span class="o">=</span><span class="n">assume_normed</span><span class="p">,</span>
+            <span class="p">)</span>
 
-            <span class="n">peaks_csa</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span>
-                <span class="n">model</span><span class="o">=</span><span class="n">csa_model</span><span class="p">,</span>
+            <span class="n">peaks_qballbase</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">qball_base_model</span><span class="p">,</span>
                 <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
                 <span class="n">sphere</span><span class="o">=</span><span class="n">peaks_sphere</span><span class="p">,</span>
                 <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="n">relative_peak_threshold</span><span class="p">,</span>
@@ -2114,15 +2175,15 @@ document.write(`
                 <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
                 <span class="n">num_processes</span><span class="o">=</span><span class="n">num_processes</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">peaks_csa</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+            <span class="n">peaks_qballbase</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
 
-            <span class="n">save_pam</span><span class="p">(</span><span class="n">opam</span><span class="p">,</span> <span class="n">peaks_csa</span><span class="p">)</span>
+            <span class="n">save_pam</span><span class="p">(</span><span class="n">opam</span><span class="p">,</span> <span class="n">peaks_qballbase</span><span class="p">)</span>
 
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finished CSA </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finished </span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">extract_pam_values</span><span class="p">:</span>
                 <span class="n">pam_to_niftis</span><span class="p">(</span>
-                    <span class="n">peaks_csa</span><span class="p">,</span>
+                    <span class="n">peaks_qballbase</span><span class="p">,</span>
                     <span class="n">fname_shm</span><span class="o">=</span><span class="n">oshm</span><span class="p">,</span>
                     <span class="n">fname_peaks_dir</span><span class="o">=</span><span class="n">opeaks_dir</span><span class="p">,</span>
                     <span class="n">fname_peaks_values</span><span class="o">=</span><span class="n">opeaks_values</span><span class="p">,</span>
@@ -2230,7 +2291,7 @@ document.write(`
 <span class="sd">        npeaks : int, optional</span>
 <span class="sd">            Number of peaks to fit in each voxel.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_dt_tensor : string, optional</span>
 <span class="sd">            Name of the tensors volume to be saved.</span>
 <span class="sd">        out_dk_tensor : string, optional</span>
@@ -2517,7 +2578,7 @@ document.write(`
 <span class="sd">            List of metrics to save.</span>
 <span class="sd">            Possible values: S0_predicted, perfusion_fraction, D_star, D</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_S0_predicted : string, optional</span>
 <span class="sd">            Name of the S0 signal estimated to be saved.</span>
 <span class="sd">        out_perfusion_fraction : string, optional</span>
@@ -2742,7 +2803,7 @@ document.write(`
 <span class="sd">            The minimum distance between directions. If two peaks are too close</span>
 <span class="sd">            only the larger of the two is returned.</span>
 <span class="sd">        out_dir : string, optional</span>
-<span class="sd">            Output directory. (default current directory)</span>
+<span class="sd">            Output directory.</span>
 <span class="sd">        out_pam : string, optional</span>
 <span class="sd">            Name of the peaks volume to be saved.</span>
 <span class="sd">        out_shm : string, optional</span>
@@ -2869,6 +2930,901 @@ document.write(`
                 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Pam5 file saved in current directory&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pam5 file saved in </span><span class="si">{</span><span class="n">dname_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">io_it</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ReconstSDTFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSDTFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">ReconstSDTFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="ReconstSDTFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSDTFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;sdt&quot;</span></div>
+
+
+<div class="viewcode-block" id="ReconstSDTFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSDTFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">bvalues_files</span><span class="p">,</span>
+        <span class="n">bvectors_files</span><span class="p">,</span>
+        <span class="n">mask_files</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">ratio</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">roi_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+        <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sh_order_max</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">lambda_</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">tau</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">b0_threshold</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+        <span class="n">bvecs_tol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">extract_pam_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">num_processes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_pam</span><span class="o">=</span><span class="s2">&quot;peaks.pam5&quot;</span><span class="p">,</span>
+        <span class="n">out_shm</span><span class="o">=</span><span class="s2">&quot;shm.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_dir</span><span class="o">=</span><span class="s2">&quot;peaks_dirs.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_values</span><span class="o">=</span><span class="s2">&quot;peaks_values.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_indices</span><span class="o">=</span><span class="s2">&quot;peaks_indices.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_gfa</span><span class="o">=</span><span class="s2">&quot;gfa.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_sphere</span><span class="o">=</span><span class="s2">&quot;sphere.txt&quot;</span><span class="p">,</span>
+        <span class="n">out_b</span><span class="o">=</span><span class="s2">&quot;B.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_qa</span><span class="o">=</span><span class="s2">&quot;qa.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow for Spherical Deconvolution Transform (SDT)</span>
+
+<span class="sd">        See :footcite:p:`Descoteaux2009` for further details about the method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        bvalues_files : string</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        bvectors_files : string</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        mask_files : string</span>
+<span class="sd">            Path to the input masks. This path may contain wildcards to use</span>
+<span class="sd">            multiple masks at once. (default: No mask used)</span>
+<span class="sd">        ratio : float, optional</span>
+<span class="sd">            Ratio of the smallest to largest eigenvalue used in the response</span>
+<span class="sd">            function estimation. If None, the response function will be</span>
+<span class="sd">            estimated automatically.</span>
+<span class="sd">        roi_center : variable int, optional</span>
+<span class="sd">            Center of ROI in data. If center is None, it is assumed that it is</span>
+<span class="sd">            the center of the volume with shape `data.shape[:3]`.</span>
+<span class="sd">        roi_radii : variable int, optional</span>
+<span class="sd">            radii of cuboid ROI in voxels.</span>
+<span class="sd">        fa_thr : float, optional</span>
+<span class="sd">            FA threshold to compute the WM response function.</span>
+<span class="sd">        sphere_name : str, optional</span>
+<span class="sd">            Sphere name on which to reconstruct the fODFs.</span>
+<span class="sd">        sh_order_max : int, optional</span>
+<span class="sd">            Maximum spherical harmonics order (l) used in the SDT fit.</span>
+<span class="sd">        lambda_ : float, optional</span>
+<span class="sd">            Regularization parameter.</span>
+<span class="sd">        tau : float, optional</span>
+<span class="sd">            Diffusion time.</span>
+<span class="sd">        b0_threshold : float, optional</span>
+<span class="sd">            Threshold used to find b0 volumes.</span>
+<span class="sd">        bvecs_tol : float, optional</span>
+<span class="sd">            Bvecs should be unit vectors.</span>
+<span class="sd">        relative_peak_threshold : float, optional</span>
+<span class="sd">            Only return peaks greater than ``relative_peak_threshold * m``</span>
+<span class="sd">            where m is the largest peak.</span>
+<span class="sd">        min_separation_angle : float, optional</span>
+<span class="sd">            The angle tolerance between directions.</span>
+<span class="sd">        parallel : bool, optional</span>
+<span class="sd">            Whether to use parallelization in peak-finding.</span>
+<span class="sd">        extract_pam_values : bool, optional</span>
+<span class="sd">            Save or not to save pam volumes as single nifti files.</span>
+<span class="sd">        num_processes : int, optional</span>
+<span class="sd">            If `parallel` is True, the number of subprocesses to use</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_pam : string, optional</span>
+<span class="sd">            Name of the peaks volume to be saved.</span>
+<span class="sd">        out_shm : string, optional</span>
+<span class="sd">            Name of the spherical harmonics volume to be saved.</span>
+<span class="sd">        out_peaks_dir : string, optional</span>
+<span class="sd">            Name of the peaks directions volume to be saved.</span>
+<span class="sd">        out_peaks_values : string, optional</span>
+<span class="sd">            Name of the peaks values volume to be saved.</span>
+<span class="sd">        out_peaks_indices : string, optional</span>
+<span class="sd">            Name of the peaks indices volume to be saved.</span>
+<span class="sd">        out_gfa : string, optional</span>
+<span class="sd">            Name of the generalized FA volume to be saved.</span>
+<span class="sd">        out_sphere : string, optional</span>
+<span class="sd">            Sphere vertices name to be saved.</span>
+<span class="sd">        out_b : string, optional</span>
+<span class="sd">            Name of the B Matrix to be saved.</span>
+<span class="sd">        out_qa : string, optional</span>
+<span class="sd">            Name of the Quantitative Anisotropy to be saved.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">dwi</span><span class="p">,</span>
+            <span class="n">bval</span><span class="p">,</span>
+            <span class="n">bvec</span><span class="p">,</span>
+            <span class="n">maskfile</span><span class="p">,</span>
+            <span class="n">opam</span><span class="p">,</span>
+            <span class="n">oshm</span><span class="p">,</span>
+            <span class="n">opeaks_dir</span><span class="p">,</span>
+            <span class="n">opeaks_values</span><span class="p">,</span>
+            <span class="n">opeaks_indices</span><span class="p">,</span>
+            <span class="n">ogfa</span><span class="p">,</span>
+            <span class="n">osphere</span><span class="p">,</span>
+            <span class="n">ob</span><span class="p">,</span>
+            <span class="n">oqa</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">)</span>
+            <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">)</span>
+
+            <span class="c1"># If all b-values are smaller or equal to the b0 threshold, it is</span>
+            <span class="c1"># assumed that no thresholding is requested</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">mask_non_weighted_bvals</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">b0_threshold</span> <span class="o">&lt;</span> <span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
+                    <span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;b0_threshold (value: </span><span class="si">{</span><span class="n">b0_threshold</span><span class="si">}</span><span class="s2">) is too low, &quot;</span>
+                        <span class="s2">&quot;increase your b0_threshold. It should be higher than the &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;first b0 value (</span><span class="si">{</span><span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span>
+                <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">bvecs_tol</span>
+            <span class="p">)</span>
+            <span class="n">mask_vol</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">maskfile</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+            <span class="n">n_params</span> <span class="o">=</span> <span class="p">((</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n_params</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;You need at least </span><span class="si">{</span><span class="n">n_params</span><span class="si">}</span><span class="s2"> unique DWI volumes to &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;compute fiber odfs. You currently have: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot; DWI volumes.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">ratio</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing response function&quot;</span><span class="p">)</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <span class="n">auto_response_ssst</span><span class="p">(</span>
+                    <span class="n">gtab</span><span class="p">,</span>
+                    <span class="n">data</span><span class="p">,</span>
+                    <span class="n">roi_center</span><span class="o">=</span><span class="n">roi_center</span><span class="p">,</span>
+                    <span class="n">roi_radii</span><span class="o">=</span><span class="n">roi_radii</span><span class="p">,</span>
+                    <span class="n">fa_thr</span><span class="o">=</span><span class="n">fa_thr</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ratio for smallest to largest eigen value is </span><span class="si">{</span><span class="n">ratio</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">peaks_sphere</span> <span class="o">=</span> <span class="n">default_sphere</span>
+            <span class="k">if</span> <span class="n">sphere_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">peaks_sphere</span> <span class="o">=</span> <span class="n">get_sphere</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">sphere_name</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SDT computation started.&quot;</span><span class="p">)</span>
+            <span class="n">sdt_model</span> <span class="o">=</span> <span class="n">ConstrainedSDTModel</span><span class="p">(</span>
+                <span class="n">gtab</span><span class="p">,</span>
+                <span class="n">ratio</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">reg_sphere</span><span class="o">=</span><span class="n">peaks_sphere</span><span class="p">,</span>
+                <span class="n">lambda_</span><span class="o">=</span><span class="n">lambda_</span><span class="p">,</span>
+                <span class="n">tau</span><span class="o">=</span><span class="n">tau</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">peaks_sdt</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">sdt_model</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">sphere</span><span class="o">=</span><span class="n">peaks_sphere</span><span class="p">,</span>
+                <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="n">relative_peak_threshold</span><span class="p">,</span>
+                <span class="n">min_separation_angle</span><span class="o">=</span><span class="n">min_separation_angle</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask_vol</span><span class="p">,</span>
+                <span class="n">return_sh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">normalize_peaks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
+                <span class="n">num_processes</span><span class="o">=</span><span class="n">num_processes</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">peaks_sdt</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+
+            <span class="n">save_pam</span><span class="p">(</span><span class="n">opam</span><span class="p">,</span> <span class="n">peaks_sdt</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SDT computation completed.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">extract_pam_values</span><span class="p">:</span>
+                <span class="n">pam_to_niftis</span><span class="p">(</span>
+                    <span class="n">peaks_sdt</span><span class="p">,</span>
+                    <span class="n">fname_shm</span><span class="o">=</span><span class="n">oshm</span><span class="p">,</span>
+                    <span class="n">fname_peaks_dir</span><span class="o">=</span><span class="n">opeaks_dir</span><span class="p">,</span>
+                    <span class="n">fname_peaks_values</span><span class="o">=</span><span class="n">opeaks_values</span><span class="p">,</span>
+                    <span class="n">fname_peaks_indices</span><span class="o">=</span><span class="n">opeaks_indices</span><span class="p">,</span>
+                    <span class="n">fname_gfa</span><span class="o">=</span><span class="n">ogfa</span><span class="p">,</span>
+                    <span class="n">fname_sphere</span><span class="o">=</span><span class="n">osphere</span><span class="p">,</span>
+                    <span class="n">fname_b</span><span class="o">=</span><span class="n">ob</span><span class="p">,</span>
+                    <span class="n">fname_qa</span><span class="o">=</span><span class="n">oqa</span><span class="p">,</span>
+                    <span class="n">reshape_dirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">dname_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">opam</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dname_</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Pam5 file saved in current directory&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pam5 file saved in </span><span class="si">{</span><span class="n">dname_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">io_it</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ReconstSFMFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSFMFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">ReconstSFMFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="ReconstSFMFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSFMFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;sfm&quot;</span></div>
+
+
+<div class="viewcode-block" id="ReconstSFMFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSFMFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">bvalues_files</span><span class="p">,</span>
+        <span class="n">bvectors_files</span><span class="p">,</span>
+        <span class="n">mask_files</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">response</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">solver</span><span class="o">=</span><span class="s2">&quot;ElasticNet&quot;</span><span class="p">,</span>
+        <span class="n">l1_ratio</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+        <span class="n">b0_threshold</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+        <span class="n">bvecs_tol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">sh_order_max</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">extract_pam_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">num_processes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_pam</span><span class="o">=</span><span class="s2">&quot;peaks.pam5&quot;</span><span class="p">,</span>
+        <span class="n">out_shm</span><span class="o">=</span><span class="s2">&quot;shm.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_dir</span><span class="o">=</span><span class="s2">&quot;peaks_dirs.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_values</span><span class="o">=</span><span class="s2">&quot;peaks_values.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_indices</span><span class="o">=</span><span class="s2">&quot;peaks_indices.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_gfa</span><span class="o">=</span><span class="s2">&quot;gfa.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_sphere</span><span class="o">=</span><span class="s2">&quot;sphere.txt&quot;</span><span class="p">,</span>
+        <span class="n">out_b</span><span class="o">=</span><span class="s2">&quot;B.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_qa</span><span class="o">=</span><span class="s2">&quot;qa.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow for Sparse Fascicle Model (SFM)</span>
+
+<span class="sd">        See :footcite:p:`Rokem2015` for further details about the method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">        bvalues_files : string</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        bvectors_files : string</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">        mask_files : string</span>
+<span class="sd">            Path to the input masks. This path may contain wildcards to use</span>
+<span class="sd">        sphere_name : string, optional</span>
+<span class="sd">            Sphere name on which to reconstruct the fODFs.</span>
+<span class="sd">        response : variable int, optional</span>
+<span class="sd">            Response function to use. If None, the response function will be</span>
+<span class="sd">            defined automatically.</span>
+<span class="sd">        solver : str, optional</span>
+<span class="sd">            This will determine the algorithm used to solve the set of linear</span>
+<span class="sd">            equations underlying this model. It needs to be one of the following:</span>
+<span class="sd">            {&#39;ElasticNet&#39;, &#39;NNLS&#39;}</span>
+<span class="sd">        l1_ratio : float, optional</span>
+<span class="sd">            The ElasticNet mixing parameter, with 0 &lt;= l1_ratio &lt;= 1. For l1_ratio = 0</span>
+<span class="sd">            the penalty is an L2 penalty. For l1_ratio = 1 it is an L1 penalty. For</span>
+<span class="sd">            0 &lt; l1_ratio &lt; 1, the penalty is a combination of L1 and L2.</span>
+<span class="sd">        alpha : float, optional</span>
+<span class="sd">            Sets the balance between least-squares error and L1/L2</span>
+<span class="sd">            regularization in ElasticNet :footcite:p`Zou2005`.</span>
+<span class="sd">        seed : int, optional</span>
+<span class="sd">            Seed for the random number generator.</span>
+<span class="sd">        b0_threshold : float, optional</span>
+<span class="sd">            Threshold used to find b0 volumes.</span>
+<span class="sd">        bvecs_tol : float, optional</span>
+<span class="sd">            Bvecs should be unit vectors.</span>
+<span class="sd">        sh_order_max : int, optional</span>
+<span class="sd">            Maximum spherical harmonics order (l) used in the SFM fit.</span>
+<span class="sd">        relative_peak_threshold : float, optional</span>
+<span class="sd">            Only return peaks greater than ``relative_peak_threshold * m``</span>
+<span class="sd">            where m is the largest peak.</span>
+<span class="sd">        min_separation_angle : float, optional</span>
+<span class="sd">            The angle tolerance between directions.</span>
+<span class="sd">        parallel : bool, optional</span>
+<span class="sd">            Whether to use parallelization in peak-finding.</span>
+<span class="sd">        extract_pam_values : bool, optional</span>
+<span class="sd">            Save or not to save pam volumes as single nifti files.</span>
+<span class="sd">        num_processes : int, optional</span>
+<span class="sd">            If `parallel` is True, the number of subprocesses to use</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_pam : string, optional</span>
+<span class="sd">            Name of the peaks volume to be saved.</span>
+<span class="sd">        out_shm : string, optional</span>
+<span class="sd">            Name of the spherical harmonics volume to be saved.</span>
+<span class="sd">        out_peaks_dir : string, optional</span>
+<span class="sd">            Name of the peaks directions volume to be saved.</span>
+<span class="sd">        out_peaks_values : string, optional</span>
+<span class="sd">            Name of the peaks values volume to be saved.</span>
+<span class="sd">        out_peaks_indices : string, optional</span>
+<span class="sd">            Name of the peaks indices volume to be saved.</span>
+<span class="sd">        out_gfa : string, optional</span>
+<span class="sd">            Name of the generalized FA volume to be saved.</span>
+<span class="sd">        out_sphere : string, optional</span>
+<span class="sd">            Sphere vertices name to be saved.</span>
+<span class="sd">        out_b : string, optional</span>
+<span class="sd">            Name of the B Matrix to be saved.</span>
+<span class="sd">        out_qa : string, optional</span>
+<span class="sd">            Name of the Quantitative Anisotropy to be saved.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">response</span> <span class="ow">or</span> <span class="p">(</span><span class="mf">0.0015</span><span class="p">,</span> <span class="mf">0.0005</span><span class="p">,</span> <span class="mf">0.0005</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">dwi</span><span class="p">,</span>
+            <span class="n">bval</span><span class="p">,</span>
+            <span class="n">bvec</span><span class="p">,</span>
+            <span class="n">maskfile</span><span class="p">,</span>
+            <span class="n">opam</span><span class="p">,</span>
+            <span class="n">oshm</span><span class="p">,</span>
+            <span class="n">opeaks_dir</span><span class="p">,</span>
+            <span class="n">opeaks_values</span><span class="p">,</span>
+            <span class="n">opeaks_indices</span><span class="p">,</span>
+            <span class="n">ogfa</span><span class="p">,</span>
+            <span class="n">osphere</span><span class="p">,</span>
+            <span class="n">ob</span><span class="p">,</span>
+            <span class="n">oqa</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">)</span>
+            <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">)</span>
+
+            <span class="c1"># If all b-values are smaller or equal to the b0 threshold, it is</span>
+            <span class="c1"># assumed that no thresholding is requested</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">mask_non_weighted_bvals</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">b0_threshold</span> <span class="o">&lt;</span> <span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
+                    <span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;b0_threshold (value: </span><span class="si">{</span><span class="n">b0_threshold</span><span class="si">}</span><span class="s2">) is too low, &quot;</span>
+                        <span class="s2">&quot;increase your b0_threshold. It should be higher than the &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;first b0 value (</span><span class="si">{</span><span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span>
+                <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">bvecs_tol</span>
+            <span class="p">)</span>
+            <span class="n">mask_vol</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">maskfile</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+            <span class="n">n_params</span> <span class="o">=</span> <span class="p">((</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n_params</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;You need at least </span><span class="si">{</span><span class="n">n_params</span><span class="si">}</span><span class="s2"> unique DWI volumes to &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;compute fiber odfs. You currently have: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot; DWI volumes.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">peaks_sphere</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">default_sphere</span> <span class="k">if</span> <span class="n">sphere_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">get_sphere</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">sphere_name</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SFM computation started.&quot;</span><span class="p">)</span>
+            <span class="n">sfm_model</span> <span class="o">=</span> <span class="n">SparseFascicleModel</span><span class="p">(</span>
+                <span class="n">gtab</span><span class="p">,</span>
+                <span class="n">sphere</span><span class="o">=</span><span class="n">peaks_sphere</span><span class="p">,</span>
+                <span class="n">response</span><span class="o">=</span><span class="n">response</span><span class="p">,</span>
+                <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
+                <span class="n">l1_ratio</span><span class="o">=</span><span class="n">l1_ratio</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">peaks_sfm</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">sfm_model</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">sphere</span><span class="o">=</span><span class="n">peaks_sphere</span><span class="p">,</span>
+                <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="n">relative_peak_threshold</span><span class="p">,</span>
+                <span class="n">min_separation_angle</span><span class="o">=</span><span class="n">min_separation_angle</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask_vol</span><span class="p">,</span>
+                <span class="n">return_sh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">normalize_peaks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
+                <span class="n">num_processes</span><span class="o">=</span><span class="n">num_processes</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">peaks_sfm</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+
+            <span class="n">save_pam</span><span class="p">(</span><span class="n">opam</span><span class="p">,</span> <span class="n">peaks_sfm</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SFM computation completed.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">extract_pam_values</span><span class="p">:</span>
+                <span class="n">pam_to_niftis</span><span class="p">(</span>
+                    <span class="n">peaks_sfm</span><span class="p">,</span>
+                    <span class="n">fname_shm</span><span class="o">=</span><span class="n">oshm</span><span class="p">,</span>
+                    <span class="n">fname_peaks_dir</span><span class="o">=</span><span class="n">opeaks_dir</span><span class="p">,</span>
+                    <span class="n">fname_peaks_values</span><span class="o">=</span><span class="n">opeaks_values</span><span class="p">,</span>
+                    <span class="n">fname_peaks_indices</span><span class="o">=</span><span class="n">opeaks_indices</span><span class="p">,</span>
+                    <span class="n">fname_gfa</span><span class="o">=</span><span class="n">ogfa</span><span class="p">,</span>
+                    <span class="n">fname_sphere</span><span class="o">=</span><span class="n">osphere</span><span class="p">,</span>
+                    <span class="n">fname_b</span><span class="o">=</span><span class="n">ob</span><span class="p">,</span>
+                    <span class="n">fname_qa</span><span class="o">=</span><span class="n">oqa</span><span class="p">,</span>
+                    <span class="n">reshape_dirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">dname_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">opam</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;Pam5 file saved in current directory&quot;</span>
+                <span class="k">if</span> <span class="n">dname_</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Pam5 file saved in </span><span class="si">{</span><span class="n">dname_</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">io_it</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ReconstGQIFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstGQIFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">ReconstGQIFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="ReconstGQIFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstGQIFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;gqi&quot;</span></div>
+
+
+<div class="viewcode-block" id="ReconstGQIFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstGQIFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">bvalues_files</span><span class="p">,</span>
+        <span class="n">bvectors_files</span><span class="p">,</span>
+        <span class="n">mask_files</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gqi2&quot;</span><span class="p">,</span>
+        <span class="n">sampling_length</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+        <span class="n">normalize_peaks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">b0_threshold</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+        <span class="n">bvecs_tol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">sh_order_max</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">extract_pam_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">num_processes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_pam</span><span class="o">=</span><span class="s2">&quot;peaks.pam5&quot;</span><span class="p">,</span>
+        <span class="n">out_shm</span><span class="o">=</span><span class="s2">&quot;shm.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_dir</span><span class="o">=</span><span class="s2">&quot;peaks_dirs.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_values</span><span class="o">=</span><span class="s2">&quot;peaks_values.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_indices</span><span class="o">=</span><span class="s2">&quot;peaks_indices.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_gfa</span><span class="o">=</span><span class="s2">&quot;gfa.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_sphere</span><span class="o">=</span><span class="s2">&quot;sphere.txt&quot;</span><span class="p">,</span>
+        <span class="n">out_b</span><span class="o">=</span><span class="s2">&quot;B.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_qa</span><span class="o">=</span><span class="s2">&quot;qa.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow for Generalized Q-Sampling Imaging (GQI)</span>
+
+<span class="sd">        See :footcite:p:`Yeh2010` for further details about the method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        bvalues_files : string</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        bvectors_files : string</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        mask_files : string</span>
+<span class="sd">            Path to the input masks. This path may contain wildcards to use</span>
+<span class="sd">            multiple masks at once.</span>
+<span class="sd">        method : str, optional</span>
+<span class="sd">            Method used to compute the ODFs. It can be &#39;standard&#39; or &#39;gqi2&#39;.</span>
+<span class="sd">        sampling_length : float, optional</span>
+<span class="sd">            The maximum length of the sampling fibers.</span>
+<span class="sd">        normalize_peaks : bool, optional</span>
+<span class="sd">            If True, the peaks are normalized to 1.</span>
+<span class="sd">        sphere_name : str, optional</span>
+<span class="sd">            Sphere name on which to reconstruct the fODFs.</span>
+<span class="sd">        b0_threshold : float, optional</span>
+<span class="sd">            Threshold used to find b0 volumes.</span>
+<span class="sd">        bvecs_tol : float, optional</span>
+<span class="sd">            Bvecs should be unit vectors.</span>
+<span class="sd">        sh_order_max : int, optional</span>
+<span class="sd">            Maximum spherical harmonics order (l) used in the SFM fit.</span>
+<span class="sd">        relative_peak_threshold : float, optional</span>
+<span class="sd">            Only return peaks greater than ``relative_peak_threshold * m``</span>
+<span class="sd">            where m is the largest peak.</span>
+<span class="sd">        min_separation_angle : float, optional</span>
+<span class="sd">            The angle tolerance between directions.</span>
+<span class="sd">        parallel : bool, optional</span>
+<span class="sd">            Whether to use parallelization in peak-finding.</span>
+<span class="sd">        extract_pam_values : bool, optional</span>
+<span class="sd">            Save or not to save pam volumes as single nifti files.</span>
+<span class="sd">        num_processes : int, optional</span>
+<span class="sd">            If `parallel` is True, the number of subprocesses to use</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_pam : string, optional</span>
+<span class="sd">            Name of the peaks volume to be saved.</span>
+<span class="sd">        out_shm : string, optional</span>
+<span class="sd">            Name of the spherical harmonics volume to be saved.</span>
+<span class="sd">        out_peaks_dir : string, optional</span>
+<span class="sd">            Name of the peaks directions volume to be saved.</span>
+<span class="sd">        out_peaks_values : string, optional</span>
+<span class="sd">            Name of the peaks values volume to be saved.</span>
+<span class="sd">        out_peaks_indices : string, optional</span>
+<span class="sd">            Name of the peaks indices volume to be saved.</span>
+<span class="sd">        out_gfa : string, optional</span>
+<span class="sd">            Name of the generalized FA volume to be saved.</span>
+<span class="sd">        out_sphere : string, optional</span>
+<span class="sd">            Sphere vertices name to be saved.</span>
+<span class="sd">        out_b : string, optional</span>
+<span class="sd">            Name of the B Matrix to be saved.</span>
+<span class="sd">        out_qa : string, optional</span>
+<span class="sd">            Name of the Quantitative Anisotropy to be saved.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">dwi</span><span class="p">,</span>
+            <span class="n">bval</span><span class="p">,</span>
+            <span class="n">bvec</span><span class="p">,</span>
+            <span class="n">maskfile</span><span class="p">,</span>
+            <span class="n">opam</span><span class="p">,</span>
+            <span class="n">oshm</span><span class="p">,</span>
+            <span class="n">opeaks_dir</span><span class="p">,</span>
+            <span class="n">opeaks_values</span><span class="p">,</span>
+            <span class="n">opeaks_indices</span><span class="p">,</span>
+            <span class="n">ogfa</span><span class="p">,</span>
+            <span class="n">osphere</span><span class="p">,</span>
+            <span class="n">ob</span><span class="p">,</span>
+            <span class="n">oqa</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">)</span>
+            <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">)</span>
+
+            <span class="c1"># If all b-values are smaller or equal to the b0 threshold, it is</span>
+            <span class="c1"># assumed that no thresholding is requested</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">mask_non_weighted_bvals</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">b0_threshold</span> <span class="o">&lt;</span> <span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
+                    <span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;b0_threshold (value: </span><span class="si">{</span><span class="n">b0_threshold</span><span class="si">}</span><span class="s2">) is too low, &quot;</span>
+                        <span class="s2">&quot;increase your b0_threshold. It should be higher than the &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;first b0 value (</span><span class="si">{</span><span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span>
+                <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">bvecs_tol</span>
+            <span class="p">)</span>
+            <span class="n">mask_vol</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">maskfile</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+            <span class="n">n_params</span> <span class="o">=</span> <span class="p">((</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n_params</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;You need at least </span><span class="si">{</span><span class="n">n_params</span><span class="si">}</span><span class="s2"> unique DWI volumes to &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;compute fiber odfs. You currently have: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot; DWI volumes.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">peaks_sphere</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">default_sphere</span> <span class="k">if</span> <span class="n">sphere_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">get_sphere</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">sphere_name</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;GQI computation started.&quot;</span><span class="p">)</span>
+            <span class="n">gqi_model</span> <span class="o">=</span> <span class="n">GeneralizedQSamplingModel</span><span class="p">(</span>
+                <span class="n">gtab</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+                <span class="n">sampling_length</span><span class="o">=</span><span class="n">sampling_length</span><span class="p">,</span>
+                <span class="n">normalize_peaks</span><span class="o">=</span><span class="n">normalize_peaks</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">peaks_gqi</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">gqi_model</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">sphere</span><span class="o">=</span><span class="n">peaks_sphere</span><span class="p">,</span>
+                <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="n">relative_peak_threshold</span><span class="p">,</span>
+                <span class="n">min_separation_angle</span><span class="o">=</span><span class="n">min_separation_angle</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask_vol</span><span class="p">,</span>
+                <span class="n">return_sh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">normalize_peaks</span><span class="o">=</span><span class="n">normalize_peaks</span><span class="p">,</span>
+                <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
+                <span class="n">num_processes</span><span class="o">=</span><span class="n">num_processes</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">peaks_gqi</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+
+            <span class="n">save_pam</span><span class="p">(</span><span class="n">opam</span><span class="p">,</span> <span class="n">peaks_gqi</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;GQI computation completed.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">extract_pam_values</span><span class="p">:</span>
+                <span class="n">pam_to_niftis</span><span class="p">(</span>
+                    <span class="n">peaks_gqi</span><span class="p">,</span>
+                    <span class="n">fname_shm</span><span class="o">=</span><span class="n">oshm</span><span class="p">,</span>
+                    <span class="n">fname_peaks_dir</span><span class="o">=</span><span class="n">opeaks_dir</span><span class="p">,</span>
+                    <span class="n">fname_peaks_values</span><span class="o">=</span><span class="n">opeaks_values</span><span class="p">,</span>
+                    <span class="n">fname_peaks_indices</span><span class="o">=</span><span class="n">opeaks_indices</span><span class="p">,</span>
+                    <span class="n">fname_gfa</span><span class="o">=</span><span class="n">ogfa</span><span class="p">,</span>
+                    <span class="n">fname_sphere</span><span class="o">=</span><span class="n">osphere</span><span class="p">,</span>
+                    <span class="n">fname_b</span><span class="o">=</span><span class="n">ob</span><span class="p">,</span>
+                    <span class="n">fname_qa</span><span class="o">=</span><span class="n">oqa</span><span class="p">,</span>
+                    <span class="n">reshape_dirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">dname_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">opam</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;Pam5 file saved in current directory&quot;</span>
+                <span class="k">if</span> <span class="n">dname_</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Pam5 file saved in </span><span class="si">{</span><span class="n">dname_</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">io_it</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ReconstForecastFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForecastFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">ReconstForecastFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="ReconstForecastFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForecastFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;forecast&quot;</span></div>
+
+
+<div class="viewcode-block" id="ReconstForecastFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForecastFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">bvalues_files</span><span class="p">,</span>
+        <span class="n">bvectors_files</span><span class="p">,</span>
+        <span class="n">mask_files</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">lambda_lb</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+        <span class="n">dec_alg</span><span class="o">=</span><span class="s2">&quot;CSD&quot;</span><span class="p">,</span>
+        <span class="n">lambda_csd</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">b0_threshold</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+        <span class="n">bvecs_tol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">sh_order_max</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">min_separation_angle</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">extract_pam_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">num_processes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_pam</span><span class="o">=</span><span class="s2">&quot;peaks.pam5&quot;</span><span class="p">,</span>
+        <span class="n">out_shm</span><span class="o">=</span><span class="s2">&quot;shm.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_dir</span><span class="o">=</span><span class="s2">&quot;peaks_dirs.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_values</span><span class="o">=</span><span class="s2">&quot;peaks_values.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_peaks_indices</span><span class="o">=</span><span class="s2">&quot;peaks_indices.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_gfa</span><span class="o">=</span><span class="s2">&quot;gfa.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_sphere</span><span class="o">=</span><span class="s2">&quot;sphere.txt&quot;</span><span class="p">,</span>
+        <span class="n">out_b</span><span class="o">=</span><span class="s2">&quot;B.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_qa</span><span class="o">=</span><span class="s2">&quot;qa.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow for Fiber ORientation Estimated using Continuous Axially Symmetric</span>
+<span class="sd">        Tensors (FORECAST).</span>
+
+<span class="sd">        FORECAST :footcite:p:`Anderson2005`, :footcite:p:`Kaden2016a`,</span>
+<span class="sd">        :footcite:p:`Zucchelli2017` is a Spherical Deconvolution reconstruction</span>
+<span class="sd">        model for multi-shell diffusion data which enables the calculation of a</span>
+<span class="sd">        voxel adaptive response function using the Spherical Mean Technique (SMT)</span>
+<span class="sd">        :footcite:p:`Kaden2016a`, :footcite:p:`Zucchelli2017`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        bvalues_files : string</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        bvectors_files : string</span>
+<span class="sd">            Path to the bvectors files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        mask_files : string</span>
+<span class="sd">            Path to the input masks. This path may contain wildcards to use</span>
+<span class="sd">            multiple masks at once. (default: No mask used)</span>
+<span class="sd">        lambda_lb : float, optional</span>
+<span class="sd">            Regularization parameter for the Laplacian-Beltrami operator.</span>
+<span class="sd">        dec_alg : str, optional</span>
+<span class="sd">            Spherical deconvolution algorithm. The possible values are Weighted Least</span>
+<span class="sd">            Squares (&#39;WLS&#39;),</span>
+<span class="sd">            Positivity Constraints using CVXPY (&#39;POS&#39;) and the Constraint</span>
+<span class="sd">            Spherical Deconvolution algorithm (&#39;CSD&#39;).</span>
+<span class="sd">        lambda_csd : float, optional</span>
+<span class="sd">            Regularization parameter for the CSD algorithm.</span>
+<span class="sd">        sphere_name : str, optional</span>
+<span class="sd">            Sphere name on which to reconstruct the fODFs.</span>
+<span class="sd">        b0_threshold : float, optional</span>
+<span class="sd">            Threshold used to find b0 volumes.</span>
+<span class="sd">        bvecs_tol : float, optional</span>
+<span class="sd">            Bvecs should be unit vectors.</span>
+<span class="sd">        sh_order_max : int, optional</span>
+<span class="sd">            Maximum spherical harmonics order (l) used in the SFM fit.</span>
+<span class="sd">        relative_peak_threshold : float, optional</span>
+<span class="sd">            Only return peaks greater than ``relative_peak_threshold * m``</span>
+<span class="sd">            where m is the largest peak.</span>
+<span class="sd">        min_separation_angle : float, optional</span>
+<span class="sd">            The angle tolerance between directions.</span>
+<span class="sd">        parallel : bool, optional</span>
+<span class="sd">            Whether to use parallelization in peak-finding.</span>
+<span class="sd">        extract_pam_values : bool, optional</span>
+<span class="sd">            Save or not to save pam volumes as single nifti files.</span>
+<span class="sd">        num_processes : int, optional</span>
+<span class="sd">            If `parallel` is True, the number of subprocesses to use</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_pam : string, optional</span>
+<span class="sd">            Name of the peaks volume to be saved.</span>
+<span class="sd">        out_shm : string, optional</span>
+<span class="sd">            Name of the spherical harmonics volume to be saved.</span>
+<span class="sd">        out_peaks_dir : string, optional</span>
+<span class="sd">            Name of the peaks directions volume to be saved.</span>
+<span class="sd">        out_peaks_values : string, optional</span>
+<span class="sd">            Name of the peaks values volume to be saved.</span>
+<span class="sd">        out_peaks_indices : string, optional</span>
+<span class="sd">            Name of the peaks indices volume to be saved.</span>
+<span class="sd">        out_gfa : string, optional</span>
+<span class="sd">            Name of the generalized FA volume to be saved.</span>
+<span class="sd">        out_sphere : string, optional</span>
+<span class="sd">            Sphere vertices name to be saved.</span>
+<span class="sd">        out_b : string, optional</span>
+<span class="sd">            Name of the B Matrix to be saved.</span>
+<span class="sd">        out_qa : string, optional</span>
+<span class="sd">            Name of the Quantitative Anisotropy to be saved.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">dwi</span><span class="p">,</span>
+            <span class="n">bval</span><span class="p">,</span>
+            <span class="n">bvec</span><span class="p">,</span>
+            <span class="n">maskfile</span><span class="p">,</span>
+            <span class="n">opam</span><span class="p">,</span>
+            <span class="n">oshm</span><span class="p">,</span>
+            <span class="n">opeaks_dir</span><span class="p">,</span>
+            <span class="n">opeaks_values</span><span class="p">,</span>
+            <span class="n">opeaks_indices</span><span class="p">,</span>
+            <span class="n">ogfa</span><span class="p">,</span>
+            <span class="n">osphere</span><span class="p">,</span>
+            <span class="n">ob</span><span class="p">,</span>
+            <span class="n">oqa</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">)</span>
+            <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">)</span>
+
+            <span class="c1"># If all b-values are smaller or equal to the b0 threshold, it is</span>
+            <span class="c1"># assumed that no thresholding is requested</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">mask_non_weighted_bvals</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">b0_threshold</span> <span class="o">&lt;</span> <span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
+                    <span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;b0_threshold (value: </span><span class="si">{</span><span class="n">b0_threshold</span><span class="si">}</span><span class="s2">) is too low, &quot;</span>
+                        <span class="s2">&quot;increase your b0_threshold. It should be higher than the &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;first b0 value (</span><span class="si">{</span><span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span>
+                <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">bvecs_tol</span>
+            <span class="p">)</span>
+            <span class="n">mask_vol</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">maskfile</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+            <span class="n">n_params</span> <span class="o">=</span> <span class="p">((</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n_params</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;You need at least </span><span class="si">{</span><span class="n">n_params</span><span class="si">}</span><span class="s2"> unique DWI volumes to &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;compute fiber odfs. You currently have: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot; DWI volumes.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">peaks_sphere</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">default_sphere</span> <span class="k">if</span> <span class="n">sphere_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">get_sphere</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">sphere_name</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;FORECAST computation started.&quot;</span><span class="p">)</span>
+            <span class="n">forecast_model</span> <span class="o">=</span> <span class="n">ForecastModel</span><span class="p">(</span>
+                <span class="n">gtab</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">lambda_lb</span><span class="o">=</span><span class="n">lambda_lb</span><span class="p">,</span>
+                <span class="n">dec_alg</span><span class="o">=</span><span class="n">dec_alg</span><span class="p">,</span>
+                <span class="n">sphere</span><span class="o">=</span><span class="n">peaks_sphere</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span>
+                <span class="n">lambda_csd</span><span class="o">=</span><span class="n">lambda_csd</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">peaks_forecast</span> <span class="o">=</span> <span class="n">peaks_from_model</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">forecast_model</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">sphere</span><span class="o">=</span><span class="n">peaks_sphere</span><span class="p">,</span>
+                <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="n">relative_peak_threshold</span><span class="p">,</span>
+                <span class="n">min_separation_angle</span><span class="o">=</span><span class="n">min_separation_angle</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask_vol</span><span class="p">,</span>
+                <span class="n">return_sh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">normalize_peaks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
+                <span class="n">num_processes</span><span class="o">=</span><span class="n">num_processes</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">peaks_forecast</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+
+            <span class="n">save_pam</span><span class="p">(</span><span class="n">opam</span><span class="p">,</span> <span class="n">peaks_forecast</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;FORECAST computation completed.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">extract_pam_values</span><span class="p">:</span>
+                <span class="n">pam_to_niftis</span><span class="p">(</span>
+                    <span class="n">peaks_forecast</span><span class="p">,</span>
+                    <span class="n">fname_shm</span><span class="o">=</span><span class="n">oshm</span><span class="p">,</span>
+                    <span class="n">fname_peaks_dir</span><span class="o">=</span><span class="n">opeaks_dir</span><span class="p">,</span>
+                    <span class="n">fname_peaks_values</span><span class="o">=</span><span class="n">opeaks_values</span><span class="p">,</span>
+                    <span class="n">fname_peaks_indices</span><span class="o">=</span><span class="n">opeaks_indices</span><span class="p">,</span>
+                    <span class="n">fname_gfa</span><span class="o">=</span><span class="n">ogfa</span><span class="p">,</span>
+                    <span class="n">fname_sphere</span><span class="o">=</span><span class="n">osphere</span><span class="p">,</span>
+                    <span class="n">fname_b</span><span class="o">=</span><span class="n">ob</span><span class="p">,</span>
+                    <span class="n">fname_qa</span><span class="o">=</span><span class="n">oqa</span><span class="p">,</span>
+                    <span class="n">reshape_dirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">dname_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">opam</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;Pam5 file saved in current directory&quot;</span>
+                <span class="k">if</span> <span class="n">dname_</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Pam5 file saved in </span><span class="si">{</span><span class="n">dname_</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">io_it</span></div>
 </div>
@@ -3144,7 +4100,7 @@ document.write(`
 </div>
 
     <div class="copyright-text">
-      <i class="fa-regular fa-copyright"></i> Copyright 2008-2024,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
     </div>
   </footer>
   </body>

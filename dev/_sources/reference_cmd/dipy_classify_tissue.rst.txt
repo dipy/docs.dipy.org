@@ -1,0 +1,120 @@
+.. dipy_classify_tissue:
+
+====================
+dipy_classify_tissue
+====================
+
+Synopsis
+--------
+
+Extract tissue from a volume.
+
+
+
+Usage
+-----
+
+.. code-block:: bash
+
+    dipy_classify_tissue [OPTIONS] input_files
+
+Input Parameters
+----------------
+
+* ``input_files``
+
+  Path to the input volumes. This path may contain wildcards to
+  process multiple inputs at once.
+
+General Options
+---------------
+
+* ``--bvals_file``
+
+  Path to the b-values file. Required for 'dam' method.
+  (default: None)
+
+* ``--method``
+
+  Method to use for tissue extraction. Options are:
+      - 'hmrf': Markov Random Fields modeling approach.
+      - 'dam': Directional Average Maps, proposed by :footcite:p:`Cheng2020`.
+  
+  'hmrf' method is recommended for T1w images, while 'dam' method is
+  recommended for DWI Multishell images (single shell are not recommended).
+  (default: None)
+
+* ``--wm_threshold``
+
+  The threshold below which a voxel is considered white matter. For data like
+  HCP, threshold of 0.5 proves to be a good choice. For data like cfin, higher
+  threshold values like 0.7 or 0.8 are more suitable. Used for 'dam' method.
+  (default: 0.5)
+
+* ``--b0_threshold``
+
+  The intensity threshold for a b=0 image. used only for 'dam' method.
+  (default: 50)
+
+* ``--low_signal_threshold``
+
+  The threshold below which a voxel is considered to have low signal.
+  Used only for 'dam' method.
+  (default: 50)
+
+* ``--nclass``
+
+  Number of desired classes. Used only for 'hmrf' method.
+  (default: None)
+
+* ``--beta``
+
+  Smoothing parameter, the higher this number the smoother the
+  output will be. Used only for 'hmrf' method.
+  (default: 0.1)
+
+* ``--tolerance``
+
+  Value that defines the percentage of change tolerated to
+  prevent the ICM loop to stop. Default is 1e-05.
+  If you want tolerance check to be disabled put 'tolerance = 0'.
+  Used only for 'hmrf' method.
+  (default: 1e-05)
+
+* ``--max_iter``
+
+  Fixed number of desired iterations. Default is 100.
+  This parameter defines the maximum number of iterations the
+  algorithm will perform. The loop may terminate early if the
+  change in energy sum between iterations falls below the
+  threshold defined by `tolerance`. However, if `tolerance` is
+  explicitly set to 0, this early stopping mechanism is disabled,
+  and the algorithm will run for the specified number of
+  iterations unless another stopping criterion is met.
+  Used only for 'hmrf' method.
+  (default: 100)
+
+Output Options
+--------------
+
+* ``--out_dir``
+
+  Output directory.
+  (default:  current directory)
+
+* ``--out_tissue``
+
+  Name of the tissue volume to be saved.
+  (default: tissue_classified.nii.gz)
+
+* ``--out_pve``
+
+  Name of the pve volume to be saved.
+  (default: tissue_classified_pve.nii.gz)
+
+References
+----------
+
+.. footbibliography::
+
+Garyfallidis, E., M. Brett, B. Amirbekian, A. Rokem, S. Van Der Walt, M. Descoteaux, and I. Nimmo-Smith. Dipy, a library for the analysis of diffusion MRI data. Frontiers in Neuroinformatics, 1-18, 2014.
