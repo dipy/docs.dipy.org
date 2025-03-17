@@ -1,0 +1,1640 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dipy.workflows.denoise &#8212; dipy 1.11.0 documentation</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
+
+    <script src="../../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/workflows/denoise';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
+        </script>
+    <link rel="icon" href="../../../_static/dipy-favicon.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="keywords" content="DIPY, dMRI, DTI, DSI, diffusion MRI, Tensor,
+  neuroimaging, python, neuroscience, Eleftherios, Garyfallidis, tractography,
+  streamlines, fiber tracking">
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+<nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+     
+  
+
+<a class="navbar-brand logo" href="https://dipy.org">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/dipy-logo.png" class="logo__image only-light" alt="DIPY"/>
+    <script>document.write(`<img src="../../../_static/dipy-logo.png" class="logo__image only-dark" alt="DIPY"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../examples_built/index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Latest
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://app.gitter.im/#/room/%23dipy_dipy:gitter.im" target="_blank">
+            Live Chat (Gitter) <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+</div>
+
+</nav>
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../examples_built/index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Latest
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://app.gitter.im/#/room/%23dipy_dipy:gitter.im" target="_blank">
+            Live Chat (Gitter) <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">dipy.workflo...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for dipy.workflows.denoise</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
+<span class="kn">from</span> <span class="nn">dipy.denoise.gibbs</span> <span class="kn">import</span> <span class="n">gibbs_removal</span>
+<span class="kn">from</span> <span class="nn">dipy.denoise.localpca</span> <span class="kn">import</span> <span class="n">localpca</span><span class="p">,</span> <span class="n">mppca</span>
+<span class="kn">from</span> <span class="nn">dipy.denoise.nlmeans</span> <span class="kn">import</span> <span class="n">nlmeans</span>
+<span class="kn">from</span> <span class="nn">dipy.denoise.noise_estimate</span> <span class="kn">import</span> <span class="n">estimate_sigma</span>
+<span class="kn">from</span> <span class="nn">dipy.denoise.patch2self</span> <span class="kn">import</span> <span class="n">patch2self</span>
+<span class="kn">from</span> <span class="nn">dipy.denoise.pca_noise_estimate</span> <span class="kn">import</span> <span class="n">pca_noise_estimate</span>
+<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
+<span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
+
+
+<div class="viewcode-block" id="Patch2SelfFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.Patch2SelfFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">Patch2SelfFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="Patch2SelfFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.Patch2SelfFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;patch2self&quot;</span></div>
+
+
+<div class="viewcode-block" id="Patch2SelfFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.Patch2SelfFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">bval_files</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="s2">&quot;ols&quot;</span><span class="p">,</span>
+        <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">patch_radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">skip_b0_denoising</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">clip_negative_vals</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">skip_shift_intensity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">ver</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_denoised</span><span class="o">=</span><span class="s2">&quot;dwi_patch2self.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow for Patch2Self denoising method.</span>
+
+<span class="sd">        See :footcite:p:`Fadnavis2020` for further details about the method.</span>
+<span class="sd">        See :footcite:p:`Fadnavis2024` for further details about the new method.</span>
+
+<span class="sd">        It applies patch2self denoising :footcite:p:`Fadnavis2020` on each file</span>
+<span class="sd">        found by &#39;globing&#39; ``input_file`` and ``bval_file``. It saves the</span>
+<span class="sd">        results in a directory specified by ``out_dir``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        bval_files : string</span>
+<span class="sd">            bval file associated with the diffusion data.</span>
+<span class="sd">        model : string, or initialized linear model object.</span>
+<span class="sd">            This will determine the algorithm used to solve the set of linear</span>
+<span class="sd">            equations underlying this model. If it is a string it needs to be</span>
+<span class="sd">            one of the following: {&#39;ols&#39;, &#39;ridge&#39;, &#39;lasso&#39;}. Otherwise,</span>
+<span class="sd">            it can be an object that inherits from</span>
+<span class="sd">            `dipy.optimize.SKLearnLinearSolver` or an object with a similar</span>
+<span class="sd">            interface from Scikit-Learn:</span>
+<span class="sd">            `sklearn.linear_model.LinearRegression`,</span>
+<span class="sd">            `sklearn.linear_model.Lasso` or `sklearn.linear_model.Ridge`</span>
+<span class="sd">            and other objects that inherit from `sklearn.base.RegressorMixin`.</span>
+<span class="sd">            Default: &#39;ols&#39;.</span>
+<span class="sd">        b0_threshold : int, optional</span>
+<span class="sd">            Threshold for considering volumes as b0.</span>
+<span class="sd">        alpha : float, optional</span>
+<span class="sd">            Regularization parameter only for ridge regression model.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            Show progress of Patch2Self and time taken.</span>
+<span class="sd">        patch_radius : variable int, optional</span>
+<span class="sd">            The radius of the local patch to be taken around each voxel</span>
+<span class="sd">        skip_b0_denoising : bool, optional</span>
+<span class="sd">            Skips denoising b0 volumes if set to True.</span>
+<span class="sd">        clip_negative_vals : bool, optional</span>
+<span class="sd">            Sets negative values after denoising to 0 using `np.clip`.</span>
+<span class="sd">        skip_shift_intensity : bool, optional</span>
+<span class="sd">            Skips shifting the distribution of intensities per volume to give</span>
+<span class="sd">            non-negative values if set to True.</span>
+<span class="sd">        ver : int, optional</span>
+<span class="sd">            Version of the Patch2Self algorithm to use between  1 or 3.</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_denoised : string, optional</span>
+<span class="sd">            Name of the resulting denoised volume</span>
+<span class="sd">            (default: dwi_patch2self.nii.gz)</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">b0_denoising</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">skip_b0_denoising</span>
+        <span class="n">shift_intensity</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">skip_shift_intensity</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">patch_radius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">bvalpath</span><span class="p">,</span> <span class="n">odenoised</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">odenoised</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Denoising skipped for now.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoising </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fpath</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">image</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">bvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">bvalpath</span><span class="p">)</span>
+                <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;patch_radius&quot;</span><span class="p">:</span> <span class="n">patch_radius</span><span class="p">}</span> <span class="k">if</span> <span class="n">ver</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">{}</span>
+                <span class="n">denoised_data</span> <span class="o">=</span> <span class="n">patch2self</span><span class="p">(</span>
+                    <span class="n">data</span><span class="p">,</span>
+                    <span class="n">bvals</span><span class="p">,</span>
+                    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                    <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                    <span class="n">b0_denoising</span><span class="o">=</span><span class="n">b0_denoising</span><span class="p">,</span>
+                    <span class="n">clip_negative_vals</span><span class="o">=</span><span class="n">clip_negative_vals</span><span class="p">,</span>
+                    <span class="n">shift_intensity</span><span class="o">=</span><span class="n">shift_intensity</span><span class="p">,</span>
+                    <span class="n">version</span><span class="o">=</span><span class="n">ver</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">extra_args</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">odenoised</span><span class="p">,</span> <span class="n">denoised_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">hdr</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoised volumes saved as </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">odenoised</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NLMeansFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.NLMeansFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">NLMeansFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="NLMeansFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.NLMeansFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;nlmeans&quot;</span></div>
+
+
+<div class="viewcode-block" id="NLMeansFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.NLMeansFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">patch_radius</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">block_radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">rician</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_denoised</span><span class="o">=</span><span class="s2">&quot;dwi_nlmeans.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow wrapping the nlmeans denoising method.</span>
+
+<span class="sd">        It applies nlmeans denoise :footcite:p:`Descoteaux2008a` on each file</span>
+<span class="sd">        found by &#39;globing&#39; ``input_files`` and saves the results in a directory</span>
+<span class="sd">        specified by ``out_dir``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        sigma : float, optional</span>
+<span class="sd">            Sigma parameter to pass to the nlmeans algorithm.</span>
+<span class="sd">        patch_radius : int, optional</span>
+<span class="sd">            patch size is ``2 x patch_radius + 1``.</span>
+<span class="sd">        block_radius : int, optional</span>
+<span class="sd">            block size is ``2 x block_radius + 1``.</span>
+<span class="sd">        rician : bool, optional</span>
+<span class="sd">            If True the noise is estimated as Rician, otherwise Gaussian noise</span>
+<span class="sd">            is assumed.</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_denoised : string, optional</span>
+<span class="sd">            Name of the resulting denoised volume.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">odenoised</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">odenoised</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Denoising skipped for now.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoising </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fpath</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">image</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">sigma</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Estimating sigma&quot;</span><span class="p">)</span>
+                    <span class="n">sigma</span> <span class="o">=</span> <span class="n">estimate_sigma</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found sigma </span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">denoised_data</span> <span class="o">=</span> <span class="n">nlmeans</span><span class="p">(</span>
+                    <span class="n">data</span><span class="p">,</span>
+                    <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                    <span class="n">patch_radius</span><span class="o">=</span><span class="n">patch_radius</span><span class="p">,</span>
+                    <span class="n">block_radius</span><span class="o">=</span><span class="n">block_radius</span><span class="p">,</span>
+                    <span class="n">rician</span><span class="o">=</span><span class="n">rician</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">odenoised</span><span class="p">,</span> <span class="n">denoised_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">hdr</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoised volume saved as </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">odenoised</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LPCAFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.LPCAFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">LPCAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="LPCAFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.LPCAFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;lpca&quot;</span></div>
+
+
+<div class="viewcode-block" id="LPCAFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.LPCAFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">bvalues_files</span><span class="p">,</span>
+        <span class="n">bvectors_files</span><span class="p">,</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">bvecs_tol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">patch_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">pca_method</span><span class="o">=</span><span class="s2">&quot;eig&quot;</span><span class="p">,</span>
+        <span class="n">tau_factor</span><span class="o">=</span><span class="mf">2.3</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_denoised</span><span class="o">=</span><span class="s2">&quot;dwi_lpca.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Workflow wrapping LPCA denoising method.</span>
+
+<span class="sd">        See :footcite:p:`Veraart2016a` for further details about the method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        bvalues_files : string</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        bvectors_files : string</span>
+<span class="sd">            Path to the bvectors files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvectors files at once.</span>
+<span class="sd">        sigma : float, optional</span>
+<span class="sd">            Standard deviation of the noise estimated from the data.</span>
+<span class="sd">            0 means sigma value estimation following the algorithm in</span>
+<span class="sd">            :footcite:t:`Manjon2013`.</span>
+<span class="sd">        b0_threshold : float, optional</span>
+<span class="sd">            Threshold used to find b0 volumes.</span>
+<span class="sd">        bvecs_tol : float, optional</span>
+<span class="sd">            Threshold used to check that norm(bvec) = 1 +/- bvecs_tol</span>
+<span class="sd">            b-vectors are unit vectors.</span>
+<span class="sd">        patch_radius : int, optional</span>
+<span class="sd">            The radius of the local patch to be taken around each voxel (in</span>
+<span class="sd">            voxels) For example, for a patch radius with value 2, and assuming</span>
+<span class="sd">            the input image is a 3D image, the denoising will take place in</span>
+<span class="sd">            blocks of 5x5x5 voxels.</span>
+<span class="sd">        pca_method : string, optional</span>
+<span class="sd">            Use either eigenvalue decomposition (&#39;eig&#39;) or singular value</span>
+<span class="sd">            decomposition (&#39;svd&#39;) for principal component analysis. The default</span>
+<span class="sd">            method is &#39;eig&#39; which is faster. However, occasionally &#39;svd&#39; might</span>
+<span class="sd">            be more accurate.</span>
+<span class="sd">        tau_factor : float, optional</span>
+<span class="sd">            Thresholding of PCA eigenvalues is done by nulling out eigenvalues</span>
+<span class="sd">            that are smaller than:</span>
+
+<span class="sd">            .. math::</span>
+
+<span class="sd">                    \tau = (\tau_{factor} \sigma)^2</span>
+
+<span class="sd">            $\tau_{factor}$ can be change to adjust the relationship between the</span>
+<span class="sd">            noise standard deviation and the threshold $\tau$. If</span>
+<span class="sd">            $\tau_{factor}$ is set to None, it will be automatically calculated</span>
+<span class="sd">            using the Marcenko-Pastur distribution :footcite:p`Veraart2016b`.</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_denoised : string, optional</span>
+<span class="sd">            Name of the resulting denoised volume.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">patch_radius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">dwi</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">,</span> <span class="n">odenoised</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoising </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dwi</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">image</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sigma</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Estimating sigma&quot;</span><span class="p">)</span>
+                <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">)</span>
+                <span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span>
+                    <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">bvecs_tol</span>
+                <span class="p">)</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="n">pca_noise_estimate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">correct_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found sigma </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+
+            <span class="n">denoised_data</span> <span class="o">=</span> <span class="n">localpca</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span>
+                <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                <span class="n">patch_radius</span><span class="o">=</span><span class="n">patch_radius</span><span class="p">,</span>
+                <span class="n">pca_method</span><span class="o">=</span><span class="n">pca_method</span><span class="p">,</span>
+                <span class="n">tau_factor</span><span class="o">=</span><span class="n">tau_factor</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">save_nifti</span><span class="p">(</span><span class="n">odenoised</span><span class="p">,</span> <span class="n">denoised_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">hdr</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoised volume saved as </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">odenoised</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MPPCAFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.MPPCAFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">MPPCAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="MPPCAFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.MPPCAFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;mppca&quot;</span></div>
+
+
+<div class="viewcode-block" id="MPPCAFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.MPPCAFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">patch_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">pca_method</span><span class="o">=</span><span class="s2">&quot;eig&quot;</span><span class="p">,</span>
+        <span class="n">return_sigma</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_denoised</span><span class="o">=</span><span class="s2">&quot;dwi_mppca.nii.gz&quot;</span><span class="p">,</span>
+        <span class="n">out_sigma</span><span class="o">=</span><span class="s2">&quot;dwi_sigma.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Workflow wrapping Marcenko-Pastur PCA denoising method.</span>
+
+<span class="sd">        See :footcite:p:`Veraart2016a` for further details about the method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        patch_radius : variable int, optional</span>
+<span class="sd">            The radius of the local patch to be taken around each voxel (in</span>
+<span class="sd">            voxels) For example, for a patch radius with value 2, and assuming</span>
+<span class="sd">            the input image is a 3D image, the denoising will take place in</span>
+<span class="sd">            blocks of 5x5x5 voxels.</span>
+<span class="sd">        pca_method : string, optional</span>
+<span class="sd">            Use either eigenvalue decomposition (&#39;eig&#39;) or singular value</span>
+<span class="sd">            decomposition (&#39;svd&#39;) for principal component analysis. The default</span>
+<span class="sd">            method is &#39;eig&#39; which is faster. However, occasionally &#39;svd&#39; might</span>
+<span class="sd">            be more accurate.</span>
+<span class="sd">        return_sigma : bool, optional</span>
+<span class="sd">            If true, a noise standard deviation estimate based on the</span>
+<span class="sd">            Marcenko-Pastur distribution is returned :footcite:p:`Veraart2016b`.</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_denoised : string, optional</span>
+<span class="sd">            Name of the resulting denoised volume.</span>
+<span class="sd">        out_sigma : string, optional</span>
+<span class="sd">            Name of the resulting sigma volume.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">patch_radius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">dwi</span><span class="p">,</span> <span class="n">odenoised</span><span class="p">,</span> <span class="n">osigma</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoising </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dwi</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">image</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">denoised_data</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">mppca</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span>
+                <span class="n">patch_radius</span><span class="o">=</span><span class="n">patch_radius</span><span class="p">,</span>
+                <span class="n">pca_method</span><span class="o">=</span><span class="n">pca_method</span><span class="p">,</span>
+                <span class="n">return_sigma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">save_nifti</span><span class="p">(</span><span class="n">odenoised</span><span class="p">,</span> <span class="n">denoised_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">hdr</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoised volume saved as </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">odenoised</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">return_sigma</span><span class="p">:</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">osigma</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">hdr</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Sigma volume saved as </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">osigma</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="GibbsRingingFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.GibbsRingingFlow">[docs]</a>
+<span class="k">class</span> <span class="nc">GibbsRingingFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="GibbsRingingFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.GibbsRingingFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;gibbs_ringing&quot;</span></div>
+
+
+<div class="viewcode-block" id="GibbsRingingFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.GibbsRingingFlow.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">slice_axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">n_points</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">num_processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">out_unring</span><span class="o">=</span><span class="s2">&quot;dwi_unring.nii.gz&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Workflow for applying Gibbs Ringing method.</span>
+
+<span class="sd">        See :footcite:p:`Kellner2016` and :footcite:p:`NetoHenriques2018` for</span>
+<span class="sd">        further details about the method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        slice_axis : int, optional</span>
+<span class="sd">            Data axis corresponding to the number of acquired slices.</span>
+<span class="sd">            Could be (0, 1, or 2): for example, a value of 2 would mean the</span>
+<span class="sd">            third axis.</span>
+<span class="sd">        n_points : int, optional</span>
+<span class="sd">            Number of neighbour points to access local TV (see note).</span>
+<span class="sd">        num_processes : int or None, optional</span>
+<span class="sd">            Split the calculation to a pool of children processes. Only</span>
+<span class="sd">            applies to 3D or 4D `data` arrays. Default is 1. If &lt; 0 the maximal</span>
+<span class="sd">            number of cores minus ``num_processes + 1`` is used (enter -1 to</span>
+<span class="sd">            use as many cores as possible). 0 raises an error.</span>
+<span class="sd">        out_dir : string, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_unring : string, optional</span>
+<span class="sd">            Name of the resulting denoised volume.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">dwi</span><span class="p">,</span> <span class="n">ounring</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Unringing </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dwi</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">image</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">unring_data</span> <span class="o">=</span> <span class="n">gibbs_removal</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span>
+                <span class="n">slice_axis</span><span class="o">=</span><span class="n">slice_axis</span><span class="p">,</span>
+                <span class="n">n_points</span><span class="o">=</span><span class="n">n_points</span><span class="p">,</span>
+                <span class="n">num_processes</span><span class="o">=</span><span class="n">num_processes</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">save_nifti</span><span class="p">(</span><span class="n">ounring</span><span class="p">,</span> <span class="n">unring_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">hdr</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Denoised volume saved as </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ounring</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<script type="module" src="../../../_static/scripts/grg-sphinx-theme.js"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><div>
+  <h3 class="footer-heading">
+    Never miss an update from us!
+  </h3>
+  <p class="footer-sub-heading">
+    Don't worry! we are not going to spam you.
+  </p>
+  <div class="input-group mb-3 mar-t-10">
+    <input type="text" class="form-control" placeholder="You email" aria-label="You email" id="grg-subscribe-email">
+    <div class="input-group-append pointer" onclick="(document.getElementById('grg-subscribe-email').value)">
+      <span class="input-group-text subscribe">Subscribe</span>
+    </div>
+  </div>  
+  <ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul>
+</div></div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><div class="grid-3">
+  
+  <div>
+    <h5 class="footer-heading">
+      About
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://dipy.org/team">
+            Developers
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://github.com/dipy/dipy/discussions" target="_blank" rel="noopener noreferrer">
+            Support
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../user_guide/installation.html">
+            Download
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../user_guide/getting_started.html">
+            Get Started
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../examples_built/index.html">
+            Tutorials
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank" rel="noopener noreferrer">
+            Videos
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Friends
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="http://nipy.org/" target="_blank" rel="noopener noreferrer">
+            Nipy Projects
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="http://fury.gl/" target="_blank" rel="noopener noreferrer">
+            FURY
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="http://nipy.org/nibabel" target="_blank" rel="noopener noreferrer">
+            Nibabel
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://tortoise.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            Tortoise
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Support
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://engineering.indiana.edu/" target="_blank" rel="noopener noreferrer">
+            The department of Intelligent Systems Engineering of Indiana University
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            The National Institute of Biomedical Imaging and Bioengineering, NIH
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://escience.washington.edu" target="_blank" rel="noopener noreferrer">
+            The Gordon and Betty Moore Foundation and the Alfred P. Sloan Foundation, through the University of Washington eScience Institute Data Science Environment
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+</div></div>
+      
+    </div>
+  
+</div>
+
+    <div class="copyright-text">
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+    </div>
+  </footer>
+  </body>
+</html>

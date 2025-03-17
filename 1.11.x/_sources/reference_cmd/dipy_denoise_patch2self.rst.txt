@@ -1,0 +1,110 @@
+.. dipy_denoise_patch2self:
+
+=======================
+dipy_denoise_patch2self
+=======================
+
+Synopsis
+--------
+
+Workflow for Patch2Self denoising method.
+
+See :footcite:p:`Fadnavis2020` for further details about the method. See :footcite:p:`Fadnavis2024` for further details about the new method.  It applies patch2self denoising :footcite:p:`Fadnavis2020` on each file found by 'globing' ``input_file`` and ``bval_file``. It saves the results in a directory specified by ``out_dir``.
+
+Usage
+-----
+
+.. code-block:: bash
+
+    dipy_denoise_patch2self [OPTIONS] input_files bval_files model
+
+Input Parameters
+----------------
+
+* ``input_files``
+
+  Path to the input volumes. This path may contain wildcards to
+  process multiple inputs at once.
+
+* ``bval_files``
+
+  bval file associated with the diffusion data.
+
+* ``model``
+
+  This will determine the algorithm used to solve the set of linear
+  equations underlying this model. If it is a string it needs to be
+  one of the following: {'ols', 'ridge', 'lasso'}. Otherwise,
+  it can be an object that inherits from
+  `dipy.optimize.SKLearnLinearSolver` or an object with a similar
+  interface from Scikit-Learn:
+  `sklearn.linear_model.LinearRegression`,
+  `sklearn.linear_model.Lasso` or `sklearn.linear_model.Ridge`
+  and other objects that inherit from `sklearn.base.RegressorMixin`.
+  Default: 'ols'.
+  (default: ols)
+
+General Options
+---------------
+
+* ``--b0_threshold``
+
+  Threshold for considering volumes as b0.
+  (default: 50)
+
+* ``--alpha``
+
+  Regularization parameter only for ridge regression model.
+  (default: 1.0)
+
+* ``--verbose``
+
+  Show progress of Patch2Self and time taken.
+  (default: False)
+
+* ``--patch_radius``
+
+  The radius of the local patch to be taken around each voxel
+  (default: 0)
+
+* ``--skip_b0_denoising``
+
+  Skips denoising b0 volumes if set to True.
+  (default: False)
+
+* ``--clip_negative_vals``
+
+  Sets negative values after denoising to 0 using `np.clip`.
+  (default: False)
+
+* ``--skip_shift_intensity``
+
+  Skips shifting the distribution of intensities per volume to give
+  non-negative values if set to True.
+  (default: False)
+
+* ``--ver``
+
+  Version of the Patch2Self algorithm to use between  1 or 3.
+  (default: 3)
+
+Output Options
+--------------
+
+* ``--out_dir``
+
+  Output directory.
+  (default:  current directory)
+
+* ``--out_denoised``
+
+  Name of the resulting denoised volume
+  (default: dwi_patch2self.nii.gz)
+  (default: dwi_patch2self.nii.gz)
+
+References
+----------
+
+.. footbibliography::
+
+Garyfallidis, E., M. Brett, B. Amirbekian, A. Rokem, S. Van Der Walt, M. Descoteaux, and I. Nimmo-Smith. Dipy, a library for the analysis of diffusion MRI data. Frontiers in Neuroinformatics, 1-18, 2014.

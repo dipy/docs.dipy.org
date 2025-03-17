@@ -1,0 +1,1940 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tissue Classification using Diffusion MRI with DAM &#8212; dipy 1.11.0 documentation</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/dipy.css?v=cedb193d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<link rel="stylesheet" href="../../_static/styles/grg-sphinx-theme.css"/>
+
+    <script src="../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples_built/segmentation/tissue_classification_dam';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
+        </script>
+    <link rel="icon" href="../../_static/dipy-favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Tractography Clustering with QuickBundles" href="segment_quickbundles.html" />
+    <link rel="prev" title="Brain segmentation with median_otsu" href="brain_extraction_dwi_1.html" />
+  <meta name="keywords" content="DIPY, dMRI, DTI, DSI, diffusion MRI, Tensor,
+  neuroimaging, python, neuroscience, Eleftherios, Garyfallidis, tractography,
+  streamlines, fiber tracking">
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+<nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+     
+  
+
+<a class="navbar-brand logo" href="https://dipy.org">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dipy-logo.png" class="logo__image only-light" alt="DIPY"/>
+    <script>document.write(`<img src="../../_static/dipy-logo.png" class="logo__image only-dark" alt="DIPY"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Latest
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://app.gitter.im/#/room/%23dipy_dipy:gitter.im" target="_blank">
+            Live Chat (Gitter) <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+</nav>
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Latest
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://app.gitter.im/#/room/%23dipy_dipy:gitter.im" target="_blank">
+            Live Chat (Gitter) <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../quick_start/index.html">Quick Start</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../quick_start/quick_start.html">Getting started with DIPY</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quick_start/tracking_introduction_eudx.html">Introduction to Basic Tracking</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../preprocessing/index.html">Preprocessing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/reslice_datasets.html">Reslice diffusion datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/motion_correction.html">Between-volumes Motion Correction on DWI datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/piesno.html">Noise estimation using PIESNO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/denoise_nlmeans.html">Denoise images using Non-Local Means (NLMEANS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/brain_extraction_dwi.html">Brain segmentation with median_otsu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/denoise_patch2self.html">Patch2Self: Self-Supervised Denoising via Statistical Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/denoise_localpca.html">Denoise images using Local PCA via empirical thresholds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/gradients_spheres.html">Gradients and Spheres</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/denoise_ascm.html">Denoise images using Adaptive Soft Coefficient Matching (ASCM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/snr_in_cc.html">SNR estimation for Diffusion-Weighted Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/denoise_mppca.html">Denoise images using the Marcenko-Pastur PCA algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../preprocessing/denoise_gibbs.html">Suppress Gibbs oscillations</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reconstruction/index.html">Reconstruction</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_qtiplus.html">Applying positivity constraints to Q-space Trajectory Imaging (QTI+)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dsi.html">Reconstruct with Diffusion Spectrum Imaging (DSI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_cti.html">Reconstruction of the diffusion signal with the correlation tensor model (CTI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dsid.html">DSI Deconvolution (DSID) vs DSI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_shore_metrics.html">Calculate SHORE scalar maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_gqi.html">Reconstruct with Generalized Q-Sampling Imaging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_shore.html">Continuous and analytical diffusion signal modelling with 3D-SHORE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csa.html">Reconstruct with Constant Solid Angle (Q-Ball)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_sfm.html">Reconstruction with the Sparse Fascicle Model (SFM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dsi_metrics.html">Calculate DSI-based scalar maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dki.html">Reconstruction of the diffusion signal with the kurtosis tensor model (DKI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_qti.html">Reconstruct with Q-space Trajectory Imaging (QTI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dti.html">Reconstruction of the diffusion signal with DTI (single tensor) model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/kfold_xval.html">K-fold cross-validation for model comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_forecast.html">Crossing invariant fiber response function with FORECAST model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/histology_resdnn.html">Local reconstruction using the Histological ResDNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dki_micro.html">Reconstruction of the diffusion signal with the WMTI model (DKI-MICRO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/restore_dti.html">Using the RESTORE algorithm for robust tensor fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_fwdti.html">Using the free water elimination model to remove DTI free water contamination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_sh.html">Signal Reconstruction Using Spherical Harmonics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mcsd.html">Reconstruction with Multi-Shell Multi-Tissue CSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mapmri.html">Continuous and analytical diffusion signal modelling with MAP-MRI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution model (CSD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_ivim.html">Intravoxel incoherent motion (IVIM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_bingham.html">Reconstruction of Bingham Functions from ODFs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_msdki.html">Mean signal diffusion kurtosis imaging (MSDKI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_rumba.html">Reconstruction with Robust and Unbiased Model-BAsed Spherical Deconvolution (RUMBA)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_qtdmri.html">Estimating diffusion time dependent q-space indices using qt-dMRI</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../contextual_enhancement/index.html">Contextual Enhancement</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contextual_enhancement/contextual_enhancement.html">Crossing-preserving contextual enhancement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contextual_enhancement/fiber_to_bundle_coherence.html">Fiber to bundle coherence measures</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../fiber_tracking/index.html">Fiber Tracking</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/surface_seed.html">Surface seeding for tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_ptt.html">Parallel Transport Tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_deterministic.html">An introduction to the Deterministic Tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_bootstrap_peaks.html">Bootstrap and Closest Peak Direction Getters Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_rumba.html">Tracking with Robust Unbiased Model-BAsed Spherical Deconvolution (RUMBA-SD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_sfm.html">Tracking with the Sparse Fascicle Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_introduction_eudx_1.html">Introduction to Basic Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_pft.html">Particle Filtering Tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_probabilistic.html">An introduction to the Probabilistic Tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/linear_fascicle_evaluation.html">Linear fascicle evaluation (LiFE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_stopping_criterion.html">Using Various Stopping Criterion for Tractography</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../streamline_analysis/index.html">Streamlines Analysis and Connectivity</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/bundle_shape_similarity.html">BUAN Bundle Shape Similarity Score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/bundle_assignment_maps.html">BUAN Bundle Assignment Maps Creation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/afq_tract_profiles.html">Extracting AFQ tract profiles from segmented bundles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/cluster_confidence.html">Calculation of Outliers with Cluster Confidence Index</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/streamline_length.html">Streamline length and size reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/path_length_map.html">Calculate Path Length Map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/streamline_tools.html">Connectivity Matrices, ROI Intersections and Density Maps</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../registration/index.html">Registration</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../registration/bundle_group_registration.html">Groupwise Bundle Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/bundle_registration.html">Direct Bundle Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/register_binary_fuzzy.html">Diffeomorphic Registration with binary and fuzzy images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/syn_registration_3d.html">Symmetric Diffeomorphic Registration in 3D</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/syn_registration_2d.html">Symmetric Diffeomorphic Registration in 2D</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/bundlewarp_registration.html">Nonrigid Bundle Registration with BundleWarp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/streamline_registration.html">Applying image-based deformations to streamlines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/affine_registration_masks.html">Affine Registration with Masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/affine_registration_3d.html">Affine Registration in 3D</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Segmentation</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="brain_extraction_dwi_1.html">Brain segmentation with median_otsu</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Tissue Classification using Diffusion MRI with DAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="segment_quickbundles.html">Tractography Clustering with QuickBundles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tissue_classification.html">Tissue Classification of a T1-weighted Structural Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="segment_clustering_metrics.html">Tractography Clustering - Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fast_streamline_search.html">Fast Streamline Search</a></li>
+<li class="toctree-l2"><a class="reference internal" href="segment_extending_clustering_framework.html">Enhancing QuickBundles with different metrics and features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="segment_clustering_features.html">Tractography Clustering - Available Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bundle_extraction.html">Automatic Fiber Bundle Extraction with RecoBundles</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../simulations/index.html">Simulation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../simulations/reconst_dsid_1.html">DSI Deconvolution (DSID) vs DSI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../simulations/simulate_dki.html">DKI MultiTensor Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../simulations/simulate_multi_tensor.html">MultiTensor Simulation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../multiprocessing/index.html">Multiprocessing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../multiprocessing/reconst_csa_parallel.html">Parallel reconstruction using Q-Ball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multiprocessing/reconst_csd_parallel.html">Parallel reconstruction using CSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multiprocessing/tracking_fast_tractography.html">An introduction to the Fast Tracking Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multiprocessing/tracking_disco_phantom.html">Tractography on the DiSCo Phantom</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../file_formats/index.html">File Formats</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../file_formats/streamline_formats.html">Read/Write streamline files</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../visualization/index.html">Visualization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_roi_contour.html">Visualization of ROI Surface Rendered with Streamlines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_bundles.html">Visualize bundles and metrics on bundles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_slice.html">Simple volume slicing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_advanced.html">Advanced interactive visualization</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workflows/index.html">Workflows</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workflows/workflow_creation.html">Creating a new workflow.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../workflows/combined_workflow_creation.html">Creating a new combined workflow</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Examples</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Segmentation</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Tissue...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-examples-built-segmentation-tissue-classification-dam-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="tissue-classification-using-diffusion-mri-with-dam">
+<span id="sphx-glr-examples-built-segmentation-tissue-classification-dam-py"></span><h1>Tissue Classification using Diffusion MRI with DAM<a class="headerlink" href="#tissue-classification-using-diffusion-mri-with-dam" title="Link to this heading">#</a></h1>
+<p>This example demonstrates tissue classification of white matter (WM) and gray matter
+(GM) from multi-shell diffusion MRI data using the Directional Average Maps (DAM)
+proposed by <a class="footnote-reference brackets" href="#footcite-cheng2020" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. DAM uses the diffusion properties of the tissue to
+classify the voxels into WM and GM by fitting a polynomial model to the diffusion
+signal. The process involves preprocessing steps including skull-stripping with
+median otsu, denoising with Patch2Self, and then perform tissue classification.</p>
+<p>Let’s start by loading the necessary modules:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span>
+<span class="kn">from</span> <span class="nn">dipy.denoise.patch2self</span> <span class="kn">import</span> <a href="../../reference/dipy.denoise.html#dipy.denoise.patch2self.patch2self" title="dipy.denoise.patch2self.patch2self" class="sphx-glr-backref-module-dipy-denoise-patch2self sphx-glr-backref-type-py-function"><span class="n">patch2self</span></a>
+<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a>
+<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a>
+<span class="kn">from</span> <span class="nn">dipy.segment.tissue</span> <span class="kn">import</span> <a href="../../reference/dipy.segment.html#dipy.segment.tissue.dam_classifier" title="dipy.segment.tissue.dam_classifier" class="sphx-glr-backref-module-dipy-segment-tissue sphx-glr-backref-type-py-function"><span class="n">dam_classifier</span></a>
+<span class="kn">from</span> <span class="nn">dipy.viz.plotting</span> <span class="kn">import</span> <a href="../../reference/dipy.viz.html#dipy.viz.plotting.image_mosaic" title="dipy.viz.plotting.image_mosaic" class="sphx-glr-backref-module-dipy-viz-plotting sphx-glr-backref-type-py-function"><span class="n">image_mosaic</span></a>
+</pre></div>
+</div>
+<p>First we fetch the diffusion image, bvalues and bvectors from the cfin dataset.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fraw</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbval</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbvec</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t1_fname</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;cfin_multib&quot;</span><span class="p">)</span>
+
+<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fraw</span></a><span class="p">)</span>
+<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbval</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fbvec</span></a><span class="p">)</span>
+<a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After loading the diffusion data, we can apply the median_otsu algorithm to
+skull-strip the data and obtain a binary mask. We can then use the mask to
+denoise the data using the Patch2Self algorithm.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">b0_mask</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">median_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">numpass</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">vol_idx</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">denoised_arr</span> <span class="o">=</span> <a href="../../reference/dipy.denoise.html#dipy.denoise.patch2self.patch2self" title="dipy.denoise.patch2self.patch2self" class="sphx-glr-backref-module-dipy-denoise-patch2self sphx-glr-backref-type-py-function"><span class="n">patch2self</span></a><span class="p">(</span><span class="n">b0_mask</span><span class="p">,</span> <span class="n">bvals</span><span class="o">=</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_denoising</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Fitting and Denoising:   0%|                                                                                | 0/496 [00:00&lt;?, ?it/s]
+Fitting and Denoising:   0%|▎                                                                       | 2/496 [00:00&lt;02:22,  3.48it/s]
+Fitting and Denoising:   1%|▍                                                                       | 3/496 [00:01&lt;03:04,  2.67it/s]
+Fitting and Denoising:   1%|▌                                                                       | 4/496 [00:01&lt;03:18,  2.47it/s]
+Fitting and Denoising:   1%|▋                                                                       | 5/496 [00:02&lt;03:32,  2.31it/s]
+Fitting and Denoising:   1%|▊                                                                       | 6/496 [00:02&lt;03:40,  2.22it/s]
+Fitting and Denoising:   1%|█                                                                       | 7/496 [00:02&lt;03:44,  2.18it/s]
+Fitting and Denoising:   2%|█▏                                                                      | 8/496 [00:03&lt;03:44,  2.17it/s]
+Fitting and Denoising:   2%|█▎                                                                      | 9/496 [00:03&lt;03:46,  2.15it/s]
+Fitting and Denoising:   2%|█▍                                                                     | 10/496 [00:04&lt;03:47,  2.14it/s]
+Fitting and Denoising:   2%|█▌                                                                     | 11/496 [00:04&lt;03:49,  2.11it/s]
+Fitting and Denoising:   2%|█▋                                                                     | 12/496 [00:05&lt;03:48,  2.12it/s]
+Fitting and Denoising:   3%|█▊                                                                     | 13/496 [00:05&lt;03:46,  2.13it/s]
+Fitting and Denoising:   3%|██                                                                     | 14/496 [00:06&lt;03:43,  2.15it/s]
+Fitting and Denoising:   3%|██▏                                                                    | 15/496 [00:06&lt;03:41,  2.17it/s]
+Fitting and Denoising:   3%|██▎                                                                    | 16/496 [00:07&lt;03:49,  2.09it/s]
+Fitting and Denoising:   3%|██▍                                                                    | 17/496 [00:07&lt;03:48,  2.10it/s]
+Fitting and Denoising:   4%|██▌                                                                    | 18/496 [00:08&lt;03:48,  2.09it/s]
+Fitting and Denoising:   4%|██▋                                                                    | 19/496 [00:08&lt;03:44,  2.13it/s]
+Fitting and Denoising:   4%|██▊                                                                    | 20/496 [00:09&lt;03:49,  2.07it/s]
+Fitting and Denoising:   4%|███                                                                    | 21/496 [00:09&lt;03:46,  2.10it/s]
+Fitting and Denoising:   4%|███▏                                                                   | 22/496 [00:10&lt;03:44,  2.11it/s]
+Fitting and Denoising:   5%|███▎                                                                   | 23/496 [00:10&lt;03:40,  2.14it/s]
+Fitting and Denoising:   5%|███▍                                                                   | 24/496 [00:11&lt;03:44,  2.11it/s]
+Fitting and Denoising:   5%|███▌                                                                   | 25/496 [00:11&lt;03:41,  2.13it/s]
+Fitting and Denoising:   5%|███▋                                                                   | 26/496 [00:11&lt;03:42,  2.11it/s]
+Fitting and Denoising:   5%|███▊                                                                   | 27/496 [00:12&lt;03:40,  2.13it/s]
+Fitting and Denoising:   6%|████                                                                   | 28/496 [00:12&lt;03:38,  2.15it/s]
+Fitting and Denoising:   6%|████▏                                                                  | 29/496 [00:13&lt;03:35,  2.17it/s]
+Fitting and Denoising:   6%|████▎                                                                  | 30/496 [00:13&lt;03:38,  2.13it/s]
+Fitting and Denoising:   6%|████▍                                                                  | 31/496 [00:14&lt;03:37,  2.14it/s]
+Fitting and Denoising:   6%|████▌                                                                  | 32/496 [00:14&lt;03:33,  2.17it/s]
+Fitting and Denoising:   7%|████▋                                                                  | 33/496 [00:15&lt;03:38,  2.11it/s]
+Fitting and Denoising:   7%|████▊                                                                  | 34/496 [00:15&lt;03:37,  2.13it/s]
+Fitting and Denoising:   7%|█████                                                                  | 35/496 [00:16&lt;03:40,  2.09it/s]
+Fitting and Denoising:   7%|█████▏                                                                 | 36/496 [00:16&lt;03:36,  2.13it/s]
+Fitting and Denoising:   7%|█████▎                                                                 | 37/496 [00:17&lt;03:42,  2.07it/s]
+Fitting and Denoising:   8%|█████▍                                                                 | 38/496 [00:17&lt;03:39,  2.09it/s]
+Fitting and Denoising:   8%|█████▌                                                                 | 39/496 [00:18&lt;03:38,  2.09it/s]
+Fitting and Denoising:   8%|█████▋                                                                 | 40/496 [00:18&lt;03:36,  2.10it/s]
+Fitting and Denoising:   8%|█████▊                                                                 | 41/496 [00:19&lt;03:40,  2.07it/s]
+Fitting and Denoising:   8%|██████                                                                 | 42/496 [00:19&lt;03:34,  2.11it/s]
+Fitting and Denoising:   9%|██████▏                                                                | 43/496 [00:20&lt;03:38,  2.07it/s]
+Fitting and Denoising:   9%|██████▎                                                                | 44/496 [00:20&lt;03:34,  2.11it/s]
+Fitting and Denoising:   9%|██████▍                                                                | 45/496 [00:21&lt;03:40,  2.04it/s]
+Fitting and Denoising:   9%|██████▌                                                                | 46/496 [00:21&lt;03:35,  2.09it/s]
+Fitting and Denoising:   9%|██████▋                                                                | 47/496 [00:21&lt;03:34,  2.09it/s]
+Fitting and Denoising:  10%|██████▊                                                                | 48/496 [00:22&lt;03:30,  2.13it/s]
+Fitting and Denoising:  10%|███████                                                                | 49/496 [00:22&lt;03:32,  2.11it/s]
+Fitting and Denoising:  10%|███████▏                                                               | 50/496 [00:23&lt;03:34,  2.07it/s]
+Fitting and Denoising:  10%|███████▎                                                               | 51/496 [00:23&lt;03:31,  2.10it/s]
+Fitting and Denoising:  10%|███████▍                                                               | 52/496 [00:24&lt;03:30,  2.11it/s]
+Fitting and Denoising:  11%|███████▌                                                               | 53/496 [00:24&lt;03:28,  2.12it/s]
+Fitting and Denoising:  11%|███████▋                                                               | 54/496 [00:25&lt;03:31,  2.09it/s]
+Fitting and Denoising:  11%|███████▊                                                               | 55/496 [00:25&lt;03:31,  2.08it/s]
+Fitting and Denoising:  11%|████████                                                               | 56/496 [00:26&lt;03:31,  2.08it/s]
+Fitting and Denoising:  11%|████████▏                                                              | 57/496 [00:26&lt;03:26,  2.13it/s]
+Fitting and Denoising:  12%|████████▎                                                              | 58/496 [00:27&lt;03:30,  2.08it/s]
+Fitting and Denoising:  12%|████████▍                                                              | 59/496 [00:27&lt;03:26,  2.12it/s]
+Fitting and Denoising:  12%|████████▌                                                              | 60/496 [00:28&lt;03:29,  2.08it/s]
+Fitting and Denoising:  12%|████████▋                                                              | 61/496 [00:28&lt;03:24,  2.13it/s]
+Fitting and Denoising:  12%|████████▉                                                              | 62/496 [00:29&lt;03:26,  2.10it/s]
+Fitting and Denoising:  13%|█████████                                                              | 63/496 [00:29&lt;03:22,  2.14it/s]
+Fitting and Denoising:  13%|█████████▏                                                             | 64/496 [00:29&lt;03:23,  2.12it/s]
+Fitting and Denoising:  13%|█████████▎                                                             | 65/496 [00:30&lt;03:25,  2.10it/s]
+Fitting and Denoising:  13%|█████████▍                                                             | 66/496 [00:30&lt;03:24,  2.10it/s]
+Fitting and Denoising:  14%|█████████▌                                                             | 67/496 [00:31&lt;03:22,  2.12it/s]
+Fitting and Denoising:  14%|█████████▋                                                             | 68/496 [00:31&lt;03:22,  2.12it/s]
+Fitting and Denoising:  14%|█████████▉                                                             | 69/496 [00:32&lt;03:19,  2.14it/s]
+Fitting and Denoising:  14%|██████████                                                             | 70/496 [00:32&lt;03:19,  2.13it/s]
+Fitting and Denoising:  14%|██████████▏                                                            | 71/496 [00:33&lt;03:27,  2.05it/s]
+Fitting and Denoising:  15%|██████████▎                                                            | 72/496 [00:33&lt;03:24,  2.08it/s]
+Fitting and Denoising:  15%|██████████▍                                                            | 73/496 [00:34&lt;03:21,  2.10it/s]
+Fitting and Denoising:  15%|██████████▌                                                            | 74/496 [00:34&lt;03:16,  2.15it/s]
+Fitting and Denoising:  15%|██████████▋                                                            | 75/496 [00:35&lt;03:21,  2.09it/s]
+Fitting and Denoising:  15%|██████████▉                                                            | 76/496 [00:35&lt;03:17,  2.12it/s]
+Fitting and Denoising:  16%|███████████                                                            | 77/496 [00:36&lt;03:14,  2.15it/s]
+Fitting and Denoising:  16%|███████████▏                                                           | 78/496 [00:36&lt;03:13,  2.17it/s]
+Fitting and Denoising:  16%|███████████▎                                                           | 79/496 [00:37&lt;03:18,  2.10it/s]
+Fitting and Denoising:  16%|███████████▍                                                           | 80/496 [00:37&lt;03:17,  2.11it/s]
+Fitting and Denoising:  16%|███████████▌                                                           | 81/496 [00:38&lt;03:17,  2.10it/s]
+Fitting and Denoising:  17%|███████████▋                                                           | 82/496 [00:38&lt;03:13,  2.14it/s]
+Fitting and Denoising:  17%|███████████▉                                                           | 83/496 [00:38&lt;03:16,  2.10it/s]
+Fitting and Denoising:  17%|████████████                                                           | 84/496 [00:39&lt;03:14,  2.12it/s]
+Fitting and Denoising:  17%|████████████▏                                                          | 85/496 [00:39&lt;03:14,  2.12it/s]
+Fitting and Denoising:  17%|████████████▎                                                          | 86/496 [00:40&lt;03:13,  2.12it/s]
+Fitting and Denoising:  18%|████████████▍                                                          | 87/496 [00:40&lt;03:12,  2.12it/s]
+Fitting and Denoising:  18%|████████████▌                                                          | 88/496 [00:41&lt;03:10,  2.15it/s]
+Fitting and Denoising:  18%|████████████▋                                                          | 89/496 [00:41&lt;03:12,  2.12it/s]
+Fitting and Denoising:  18%|████████████▉                                                          | 90/496 [00:42&lt;03:11,  2.12it/s]
+Fitting and Denoising:  18%|█████████████                                                          | 91/496 [00:42&lt;03:07,  2.16it/s]
+Fitting and Denoising:  19%|█████████████▏                                                         | 92/496 [00:43&lt;03:09,  2.13it/s]
+Fitting and Denoising:  19%|█████████████▎                                                         | 93/496 [00:43&lt;03:06,  2.16it/s]
+Fitting and Denoising:  19%|█████████████▍                                                         | 94/496 [00:44&lt;03:12,  2.09it/s]
+Fitting and Denoising:  19%|█████████████▌                                                         | 95/496 [00:44&lt;03:10,  2.11it/s]
+Fitting and Denoising:  19%|█████████████▋                                                         | 96/496 [00:45&lt;03:10,  2.10it/s]
+Fitting and Denoising:  20%|█████████████▉                                                         | 97/496 [00:45&lt;03:06,  2.14it/s]
+Fitting and Denoising:  20%|██████████████                                                         | 98/496 [00:46&lt;03:09,  2.10it/s]
+Fitting and Denoising:  20%|██████████████▏                                                        | 99/496 [00:46&lt;03:21,  1.97it/s]
+Fitting and Denoising:  20%|██████████████                                                        | 100/496 [00:47&lt;03:17,  2.00it/s]
+Fitting and Denoising:  20%|██████████████▎                                                       | 101/496 [00:47&lt;03:14,  2.03it/s]
+Fitting and Denoising:  21%|██████████████▍                                                       | 102/496 [00:48&lt;03:13,  2.04it/s]
+Fitting and Denoising:  21%|██████████████▌                                                       | 103/496 [00:48&lt;03:07,  2.10it/s]
+Fitting and Denoising:  21%|██████████████▋                                                       | 104/496 [00:49&lt;03:11,  2.05it/s]
+Fitting and Denoising:  21%|██████████████▊                                                       | 105/496 [00:49&lt;03:05,  2.11it/s]
+Fitting and Denoising:  21%|██████████████▉                                                       | 106/496 [00:49&lt;03:05,  2.11it/s]
+Fitting and Denoising:  22%|███████████████                                                       | 107/496 [00:50&lt;03:02,  2.14it/s]
+Fitting and Denoising:  22%|███████████████▏                                                      | 108/496 [00:50&lt;03:03,  2.12it/s]
+Fitting and Denoising:  22%|███████████████▍                                                      | 109/496 [00:51&lt;03:05,  2.08it/s]
+Fitting and Denoising:  22%|███████████████▌                                                      | 110/496 [00:51&lt;03:04,  2.09it/s]
+Fitting and Denoising:  22%|███████████████▋                                                      | 111/496 [00:52&lt;03:02,  2.11it/s]
+Fitting and Denoising:  23%|███████████████▊                                                      | 112/496 [00:52&lt;02:58,  2.15it/s]
+Fitting and Denoising:  23%|███████████████▉                                                      | 113/496 [00:53&lt;03:04,  2.08it/s]
+Fitting and Denoising:  23%|████████████████                                                      | 114/496 [00:53&lt;03:00,  2.12it/s]
+Fitting and Denoising:  23%|████████████████▏                                                     | 115/496 [00:54&lt;03:07,  2.03it/s]
+Fitting and Denoising:  23%|████████████████▎                                                     | 116/496 [00:54&lt;03:03,  2.07it/s]
+Fitting and Denoising:  24%|████████████████▌                                                     | 117/496 [00:55&lt;03:14,  1.95it/s]
+Fitting and Denoising:  24%|████████████████▋                                                     | 118/496 [00:55&lt;03:13,  1.95it/s]
+Fitting and Denoising:  24%|████████████████▊                                                     | 119/496 [00:56&lt;03:11,  1.97it/s]
+Fitting and Denoising:  24%|████████████████▉                                                     | 120/496 [00:56&lt;03:05,  2.03it/s]
+Fitting and Denoising:  24%|█████████████████                                                     | 121/496 [00:57&lt;03:03,  2.05it/s]
+Fitting and Denoising:  25%|█████████████████▏                                                    | 122/496 [00:57&lt;02:59,  2.09it/s]
+Fitting and Denoising:  25%|█████████████████▎                                                    | 123/496 [00:58&lt;03:00,  2.06it/s]
+Fitting and Denoising:  25%|█████████████████▌                                                    | 124/496 [00:58&lt;02:59,  2.08it/s]
+Fitting and Denoising:  25%|█████████████████▋                                                    | 125/496 [00:59&lt;03:01,  2.05it/s]
+Fitting and Denoising:  25%|█████████████████▊                                                    | 126/496 [00:59&lt;02:54,  2.12it/s]
+Fitting and Denoising:  26%|█████████████████▉                                                    | 127/496 [01:00&lt;02:55,  2.10it/s]
+Fitting and Denoising:  26%|██████████████████                                                    | 128/496 [01:00&lt;02:53,  2.12it/s]
+Fitting and Denoising:  26%|██████████████████▏                                                   | 129/496 [01:01&lt;02:56,  2.08it/s]
+Fitting and Denoising:  26%|██████████████████▎                                                   | 130/496 [01:01&lt;02:53,  2.11it/s]
+Fitting and Denoising:  26%|██████████████████▍                                                   | 131/496 [01:02&lt;02:54,  2.09it/s]
+Fitting and Denoising:  27%|██████████████████▋                                                   | 132/496 [01:02&lt;02:52,  2.11it/s]
+Fitting and Denoising:  27%|██████████████████▊                                                   | 133/496 [01:02&lt;02:54,  2.08it/s]
+Fitting and Denoising:  27%|██████████████████▉                                                   | 134/496 [01:03&lt;02:52,  2.10it/s]
+Fitting and Denoising:  27%|███████████████████                                                   | 135/496 [01:03&lt;02:50,  2.12it/s]
+Fitting and Denoising:  27%|███████████████████▏                                                  | 136/496 [01:04&lt;02:50,  2.12it/s]
+Fitting and Denoising:  28%|███████████████████▎                                                  | 137/496 [01:04&lt;02:50,  2.11it/s]
+Fitting and Denoising:  28%|███████████████████▍                                                  | 138/496 [01:05&lt;02:49,  2.12it/s]
+Fitting and Denoising:  28%|███████████████████▌                                                  | 139/496 [01:05&lt;02:45,  2.15it/s]
+Fitting and Denoising:  28%|███████████████████▊                                                  | 140/496 [01:06&lt;02:46,  2.14it/s]
+Fitting and Denoising:  28%|███████████████████▉                                                  | 141/496 [01:06&lt;02:42,  2.19it/s]
+Fitting and Denoising:  29%|████████████████████                                                  | 142/496 [01:07&lt;02:48,  2.09it/s]
+Fitting and Denoising:  29%|████████████████████▏                                                 | 143/496 [01:07&lt;02:46,  2.12it/s]
+Fitting and Denoising:  29%|████████████████████▎                                                 | 144/496 [01:08&lt;02:47,  2.10it/s]
+Fitting and Denoising:  29%|████████████████████▍                                                 | 145/496 [01:08&lt;02:43,  2.14it/s]
+Fitting and Denoising:  29%|████████████████████▌                                                 | 146/496 [01:09&lt;02:46,  2.10it/s]
+Fitting and Denoising:  30%|████████████████████▋                                                 | 147/496 [01:09&lt;02:46,  2.10it/s]
+Fitting and Denoising:  30%|████████████████████▉                                                 | 148/496 [01:10&lt;02:46,  2.08it/s]
+Fitting and Denoising:  30%|█████████████████████                                                 | 149/496 [01:10&lt;02:42,  2.13it/s]
+Fitting and Denoising:  30%|█████████████████████▏                                                | 150/496 [01:11&lt;02:44,  2.10it/s]
+Fitting and Denoising:  30%|█████████████████████▎                                                | 151/496 [01:11&lt;02:41,  2.14it/s]
+Fitting and Denoising:  31%|█████████████████████▍                                                | 152/496 [01:11&lt;02:45,  2.07it/s]
+Fitting and Denoising:  31%|█████████████████████▌                                                | 153/496 [01:12&lt;02:43,  2.10it/s]
+Fitting and Denoising:  31%|█████████████████████▋                                                | 154/496 [01:12&lt;02:43,  2.09it/s]
+Fitting and Denoising:  31%|█████████████████████▉                                                | 155/496 [01:13&lt;02:41,  2.11it/s]
+Fitting and Denoising:  31%|██████████████████████                                                | 156/496 [01:13&lt;02:40,  2.12it/s]
+Fitting and Denoising:  32%|██████████████████████▏                                               | 157/496 [01:14&lt;02:43,  2.08it/s]
+Fitting and Denoising:  32%|██████████████████████▎                                               | 158/496 [01:14&lt;02:40,  2.10it/s]
+Fitting and Denoising:  32%|██████████████████████▍                                               | 159/496 [01:15&lt;02:41,  2.09it/s]
+Fitting and Denoising:  32%|██████████████████████▌                                               | 160/496 [01:15&lt;02:37,  2.14it/s]
+Fitting and Denoising:  32%|██████████████████████▋                                               | 161/496 [01:16&lt;02:36,  2.14it/s]
+Fitting and Denoising:  33%|██████████████████████▊                                               | 162/496 [01:16&lt;02:37,  2.12it/s]
+Fitting and Denoising:  33%|███████████████████████                                               | 163/496 [01:17&lt;02:39,  2.08it/s]
+Fitting and Denoising:  33%|███████████████████████▏                                              | 164/496 [01:17&lt;02:36,  2.12it/s]
+Fitting and Denoising:  33%|███████████████████████▎                                              | 165/496 [01:18&lt;02:39,  2.08it/s]
+Fitting and Denoising:  33%|███████████████████████▍                                              | 166/496 [01:18&lt;02:35,  2.12it/s]
+Fitting and Denoising:  34%|███████████████████████▌                                              | 167/496 [01:19&lt;02:40,  2.05it/s]
+Fitting and Denoising:  34%|███████████████████████▋                                              | 168/496 [01:19&lt;02:37,  2.08it/s]
+Fitting and Denoising:  34%|███████████████████████▊                                              | 169/496 [01:20&lt;02:36,  2.09it/s]
+Fitting and Denoising:  34%|███████████████████████▉                                              | 170/496 [01:20&lt;02:31,  2.15it/s]
+Fitting and Denoising:  34%|████████████████████████▏                                             | 171/496 [01:20&lt;02:33,  2.12it/s]
+Fitting and Denoising:  35%|████████████████████████▎                                             | 172/496 [01:21&lt;02:33,  2.10it/s]
+Fitting and Denoising:  35%|████████████████████████▍                                             | 173/496 [01:21&lt;02:32,  2.11it/s]
+Fitting and Denoising:  35%|████████████████████████▌                                             | 174/496 [01:22&lt;02:30,  2.14it/s]
+Fitting and Denoising:  35%|████████████████████████▋                                             | 175/496 [01:22&lt;02:32,  2.11it/s]
+Fitting and Denoising:  35%|████████████████████████▊                                             | 176/496 [01:23&lt;02:29,  2.14it/s]
+Fitting and Denoising:  36%|████████████████████████▉                                             | 177/496 [01:23&lt;02:30,  2.12it/s]
+Fitting and Denoising:  36%|█████████████████████████                                             | 178/496 [01:24&lt;02:31,  2.09it/s]
+Fitting and Denoising:  36%|█████████████████████████▎                                            | 179/496 [01:24&lt;02:27,  2.15it/s]
+Fitting and Denoising:  36%|█████████████████████████▍                                            | 180/496 [01:25&lt;02:27,  2.15it/s]
+Fitting and Denoising:  36%|█████████████████████████▌                                            | 181/496 [01:25&lt;02:24,  2.18it/s]
+Fitting and Denoising:  37%|█████████████████████████▋                                            | 182/496 [01:26&lt;02:31,  2.07it/s]
+Fitting and Denoising:  37%|█████████████████████████▊                                            | 183/496 [01:26&lt;02:27,  2.12it/s]
+Fitting and Denoising:  37%|█████████████████████████▉                                            | 184/496 [01:27&lt;02:29,  2.09it/s]
+Fitting and Denoising:  37%|██████████████████████████                                            | 185/496 [01:27&lt;02:26,  2.12it/s]
+Fitting and Denoising:  38%|██████████████████████████▎                                           | 186/496 [01:28&lt;02:28,  2.09it/s]
+Fitting and Denoising:  38%|██████████████████████████▍                                           | 187/496 [01:28&lt;02:26,  2.11it/s]
+Fitting and Denoising:  38%|██████████████████████████▌                                           | 188/496 [01:29&lt;02:27,  2.08it/s]
+Fitting and Denoising:  38%|██████████████████████████▋                                           | 189/496 [01:29&lt;02:24,  2.13it/s]
+Fitting and Denoising:  38%|██████████████████████████▊                                           | 190/496 [01:29&lt;02:24,  2.11it/s]
+Fitting and Denoising:  39%|██████████████████████████▉                                           | 191/496 [01:30&lt;02:25,  2.10it/s]
+Fitting and Denoising:  39%|███████████████████████████                                           | 192/496 [01:30&lt;02:25,  2.08it/s]
+Fitting and Denoising:  39%|███████████████████████████▏                                          | 193/496 [01:31&lt;02:22,  2.13it/s]
+Fitting and Denoising:  39%|███████████████████████████▍                                          | 194/496 [01:31&lt;02:22,  2.12it/s]
+Fitting and Denoising:  39%|███████████████████████████▌                                          | 195/496 [01:32&lt;02:21,  2.12it/s]
+Fitting and Denoising:  40%|███████████████████████████▋                                          | 196/496 [01:32&lt;02:21,  2.12it/s]
+Fitting and Denoising:  40%|███████████████████████████▊                                          | 197/496 [01:33&lt;02:21,  2.11it/s]
+Fitting and Denoising:  40%|███████████████████████████▉                                          | 198/496 [01:33&lt;02:27,  2.02it/s]
+Fitting and Denoising:  40%|████████████████████████████                                          | 199/496 [01:34&lt;02:23,  2.07it/s]
+Fitting and Denoising:  40%|████████████████████████████▏                                         | 200/496 [01:34&lt;02:20,  2.10it/s]
+Fitting and Denoising:  41%|████████████████████████████▎                                         | 201/496 [01:35&lt;02:25,  2.03it/s]
+Fitting and Denoising:  41%|████████████████████████████▌                                         | 202/496 [01:35&lt;02:20,  2.10it/s]
+Fitting and Denoising:  41%|████████████████████████████▋                                         | 203/496 [01:36&lt;02:17,  2.13it/s]
+Fitting and Denoising:  41%|████████████████████████████▊                                         | 204/496 [01:36&lt;02:15,  2.15it/s]
+Fitting and Denoising:  41%|████████████████████████████▉                                         | 205/496 [01:37&lt;02:18,  2.09it/s]
+Fitting and Denoising:  42%|█████████████████████████████                                         | 206/496 [01:37&lt;02:19,  2.08it/s]
+Fitting and Denoising:  42%|█████████████████████████████▏                                        | 207/496 [01:38&lt;02:18,  2.08it/s]
+Fitting and Denoising:  42%|█████████████████████████████▎                                        | 208/496 [01:38&lt;02:15,  2.13it/s]
+Fitting and Denoising:  42%|█████████████████████████████▍                                        | 209/496 [01:39&lt;02:17,  2.09it/s]
+Fitting and Denoising:  42%|█████████████████████████████▋                                        | 210/496 [01:39&lt;02:13,  2.14it/s]
+Fitting and Denoising:  43%|█████████████████████████████▊                                        | 211/496 [01:39&lt;02:17,  2.08it/s]
+Fitting and Denoising:  43%|█████████████████████████████▉                                        | 212/496 [01:40&lt;02:15,  2.10it/s]
+Fitting and Denoising:  43%|██████████████████████████████                                        | 213/496 [01:40&lt;02:15,  2.09it/s]
+Fitting and Denoising:  43%|██████████████████████████████▏                                       | 214/496 [01:41&lt;02:12,  2.12it/s]
+Fitting and Denoising:  43%|██████████████████████████████▎                                       | 215/496 [01:41&lt;02:10,  2.15it/s]
+Fitting and Denoising:  44%|██████████████████████████████▍                                       | 216/496 [01:42&lt;02:13,  2.09it/s]
+Fitting and Denoising:  44%|██████████████████████████████▋                                       | 217/496 [01:42&lt;02:11,  2.12it/s]
+Fitting and Denoising:  44%|██████████████████████████████▊                                       | 218/496 [01:43&lt;02:10,  2.13it/s]
+Fitting and Denoising:  44%|██████████████████████████████▉                                       | 219/496 [01:43&lt;02:09,  2.14it/s]
+Fitting and Denoising:  44%|███████████████████████████████                                       | 220/496 [01:44&lt;02:11,  2.10it/s]
+Fitting and Denoising:  45%|███████████████████████████████▏                                      | 221/496 [01:44&lt;02:11,  2.09it/s]
+Fitting and Denoising:  45%|███████████████████████████████▎                                      | 222/496 [01:45&lt;02:11,  2.09it/s]
+Fitting and Denoising:  45%|███████████████████████████████▍                                      | 223/496 [01:45&lt;02:09,  2.11it/s]
+Fitting and Denoising:  45%|███████████████████████████████▌                                      | 224/496 [01:46&lt;02:11,  2.07it/s]
+Fitting and Denoising:  45%|███████████████████████████████▊                                      | 225/496 [01:46&lt;02:09,  2.10it/s]
+Fitting and Denoising:  46%|███████████████████████████████▉                                      | 226/496 [01:47&lt;02:10,  2.07it/s]
+Fitting and Denoising:  46%|████████████████████████████████                                      | 227/496 [01:47&lt;02:07,  2.11it/s]
+Fitting and Denoising:  46%|████████████████████████████████▏                                     | 228/496 [01:48&lt;02:08,  2.09it/s]
+Fitting and Denoising:  46%|████████████████████████████████▎                                     | 229/496 [01:48&lt;02:07,  2.10it/s]
+Fitting and Denoising:  46%|████████████████████████████████▍                                     | 230/496 [01:49&lt;02:07,  2.09it/s]
+Fitting and Denoising:  47%|████████████████████████████████▌                                     | 231/496 [01:49&lt;02:05,  2.10it/s]
+Fitting and Denoising:  47%|████████████████████████████████▋                                     | 232/496 [01:49&lt;02:05,  2.11it/s]
+Fitting and Denoising:  47%|████████████████████████████████▉                                     | 233/496 [01:50&lt;02:03,  2.14it/s]
+Fitting and Denoising:  47%|█████████████████████████████████                                     | 234/496 [01:50&lt;02:03,  2.11it/s]
+Fitting and Denoising:  47%|█████████████████████████████████▏                                    | 235/496 [01:51&lt;02:03,  2.11it/s]
+Fitting and Denoising:  48%|█████████████████████████████████▎                                    | 236/496 [01:51&lt;02:03,  2.11it/s]
+Fitting and Denoising:  48%|█████████████████████████████████▍                                    | 237/496 [01:52&lt;02:01,  2.13it/s]
+Fitting and Denoising:  48%|█████████████████████████████████▌                                    | 238/496 [01:52&lt;02:00,  2.15it/s]
+Fitting and Denoising:  48%|█████████████████████████████████▋                                    | 239/496 [01:53&lt;02:00,  2.14it/s]
+Fitting and Denoising:  48%|█████████████████████████████████▊                                    | 240/496 [01:53&lt;02:00,  2.13it/s]
+Fitting and Denoising:  49%|██████████████████████████████████                                    | 241/496 [01:54&lt;02:02,  2.08it/s]
+Fitting and Denoising:  49%|██████████████████████████████████▏                                   | 242/496 [01:54&lt;02:00,  2.11it/s]
+Fitting and Denoising:  49%|██████████████████████████████████▎                                   | 243/496 [01:55&lt;01:59,  2.11it/s]
+Fitting and Denoising:  49%|██████████████████████████████████▍                                   | 244/496 [01:55&lt;01:56,  2.15it/s]
+Fitting and Denoising:  49%|██████████████████████████████████▌                                   | 245/496 [01:56&lt;02:00,  2.08it/s]
+Fitting and Denoising:  50%|██████████████████████████████████▋                                   | 246/496 [01:56&lt;01:58,  2.11it/s]
+Fitting and Denoising:  50%|██████████████████████████████████▊                                   | 247/496 [01:57&lt;01:58,  2.10it/s]
+Fitting and Denoising:  50%|███████████████████████████████████                                   | 248/496 [01:57&lt;01:55,  2.14it/s]
+Fitting and Denoising:  50%|███████████████████████████████████▏                                  | 249/496 [01:57&lt;01:56,  2.13it/s]
+Fitting and Denoising:  50%|███████████████████████████████████▎                                  | 250/496 [01:58&lt;01:55,  2.13it/s]
+Fitting and Denoising:  51%|███████████████████████████████████▍                                  | 251/496 [01:58&lt;01:54,  2.13it/s]
+Fitting and Denoising:  51%|███████████████████████████████████▌                                  | 252/496 [01:59&lt;01:53,  2.14it/s]
+Fitting and Denoising:  51%|███████████████████████████████████▋                                  | 253/496 [01:59&lt;01:54,  2.12it/s]
+Fitting and Denoising:  51%|███████████████████████████████████▊                                  | 254/496 [02:00&lt;01:54,  2.12it/s]
+Fitting and Denoising:  51%|███████████████████████████████████▉                                  | 255/496 [02:00&lt;01:55,  2.08it/s]
+Fitting and Denoising:  52%|████████████████████████████████████▏                                 | 256/496 [02:01&lt;01:54,  2.10it/s]
+Fitting and Denoising:  52%|████████████████████████████████████▎                                 | 257/496 [02:01&lt;01:51,  2.14it/s]
+Fitting and Denoising:  52%|████████████████████████████████████▍                                 | 258/496 [02:02&lt;01:52,  2.11it/s]
+Fitting and Denoising:  52%|████████████████████████████████████▌                                 | 259/496 [02:02&lt;01:49,  2.16it/s]
+Fitting and Denoising:  52%|████████████████████████████████████▋                                 | 260/496 [02:03&lt;01:53,  2.07it/s]
+Fitting and Denoising:  53%|████████████████████████████████████▊                                 | 261/496 [02:03&lt;01:51,  2.11it/s]
+Fitting and Denoising:  53%|████████████████████████████████████▉                                 | 262/496 [02:04&lt;01:51,  2.10it/s]
+Fitting and Denoising:  53%|█████████████████████████████████████                                 | 263/496 [02:04&lt;01:49,  2.12it/s]
+Fitting and Denoising:  53%|█████████████████████████████████████▎                                | 264/496 [02:05&lt;01:49,  2.11it/s]
+Fitting and Denoising:  53%|█████████████████████████████████████▍                                | 265/496 [02:05&lt;01:50,  2.10it/s]
+Fitting and Denoising:  54%|█████████████████████████████████████▌                                | 266/496 [02:06&lt;01:51,  2.07it/s]
+Fitting and Denoising:  54%|█████████████████████████████████████▋                                | 267/496 [02:06&lt;01:48,  2.11it/s]
+Fitting and Denoising:  54%|█████████████████████████████████████▊                                | 268/496 [02:06&lt;01:48,  2.09it/s]
+Fitting and Denoising:  54%|█████████████████████████████████████▉                                | 269/496 [02:07&lt;01:48,  2.10it/s]
+Fitting and Denoising:  54%|██████████████████████████████████████                                | 270/496 [02:07&lt;01:51,  2.04it/s]
+Fitting and Denoising:  55%|██████████████████████████████████████▏                               | 271/496 [02:08&lt;01:47,  2.09it/s]
+Fitting and Denoising:  55%|██████████████████████████████████████▍                               | 272/496 [02:08&lt;01:47,  2.09it/s]
+Fitting and Denoising:  55%|██████████████████████████████████████▌                               | 273/496 [02:09&lt;01:45,  2.11it/s]
+Fitting and Denoising:  55%|██████████████████████████████████████▋                               | 274/496 [02:09&lt;01:45,  2.11it/s]
+Fitting and Denoising:  55%|██████████████████████████████████████▊                               | 275/496 [02:10&lt;01:46,  2.08it/s]
+Fitting and Denoising:  56%|██████████████████████████████████████▉                               | 276/496 [02:10&lt;01:44,  2.11it/s]
+Fitting and Denoising:  56%|███████████████████████████████████████                               | 277/496 [02:11&lt;01:43,  2.12it/s]
+Fitting and Denoising:  56%|███████████████████████████████████████▏                              | 278/496 [02:11&lt;01:41,  2.14it/s]
+Fitting and Denoising:  56%|███████████████████████████████████████▍                              | 279/496 [02:12&lt;01:43,  2.10it/s]
+Fitting and Denoising:  56%|███████████████████████████████████████▌                              | 280/496 [02:12&lt;01:41,  2.13it/s]
+Fitting and Denoising:  57%|███████████████████████████████████████▋                              | 281/496 [02:13&lt;01:40,  2.14it/s]
+Fitting and Denoising:  57%|███████████████████████████████████████▊                              | 282/496 [02:13&lt;01:39,  2.16it/s]
+Fitting and Denoising:  57%|███████████████████████████████████████▉                              | 283/496 [02:14&lt;01:41,  2.09it/s]
+Fitting and Denoising:  57%|████████████████████████████████████████                              | 284/496 [02:14&lt;01:40,  2.11it/s]
+Fitting and Denoising:  57%|████████████████████████████████████████▏                             | 285/496 [02:15&lt;01:41,  2.08it/s]
+Fitting and Denoising:  58%|████████████████████████████████████████▎                             | 286/496 [02:15&lt;01:38,  2.14it/s]
+Fitting and Denoising:  58%|████████████████████████████████████████▌                             | 287/496 [02:15&lt;01:38,  2.12it/s]
+Fitting and Denoising:  58%|████████████████████████████████████████▋                             | 288/496 [02:16&lt;01:37,  2.14it/s]
+Fitting and Denoising:  58%|████████████████████████████████████████▊                             | 289/496 [02:16&lt;01:38,  2.11it/s]
+Fitting and Denoising:  58%|████████████████████████████████████████▉                             | 290/496 [02:17&lt;01:36,  2.14it/s]
+Fitting and Denoising:  59%|█████████████████████████████████████████                             | 291/496 [02:17&lt;01:36,  2.14it/s]
+Fitting and Denoising:  59%|█████████████████████████████████████████▏                            | 292/496 [02:18&lt;01:35,  2.14it/s]
+Fitting and Denoising:  59%|█████████████████████████████████████████▎                            | 293/496 [02:18&lt;01:33,  2.17it/s]
+Fitting and Denoising:  59%|█████████████████████████████████████████▍                            | 294/496 [02:19&lt;01:35,  2.12it/s]
+Fitting and Denoising:  59%|█████████████████████████████████████████▋                            | 295/496 [02:19&lt;01:33,  2.15it/s]
+Fitting and Denoising:  60%|█████████████████████████████████████████▊                            | 296/496 [02:20&lt;01:35,  2.09it/s]
+Fitting and Denoising:  60%|█████████████████████████████████████████▉                            | 297/496 [02:20&lt;01:33,  2.13it/s]
+Fitting and Denoising:  60%|██████████████████████████████████████████                            | 298/496 [02:21&lt;01:33,  2.12it/s]
+Fitting and Denoising:  60%|██████████████████████████████████████████▏                           | 299/496 [02:21&lt;01:33,  2.11it/s]
+Fitting and Denoising:  60%|██████████████████████████████████████████▎                           | 300/496 [02:22&lt;01:33,  2.10it/s]
+Fitting and Denoising:  61%|██████████████████████████████████████████▍                           | 301/496 [02:22&lt;01:32,  2.12it/s]
+Fitting and Denoising:  61%|██████████████████████████████████████████▌                           | 302/496 [02:23&lt;01:31,  2.11it/s]
+Fitting and Denoising:  61%|██████████████████████████████████████████▊                           | 303/496 [02:23&lt;01:29,  2.15it/s]
+Fitting and Denoising:  61%|██████████████████████████████████████████▉                           | 304/496 [02:24&lt;01:31,  2.10it/s]
+Fitting and Denoising:  61%|███████████████████████████████████████████                           | 305/496 [02:24&lt;01:30,  2.11it/s]
+Fitting and Denoising:  62%|███████████████████████████████████████████▏                          | 306/496 [02:24&lt;01:30,  2.10it/s]
+Fitting and Denoising:  62%|███████████████████████████████████████████▎                          | 307/496 [02:25&lt;01:28,  2.13it/s]
+Fitting and Denoising:  62%|███████████████████████████████████████████▍                          | 308/496 [02:25&lt;01:28,  2.13it/s]
+Fitting and Denoising:  62%|███████████████████████████████████████████▌                          | 309/496 [02:26&lt;01:29,  2.10it/s]
+Fitting and Denoising:  62%|███████████████████████████████████████████▊                          | 310/496 [02:26&lt;01:28,  2.10it/s]
+Fitting and Denoising:  63%|███████████████████████████████████████████▉                          | 311/496 [02:27&lt;01:27,  2.12it/s]
+Fitting and Denoising:  63%|████████████████████████████████████████████                          | 312/496 [02:27&lt;01:25,  2.16it/s]
+Fitting and Denoising:  63%|████████████████████████████████████████████▏                         | 313/496 [02:28&lt;01:26,  2.13it/s]
+Fitting and Denoising:  63%|████████████████████████████████████████████▎                         | 314/496 [02:28&lt;01:25,  2.13it/s]
+Fitting and Denoising:  64%|████████████████████████████████████████████▍                         | 315/496 [02:29&lt;01:26,  2.10it/s]
+Fitting and Denoising:  64%|████████████████████████████████████████████▌                         | 316/496 [02:29&lt;01:23,  2.16it/s]
+Fitting and Denoising:  64%|████████████████████████████████████████████▋                         | 317/496 [02:30&lt;01:23,  2.13it/s]
+Fitting and Denoising:  64%|████████████████████████████████████████████▉                         | 318/496 [02:30&lt;01:23,  2.14it/s]
+Fitting and Denoising:  64%|█████████████████████████████████████████████                         | 319/496 [02:31&lt;01:25,  2.07it/s]
+Fitting and Denoising:  65%|█████████████████████████████████████████████▏                        | 320/496 [02:31&lt;01:23,  2.12it/s]
+Fitting and Denoising:  65%|█████████████████████████████████████████████▎                        | 321/496 [02:32&lt;01:23,  2.10it/s]
+Fitting and Denoising:  65%|█████████████████████████████████████████████▍                        | 322/496 [02:32&lt;01:21,  2.14it/s]
+Fitting and Denoising:  65%|█████████████████████████████████████████████▌                        | 323/496 [02:32&lt;01:21,  2.12it/s]
+Fitting and Denoising:  65%|█████████████████████████████████████████████▋                        | 324/496 [02:33&lt;01:22,  2.08it/s]
+Fitting and Denoising:  66%|█████████████████████████████████████████████▊                        | 325/496 [02:33&lt;01:23,  2.06it/s]
+Fitting and Denoising:  66%|██████████████████████████████████████████████                        | 326/496 [02:34&lt;01:21,  2.09it/s]
+Fitting and Denoising:  66%|██████████████████████████████████████████████▏                       | 327/496 [02:34&lt;01:20,  2.11it/s]
+Fitting and Denoising:  66%|██████████████████████████████████████████████▎                       | 328/496 [02:35&lt;01:19,  2.11it/s]
+Fitting and Denoising:  66%|██████████████████████████████████████████████▍                       | 329/496 [02:35&lt;01:20,  2.08it/s]
+Fitting and Denoising:  67%|██████████████████████████████████████████████▌                       | 330/496 [02:36&lt;01:19,  2.09it/s]
+Fitting and Denoising:  67%|██████████████████████████████████████████████▋                       | 331/496 [02:36&lt;01:17,  2.12it/s]
+Fitting and Denoising:  67%|██████████████████████████████████████████████▊                       | 332/496 [02:37&lt;01:17,  2.12it/s]
+Fitting and Denoising:  67%|██████████████████████████████████████████████▉                       | 333/496 [02:37&lt;01:16,  2.14it/s]
+Fitting and Denoising:  67%|███████████████████████████████████████████████▏                      | 334/496 [02:38&lt;01:18,  2.05it/s]
+Fitting and Denoising:  68%|███████████████████████████████████████████████▎                      | 335/496 [02:38&lt;01:16,  2.11it/s]
+Fitting and Denoising:  68%|███████████████████████████████████████████████▍                      | 336/496 [02:39&lt;01:15,  2.11it/s]
+Fitting and Denoising:  68%|███████████████████████████████████████████████▌                      | 337/496 [02:39&lt;01:13,  2.15it/s]
+Fitting and Denoising:  68%|███████████████████████████████████████████████▋                      | 338/496 [02:40&lt;01:14,  2.12it/s]
+Fitting and Denoising:  68%|███████████████████████████████████████████████▊                      | 339/496 [02:40&lt;01:14,  2.11it/s]
+Fitting and Denoising:  69%|███████████████████████████████████████████████▉                      | 340/496 [02:41&lt;01:14,  2.09it/s]
+Fitting and Denoising:  69%|████████████████████████████████████████████████▏                     | 341/496 [02:41&lt;01:13,  2.12it/s]
+Fitting and Denoising:  69%|████████████████████████████████████████████████▎                     | 342/496 [02:41&lt;01:12,  2.12it/s]
+Fitting and Denoising:  69%|████████████████████████████████████████████████▍                     | 343/496 [02:42&lt;01:12,  2.11it/s]
+Fitting and Denoising:  69%|████████████████████████████████████████████████▌                     | 344/496 [02:42&lt;01:14,  2.05it/s]
+Fitting and Denoising:  70%|████████████████████████████████████████████████▋                     | 345/496 [02:43&lt;01:11,  2.12it/s]
+Fitting and Denoising:  70%|████████████████████████████████████████████████▊                     | 346/496 [02:43&lt;01:11,  2.10it/s]
+Fitting and Denoising:  70%|████████████████████████████████████████████████▉                     | 347/496 [02:44&lt;01:09,  2.14it/s]
+Fitting and Denoising:  70%|█████████████████████████████████████████████████                     | 348/496 [02:44&lt;01:09,  2.13it/s]
+Fitting and Denoising:  70%|█████████████████████████████████████████████████▎                    | 349/496 [02:45&lt;01:10,  2.10it/s]
+Fitting and Denoising:  71%|█████████████████████████████████████████████████▍                    | 350/496 [02:45&lt;01:09,  2.10it/s]
+Fitting and Denoising:  71%|█████████████████████████████████████████████████▌                    | 351/496 [02:46&lt;01:09,  2.09it/s]
+Fitting and Denoising:  71%|█████████████████████████████████████████████████▋                    | 352/496 [02:46&lt;01:07,  2.13it/s]
+Fitting and Denoising:  71%|█████████████████████████████████████████████████▊                    | 353/496 [02:47&lt;01:08,  2.08it/s]
+Fitting and Denoising:  71%|█████████████████████████████████████████████████▉                    | 354/496 [02:47&lt;01:07,  2.11it/s]
+Fitting and Denoising:  72%|██████████████████████████████████████████████████                    | 355/496 [02:48&lt;01:06,  2.11it/s]
+Fitting and Denoising:  72%|██████████████████████████████████████████████████▏                   | 356/496 [02:48&lt;01:05,  2.13it/s]
+Fitting and Denoising:  72%|██████████████████████████████████████████████████▍                   | 357/496 [02:49&lt;01:07,  2.06it/s]
+Fitting and Denoising:  72%|██████████████████████████████████████████████████▌                   | 358/496 [02:49&lt;01:06,  2.07it/s]
+Fitting and Denoising:  72%|██████████████████████████████████████████████████▋                   | 359/496 [02:50&lt;01:05,  2.09it/s]
+Fitting and Denoising:  73%|██████████████████████████████████████████████████▊                   | 360/496 [02:50&lt;01:03,  2.13it/s]
+Fitting and Denoising:  73%|██████████████████████████████████████████████████▉                   | 361/496 [02:51&lt;01:04,  2.11it/s]
+Fitting and Denoising:  73%|███████████████████████████████████████████████████                   | 362/496 [02:51&lt;01:03,  2.12it/s]
+Fitting and Denoising:  73%|███████████████████████████████████████████████████▏                  | 363/496 [02:52&lt;01:04,  2.07it/s]
+Fitting and Denoising:  73%|███████████████████████████████████████████████████▎                  | 364/496 [02:52&lt;01:02,  2.10it/s]
+Fitting and Denoising:  74%|███████████████████████████████████████████████████▌                  | 365/496 [02:52&lt;01:03,  2.08it/s]
+Fitting and Denoising:  74%|███████████████████████████████████████████████████▋                  | 366/496 [02:53&lt;01:01,  2.11it/s]
+Fitting and Denoising:  74%|███████████████████████████████████████████████████▊                  | 367/496 [02:53&lt;01:00,  2.12it/s]
+Fitting and Denoising:  74%|███████████████████████████████████████████████████▉                  | 368/496 [02:54&lt;01:01,  2.09it/s]
+Fitting and Denoising:  74%|████████████████████████████████████████████████████                  | 369/496 [02:54&lt;00:59,  2.12it/s]
+Fitting and Denoising:  75%|████████████████████████████████████████████████████▏                 | 370/496 [02:55&lt;00:59,  2.12it/s]
+Fitting and Denoising:  75%|████████████████████████████████████████████████████▎                 | 371/496 [02:55&lt;00:58,  2.15it/s]
+Fitting and Denoising:  75%|████████████████████████████████████████████████████▌                 | 372/496 [02:56&lt;00:58,  2.13it/s]
+Fitting and Denoising:  75%|████████████████████████████████████████████████████▋                 | 373/496 [02:56&lt;00:57,  2.12it/s]
+Fitting and Denoising:  75%|████████████████████████████████████████████████████▊                 | 374/496 [02:57&lt;00:57,  2.10it/s]
+Fitting and Denoising:  76%|████████████████████████████████████████████████████▉                 | 375/496 [02:57&lt;00:57,  2.12it/s]
+Fitting and Denoising:  76%|█████████████████████████████████████████████████████                 | 376/496 [02:58&lt;00:57,  2.09it/s]
+Fitting and Denoising:  76%|█████████████████████████████████████████████████████▏                | 377/496 [02:58&lt;00:56,  2.12it/s]
+Fitting and Denoising:  76%|█████████████████████████████████████████████████████▎                | 378/496 [02:59&lt;00:57,  2.07it/s]
+Fitting and Denoising:  76%|█████████████████████████████████████████████████████▍                | 379/496 [02:59&lt;00:55,  2.11it/s]
+Fitting and Denoising:  77%|█████████████████████████████████████████████████████▋                | 380/496 [03:00&lt;00:56,  2.07it/s]
+Fitting and Denoising:  77%|█████████████████████████████████████████████████████▊                | 381/496 [03:00&lt;00:54,  2.12it/s]
+Fitting and Denoising:  77%|█████████████████████████████████████████████████████▉                | 382/496 [03:00&lt;00:53,  2.13it/s]
+Fitting and Denoising:  77%|██████████████████████████████████████████████████████                | 383/496 [03:01&lt;00:53,  2.09it/s]
+Fitting and Denoising:  77%|██████████████████████████████████████████████████████▏               | 384/496 [03:01&lt;00:54,  2.06it/s]
+Fitting and Denoising:  78%|██████████████████████████████████████████████████████▎               | 385/496 [03:02&lt;00:52,  2.10it/s]
+Fitting and Denoising:  78%|██████████████████████████████████████████████████████▍               | 386/496 [03:02&lt;00:52,  2.10it/s]
+Fitting and Denoising:  78%|██████████████████████████████████████████████████████▌               | 387/496 [03:03&lt;00:51,  2.10it/s]
+Fitting and Denoising:  78%|██████████████████████████████████████████████████████▊               | 388/496 [03:03&lt;00:52,  2.07it/s]
+Fitting and Denoising:  78%|██████████████████████████████████████████████████████▉               | 389/496 [03:04&lt;00:51,  2.09it/s]
+Fitting and Denoising:  79%|███████████████████████████████████████████████████████               | 390/496 [03:04&lt;00:50,  2.12it/s]
+Fitting and Denoising:  79%|███████████████████████████████████████████████████████▏              | 391/496 [03:05&lt;00:50,  2.10it/s]
+Fitting and Denoising:  79%|███████████████████████████████████████████████████████▎              | 392/496 [03:05&lt;00:49,  2.12it/s]
+Fitting and Denoising:  79%|███████████████████████████████████████████████████████▍              | 393/496 [03:06&lt;00:49,  2.09it/s]
+Fitting and Denoising:  79%|███████████████████████████████████████████████████████▌              | 394/496 [03:06&lt;00:48,  2.11it/s]
+Fitting and Denoising:  80%|███████████████████████████████████████████████████████▋              | 395/496 [03:07&lt;00:48,  2.09it/s]
+Fitting and Denoising:  80%|███████████████████████████████████████████████████████▉              | 396/496 [03:07&lt;00:47,  2.09it/s]
+Fitting and Denoising:  80%|████████████████████████████████████████████████████████              | 397/496 [03:08&lt;00:48,  2.05it/s]
+Fitting and Denoising:  80%|████████████████████████████████████████████████████████▏             | 398/496 [03:08&lt;00:47,  2.07it/s]
+Fitting and Denoising:  80%|████████████████████████████████████████████████████████▎             | 399/496 [03:09&lt;00:46,  2.10it/s]
+Fitting and Denoising:  81%|████████████████████████████████████████████████████████▍             | 400/496 [03:09&lt;00:45,  2.13it/s]
+Fitting and Denoising:  81%|████████████████████████████████████████████████████████▌             | 401/496 [03:10&lt;00:45,  2.11it/s]
+Fitting and Denoising:  81%|████████████████████████████████████████████████████████▋             | 402/496 [03:10&lt;00:44,  2.12it/s]
+Fitting and Denoising:  81%|████████████████████████████████████████████████████████▉             | 403/496 [03:11&lt;00:44,  2.10it/s]
+Fitting and Denoising:  81%|█████████████████████████████████████████████████████████             | 404/496 [03:11&lt;00:43,  2.14it/s]
+Fitting and Denoising:  82%|█████████████████████████████████████████████████████████▏            | 405/496 [03:11&lt;00:42,  2.12it/s]
+Fitting and Denoising:  82%|█████████████████████████████████████████████████████████▎            | 406/496 [03:12&lt;00:42,  2.12it/s]
+Fitting and Denoising:  82%|█████████████████████████████████████████████████████████▍            | 407/496 [03:12&lt;00:43,  2.06it/s]
+Fitting and Denoising:  82%|█████████████████████████████████████████████████████████▌            | 408/496 [03:13&lt;00:41,  2.12it/s]
+Fitting and Denoising:  82%|█████████████████████████████████████████████████████████▋            | 409/496 [03:13&lt;00:41,  2.12it/s]
+Fitting and Denoising:  83%|█████████████████████████████████████████████████████████▊            | 410/496 [03:14&lt;00:40,  2.11it/s]
+Fitting and Denoising:  83%|██████████████████████████████████████████████████████████            | 411/496 [03:14&lt;00:39,  2.14it/s]
+Fitting and Denoising:  83%|██████████████████████████████████████████████████████████▏           | 412/496 [03:15&lt;00:40,  2.05it/s]
+Fitting and Denoising:  83%|██████████████████████████████████████████████████████████▎           | 413/496 [03:15&lt;00:39,  2.09it/s]
+Fitting and Denoising:  83%|██████████████████████████████████████████████████████████▍           | 414/496 [03:16&lt;00:38,  2.11it/s]
+Fitting and Denoising:  84%|██████████████████████████████████████████████████████████▌           | 415/496 [03:16&lt;00:37,  2.15it/s]
+Fitting and Denoising:  84%|██████████████████████████████████████████████████████████▋           | 416/496 [03:17&lt;00:38,  2.09it/s]
+Fitting and Denoising:  84%|██████████████████████████████████████████████████████████▊           | 417/496 [03:17&lt;00:38,  2.07it/s]
+Fitting and Denoising:  84%|██████████████████████████████████████████████████████████▉           | 418/496 [03:18&lt;00:37,  2.09it/s]
+Fitting and Denoising:  84%|███████████████████████████████████████████████████████████▏          | 419/496 [03:18&lt;00:36,  2.13it/s]
+Fitting and Denoising:  85%|███████████████████████████████████████████████████████████▎          | 420/496 [03:19&lt;00:36,  2.07it/s]
+Fitting and Denoising:  85%|███████████████████████████████████████████████████████████▍          | 421/496 [03:19&lt;00:35,  2.12it/s]
+Fitting and Denoising:  85%|███████████████████████████████████████████████████████████▌          | 422/496 [03:20&lt;00:36,  2.05it/s]
+Fitting and Denoising:  85%|███████████████████████████████████████████████████████████▋          | 423/496 [03:20&lt;00:34,  2.11it/s]
+Fitting and Denoising:  85%|███████████████████████████████████████████████████████████▊          | 424/496 [03:21&lt;00:34,  2.09it/s]
+Fitting and Denoising:  86%|███████████████████████████████████████████████████████████▉          | 425/496 [03:21&lt;00:33,  2.14it/s]
+Fitting and Denoising:  86%|████████████████████████████████████████████████████████████          | 426/496 [03:21&lt;00:32,  2.13it/s]
+Fitting and Denoising:  86%|████████████████████████████████████████████████████████████▎         | 427/496 [03:22&lt;00:34,  2.00it/s]
+Fitting and Denoising:  86%|████████████████████████████████████████████████████████████▍         | 428/496 [03:22&lt;00:33,  2.02it/s]
+Fitting and Denoising:  86%|████████████████████████████████████████████████████████████▌         | 429/496 [03:23&lt;00:32,  2.09it/s]
+Fitting and Denoising:  87%|████████████████████████████████████████████████████████████▋         | 430/496 [03:23&lt;00:31,  2.08it/s]
+Fitting and Denoising:  87%|████████████████████████████████████████████████████████████▊         | 431/496 [03:24&lt;00:30,  2.12it/s]
+Fitting and Denoising:  87%|████████████████████████████████████████████████████████████▉         | 432/496 [03:24&lt;00:30,  2.07it/s]
+Fitting and Denoising:  87%|█████████████████████████████████████████████████████████████         | 433/496 [03:25&lt;00:29,  2.12it/s]
+Fitting and Denoising:  88%|█████████████████████████████████████████████████████████████▎        | 434/496 [03:25&lt;00:29,  2.13it/s]
+Fitting and Denoising:  88%|█████████████████████████████████████████████████████████████▍        | 435/496 [03:26&lt;00:29,  2.09it/s]
+Fitting and Denoising:  88%|█████████████████████████████████████████████████████████████▌        | 436/496 [03:26&lt;00:28,  2.12it/s]
+Fitting and Denoising:  88%|█████████████████████████████████████████████████████████████▋        | 437/496 [03:27&lt;00:28,  2.09it/s]
+Fitting and Denoising:  88%|█████████████████████████████████████████████████████████████▊        | 438/496 [03:27&lt;00:27,  2.13it/s]
+Fitting and Denoising:  89%|█████████████████████████████████████████████████████████████▉        | 439/496 [03:28&lt;00:27,  2.09it/s]
+Fitting and Denoising:  89%|██████████████████████████████████████████████████████████████        | 440/496 [03:28&lt;00:26,  2.12it/s]
+Fitting and Denoising:  89%|██████████████████████████████████████████████████████████████▏       | 441/496 [03:29&lt;00:26,  2.08it/s]
+Fitting and Denoising:  89%|██████████████████████████████████████████████████████████████▍       | 442/496 [03:29&lt;00:25,  2.11it/s]
+Fitting and Denoising:  89%|██████████████████████████████████████████████████████████████▌       | 443/496 [03:30&lt;00:25,  2.11it/s]
+Fitting and Denoising:  90%|██████████████████████████████████████████████████████████████▋       | 444/496 [03:30&lt;00:24,  2.08it/s]
+Fitting and Denoising:  90%|██████████████████████████████████████████████████████████████▊       | 445/496 [03:31&lt;00:24,  2.08it/s]
+Fitting and Denoising:  90%|██████████████████████████████████████████████████████████████▉       | 446/496 [03:31&lt;00:24,  2.05it/s]
+Fitting and Denoising:  90%|███████████████████████████████████████████████████████████████       | 447/496 [03:32&lt;00:23,  2.04it/s]
+Fitting and Denoising:  90%|███████████████████████████████████████████████████████████████▏      | 448/496 [03:32&lt;00:22,  2.10it/s]
+Fitting and Denoising:  91%|███████████████████████████████████████████████████████████████▎      | 449/496 [03:32&lt;00:22,  2.09it/s]
+Fitting and Denoising:  91%|███████████████████████████████████████████████████████████████▌      | 450/496 [03:33&lt;00:21,  2.12it/s]
+Fitting and Denoising:  91%|███████████████████████████████████████████████████████████████▋      | 451/496 [03:33&lt;00:21,  2.09it/s]
+Fitting and Denoising:  91%|███████████████████████████████████████████████████████████████▊      | 452/496 [03:34&lt;00:21,  2.06it/s]
+Fitting and Denoising:  91%|███████████████████████████████████████████████████████████████▉      | 453/496 [03:34&lt;00:20,  2.06it/s]
+Fitting and Denoising:  92%|████████████████████████████████████████████████████████████████      | 454/496 [03:35&lt;00:20,  2.08it/s]
+Fitting and Denoising:  92%|████████████████████████████████████████████████████████████████▏     | 455/496 [03:35&lt;00:19,  2.12it/s]
+Fitting and Denoising:  92%|████████████████████████████████████████████████████████████████▎     | 456/496 [03:36&lt;00:19,  2.06it/s]
+Fitting and Denoising:  92%|████████████████████████████████████████████████████████████████▍     | 457/496 [03:36&lt;00:18,  2.08it/s]
+Fitting and Denoising:  92%|████████████████████████████████████████████████████████████████▋     | 458/496 [03:37&lt;00:18,  2.09it/s]
+Fitting and Denoising:  93%|████████████████████████████████████████████████████████████████▊     | 459/496 [03:37&lt;00:17,  2.14it/s]
+Fitting and Denoising:  93%|████████████████████████████████████████████████████████████████▉     | 460/496 [03:38&lt;00:17,  2.12it/s]
+Fitting and Denoising:  93%|█████████████████████████████████████████████████████████████████     | 461/496 [03:38&lt;00:16,  2.10it/s]
+Fitting and Denoising:  93%|█████████████████████████████████████████████████████████████████▏    | 462/496 [03:39&lt;00:16,  2.08it/s]
+Fitting and Denoising:  93%|█████████████████████████████████████████████████████████████████▎    | 463/496 [03:39&lt;00:15,  2.09it/s]
+Fitting and Denoising:  94%|█████████████████████████████████████████████████████████████████▍    | 464/496 [03:40&lt;00:15,  2.09it/s]
+Fitting and Denoising:  94%|█████████████████████████████████████████████████████████████████▋    | 465/496 [03:40&lt;00:14,  2.12it/s]
+Fitting and Denoising:  94%|█████████████████████████████████████████████████████████████████▊    | 466/496 [03:41&lt;00:14,  2.06it/s]
+Fitting and Denoising:  94%|█████████████████████████████████████████████████████████████████▉    | 467/496 [03:41&lt;00:13,  2.11it/s]
+Fitting and Denoising:  94%|██████████████████████████████████████████████████████████████████    | 468/496 [03:42&lt;00:13,  2.09it/s]
+Fitting and Denoising:  95%|██████████████████████████████████████████████████████████████████▏   | 469/496 [03:42&lt;00:12,  2.13it/s]
+Fitting and Denoising:  95%|██████████████████████████████████████████████████████████████████▎   | 470/496 [03:42&lt;00:12,  2.12it/s]
+Fitting and Denoising:  95%|██████████████████████████████████████████████████████████████████▍   | 471/496 [03:43&lt;00:11,  2.11it/s]
+Fitting and Denoising:  95%|██████████████████████████████████████████████████████████████████▌   | 472/496 [03:43&lt;00:11,  2.12it/s]
+Fitting and Denoising:  95%|██████████████████████████████████████████████████████████████████▊   | 473/496 [03:44&lt;00:10,  2.12it/s]
+Fitting and Denoising:  96%|██████████████████████████████████████████████████████████████████▉   | 474/496 [03:44&lt;00:10,  2.13it/s]
+Fitting and Denoising:  96%|███████████████████████████████████████████████████████████████████   | 475/496 [03:45&lt;00:09,  2.11it/s]
+Fitting and Denoising:  96%|███████████████████████████████████████████████████████████████████▏  | 476/496 [03:45&lt;00:09,  2.12it/s]
+Fitting and Denoising:  96%|███████████████████████████████████████████████████████████████████▎  | 477/496 [03:46&lt;00:09,  2.10it/s]
+Fitting and Denoising:  96%|███████████████████████████████████████████████████████████████████▍  | 478/496 [03:46&lt;00:08,  2.13it/s]
+Fitting and Denoising:  97%|███████████████████████████████████████████████████████████████████▌  | 479/496 [03:47&lt;00:08,  2.12it/s]
+Fitting and Denoising:  97%|███████████████████████████████████████████████████████████████████▋  | 480/496 [03:47&lt;00:07,  2.13it/s]
+Fitting and Denoising:  97%|███████████████████████████████████████████████████████████████████▉  | 481/496 [03:48&lt;00:07,  2.08it/s]
+Fitting and Denoising:  97%|████████████████████████████████████████████████████████████████████  | 482/496 [03:48&lt;00:06,  2.11it/s]
+Fitting and Denoising:  97%|████████████████████████████████████████████████████████████████████▏ | 483/496 [03:49&lt;00:06,  2.09it/s]
+Fitting and Denoising:  98%|████████████████████████████████████████████████████████████████████▎ | 484/496 [03:49&lt;00:05,  2.12it/s]
+Fitting and Denoising:  98%|████████████████████████████████████████████████████████████████████▍ | 485/496 [03:50&lt;00:05,  2.09it/s]
+Fitting and Denoising:  98%|████████████████████████████████████████████████████████████████████▌ | 486/496 [03:50&lt;00:04,  2.14it/s]
+Fitting and Denoising:  98%|████████████████████████████████████████████████████████████████████▋ | 487/496 [03:51&lt;00:04,  2.12it/s]
+Fitting and Denoising:  98%|████████████████████████████████████████████████████████████████████▊ | 488/496 [03:51&lt;00:03,  2.13it/s]
+Fitting and Denoising:  99%|█████████████████████████████████████████████████████████████████████ | 489/496 [03:51&lt;00:03,  2.12it/s]
+Fitting and Denoising:  99%|█████████████████████████████████████████████████████████████████████▏| 490/496 [03:52&lt;00:02,  2.10it/s]
+Fitting and Denoising:  99%|█████████████████████████████████████████████████████████████████████▎| 491/496 [03:52&lt;00:02,  2.09it/s]
+Fitting and Denoising:  99%|█████████████████████████████████████████████████████████████████████▍| 492/496 [03:53&lt;00:01,  2.12it/s]
+Fitting and Denoising:  99%|█████████████████████████████████████████████████████████████████████▌| 493/496 [03:53&lt;00:01,  2.14it/s]
+Fitting and Denoising: 100%|█████████████████████████████████████████████████████████████████████▋| 494/496 [03:54&lt;00:00,  2.12it/s]
+Fitting and Denoising: 100%|█████████████████████████████████████████████████████████████████████▊| 495/496 [03:54&lt;00:00,  2.10it/s]
+Fitting and Denoising: 100%|██████████████████████████████████████████████████████████████████████| 496/496 [03:55&lt;00:00,  2.06it/s]
+</pre></div>
+</div>
+<p>Now we can use the DAM classifier to classify the voxels into WM and GM.
+The DAM classifier requires the denoised data, the bvalues, and the mask.
+The DAM classifier returns the WM and GM masks.
+It is important to note that the DAM classifier is a threshold-based classifier
+and the threshold values can be adjusted based on the data. The <cite>wm_threshold</cite>
+parameter controls the sensitivity of the classifier.
+For data like HCP, threshold of 0.5 proves to be a good choice. For data like
+cfin, higher threshold values like 0.7 or 0.8 are more suitable.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">wm_mask</span><span class="p">,</span> <span class="n">gm_mask</span> <span class="o">=</span> <a href="../../reference/dipy.segment.html#dipy.segment.tissue.dam_classifier" title="dipy.segment.tissue.dam_classifier" class="sphx-glr-backref-module-dipy-segment-tissue sphx-glr-backref-type-py-function"><span class="n">dam_classifier</span></a><span class="p">(</span><span class="n">denoised_arr</span><span class="p">,</span> <span class="n">bvals</span><span class="p">,</span> <span class="n">wm_threshold</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we can visualize the WM and GM masks.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">images</span></a> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">data</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>  <span class="c1"># DWI (b0)</span>
+    <span class="n">wm_mask</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">],</span>  <span class="c1"># White Matter Mask</span>
+    <span class="n">gm_mask</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">],</span>  <span class="c1"># Grey Matter Mask</span>
+<span class="p">]</span>
+
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ax_labels</span></a> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DWI (b0)&quot;</span><span class="p">,</span> <span class="s2">&quot;White Matter Mask&quot;</span><span class="p">,</span> <span class="s2">&quot;Grey Matter Mask&quot;</span><span class="p">]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ax_kwargs</span></a> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;cmap&quot;</span><span class="p">:</span> <span class="s2">&quot;gray&quot;</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">images</span></a><span class="p">]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <a href="../../reference/dipy.viz.html#dipy.viz.plotting.image_mosaic" title="dipy.viz.plotting.image_mosaic" class="sphx-glr-backref-module-dipy-viz-plotting sphx-glr-backref-type-py-function"><span class="n">image_mosaic</span></a><span class="p">(</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">images</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ax_labels</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ax_labels</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ax_kwargs</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ax_kwargs</span></a><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p class="centered small fst-italic fw-semibold">Original B0 image (left), White matter (center) and gray matter (right) are
+binary masks as obtained from DAM.</p>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id2">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-cheng2020" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Hu Cheng, Sharlene Newman, Maryam Afzali, Shreyas Fadnavis, and Eleftherios Garyfallidis. Segmentation of the brain using direction-averaged signal of DWI images. <em>Magnetic Resonance Imaging</em>, 69:1–7, June 2020. URL: <a class="reference external" href="https://doi.org/10.1016/j.mri.2020.02.010">https://doi.org/10.1016/j.mri.2020.02.010</a>, <a class="reference external" href="https://doi.org/10.1016/j.mri.2020.02.010">doi:10.1016/j.mri.2020.02.010</a>.</p>
+</aside>
+</aside>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (4 minutes 29.994 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-segmentation-tissue-classification-dam-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/41c1b54bc9c59ac22d8ca1de05f95742/tissue_classification_dam.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">tissue_classification_dam.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/b62d63b3ad9023f84a48786ba7474d15/tissue_classification_dam.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">tissue_classification_dam.py</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="brain_extraction_dwi_1.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Brain segmentation with median_otsu</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="segment_quickbundles.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Tractography Clustering with QuickBundles</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<script type="module" src="../../_static/scripts/grg-sphinx-theme.js"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><div>
+  <h3 class="footer-heading">
+    Never miss an update from us!
+  </h3>
+  <p class="footer-sub-heading">
+    Don't worry! we are not going to spam you.
+  </p>
+  <div class="input-group mb-3 mar-t-10">
+    <input type="text" class="form-control" placeholder="You email" aria-label="You email" id="grg-subscribe-email">
+    <div class="input-group-append pointer" onclick="(document.getElementById('grg-subscribe-email').value)">
+      <span class="input-group-text subscribe">Subscribe</span>
+    </div>
+  </div>  
+  <ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul>
+</div></div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><div class="grid-3">
+  
+  <div>
+    <h5 class="footer-heading">
+      About
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://dipy.org/team">
+            Developers
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://github.com/dipy/dipy/discussions" target="_blank" rel="noopener noreferrer">
+            Support
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../user_guide/installation.html">
+            Download
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../user_guide/getting_started.html">
+            Get Started
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../index.html">
+            Tutorials
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank" rel="noopener noreferrer">
+            Videos
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Friends
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="http://nipy.org/" target="_blank" rel="noopener noreferrer">
+            Nipy Projects
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="http://fury.gl/" target="_blank" rel="noopener noreferrer">
+            FURY
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="http://nipy.org/nibabel" target="_blank" rel="noopener noreferrer">
+            Nibabel
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://tortoise.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            Tortoise
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Support
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://engineering.indiana.edu/" target="_blank" rel="noopener noreferrer">
+            The department of Intelligent Systems Engineering of Indiana University
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            The National Institute of Biomedical Imaging and Bioengineering, NIH
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://escience.washington.edu" target="_blank" rel="noopener noreferrer">
+            The Gordon and Betty Moore Foundation and the Alfred P. Sloan Foundation, through the University of Washington eScience Institute Data Science Environment
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+</div></div>
+      
+    </div>
+  
+</div>
+
+    <div class="copyright-text">
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+    </div>
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,1755 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dipy.denoise.localpca &#8212; dipy 1.11.0 documentation</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
+
+    <script src="../../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/denoise/localpca';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
+        </script>
+    <link rel="icon" href="../../../_static/dipy-favicon.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="keywords" content="DIPY, dMRI, DTI, DSI, diffusion MRI, Tensor,
+  neuroimaging, python, neuroscience, Eleftherios, Garyfallidis, tractography,
+  streamlines, fiber tracking">
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+<nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+     
+  
+
+<a class="navbar-brand logo" href="https://dipy.org">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/dipy-logo.png" class="logo__image only-light" alt="DIPY"/>
+    <script>document.write(`<img src="../../../_static/dipy-logo.png" class="logo__image only-dark" alt="DIPY"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../examples_built/index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Latest
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://app.gitter.im/#/room/%23dipy_dipy:gitter.im" target="_blank">
+            Live Chat (Gitter) <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+</div>
+
+</nav>
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../examples_built/index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Latest
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://app.gitter.im/#/room/%23dipy_dipy:gitter.im" target="_blank">
+            Live Chat (Gitter) <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">dipy.denoise...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for dipy.denoise.localpca</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">eigh</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg.lapack</span> <span class="kn">import</span> <span class="n">dgesvd</span> <span class="k">as</span> <span class="n">svd</span>
+
+<span class="kn">from</span> <span class="nn">dipy.denoise.pca_noise_estimate</span> <span class="kn">import</span> <span class="n">pca_noise_estimate</span>
+<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
+
+
+<div class="viewcode-block" id="dimensionality_problem_message">
+<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.dimensionality_problem_message">[docs]</a>
+<span class="k">def</span> <span class="nf">dimensionality_problem_message</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">spr</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Message about the number of samples being smaller than one less the</span>
+<span class="sd">    dimensionality of the data to be denoised.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : ndarray</span>
+<span class="sd">        Data to be denoised.</span>
+<span class="sd">    num_samples : int</span>
+<span class="sd">        Number of samples.</span>
+<span class="sd">    spr : int</span>
+<span class="sd">        Suggested patch radius.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Message.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Number of samples </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> - 1 &lt; Dimensionality &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num_samples</span><span class="si">}</span><span class="s2">. This might have a performance impact. Increase p&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;atch_radius to </span><span class="si">{</span><span class="n">spr</span><span class="si">}</span><span class="s2"> to avoid this.&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_pca_classifier</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">nvoxels</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Classifies which PCA eigenvalues are related to noise and estimates the</span>
+<span class="sd">    noise variance</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    L : array (n,)</span>
+<span class="sd">        Array containing the PCA eigenvalues in ascending order.</span>
+<span class="sd">    nvoxels : int</span>
+<span class="sd">        Number of voxels used to compute L</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    var : float</span>
+<span class="sd">        Estimation of the noise variance</span>
+<span class="sd">    ncomps : int</span>
+<span class="sd">        Number of eigenvalues related to noise</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This is based on the algorithm described in :footcite:p:`Veraart2016c`.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># if num_samples - 1 (to correct for mean subtraction) is less than number</span>
+    <span class="c1"># of features, discard the zero eigenvalues</span>
+    <span class="k">if</span> <span class="n">L</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">nvoxels</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">nvoxels</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:]</span>
+
+    <span class="c1"># Note that the condition expressed in the while-loop is expressed in terms</span>
+    <span class="c1"># of the variance of equation (12), not equation (11) as in</span>
+    <span class="c1"># :footcite:p:`Veraart2016c`. Also, this code implements ascending</span>
+    <span class="c1"># eigenvalues, unlike :footcite:p:`Veraart2016c`.</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">-</span> <span class="n">L</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">c</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">nvoxels</span><span class="p">)</span> <span class="o">*</span> <span class="n">var</span>
+    <span class="k">while</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="n">c</span><span class="p">])</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">c</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">-</span> <span class="n">L</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">c</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">nvoxels</span><span class="p">)</span> <span class="o">*</span> <span class="n">var</span>
+    <span class="n">ncomps</span> <span class="o">=</span> <span class="n">c</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">var</span><span class="p">,</span> <span class="n">ncomps</span>
+
+
+<div class="viewcode-block" id="create_patch_radius_arr">
+<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.create_patch_radius_arr">[docs]</a>
+<span class="k">def</span> <span class="nf">create_patch_radius_arr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">pr</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the patch radius array from the data to be denoised and the patch</span>
+<span class="sd">    radius.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : ndarray</span>
+<span class="sd">        Data to be denoised.</span>
+<span class="sd">    pr : int or ndarray</span>
+<span class="sd">        Patch radius.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    patch_radius : ndarray</span>
+<span class="sd">        Number of samples.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">patch_radius</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">pr</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">patch_radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span> <span class="o">*</span> <span class="n">patch_radius</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;patch_radius should have length 3&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">patch_radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">patch_radius</span><span class="p">[</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># account for dim of size 1</span>
+
+    <span class="k">return</span> <span class="n">patch_radius</span></div>
+
+
+
+<div class="viewcode-block" id="compute_patch_size">
+<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.compute_patch_size">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_patch_size</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute patch size from the patch radius.</span>
+
+<span class="sd">    it is twice the radius plus one.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    patch_radius : ndarray</span>
+<span class="sd">        Patch radius.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Number of samples.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">patch_radius</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="compute_num_samples">
+<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.compute_num_samples">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_num_samples</span><span class="p">(</span><span class="n">patch_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the number of samples as the dot product of the elements.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    patch_size : ndarray</span>
+<span class="sd">        Patch size.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Number of samples.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">patch_size</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="compute_suggested_patch_radius">
+<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.compute_suggested_patch_radius">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_suggested_patch_radius</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the suggested patch radius.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : ndarray</span>
+<span class="sd">        Data to be denoised.</span>
+<span class="sd">    patch_size : ndarray</span>
+<span class="sd">        Patch size.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Suggested patch radius.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">patch_size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># count spatial dimensions with size 1</span>
+    <span class="k">if</span> <span class="n">tmp</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">3</span><span class="p">))</span>  <span class="c1"># 3D</span>
+    <span class="k">if</span> <span class="n">tmp</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>  <span class="c1"># 2D</span>
+    <span class="k">if</span> <span class="n">tmp</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># 1D</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="p">(</span><span class="n">root</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">root</span>  <span class="c1"># make odd</span>
+
+    <span class="k">return</span> <span class="nb">int</span><span class="p">((</span><span class="n">root</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="genpca">
+<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.genpca">[docs]</a>
+<span class="nd">@warning_for_keywords</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">genpca</span><span class="p">(</span>
+    <span class="n">arr</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">patch_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">pca_method</span><span class="o">=</span><span class="s2">&quot;eig&quot;</span><span class="p">,</span>
+    <span class="n">tau_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">return_sigma</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">out_dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">suppress_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;General function to perform PCA-based denoising of diffusion datasets.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : 4D array</span>
+<span class="sd">        Array of data to be denoised. The dimensions are (X, Y, Z, N), where N</span>
+<span class="sd">        are the diffusion gradient directions. The first 3 dimension must have</span>
+<span class="sd">        size &gt;= 2 * patch_radius + 1 or size = 1.</span>
+<span class="sd">    sigma : float or 3D array, optional</span>
+<span class="sd">        Standard deviation of the noise estimated from the data. If no sigma</span>
+<span class="sd">        is given, this will be estimated based on random matrix theory</span>
+<span class="sd">        :footcite:p:`Veraart2016b`, :footcite:p:`Veraart2016c`.</span>
+<span class="sd">    mask : 3D boolean array, optional</span>
+<span class="sd">        A mask with voxels that are true inside the brain and false outside of</span>
+<span class="sd">        it. The function denoises within the true part and returns zeros</span>
+<span class="sd">        outside of those voxels.</span>
+<span class="sd">    patch_radius : int or 1D array, optional</span>
+<span class="sd">        The radius of the local patch to be taken around each voxel (in</span>
+<span class="sd">        voxels). E.g. patch_radius=2 gives 5x5x5 patches.</span>
+<span class="sd">    pca_method : &#39;eig&#39; or &#39;svd&#39;, optional</span>
+<span class="sd">        Use either eigenvalue decomposition (eig) or singular value</span>
+<span class="sd">        decomposition (svd) for principal component analysis. The default</span>
+<span class="sd">        method is &#39;eig&#39; which is faster. However, occasionally &#39;svd&#39; might be</span>
+<span class="sd">        more accurate.</span>
+<span class="sd">    tau_factor : float, optional</span>
+<span class="sd">        Thresholding of PCA eigenvalues is done by nulling out eigenvalues that</span>
+<span class="sd">        are smaller than:</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">                \tau = (\tau_{factor} \sigma)^2</span>
+
+<span class="sd">        $\tau_{factor}$ can be set to a predefined values (e.g. $\tau_{factor} =</span>
+<span class="sd">        2.3$ :footcite:p:`Manjon2013`), or automatically calculated using random</span>
+<span class="sd">        matrix theory (in case that $\tau_{factor}$ is set to None).</span>
+<span class="sd">    return_sigma : bool, optional</span>
+<span class="sd">        If true, the Standard deviation of the noise will be returned.</span>
+<span class="sd">    out_dtype : str or dtype, optional</span>
+<span class="sd">        The dtype for the output array. Default: output has the same dtype as</span>
+<span class="sd">        the input.</span>
+<span class="sd">    suppress_warning : bool, optional</span>
+<span class="sd">        If true, suppress warning caused by patch_size &lt; arr.shape[-1].</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    denoised_arr : 4D array</span>
+<span class="sd">        This is the denoised array of the same size as that of the input data,</span>
+<span class="sd">        clipped to non-negative values.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># If mask is not specified, use the whole volume</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">out_dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">out_dtype</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span>
+
+    <span class="c1"># We retain float64 precision, iff the input is in this precision:</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
+        <span class="n">calc_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+    <span class="c1"># Otherwise, we&#39;ll calculate things in float32 (saving memory)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">calc_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;PCA denoising can only be performed on 4D arrays.&quot;</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">pca_method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;svd&quot;</span><span class="p">:</span>
+        <span class="n">is_svd</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">pca_method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;eig&quot;</span><span class="p">:</span>
+        <span class="n">is_svd</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pca_method should be either &#39;eig&#39; or &#39;svd&#39;&quot;</span><span class="p">)</span>
+
+    <span class="n">patch_radius_arr</span> <span class="o">=</span> <span class="n">create_patch_radius_arr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">patch_radius</span><span class="p">)</span>
+    <span class="n">patch_size</span> <span class="o">=</span> <span class="n">compute_patch_size</span><span class="p">(</span><span class="n">patch_radius_arr</span><span class="p">)</span>
+
+    <span class="n">ash</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">((</span><span class="n">ash</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">ash</span> <span class="o">&lt;</span> <span class="n">patch_size</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Array &#39;arr&#39; is incorrect shape&quot;</span><span class="p">)</span>
+
+    <span class="n">num_samples</span> <span class="o">=</span> <span class="n">compute_num_samples</span><span class="p">(</span><span class="n">patch_size</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_samples</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Cannot have only 1 sample,</span><span class="se">\</span>
+<span class="s2">                          please increase patch_radius.&quot;</span>
+        <span class="p">)</span>
+    <span class="c1"># account for mean subtraction by testing #samples - 1</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">num_samples</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">suppress_warning</span><span class="p">:</span>
+        <span class="n">spr</span> <span class="o">=</span> <span class="n">compute_suggested_patch_radius</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">)</span>
+        <span class="n">warn</span><span class="p">(</span>
+            <span class="n">dimensionality_problem_message</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">spr</span><span class="p">),</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sigma</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">e_s</span> <span class="o">=</span> <span class="s2">&quot;You provided a sigma array with a shape&quot;</span>
+            <span class="n">e_s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sigma</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> for data with&quot;</span>
+            <span class="n">e_s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;shape </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">. Please provide a sigma array&quot;</span>
+            <span class="n">e_s</span> <span class="o">+=</span> <span class="s2">&quot; that matches the spatial dimensions of the data.&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">e_s</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">tau_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tau_factor</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dim</span> <span class="o">/</span> <span class="n">num_samples</span><span class="p">)</span>
+
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">calc_dtype</span><span class="p">)</span>
+    <span class="n">thetax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">calc_dtype</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">return_sigma</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">calc_dtype</span><span class="p">)</span>
+        <span class="n">thetavar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">calc_dtype</span><span class="p">)</span>
+
+    <span class="c1"># loop around and find the 3D patch for each direction at each pixel</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="c1"># Shorthand for indexing variables:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="n">ix1</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">ix2</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">jx1</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">jx2</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">kx1</span> <span class="o">=</span> <span class="n">k</span> <span class="o">-</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">kx2</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="n">patch_radius_arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+
+                <span class="n">X</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">ix1</span><span class="p">:</span><span class="n">ix2</span><span class="p">,</span> <span class="n">jx1</span><span class="p">:</span><span class="n">jx2</span><span class="p">,</span> <span class="n">kx1</span><span class="p">:</span><span class="n">kx2</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+                <span class="c1"># compute the mean</span>
+                <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="c1"># Upcast the dtype for precision in the SVD</span>
+                <span class="n">X</span> <span class="o">=</span> <span class="n">X</span> <span class="o">-</span> <span class="n">M</span>
+
+                <span class="k">if</span> <span class="n">is_svd</span><span class="p">:</span>
+                    <span class="c1"># PCA using an SVD</span>
+                    <span class="n">svd_args</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                    <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">Vt</span> <span class="o">=</span> <span class="n">svd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">*</span><span class="n">svd_args</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="c1"># Items in S are the eigenvalues, but in ascending order</span>
+                    <span class="c1"># We invert the order (=&gt; descending), square and normalize</span>
+                    <span class="c1"># \lambda_i = s_i^2 / n</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="n">S</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="c1"># Rows of Vt are eigenvectors, but also in ascending</span>
+                    <span class="c1"># eigenvalue order:</span>
+                    <span class="n">W</span> <span class="o">=</span> <span class="n">Vt</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># PCA using an Eigenvalue decomposition</span>
+                    <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+                    <span class="n">C</span> <span class="o">=</span> <span class="n">C</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">d</span><span class="p">,</span> <span class="n">W</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigh</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Random matrix theory</span>
+                    <span class="n">this_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_pca_classifier</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Predefined variance</span>
+                    <span class="n">this_var</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
+
+                <span class="c1"># Threshold by tau:</span>
+                <span class="n">tau</span> <span class="o">=</span> <span class="n">tau_factor</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">this_var</span>
+
+                <span class="c1"># Update ncomps according to tau_factor</span>
+                <span class="n">ncomps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">d</span> <span class="o">&lt;</span> <span class="n">tau</span><span class="p">)</span>
+                <span class="n">W</span><span class="p">[:,</span> <span class="p">:</span><span class="n">ncomps</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="c1"># This is equations 1 and 2 in Manjon 2013:</span>
+                <span class="n">Xest</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="n">M</span>
+                <span class="n">Xest</span> <span class="o">=</span> <span class="n">Xest</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">patch_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">patch_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">patch_size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dim</span><span class="p">)</span>
+                <span class="c1"># This is equation 3 in Manjon 2013:</span>
+                <span class="n">this_theta</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">dim</span> <span class="o">-</span> <span class="n">ncomps</span><span class="p">)</span>
+                <span class="n">theta</span><span class="p">[</span><span class="n">ix1</span><span class="p">:</span><span class="n">ix2</span><span class="p">,</span> <span class="n">jx1</span><span class="p">:</span><span class="n">jx2</span><span class="p">,</span> <span class="n">kx1</span><span class="p">:</span><span class="n">kx2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_theta</span>
+                <span class="n">thetax</span><span class="p">[</span><span class="n">ix1</span><span class="p">:</span><span class="n">ix2</span><span class="p">,</span> <span class="n">jx1</span><span class="p">:</span><span class="n">jx2</span><span class="p">,</span> <span class="n">kx1</span><span class="p">:</span><span class="n">kx2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Xest</span> <span class="o">*</span> <span class="n">this_theta</span>
+                <span class="k">if</span> <span class="n">return_sigma</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">var</span><span class="p">[</span><span class="n">ix1</span><span class="p">:</span><span class="n">ix2</span><span class="p">,</span> <span class="n">jx1</span><span class="p">:</span><span class="n">jx2</span><span class="p">,</span> <span class="n">kx1</span><span class="p">:</span><span class="n">kx2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_var</span> <span class="o">*</span> <span class="n">this_theta</span>
+                    <span class="n">thetavar</span><span class="p">[</span><span class="n">ix1</span><span class="p">:</span><span class="n">ix2</span><span class="p">,</span> <span class="n">jx1</span><span class="p">:</span><span class="n">jx2</span><span class="p">,</span> <span class="n">kx1</span><span class="p">:</span><span class="n">kx2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_theta</span>
+
+    <span class="n">denoised_arr</span> <span class="o">=</span> <span class="n">thetax</span> <span class="o">/</span> <span class="n">theta</span>
+    <span class="n">denoised_arr</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">denoised_arr</span><span class="p">)</span>
+    <span class="n">denoised_arr</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">return_sigma</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">var</span> <span class="o">/</span> <span class="n">thetavar</span>
+            <span class="n">var</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">return</span> <span class="n">denoised_arr</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">out_dtype</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">denoised_arr</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">out_dtype</span><span class="p">),</span> <span class="n">sigma</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">denoised_arr</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">out_dtype</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="localpca">
+<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.localpca">[docs]</a>
+<span class="nd">@warning_for_keywords</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">localpca</span><span class="p">(</span>
+    <span class="n">arr</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">patch_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">patch_radius_sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">pca_method</span><span class="o">=</span><span class="s2">&quot;eig&quot;</span><span class="p">,</span>
+    <span class="n">tau_factor</span><span class="o">=</span><span class="mf">2.3</span><span class="p">,</span>
+    <span class="n">return_sigma</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">correct_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">out_dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">suppress_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Performs local PCA denoising.</span>
+
+<span class="sd">    The method follows the algorithm in :footcite:t:`Manjon2013`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : 4D array</span>
+<span class="sd">        Array of data to be denoised. The dimensions are (X, Y, Z, N), where N</span>
+<span class="sd">        are the diffusion gradient directions.</span>
+<span class="sd">    sigma : float or 3D array, optional</span>
+<span class="sd">        Standard deviation of the noise estimated from the data. If not given,</span>
+<span class="sd">        calculate using method in :footcite:t:`Manjon2013`.</span>
+<span class="sd">    mask : 3D boolean array, optional</span>
+<span class="sd">        A mask with voxels that are true inside the brain and false outside of</span>
+<span class="sd">        it. The function denoises within the true part and returns zeros</span>
+<span class="sd">        outside of those voxels.</span>
+<span class="sd">    patch_radius : int or 1D array, optional</span>
+<span class="sd">        The radius of the local patch to be taken around each voxel (in</span>
+<span class="sd">        voxels). E.g. patch_radius=2 gives 5x5x5 patches.</span>
+<span class="sd">    gtab: gradient table object (optional if sigma is provided)</span>
+<span class="sd">        gradient information for the data gives us the bvals and bvecs of</span>
+<span class="sd">        diffusion data, which is needed to calculate noise level if sigma is</span>
+<span class="sd">        not provided.</span>
+<span class="sd">    patch_radius_sigma : int, optional</span>
+<span class="sd">        The radius of the local patch to be taken around each voxel (in</span>
+<span class="sd">        voxels) for estimating sigma. E.g. patch_radius_sigma=2 gives</span>
+<span class="sd">        5x5x5 patches.</span>
+<span class="sd">    pca_method : &#39;eig&#39; or &#39;svd&#39;, optional</span>
+<span class="sd">        Use either eigenvalue decomposition (eig) or singular value</span>
+<span class="sd">        decomposition (svd) for principal component analysis. The default</span>
+<span class="sd">        method is &#39;eig&#39; which is faster. However, occasionally &#39;svd&#39; might be</span>
+<span class="sd">        more accurate.</span>
+<span class="sd">    tau_factor : float, optional</span>
+<span class="sd">        Thresholding of PCA eigenvalues is done by nulling out eigenvalues that</span>
+<span class="sd">        are smaller than:</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">                \tau = (\tau_{factor} \sigma)^2</span>
+
+<span class="sd">        \tau_{factor} can be change to adjust the relationship between the</span>
+<span class="sd">        noise standard deviation and the threshold \tau. If \tau_{factor} is</span>
+<span class="sd">        set to None, it will be automatically calculated using the</span>
+<span class="sd">        Marcenko-Pastur distribution :footcite:p:`Veraart2016c`. Default: 2.3</span>
+<span class="sd">        according to :footcite:t:`Manjon2013`.</span>
+<span class="sd">    return_sigma : bool, optional</span>
+<span class="sd">        If true, a noise standard deviation estimate based on the</span>
+<span class="sd">        Marcenko-Pastur distribution is returned :footcite:p:`Veraart2016c`.</span>
+<span class="sd">    correct_bias : bool, optional</span>
+<span class="sd">        Whether to correct for bias due to Rician noise. This is an</span>
+<span class="sd">        implementation of equation 8 in :footcite:p:`Manjon2013`.</span>
+<span class="sd">    out_dtype : str or dtype, optional</span>
+<span class="sd">        The dtype for the output array. Default: output has the same dtype as</span>
+<span class="sd">        the input.</span>
+<span class="sd">    suppress_warning : bool, optional</span>
+<span class="sd">        If true, suppress warning caused by patch_size &lt; arr.shape[-1].</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    denoised_arr : 4D array</span>
+<span class="sd">        This is the denoised array of the same size as that of the input data,</span>
+<span class="sd">        clipped to non-negative values</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># check gtab is given, if sigma is not given</span>
+    <span class="k">if</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gtab</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;gtab must be provided if sigma is not given&quot;</span><span class="p">)</span>
+
+    <span class="c1"># calculate sigma</span>
+    <span class="k">if</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">pca_noise_estimate</span><span class="p">(</span>
+            <span class="n">arr</span><span class="p">,</span>
+            <span class="n">gtab</span><span class="p">,</span>
+            <span class="n">correct_bias</span><span class="o">=</span><span class="n">correct_bias</span><span class="p">,</span>
+            <span class="n">patch_radius</span><span class="o">=</span><span class="n">patch_radius_sigma</span><span class="p">,</span>
+            <span class="n">images_as_samples</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">genpca</span><span class="p">(</span>
+        <span class="n">arr</span><span class="p">,</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+        <span class="n">patch_radius</span><span class="o">=</span><span class="n">patch_radius</span><span class="p">,</span>
+        <span class="n">pca_method</span><span class="o">=</span><span class="n">pca_method</span><span class="p">,</span>
+        <span class="n">tau_factor</span><span class="o">=</span><span class="n">tau_factor</span><span class="p">,</span>
+        <span class="n">return_sigma</span><span class="o">=</span><span class="n">return_sigma</span><span class="p">,</span>
+        <span class="n">out_dtype</span><span class="o">=</span><span class="n">out_dtype</span><span class="p">,</span>
+        <span class="n">suppress_warning</span><span class="o">=</span><span class="n">suppress_warning</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mppca">
+<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.mppca">[docs]</a>
+<span class="nd">@warning_for_keywords</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">mppca</span><span class="p">(</span>
+    <span class="n">arr</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">patch_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">pca_method</span><span class="o">=</span><span class="s2">&quot;eig&quot;</span><span class="p">,</span>
+    <span class="n">return_sigma</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">out_dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">suppress_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Performs PCA-based denoising using the Marcenko-Pastur</span>
+<span class="sd">    distribution.</span>
+
+<span class="sd">    See :footcite:p:`Veraart2016c` for further details about the method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : 4D array</span>
+<span class="sd">        Array of data to be denoised. The dimensions are (X, Y, Z, N), where N</span>
+<span class="sd">        are the diffusion gradient directions.</span>
+<span class="sd">    mask : 3D boolean array, optional</span>
+<span class="sd">        A mask with voxels that are true inside the brain and false outside of</span>
+<span class="sd">        it. The function denoises within the true part and returns zeros</span>
+<span class="sd">        outside of those voxels.</span>
+<span class="sd">    patch_radius : int or 1D array, optional</span>
+<span class="sd">        The radius of the local patch to be taken around each voxel (in</span>
+<span class="sd">        voxels). E.g. patch_radius=2 gives 5x5x5 patches.</span>
+<span class="sd">    pca_method : &#39;eig&#39; or &#39;svd&#39;, optional</span>
+<span class="sd">        Use either eigenvalue decomposition (eig) or singular value</span>
+<span class="sd">        decomposition (svd) for principal component analysis. The default</span>
+<span class="sd">        method is &#39;eig&#39; which is faster. However, occasionally &#39;svd&#39; might be</span>
+<span class="sd">        more accurate.</span>
+<span class="sd">    return_sigma : bool, optional</span>
+<span class="sd">        If true, a noise standard deviation estimate based on the</span>
+<span class="sd">        Marcenko-Pastur distribution is returned :footcite:p:`Veraart2016b`.</span>
+<span class="sd">    out_dtype : str or dtype, optional</span>
+<span class="sd">        The dtype for the output array. Default: output has the same dtype as</span>
+<span class="sd">        the input.</span>
+<span class="sd">    suppress_warning : bool, optional</span>
+<span class="sd">        If true, suppress warning caused by patch_size &lt; arr.shape[-1].</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    denoised_arr : 4D array</span>
+<span class="sd">        This is the denoised array of the same size as that of the input data,</span>
+<span class="sd">        clipped to non-negative values</span>
+<span class="sd">    sigma : 3D array (when return_sigma=True)</span>
+<span class="sd">        Estimate of the spatial varying standard deviation of the noise</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">genpca</span><span class="p">(</span>
+        <span class="n">arr</span><span class="p">,</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+        <span class="n">patch_radius</span><span class="o">=</span><span class="n">patch_radius</span><span class="p">,</span>
+        <span class="n">pca_method</span><span class="o">=</span><span class="n">pca_method</span><span class="p">,</span>
+        <span class="n">tau_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_sigma</span><span class="o">=</span><span class="n">return_sigma</span><span class="p">,</span>
+        <span class="n">out_dtype</span><span class="o">=</span><span class="n">out_dtype</span><span class="p">,</span>
+        <span class="n">suppress_warning</span><span class="o">=</span><span class="n">suppress_warning</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<script type="module" src="../../../_static/scripts/grg-sphinx-theme.js"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><div>
+  <h3 class="footer-heading">
+    Never miss an update from us!
+  </h3>
+  <p class="footer-sub-heading">
+    Don't worry! we are not going to spam you.
+  </p>
+  <div class="input-group mb-3 mar-t-10">
+    <input type="text" class="form-control" placeholder="You email" aria-label="You email" id="grg-subscribe-email">
+    <div class="input-group-append pointer" onclick="(document.getElementById('grg-subscribe-email').value)">
+      <span class="input-group-text subscribe">Subscribe</span>
+    </div>
+  </div>  
+  <ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul>
+</div></div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><div class="grid-3">
+  
+  <div>
+    <h5 class="footer-heading">
+      About
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://dipy.org/team">
+            Developers
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://github.com/dipy/dipy/discussions" target="_blank" rel="noopener noreferrer">
+            Support
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../user_guide/installation.html">
+            Download
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../user_guide/getting_started.html">
+            Get Started
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../examples_built/index.html">
+            Tutorials
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank" rel="noopener noreferrer">
+            Videos
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Friends
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="http://nipy.org/" target="_blank" rel="noopener noreferrer">
+            Nipy Projects
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="http://fury.gl/" target="_blank" rel="noopener noreferrer">
+            FURY
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="http://nipy.org/nibabel" target="_blank" rel="noopener noreferrer">
+            Nibabel
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://tortoise.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            Tortoise
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Support
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://engineering.indiana.edu/" target="_blank" rel="noopener noreferrer">
+            The department of Intelligent Systems Engineering of Indiana University
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            The National Institute of Biomedical Imaging and Bioengineering, NIH
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://escience.washington.edu" target="_blank" rel="noopener noreferrer">
+            The Gordon and Betty Moore Foundation and the Alfred P. Sloan Foundation, through the University of Washington eScience Institute Data Science Environment
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+</div></div>
+      
+    </div>
+  
+</div>
+
+    <div class="copyright-text">
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+    </div>
+  </footer>
+  </body>
+</html>

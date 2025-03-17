@@ -1,0 +1,1329 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dipy.reconst.cross_validation &#8212; dipy 1.11.0 documentation</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
+
+    <script src="../../../_static/documentation_options.js?v=6cf1fb80"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/reconst/cross_validation';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.11.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
+        </script>
+    <link rel="icon" href="../../../_static/dipy-favicon.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="keywords" content="DIPY, dMRI, DTI, DSI, diffusion MRI, Tensor,
+  neuroimaging, python, neuroscience, Eleftherios, Garyfallidis, tractography,
+  streamlines, fiber tracking">
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+<nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+     
+  
+
+<a class="navbar-brand logo" href="https://dipy.org">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/dipy-logo.png" class="logo__image only-light" alt="DIPY"/>
+    <script>document.write(`<img src="../../../_static/dipy-logo.png" class="logo__image only-dark" alt="DIPY"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../examples_built/index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Latest
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://app.gitter.im/#/room/%23dipy_dipy:gitter.im" target="_blank">
+            Live Chat (Gitter) <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+</div>
+
+</nav>
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../examples_built/index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Latest
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://app.gitter.im/#/room/%23dipy_dipy:gitter.im" target="_blank">
+            Live Chat (Gitter) <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">dipy.reconst...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for dipy.reconst.cross_validation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Cross-validation analysis of diffusion models.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">dipy.core.gradients</span> <span class="k">as</span> <span class="nn">gt</span>
+<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
+
+
+<div class="viewcode-block" id="coeff_of_determination">
+<a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.cross_validation.coeff_of_determination">[docs]</a>
+<span class="nd">@warning_for_keywords</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">coeff_of_determination</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the coefficient of determination for a model prediction,</span>
+<span class="sd">    relative to data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        The data</span>
+<span class="sd">    model : ndarray</span>
+<span class="sd">        The predictions of a model for this data. Same shape as the data.</span>
+<span class="sd">    axis: int, optional</span>
+<span class="sd">        The axis along which different samples are laid out.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    COD : ndarray</span>
+<span class="sd">       The coefficient of determination. This has shape `data.shape[:-1]`</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    See: https://en.wikipedia.org/wiki/Coefficient_of_determination</span>
+
+<span class="sd">    The coefficient of determination is calculated as:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        R^2 = 100 * (1 - \frac{SSE}{SSD})</span>
+
+<span class="sd">    where SSE is the sum of the squared error between the model and the data</span>
+<span class="sd">    (sum of the squared residuals) and SSD is the sum of the squares of the</span>
+<span class="sd">    deviations of the data from the mean of the data (variance * N).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">residuals</span> <span class="o">=</span> <span class="n">data</span> <span class="o">-</span> <span class="n">model</span>
+    <span class="n">ss_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">residuals</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+
+    <span class="n">demeaned_data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="n">ss_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">demeaned_data</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+
+    <span class="c1"># Don&#39;t divide by 0:</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">ss_tot</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">ss_err</span> <span class="o">/</span> <span class="n">ss_tot</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="kfold_xval">
+<a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.cross_validation.kfold_xval">[docs]</a>
+<span class="k">def</span> <span class="nf">kfold_xval</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">folds</span><span class="p">,</span> <span class="o">*</span><span class="n">model_args</span><span class="p">,</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform k-fold cross-validation.</span>
+
+<span class="sd">    It generates out-of-sample predictions for each measurement.</span>
+
+<span class="sd">    See :footcite:p:`Rokem2014` for further details about the method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : Model class instance</span>
+<span class="sd">        The type of the model to use for prediction. The corresponding Fit</span>
+<span class="sd">        object must have a `predict` function implemented One of the following:</span>
+<span class="sd">        `reconst.dti.TensorModel` or</span>
+<span class="sd">        `reconst.csdeconv.ConstrainedSphericalDeconvModel`.</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        Diffusion MRI data acquired with the GradientTable of the model. Shape</span>
+<span class="sd">        will typically be `(x, y, z, b)` where `xyz` are spatial dimensions and</span>
+<span class="sd">        b is the number of bvals/bvecs in the GradientTable.</span>
+<span class="sd">    folds : int</span>
+<span class="sd">        The number of divisions to apply to the data</span>
+<span class="sd">    model_args : list</span>
+<span class="sd">        Additional arguments to the model initialization</span>
+<span class="sd">    model_kwargs : dict</span>
+<span class="sd">        Additional key-word arguments to the model initialization. If contains</span>
+<span class="sd">        the kwarg `mask`, this will be used as a key-word argument to the `fit`</span>
+<span class="sd">        method of the model object, rather than being used in the</span>
+<span class="sd">        initialization of the model object</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function assumes that a prediction API is implemented in the Model</span>
+<span class="sd">    class for which prediction is conducted. That is, the Fit object that gets</span>
+<span class="sd">    generated upon fitting the model needs to have a `predict` method, which</span>
+<span class="sd">    receives a GradientTable class instance as input and produces a predicted</span>
+<span class="sd">    signal as output.</span>
+
+<span class="sd">    It also assumes that the model object has `bval` and `bvec` attributes</span>
+<span class="sd">    holding b-values and corresponding unit vectors.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">model_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;rng&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">())</span>
+
+    <span class="c1"># This should always be there, if the model inherits from</span>
+    <span class="c1"># dipy.reconst.base.ReconstModel:</span>
+    <span class="n">gtab</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">gtab</span>
+    <span class="n">data_b</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span>
+    <span class="n">div_by_folds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">data_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">folds</span><span class="p">)</span>
+    <span class="c1"># Make sure that an equal number of samples get left out in each fold:</span>
+    <span class="k">if</span> <span class="n">div_by_folds</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The number of folds must divide the diffusion-weighted &quot;</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;data equally, but &quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;np.mod(</span><span class="si">{</span><span class="n">data_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">folds</span><span class="si">}</span><span class="s2">) is </span><span class="si">{</span><span class="n">div_by_folds</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="n">data_0</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span>
+    <span class="n">S0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data_0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">n_in_fold</span> <span class="o">=</span> <span class="n">data_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">folds</span>
+    <span class="n">prediction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1"># We are going to leave out some randomly chosen samples in each iteration:</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">data_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">nz_bval</span> <span class="o">=</span> <span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span><span class="p">[</span><span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span>
+    <span class="n">nz_bvec</span> <span class="o">=</span> <span class="n">gtab</span><span class="o">.</span><span class="n">bvecs</span><span class="p">[</span><span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span>
+
+    <span class="c1"># Pop the mask, if there is one, out here for use in every fold:</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">model_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">gtgt</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">gradient_table</span>  <span class="c1"># Shorthand</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">folds</span><span class="p">):</span>
+        <span class="n">fold_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">data_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">fold_idx</span> <span class="o">=</span> <span class="n">order</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">k</span> <span class="o">*</span> <span class="n">n_in_fold</span><span class="p">)</span> <span class="p">:</span> <span class="nb">int</span><span class="p">((</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_in_fold</span><span class="p">)]</span>
+        <span class="n">fold_mask</span><span class="p">[</span><span class="n">fold_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">this_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">data_0</span><span class="p">,</span> <span class="n">data_b</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">fold_mask</span><span class="p">]],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">this_gtab</span> <span class="o">=</span> <span class="n">gtgt</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span><span class="p">[</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">],</span> <span class="n">nz_bval</span><span class="p">[</span><span class="n">fold_mask</span><span class="p">]]),</span>
+            <span class="n">bvecs</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvecs</span><span class="p">[</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">],</span> <span class="n">nz_bvec</span><span class="p">[</span><span class="n">fold_mask</span><span class="p">]]),</span>
+        <span class="p">)</span>
+        <span class="n">left_out_gtab</span> <span class="o">=</span> <span class="n">gtgt</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span><span class="p">[</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">],</span> <span class="n">nz_bval</span><span class="p">[</span><span class="o">~</span><span class="n">fold_mask</span><span class="p">]]),</span>
+            <span class="n">bvecs</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvecs</span><span class="p">[</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">],</span> <span class="n">nz_bvec</span><span class="p">[</span><span class="o">~</span><span class="n">fold_mask</span><span class="p">]]),</span>
+        <span class="p">)</span>
+        <span class="n">this_model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">this_gtab</span><span class="p">,</span> <span class="o">*</span><span class="n">model_args</span><span class="p">,</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">)</span>
+        <span class="n">this_fit</span> <span class="o">=</span> <span class="n">this_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">this_data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">this_fit</span><span class="p">,</span> <span class="s2">&quot;predict&quot;</span><span class="p">):</span>
+            <span class="n">err_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Models of type: </span><span class="si">{</span><span class="n">this_model</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="n">err_str</span> <span class="o">+=</span> <span class="s2">&quot;do not have an implementation of model prediction&quot;</span>
+            <span class="n">err_str</span> <span class="o">+=</span> <span class="s2">&quot; and do not support cross-validation&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err_str</span><span class="p">)</span>
+        <span class="n">this_predict</span> <span class="o">=</span> <span class="n">S0</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">this_fit</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">gtab</span><span class="o">=</span><span class="n">left_out_gtab</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">idx_to_assign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">~</span><span class="n">fold_mask</span><span class="p">]</span>
+        <span class="n">prediction</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">idx_to_assign</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_predict</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">)</span> <span class="p">:]</span>
+
+    <span class="c1"># For the b0 measurements</span>
+    <span class="n">prediction</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">S0</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">prediction</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<script type="module" src="../../../_static/scripts/grg-sphinx-theme.js"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><div>
+  <h3 class="footer-heading">
+    Never miss an update from us!
+  </h3>
+  <p class="footer-sub-heading">
+    Don't worry! we are not going to spam you.
+  </p>
+  <div class="input-group mb-3 mar-t-10">
+    <input type="text" class="form-control" placeholder="You email" aria-label="You email" id="grg-subscribe-email">
+    <div class="input-group-append pointer" onclick="(document.getElementById('grg-subscribe-email').value)">
+      <span class="input-group-text subscribe">Subscribe</span>
+    </div>
+  </div>  
+  <ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul>
+</div></div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><div class="grid-3">
+  
+  <div>
+    <h5 class="footer-heading">
+      About
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://dipy.org/team">
+            Developers
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://github.com/dipy/dipy/discussions" target="_blank" rel="noopener noreferrer">
+            Support
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../user_guide/installation.html">
+            Download
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../user_guide/getting_started.html">
+            Get Started
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../../examples_built/index.html">
+            Tutorials
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank" rel="noopener noreferrer">
+            Videos
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Friends
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="http://nipy.org/" target="_blank" rel="noopener noreferrer">
+            Nipy Projects
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="http://fury.gl/" target="_blank" rel="noopener noreferrer">
+            FURY
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="http://nipy.org/nibabel" target="_blank" rel="noopener noreferrer">
+            Nibabel
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://tortoise.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            Tortoise
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Support
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://engineering.indiana.edu/" target="_blank" rel="noopener noreferrer">
+            The department of Intelligent Systems Engineering of Indiana University
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            The National Institute of Biomedical Imaging and Bioengineering, NIH
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://escience.washington.edu" target="_blank" rel="noopener noreferrer">
+            The Gordon and Betty Moore Foundation and the Alfred P. Sloan Foundation, through the University of Washington eScience Institute Data Science Environment
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+</div></div>
+      
+    </div>
+  
+</div>
+
+    <div class="copyright-text">
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2025,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+    </div>
+  </footer>
+  </body>
+</html>
