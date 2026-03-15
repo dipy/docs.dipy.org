@@ -1,0 +1,121 @@
+.. dipy_brain_mask:
+
+===============
+dipy_brain_mask
+===============
+
+Synopsis
+--------
+
+Unified brain masking workflow supporting multiple methods.
+
+Applies brain masking on each file found by 'globing' ``input_files`` and saves the results in a directory specified by ``out_dir``.
+
+Usage
+-----
+
+.. code-block:: bash
+
+    dipy_brain_mask [OPTIONS] input_files
+
+Input Parameters
+----------------
+
+* ``input_files``
+
+  Path to the input volumes. This path may contain wildcards to
+  process multiple inputs at once.
+
+General Options
+---------------
+
+* ``--method``
+
+  Brain masking method. Options are:
+  
+  - 'median_otsu': Classical median Otsu segmentation, DWI-focused.
+  - 'evac': Deep learning EVACPlus method, T1-focused.
+  - 'synthseg': Deep learning SynthSeg method, works for all
+    modalities.
+  
+  (default: synthseg)
+
+* ``--bvalues_files``
+
+  Path to the b-values files. Used only for 'median_otsu' method.
+  This path may contain wildcards to process multiple inputs at once.
+  (default: None)
+
+* ``--b0_threshold``
+
+  Threshold to consider a volume as b0. Used only if bvalues_files
+  is provided with 'median_otsu' method.
+  (default: 50)
+
+* ``--median_radius``
+
+  Radius (in voxels) of the applied median filter. Used only for
+  'median_otsu' method.
+  (default: 2)
+
+* ``--numpass``
+
+  Number of pass of the median filter. Used only for 'median_otsu'
+  method.
+  (default: 5)
+
+* ``--vol_idx``
+
+  1D array representing indices of ``axis=-1`` of a 4D
+  `input_volume`. From the command line use something like
+  '1,2,3-5,7'. Used only for 'median_otsu' method. This input is
+  required for 4D volumes if bval files are not provided. If bval
+  files are provided, vol_idx is ignored and b0 volumes are used
+  for mask computation.
+  (default: None)
+
+* ``--dilate``
+
+  Number of iterations for binary dilation. Used only for
+  'median_otsu' method.
+  (default: None)
+
+* ``--finalize_mask``
+
+  Whether to remove potential holes or islands. Useful for solving
+  minor errors. Used only for 'median_otsu' method.
+  (default: False)
+
+* ``--save_masked``
+
+  Save the masked volume in addition to the mask.
+  (default: False)
+
+* ``--use_cuda``
+
+  Use CUDA for GPU acceleration. Used only for 'evac' and
+  'synthseg' methods.
+  (default: False)
+
+Output Options
+--------------
+
+* ``--out_dir``
+
+  Output directory.
+  (default:  current directory)
+
+* ``--out_mask``
+
+  Name of the mask volume to be saved.
+  (default: brain_mask.nii.gz)
+
+* ``--out_masked``
+
+  Name of the masked volume to be saved.
+  (default: brain_masked.nii.gz)
+
+References
+----------
+
+Garyfallidis, E., M. Brett, B. Amirbekian, A. Rokem, S. Van Der Walt, M. Descoteaux, and I. Nimmo-Smith. Dipy, a library for the analysis of diffusion MRI data. Frontiers in Neuroinformatics, 1-18, 2014.

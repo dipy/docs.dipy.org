@@ -1,0 +1,95 @@
+.. dipy_reslice:
+
+============
+dipy_reslice
+============
+
+Synopsis
+--------
+
+Reslice data to a new voxel resolution with automatic or manual sizing.
+
+This workflow resamples volumetric data to a specified voxel size or automatically determines an optimal isotropic resolution. When automatic calculation is used, the new voxel size balances data quality with computational efficiency by interpolating between the original voxel dimensions.
+
+Usage
+-----
+
+.. code-block:: bash
+
+    dipy_reslice [OPTIONS] input_files
+
+Input Parameters
+----------------
+
+* ``input_files``
+
+  Path to the input volumes. This path may contain wildcards to
+  process multiple inputs at once.
+
+General Options
+---------------
+
+* ``--new_vox_size``
+
+  New voxel size as (x, y, z) in mm. If None, it will be
+  automatically calculated using the formula:
+  new_vox = voxel_sorted[1] + (voxel_sorted[2] - voxel_sorted[1]) * vox_factor
+  where voxel_sorted are the original voxel dimensions sorted in
+  ascending order. The calculated value is applied isotropically
+  to all three dimensions.
+  (default: None)
+
+* ``--order``
+
+  order of interpolation, from 0 to 5, for resampling/reslicing,
+  0 nearest interpolation, 1 trilinear etc.. if you don't want any
+  smoothing 0 is the option you need.
+  (default: 1)
+
+* ``--mode``
+
+  Points outside the boundaries of the input are filled according
+  to the given mode 'constant', 'nearest', 'reflect' or 'wrap'.
+  (default: constant)
+
+* ``--cval``
+
+  Fill value for points outside the input boundaries when
+  mode='constant'.
+  (default: 0)
+
+* ``--num_processes``
+
+  Split the calculation to a pool of children processes. This only
+  applies to 4D `data` arrays. Default is 1. If < 0 the maximal
+  number of cores minus ``num_processes + 1`` is used (enter -1 to
+  use as many cores as possible). 0 raises an error.
+  (default: 1)
+
+* ``--vox_factor``
+
+  Interpolation factor for automatic voxel size calculation,
+  ranging from 0.0 to 1.0. Controls the trade-off between the
+  second-largest and largest original voxel dimensions. 0.0: uses
+  second-largest voxel size (finer resolution). 1.0: uses largest voxel
+  size (coarser resolution). 0.14: recommended value for balanced resolution.
+  Only used when new_vox_size is None.
+  (default: 0.14)
+
+Output Options
+--------------
+
+* ``--out_dir``
+
+  Output directory for saving results.
+  (default:  current directory)
+
+* ``--out_resliced``
+
+  Filename for the resliced output volume.
+  (default: resliced.nii.gz)
+
+References
+----------
+
+Garyfallidis, E., M. Brett, B. Amirbekian, A. Rokem, S. Van Der Walt, M. Descoteaux, and I. Nimmo-Smith. Dipy, a library for the analysis of diffusion MRI data. Frontiers in Neuroinformatics, 1-18, 2014.
