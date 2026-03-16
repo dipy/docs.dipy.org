@@ -1,0 +1,2068 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Bias Field Correction for Diffusion MRI: a Practical Guide &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/dipy.css?v=cedb193d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<link rel="stylesheet" href="../../_static/styles/grg-sphinx-theme.css"/>
+
+    <script src="../../_static/documentation_options.js?v=5b53ab8b"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-D610GKJZRC');
+            </script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples_built/preprocessing/bias_correction_dwi';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'development';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = true;
+        </script>
+    <link rel="icon" href="../../_static/dipy-favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Reconstruction" href="../reconstruction/index.html" />
+    <link rel="prev" title="Suppress Gibbs oscillations" href="denoise_gibbs.html" />
+  <meta name="keywords" content="DIPY, dMRI, DTI, DSI, diffusion MRI, Tensor,
+  neuroimaging, python, neuroscience, Eleftherios, Garyfallidis, tractography,
+  streamlines, fiber tracking">
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+<nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+     
+  
+
+<a class="navbar-brand logo" href="https://dipy.org">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dipy-logo.png" class="logo__image only-light" alt="DIPY"/>
+    <script>document.write(`<img src="../../_static/dipy-logo.png" class="logo__image only-dark" alt="DIPY"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Upcoming
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://workshop.dipy.org" target="_blank">
+            DIPY Workshop 2026 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://workshop.dipy.org/2025" target="_blank">
+            DIPY Workshop 2025 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://workshop.dipy.org/2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+</nav>
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  
+  <ul class="bd-navbar-elements navbar-nav">
+    
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Docs
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+      <li class="nav-item">
+        <a class="nav-link" href="../../index.html">
+          Overview
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../index.html">
+          Tutorials
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../recipes.html">
+          Recipes
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../interfaces/index.html">
+          CLI / Workflows
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../reference/index.html">
+          API
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../reference_cmd/index.html">
+          CLI API
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Workshops
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Upcoming
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://workshop.dipy.org" target="_blank">
+            DIPY Workshop 2026 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Past
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://workshop.dipy.org/2025" target="_blank">
+            DIPY Workshop 2025 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://workshop.dipy.org/2024" target="_blank">
+            DIPY Workshop 2024 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2023" target="_blank">
+            DIPY Workshop 2023 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2022" target="_blank">
+            DIPY Workshop 2022 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2021" target="_blank">
+            DIPY Workshop 2021 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2020" target="_blank">
+            DIPY Workshop 2020 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/workshops/dipy-workshop-2019" target="_blank">
+            DIPY Workshop 2019 <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    Community
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        News
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/calendar">
+            Calendar
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://mail.python.org/mailman3/lists/dipy.python.org/" target="_blank">
+            Newsletters <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/blog">
+            Blog
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank">
+            Youtube <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+
+    <li class="nav-item">
+      <p class="nav-section-title nav-link">
+        Help
+      </p>
+    </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/dipy/dipy/discussions" target="_blank">
+            Github Discussions <i class="fa-solid fa-arrow-up-long external-icon mar-l-5"></i>
+          </a>
+        </li>
+                </ul>
+            </li>
+          
+
+          <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-header-nav-more-links">
+                    About
+                </button>
+                <ul id="pst-header-nav-more-links" class="dropdown-menu">
+                    
+        <li class="nav-item">
+          <a class="nav-link" href="https://dipy.org/team">
+            Team
+          </a>
+        </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../faq.html">
+          FAQ
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../user_guide/mission.html">
+          Mission Statement
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../stateoftheart.html">
+          Releases
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../cite.html">
+          Cite
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="../../glossary.html">
+          Glossary
+        </a>
+      </li>
+                </ul>
+            </li>
+          
+  </ul>
+  
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../quick_start/index.html">Quick Start</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../quick_start/quick_start.html">Getting started with DIPY</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quick_start/tracking_introduction_eudx.html">Introduction to Basic Tracking</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Preprocessing</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="reslice_datasets.html">Reslice diffusion datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="motion_correction.html">Between-volumes Motion Correction on DWI datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="piesno.html">Noise estimation using PIESNO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="denoise_nlmeans.html">Denoise images using Non-Local Means (NLMEANS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="denoise_patch2self.html">Patch2Self: Self-Supervised Denoising via Statistical Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="brain_extraction_dwi.html">Brain segmentation with median_otsu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="denoise_localpca.html">Denoise images using Local PCA via empirical thresholds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradients_spheres.html">Gradients and Spheres</a></li>
+<li class="toctree-l2"><a class="reference internal" href="denoise_ascm.html">Denoise images using Adaptive Soft Coefficient Matching (ASCM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="snr_in_cc.html">SNR estimation for Diffusion-Weighted Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="denoise_mppca.html">Denoise images using the Marcenko-Pastur PCA algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="denoise_gibbs.html">Suppress Gibbs oscillations</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Bias Field Correction for Diffusion MRI: a Practical Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reconstruction/index.html">Reconstruction</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_qtiplus.html">Applying positivity constraints to Q-space Trajectory Imaging (QTI+)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dsi.html">Reconstruct with Diffusion Spectrum Imaging (DSI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_cti.html">Reconstruction of the diffusion signal with the correlation tensor model (CTI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dsid.html">DSI Deconvolution (DSID) vs DSI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_shore_metrics.html">Calculate SHORE scalar maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_gqi.html">Reconstruct with Generalized Q-Sampling Imaging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_shore.html">Continuous and analytical diffusion signal modelling with 3D-SHORE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csa.html">Reconstruct with Constant Solid Angle (Q-Ball)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_sfm.html">Reconstruction with the Sparse Fascicle Model (SFM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dsi_metrics.html">Calculate DSI-based scalar maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_qti.html">Reconstruct with Q-space Trajectory Imaging (QTI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_forecast.html">Crossing invariant fiber response function with FORECAST model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/kfold_xval.html">K-fold cross-validation for model comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dti.html">Reconstruction of the diffusion signal with DTI (single tensor) model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/histology_resdnn.html">Local reconstruction using the Histological ResDNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dki_micro.html">Reconstruction of the diffusion signal with the WMTI model (DKI-MICRO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/restore_dti.html">Using the RESTORE algorithm for robust tensor fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_fwdti.html">Using the free water elimination model to remove DTI free water contamination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_dki.html">Reconstruction of the diffusion signal with the kurtosis tensor model (DKI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_force.html">Reconstruction with FORCE (FORward modeling for Complex microstructure Estimation)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_sh.html">Signal Reconstruction Using Spherical Harmonics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mcsd.html">Reconstruction with Multi-Shell Multi-Tissue CSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_mapmri.html">Continuous and analytical diffusion signal modelling with MAP-MRI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_csd.html">Reconstruction with Constrained Spherical Deconvolution model (CSD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_ivim.html">Intravoxel incoherent motion (IVIM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_bingham.html">Reconstruction of Bingham Functions from ODFs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_robust_fitting.html">Robust fitting with iteratively reweighted least squares.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_msdki.html">Mean signal diffusion kurtosis imaging (MSDKI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_rumba.html">Reconstruction with Robust and Unbiased Model-BAsed Spherical Deconvolution (RUMBA)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reconstruction/reconst_qtdmri.html">Estimating diffusion time dependent q-space indices using qt-dMRI</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../contextual_enhancement/index.html">Contextual Enhancement</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contextual_enhancement/contextual_enhancement.html">Crossing-preserving contextual enhancement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contextual_enhancement/fiber_to_bundle_coherence.html">Fiber to bundle coherence measures</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../fiber_tracking/index.html">Fiber Tracking</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/surface_seed.html">Surface seeding for tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_ptt.html">Parallel Transport Tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_deterministic.html">An introduction to the Deterministic Tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_bootstrap_peaks.html">Bootstrap and Closest Peak Tracker Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_rumba.html">Tracking with Robust Unbiased Model-BAsed Spherical Deconvolution (RUMBA-SD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_sfm.html">Tracking with the Sparse Fascicle Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_introduction_eudx_1.html">Introduction to Basic Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_pft.html">Particle Filtering Tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_probabilistic.html">An introduction to the Probabilistic Tractography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/linear_fascicle_evaluation.html">Linear fascicle evaluation (LiFE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../fiber_tracking/tracking_stopping_criterion.html">Using Various Stopping Criterion for Tractography</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../streamline_analysis/index.html">Streamlines Analysis and Connectivity</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/bundle_shape_similarity.html">BUAN Bundle Shape Similarity Score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/bundle_assignment_maps.html">BUAN Bundle Assignment Maps Creation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/buan_bundle_profiles.html">BUAN bundle profiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/afq_tract_profiles.html">Extracting AFQ tract profiles from segmented bundles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/streamline_length.html">Streamline length and size reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/cluster_confidence.html">Calculation of Outliers with Cluster Confidence Index</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/path_length_map.html">Calculate Path Length Map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../streamline_analysis/streamline_tools.html">Connectivity Matrices, ROI Intersections and Density Maps</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../registration/index.html">Registration</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../registration/bundle_group_registration.html">Groupwise Bundle Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/bundle_registration.html">Direct Bundle Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/register_binary_fuzzy.html">Diffeomorphic Registration with binary and fuzzy images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/syn_registration_3d.html">Symmetric Diffeomorphic Registration in 3D</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/bundlewarp_registration.html">Nonrigid Bundle Registration with BundleWarp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/syn_registration_2d.html">Symmetric Diffeomorphic Registration in 2D</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/streamline_registration.html">Applying image-based deformations to streamlines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/affine_registration_masks.html">Affine Registration with Masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../registration/affine_registration_3d.html">Affine Registration in 3D</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../segmentation/index.html">Segmentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/tissue_classification_dam.html">Tissue Classification using Diffusion MRI with DAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/brain_extraction_dwi_1.html">Brain segmentation with median_otsu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/segment_quickbundles.html">Tractography Clustering with QuickBundles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/tissue_classification.html">Tissue Classification of a T1-weighted Structural Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/segment_clustering_metrics.html">Tractography Clustering - Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/segment_clustering_saving_loading.html">Saving and Loading QuickBundles Clustering Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/fast_streamline_search.html">Fast Streamline Search</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/segment_extending_clustering_framework.html">Enhancing QuickBundles with different metrics and features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/segment_clustering_features.html">Tractography Clustering - Available Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../segmentation/bundle_extraction.html">Automatic Fiber Bundle Extraction with RecoBundles</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../simulations/index.html">Simulation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../simulations/reconst_dsid_1.html">DSI Deconvolution (DSID) vs DSI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../simulations/simulate_dki.html">DKI MultiTensor Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../simulations/simulate_multi_tensor.html">MultiTensor Simulation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../multiprocessing/index.html">Multiprocessing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../multiprocessing/reconst_csd_parallel.html">Parallel reconstruction using CSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multiprocessing/reconst_csa_parallel.html">Parallel reconstruction using Q-Ball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multiprocessing/tracking_disco_phantom.html">Tractography on the DiSCo Phantom</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../file_formats/index.html">File Formats</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../file_formats/peaks_format.html">Understanding the PAM5 File Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../file_formats/streamline_formats.html">Read/Write streamline files</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../visualization/index.html">Visualization</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_roi_contour.html">Visualization of ROI Surface Rendered with Streamlines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_bundles.html">Visualize bundles and metrics on bundles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_slice.html">Simple volume slicing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_advanced.html">Advanced interactive visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization/viz_horizon.html">Interactive Visualization with DIPY Horizon (Python)</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../workflows/index.html">Workflows</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workflows/workflow_creation.html">Creating a new workflow.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../workflows/combined_workflow_creation.html">Creating a new combined workflow</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Examples</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Preprocessing</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Bias Field...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-examples-built-preprocessing-bias-correction-dwi-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="bias-field-correction-for-diffusion-mri-a-practical-guide">
+<span id="sphx-glr-examples-built-preprocessing-bias-correction-dwi-py"></span><h1>Bias Field Correction for Diffusion MRI: a Practical Guide<a class="headerlink" href="#bias-field-correction-for-diffusion-mri-a-practical-guide" title="Link to this heading">#</a></h1>
+<section id="what-is-a-bias-field">
+<h2>What is a bias field?<a class="headerlink" href="#what-is-a-bias-field" title="Link to this heading">#</a></h2>
+<p>When you acquire an MRI scan, you might expect every voxel that contains the
+same tissue to have the same signal intensity.  In practice it does not work
+that way.  The radiofrequency (RF) coil that excites the spins and the receive
+coil that records the signal both have a spatially varying sensitivity profile.
+The result is a smooth, slowly-varying multiplicative modulation of the true
+signal — brighter near the coil, dimmer far from it.  This spurious shading is
+called the <strong>bias field</strong> (or intensity non-uniformity).</p>
+<div class="math notranslate nohighlight">
+\[S_{\text{observed}}(\mathbf{x}) = B(\mathbf{x}) \cdot
+S_{\text{true}}(\mathbf{x})\]</div>
+<p>where <span class="math notranslate nohighlight">\(B(\mathbf{x}) \approx 1\)</span> everywhere and varies slowly in space.</p>
+</section>
+<section id="why-does-it-matter-for-dwi">
+<h2>Why does it matter for DWI?<a class="headerlink" href="#why-does-it-matter-for-dwi" title="Link to this heading">#</a></h2>
+<p>For diffusion MRI the bias field affects <strong>every volume</strong> in the same way.
+Downstream quantities that rely on absolute signal intensities — the apparent
+diffusion coefficient (ADC), FA, tractography seeding thresholds, or
+quantitative maps — will all carry the shading artefact unless it is removed
+first.</p>
+</section>
+<section id="how-does-dipy-correct-it">
+<h2>How does DIPY correct it?<a class="headerlink" href="#how-does-dipy-correct-it" title="Link to this heading">#</a></h2>
+<p>DIPY offers three regression-based methods, all sharing the same philosophy:</p>
+<ol class="arabic simple">
+<li><p>Extract and average the <strong>b0 volumes</strong> (unweighted images) using
+<a class="reference internal" href="../../reference/dipy.core.html#dipy.core.gradients.extract_b0" title="dipy.core.gradients.extract_b0"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_b0()</span></code></a>.  Only these are used to estimate
+the field, so diffusion-weighting attenuation can never contaminate the
+estimate.</p></li>
+<li><p>Work in <strong>log space</strong> — the log of a multiplicative field is additive, which
+turns the estimation into a standard linear regression problem.</p></li>
+<li><p>Fit a smooth spatial basis (polynomial or B-spline) to the log-b0 via
+<strong>iteratively reweighted ridge regression</strong>, suppressing outlier voxels
+(CSF, vessels) with Tukey biweight.</p></li>
+<li><p>Apply the correction uniformly to <strong>all DWI volumes</strong>.</p></li>
+</ol>
+<p>This design is fundamentally different from histogram-sharpening approaches
+such as N4, which correct an image without ever knowing which volumes are b0.
+The DIPY approach is <strong>purpose-built for diffusion MRI</strong>.</p>
+</section>
+<section id="available-methods">
+<h2>Available methods<a class="headerlink" href="#available-methods" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Spatial basis</p></th>
+<th class="head"><p>Speed</p></th>
+<th class="head"><p>Best for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">poly</span></code></p></td>
+<td><p>Legendre polynomial tensor product
+up to degree <em>order</em> (default 3,
+20 parameters)</p></td>
+<td><p>fastest</p></td>
+<td><p>smooth, global
+bias; large
+cohorts</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bspline</span></code></p></td>
+<td><p>Cubic B-spline on a regular grid
+(default 8×8×8 control points)</p></td>
+<td><p>moderate</p></td>
+<td><p>moderately
+complex bias</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">auto</span></code></p></td>
+<td><p>Runs both, returns the one with
+lower CoV — decision is logged</p></td>
+<td><p>moderate</p></td>
+<td><p>when unsure
+which to use</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>This tutorial is split into two parts:</p>
+<ul class="simple">
+<li><p><strong>Part 1</strong> — how to apply the DIPY methods and interpret the results.</p></li>
+<li><p><strong>Part 2</strong> — how the DIPY methods compare with N4 (SimpleITK) and DIPY’s
+own deep-learning N4, when each is the better choice, and what differences
+to expect in practice.</p></li>
+</ul>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">pearsonr</span>
+
+<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.extract_b0" title="dipy.core.gradients.extract_b0" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">extract_b0</span></a><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a>
+<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span>
+<span class="kn">from</span> <span class="nn">dipy.denoise.bias_correction</span> <span class="kn">import</span> <a href="../../reference/dipy.denoise.html#dipy.denoise.bias_correction.bias_field_correction" title="dipy.denoise.bias_correction.bias_field_correction" class="sphx-glr-backref-module-dipy-denoise-bias_correction sphx-glr-backref-type-py-function"><span class="n">bias_field_correction</span></a>
+<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a>
+<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+
+    <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</section>
+<section id="load-the-stanford-hardi-dataset">
+<h2>Load the Stanford HARDI dataset<a class="headerlink" href="#load-the-stanford-hardi-dataset" title="Link to this heading">#</a></h2>
+<p>DIPY ships with the Stanford HARDI dataset which we use throughout.
+It has 160 diffusion-weighted volumes plus several b0 volumes, acquired at
+2 mm isotropic resolution — a typical clinical/research DWI protocol.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/pathlib.html#pathlib.PosixPath" title="pathlib.PosixPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/pathlib.html#pathlib.PosixPath" title="pathlib.PosixPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/pathlib.html#pathlib.PosixPath" title="pathlib.PosixPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a><span class="o">=</span><span class="s2">&quot;stanford_hardi&quot;</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <a href="../../reference/dipy.io.html#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti" class="sphx-glr-backref-module-dipy-io-image sphx-glr-backref-type-py-function"><span class="n">load_nifti</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/pathlib.html#pathlib.PosixPath" title="pathlib.PosixPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_fname</span></a><span class="p">)</span>
+<span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><a href="https://docs.python.org/3/library/pathlib.html#pathlib.PosixPath" title="pathlib.PosixPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bval_fname</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/pathlib.html#pathlib.PosixPath" title="pathlib.PosixPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">hardi_bvec_fname</span></a><span class="p">)</span>
+<a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.gradient_table" title="dipy.core.gradients.gradient_table" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">gradient_table</span></a><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data shape : </span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="si">}</span><span class="s2">  (X, Y, Z, volumes)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;b0 volumes : </span><span class="si">{</span><a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="o">.</span><span class="n">b0s_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Data shape : (81, 106, 76, 160)  (X, Y, Z, volumes)
+b0 volumes : 10 out of 160
+</pre></div>
+</div>
+</section>
+<section id="compute-the-mean-b0-and-a-shared-brain-mask">
+<h2>Compute the mean b0 and a shared brain mask<a class="headerlink" href="#compute-the-mean-b0-and-a-shared-brain-mask" title="Link to this heading">#</a></h2>
+<p>We use <a class="reference internal" href="../../reference/dipy.core.html#dipy.core.gradients.extract_b0" title="dipy.core.gradients.extract_b0"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_b0()</span></code></a> to extract and average all
+b0 volumes.  <code class="docutils literal notranslate"><span class="pre">strategy=&quot;mean&quot;</span></code> returns a single 3D volume that is the
+voxel-wise mean across all b0 acquisitions — a cleaner input than picking a
+single b0, especially when b0s are interleaved across the protocol.</p>
+<p>A brain mask is then computed once and reused for all methods.  Passing
+<code class="docutils literal notranslate"><span class="pre">mask=</span></code> explicitly also saves time: without it each method call would run
+<code class="docutils literal notranslate"><span class="pre">median_otsu</span></code> internally.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">b0_mean</span> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.extract_b0" title="dipy.core.gradients.extract_b0" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">extract_b0</span></a><span class="p">(</span><span class="n">data</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="o">.</span><span class="n">b0s_mask</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <a href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu" class="sphx-glr-backref-module-dipy-segment-mask sphx-glr-backref-type-py-function"><span class="n">median_otsu</span></a><span class="p">(</span><span class="n">b0_mean</span><span class="p">,</span> <span class="n">median_radius</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">numpass</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean b0 shape : </span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">b0_mean</span><span class="o">.</span><span class="n">shape</span></a><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Brain mask    : </span><span class="si">{</span><span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mask</span><span class="o">.</span><span class="n">size</span></a><span class="si">}</span><span class="s2"> voxels &quot;</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="n">mask</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Mean b0 shape : (81, 106, 76)
+Brain mask    : 179864 / 652536 voxels (28%)
+</pre></div>
+</div>
+<section id="part-1-applying-bias-field-correction-with-dipy">
+<h3>Part 1 — Applying Bias Field Correction with DIPY<a class="headerlink" href="#part-1-applying-bias-field-correction-with-dipy" title="Link to this heading">#</a></h3>
+</section>
+</section>
+<section id="the-polynomial-method-poly">
+<h2>The polynomial method (<code class="docutils literal notranslate"><span class="pre">poly</span></code>)<a class="headerlink" href="#the-polynomial-method-poly" title="Link to this heading">#</a></h2>
+<p>The polynomial method represents the log-bias field as a tensor product of
+1-D Legendre polynomials.  With <code class="docutils literal notranslate"><span class="pre">order=3</span></code> there are only 20 free
+parameters — the model is extremely compact and very fast to solve.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">pyramid_levels=(4,</span> <span class="pre">2,</span> <span class="pre">1)</span></code> argument activates a coarse-to-fine
+strategy: the field is first estimated at 4× downsampled resolution, then
+refined at 2×, then at full resolution.  Each level performs <code class="docutils literal notranslate"><span class="pre">n_iter=4</span></code>
+IRLS (Iteratively Reweighted Least Squares) iterations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">robust=True</span></code> activates Tukey biweight reweighting so that CSF, vessels
+and other outlier voxels do not distort the fit.  <code class="docutils literal notranslate"><span class="pre">gradient_weighting=True</span></code>
+further down-weights voxels near tissue boundaries where the intensity
+gradient would otherwise pull the smooth field towards sharp edges.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Running poly...&quot;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t0</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.perf_counter" title="time.perf_counter" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span></a><span class="p">()</span>
+<span class="n">corrected_poly</span><span class="p">,</span> <span class="n">bias_poly</span> <span class="o">=</span> <a href="../../reference/dipy.denoise.html#dipy.denoise.bias_correction.bias_field_correction" title="dipy.denoise.bias_correction.bias_field_correction" class="sphx-glr-backref-module-dipy-denoise-bias_correction sphx-glr-backref-type-py-function"><span class="n">bias_field_correction</span></a><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;poly&quot;</span><span class="p">,</span>
+    <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">pyramid_levels</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">n_iter</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">robust</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">gradient_weighting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_bias_field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_poly</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.perf_counter" title="time.perf_counter" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span></a><span class="p">()</span> <span class="o">-</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t0</span></a>
+<span class="n">b0_poly</span> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.extract_b0" title="dipy.core.gradients.extract_b0" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">extract_b0</span></a><span class="p">(</span><span class="n">corrected_poly</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="o">.</span><span class="n">b0s_mask</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  done in </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_poly</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Running poly...
+  done in 1.1 s
+</pre></div>
+</div>
+</section>
+<section id="the-b-spline-method-bspline">
+<h2>The B-spline method (<code class="docutils literal notranslate"><span class="pre">bspline</span></code>)<a class="headerlink" href="#the-b-spline-method-bspline" title="Link to this heading">#</a></h2>
+<p>The B-spline method uses a regular grid of cubic B-spline control points.
+With <code class="docutils literal notranslate"><span class="pre">n_control_points=(8,</span> <span class="pre">8,</span> <span class="pre">8)</span></code> the grid has 512 parameters — richer
+than the polynomial, so it can capture moderately complex spatial patterns.</p>
+<p>The same pyramid, IRLS, robust and gradient-weighting machinery is shared
+with the polynomial method, so the two differ only in the spatial basis.
+Because B-splines have <strong>local support</strong> (each control point influences only
+a small neighbourhood), the method adapts well to spatially varying bias
+without overfitting globally.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running bspline...&quot;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t0</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.perf_counter" title="time.perf_counter" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span></a><span class="p">()</span>
+<span class="n">corrected_bspline</span><span class="p">,</span> <span class="n">bias_bspline</span> <span class="o">=</span> <a href="../../reference/dipy.denoise.html#dipy.denoise.bias_correction.bias_field_correction" title="dipy.denoise.bias_correction.bias_field_correction" class="sphx-glr-backref-module-dipy-denoise-bias_correction sphx-glr-backref-type-py-function"><span class="n">bias_field_correction</span></a><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;bspline&quot;</span><span class="p">,</span>
+    <span class="n">n_control_points</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">pyramid_levels</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">n_iter</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">robust</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">gradient_weighting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_bias_field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_bspline</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.perf_counter" title="time.perf_counter" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span></a><span class="p">()</span> <span class="o">-</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t0</span></a>
+<span class="n">b0_bspline</span> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.extract_b0" title="dipy.core.gradients.extract_b0" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">extract_b0</span></a><span class="p">(</span><span class="n">corrected_bspline</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="o">.</span><span class="n">b0s_mask</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  done in </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_bspline</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Running bspline...
+  done in 3.4 s
+</pre></div>
+</div>
+</section>
+<section id="not-sure-which-to-choose-use-auto">
+<h2>Not sure which to choose? Use <code class="docutils literal notranslate"><span class="pre">auto</span></code><a class="headerlink" href="#not-sure-which-to-choose-use-auto" title="Link to this heading">#</a></h2>
+<p>When you are unsure whether the bias in your data is smooth enough for
+<code class="docutils literal notranslate"><span class="pre">poly</span></code> or whether you need the extra flexibility of <code class="docutils literal notranslate"><span class="pre">bspline</span></code>, use
+<code class="docutils literal notranslate"><span class="pre">method=&quot;auto&quot;</span></code>.  It runs both fits (reusing the same pre-computed
+<code class="docutils literal notranslate"><span class="pre">log_b0</span></code> and <code class="docutils literal notranslate"><span class="pre">mask</span></code>) and returns whichever achieves the lower
+Coefficient of Variation (CoV) within the brain mask.  The winning method
+is written to the logger at INFO level so you can audit the choice.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running auto...&quot;</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t0</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.perf_counter" title="time.perf_counter" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span></a><span class="p">()</span>
+<span class="n">corrected_auto</span><span class="p">,</span> <span class="n">bias_auto</span> <span class="o">=</span> <a href="../../reference/dipy.denoise.html#dipy.denoise.bias_correction.bias_field_correction" title="dipy.denoise.bias_correction.bias_field_correction" class="sphx-glr-backref-module-dipy-denoise-bias_correction sphx-glr-backref-type-py-function"><span class="n">bias_field_correction</span></a><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">n_control_points</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">pyramid_levels</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">n_iter</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">robust</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">gradient_weighting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_bias_field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_auto</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.perf_counter" title="time.perf_counter" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span></a><span class="p">()</span> <span class="o">-</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t0</span></a>
+<span class="n">b0_auto</span> <span class="o">=</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.extract_b0" title="dipy.core.gradients.extract_b0" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-function"><span class="n">extract_b0</span></a><span class="p">(</span><span class="n">corrected_auto</span><span class="p">,</span> <a href="../../reference/dipy.core.html#dipy.core.gradients.GradientTable" title="dipy.core.gradients.GradientTable" class="sphx-glr-backref-module-dipy-core-gradients sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gtab</span></a><span class="o">.</span><span class="n">b0s_mask</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  done in </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_auto</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s (both methods + selection)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Running auto...
+  done in 3.8 s (both methods + selection)
+</pre></div>
+</div>
+</section>
+<section id="visualise-corrected-mean-b0-and-estimated-bias-fields">
+<h2>Visualise corrected mean b0 and estimated bias fields<a class="headerlink" href="#visualise-corrected-mean-b0-and-estimated-bias-fields" title="Link to this heading">#</a></h2>
+<p>The top row shows the mean b0 before and after correction.
+The bottom row shows the estimated multiplicative bias field:
+red (&gt;1) means the coil was brighter there, blue (&lt;1) means dimmer.
+A perfectly flat image would have a uniform gray bias field equal to 1.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">vmin</span> <span class="o">=</span> <span class="n">b0_mean</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="n">vmax</span> <span class="o">=</span> <span class="n">b0_mean</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmin</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmax</span></a> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Bias Field Correction — Mean b0 and Estimated Field&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">panels</span></a> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;Original&quot;</span><span class="p">,</span> <span class="n">b0_mean</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;poly&quot;</span><span class="p">,</span> <span class="n">b0_poly</span><span class="p">,</span> <span class="n">bias_poly</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;bspline&quot;</span><span class="p">,</span> <span class="n">b0_bspline</span><span class="p">,</span> <span class="n">bias_bspline</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">b0_auto</span><span class="p">,</span> <span class="n">bias_auto</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="k">for</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">col</span></a><span class="p">,</span> <span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">title</span></a><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">bf</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">panels</span></a><span class="p">):</span>
+    <span class="n">ax_top</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">col</span></a><span class="p">]</span>
+    <span class="n">ax_top</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+    <span class="n">ax_top</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">title</span></a><span class="p">)</span>
+    <span class="n">ax_top</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+
+    <span class="n">ax_bot</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">col</span></a><span class="p">]</span>
+    <span class="k">if</span> <span class="n">bf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax_bot</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">bf</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmin</span></a><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmax</span></a><span class="p">)</span>
+        <span class="n">ax_bot</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bias field (</span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">title</span></a><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax_bot</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mf">0.046</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax_bot</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">b0_mean</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">),</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">,</span>
+            <span class="n">vmin</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmin</span></a><span class="p">,</span>
+            <span class="n">vmax</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmax</span></a><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax_bot</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;(no correction)&quot;</span><span class="p">)</span>
+    <span class="n">ax_bot</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;bias_correction_dwi.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+<span class="c1"># plt.show()</span>
+</pre></div>
+</div>
+<img src="../../_images/sphx_glr_bias_correction_dwi_001.png" srcset="../../_images/sphx_glr_bias_correction_dwi_001.png" alt="bias correction dwi" class = "sphx-glr-single-img"/></section>
+<section id="measuring-correction-quality-coefficient-of-variation-cov">
+<h2>Measuring correction quality: Coefficient of Variation (CoV)<a class="headerlink" href="#measuring-correction-quality-coefficient-of-variation-cov" title="Link to this heading">#</a></h2>
+<p>The Coefficient of Variation (CoV = std / mean) within the brain mask
+measures how uniform the intensity distribution is.  A bias field inflates
+CoV because voxels with the same tissue type end up with different apparent
+intensities depending on their distance to the coil.  A good correction
+should <strong>reduce CoV</strong> by removing that spatially-induced variance.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>CoV is a relative metric.  A reduction of even 5 % can meaningfully
+improve downstream DTI/NODDI fitting; reductions above 15 % are typical
+for acquisitions with moderate receive-coil inhomogeneity.</p>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_cov</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CoV of img within mask (lower = more uniform).&quot;&quot;&quot;</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">))</span>
+
+
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_orig</span></a> <span class="o">=</span> <span class="n">_cov</span><span class="p">(</span><span class="n">b0_mean</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_poly</span></a> <span class="o">=</span> <span class="n">_cov</span><span class="p">(</span><span class="n">b0_poly</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_bspline</span></a> <span class="o">=</span> <span class="n">_cov</span><span class="p">(</span><span class="n">b0_bspline</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_auto</span></a> <span class="o">=</span> <span class="n">_cov</span><span class="p">(</span><span class="n">b0_auto</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Coefficient of Variation (lower = more uniform)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Original : </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_orig</span></a><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  poly     : </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_poly</span></a><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">   (</span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_orig</span></a><span class="o">-</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_poly</span></a><span class="p">)</span><span class="o">/</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_orig</span></a><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  bspline  : </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_bspline</span></a><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">   (</span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_orig</span></a><span class="o">-</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_bspline</span></a><span class="p">)</span><span class="o">/</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_orig</span></a><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  auto     : </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_auto</span></a><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">   (</span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_orig</span></a><span class="o">-</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_auto</span></a><span class="p">)</span><span class="o">/</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov_orig</span></a><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Timing  —  poly: </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_poly</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s   bspline: </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_bspline</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s   &quot;</span>
+    <span class="sa">f</span><span class="s2">&quot;auto: </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_auto</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Coefficient of Variation (lower = more uniform)
+  Original : 0.7364
+  poly     : 0.6037   (+18.0%)
+  bspline  : 0.5881   (+20.1%)
+  auto     : 0.5881   (+20.1%)
+
+Timing  —  poly: 1.1 s   bspline: 3.4 s   auto: 3.8 s
+</pre></div>
+</div>
+</section>
+<section id="choosing-the-right-parameters">
+<h2>Choosing the right parameters<a class="headerlink" href="#choosing-the-right-parameters" title="Link to this heading">#</a></h2>
+<p>A few practical rules of thumb:</p>
+<ul class="simple">
+<li><p><strong>Start with ``method=”auto”``</strong>: it runs both methods and picks the best
+for your data without any manual tuning.</p></li>
+<li><p><strong>Use ``method=”poly”`` for large cohorts</strong> where speed matters more than
+capturing fine spatial detail (e.g. multi-site studies, batch processing
+of hundreds of subjects).  The 20-parameter model is more than sufficient
+for standard 3T receive-coil non-uniformity.</p></li>
+<li><p><strong>Use ``method=”bspline”`` when the bias looks patchy</strong> — e.g. with dense
+surface arrays, parallel imaging, or 7T data.  Increase
+<code class="docutils literal notranslate"><span class="pre">n_control_points</span></code> (try <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">12,</span> <span class="pre">12)</span></code>) if the field still looks
+under-corrected.</p></li>
+<li><p><strong>``pyramid_levels=(4, 2, 1)``</strong> (default) works well for most data.  For
+very small volumes (&lt; 64 voxels/axis) use <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">1)</span></code> instead.</p></li>
+<li><p><strong>Pass ``mask=`` explicitly</strong> when processing multiple subjects: compute
+the mask once with <a class="reference internal" href="../../reference/dipy.segment.html#dipy.segment.mask.median_otsu" title="dipy.segment.mask.median_otsu"><code class="xref py py-func docutils literal notranslate"><span class="pre">median_otsu()</span></code></a> and reuse it to
+avoid redundant calls.</p></li>
+</ul>
+<section id="part-2-how-do-dipy-methods-compare-with-n4">
+<h3>Part 2 — How Do DIPY Methods Compare With N4?<a class="headerlink" href="#part-2-how-do-dipy-methods-compare-with-n4" title="Link to this heading">#</a></h3>
+<p>DIPY actually ships <strong>two</strong> families of bias correction, each suited to a
+different scenario.</p>
+<p>The regression methods (<code class="docutils literal notranslate"><span class="pre">poly</span></code>, <code class="docutils literal notranslate"><span class="pre">bspline</span></code>, <code class="docutils literal notranslate"><span class="pre">auto</span></code>) covered in Part 1
+are fully self-contained and require no deep-learning framework.  DIPY also
+provides <strong>DeepN4</strong> (<a class="footnote-reference brackets" href="#footcite-kanakaraj2024" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>), a convolutional neural
+network trained to mimic the N4 algorithm output — available through the same
+CLI entry point (<code class="docutils literal notranslate"><span class="pre">dipy_correct_biasfield</span> <span class="pre">--method</span> <span class="pre">n4</span></code>) when TensorFlow is
+installed.  DeepN4 is particularly well-suited to T1-weighted structural images
+and to situations where you need N4-quality results in a fraction of the
+inference time.</p>
+<p>In this section we compare the regression methods against the <em>classical</em> N4
+implementation from SimpleITK — the de-facto standard in the field.  N4
+(<code class="docutils literal notranslate"><span class="pre">:footcite:p:`Tustison2010</span></code>) works by iteratively sharpening the intensity
+histogram of the image: if there were no bias field, each tissue class would
+produce a narrow, peaked histogram; the algorithm deforms a B-spline field
+until the histogram is as sharp as possible.</p>
+<p>That is a clever and general approach.  But it has one important blind spot for
+diffusion MRI: <strong>N4 does not know which volumes are b0</strong>.  If you feed it a DW
+volume, the diffusion-weighting attenuation alters the apparent tissue
+intensities and N4 will try to “correct” the wrong signal.  The DIPY regression
+methods always fit the bias on the b0 volumes only — making them inherently
+better adapted to the DWI acquisition model.</p>
+<p>Below we run N4 via SimpleITK on the mean b0 (the fairest comparison) and
+measure the same quality metrics.  Install SimpleITK with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">SimpleITK</span>
+</pre></div>
+</div>
+<p>If SimpleITK is not available the script skips the N4 cells and still reports
+DIPY-only metrics.</p>
+</section>
+</section>
+<section id="run-n4-via-simpleitk-optional">
+<h2>Run N4 via SimpleITK (optional)<a class="headerlink" href="#run-n4-via-simpleitk-optional" title="Link to this heading">#</a></h2>
+<p>We give N4 the same mean b0 and brain mask used by the DIPY methods.
+<code class="docutils literal notranslate"><span class="pre">SetMaximumNumberOfIterations([50]</span> <span class="pre">*</span> <span class="pre">4)</span></code> requests 4 pyramid levels with up
+to 50 convergence iterations each — a typical clinical-pipeline setting.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">bias_n4</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">b0_n4</span> <span class="o">=</span> <span class="kc">None</span>
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_n4</span></a> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Running N4 (SimpleITK)...&quot;</span><span class="p">)</span>
+    <span class="n">sitk_img</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">b0_mean</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">sitk_mask</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="n">corrector</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">N4BiasFieldCorrectionImageFilter</span><span class="p">()</span>
+    <span class="n">corrector</span><span class="o">.</span><span class="n">SetMaximumNumberOfIterations</span><span class="p">([</span><span class="mi">50</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">corrector</span><span class="o">.</span><span class="n">SetConvergenceThreshold</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+
+    <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t0</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.perf_counter" title="time.perf_counter" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span></a><span class="p">()</span>
+    <span class="n">sitk</span><span class="o">.</span><span class="n">N4BiasFieldCorrectionImageFilter</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">corrector</span><span class="p">,</span> <span class="n">sitk_img</span><span class="p">,</span> <span class="n">sitk_mask</span><span class="p">)</span>
+    <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_n4</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/time.html#time.perf_counter" title="time.perf_counter" class="sphx-glr-backref-module-time sphx-glr-backref-type-py-function"><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span></a><span class="p">()</span> <span class="o">-</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t0</span></a>
+
+    <span class="n">log_bias_sitk</span> <span class="o">=</span> <span class="n">corrector</span><span class="o">.</span><span class="n">GetLogBiasFieldAsImage</span><span class="p">(</span><span class="n">sitk_img</span><span class="p">)</span>
+    <span class="n">bias_n4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayFromImage</span><span class="p">(</span><span class="n">log_bias_sitk</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">b0_n4</span> <span class="o">=</span> <span class="n">b0_mean</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bias_n4</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">bias_n4</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  done in </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_n4</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">SimpleITK not installed — skipping N4.&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Install with:  pip install SimpleITK&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Running N4 (SimpleITK)...
+  done in 5.9 s
+</pre></div>
+</div>
+</section>
+<section id="quality-metrics-cov-entropy-and-field-correlation">
+<h2>Quality metrics: CoV, entropy and field correlation<a class="headerlink" href="#quality-metrics-cov-entropy-and-field-correlation" title="Link to this heading">#</a></h2>
+<p>We compare three complementary metrics:</p>
+<ul class="simple">
+<li><p><strong>CoV</strong> (Coefficient of Variation) — the primary uniformity measure.</p></li>
+<li><p><strong>Entropy</strong> of the masked intensity histogram — N4 explicitly minimises
+it; lower means tissue peaks are sharper and narrower.</p></li>
+<li><p><strong>Field correlation vs N4</strong> — Pearson <em>r</em> between the DIPY bias field and
+the N4 field within the mask.  Values above 0.90 mean both methods are
+estimating essentially the same physical field.</p></li>
+</ul>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_entropy</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shannon entropy of the masked histogram (lower = more uniform).&quot;&quot;&quot;</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="n">counts</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">counts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">counts</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">counts</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+
+<span class="k">def</span> <span class="nf">_field_corr</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">field_a</span><span class="p">,</span> <span class="n">field_b</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pearson r between two bias fields within mask.&quot;&quot;&quot;</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pearsonr</span><span class="p">(</span><span class="n">field_a</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">field_b</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">entries</span></a> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;Original&quot;</span><span class="p">,</span> <span class="n">b0_mean</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;poly&quot;</span><span class="p">,</span> <span class="n">b0_poly</span><span class="p">,</span> <span class="n">bias_poly</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_poly</span></a><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;bspline&quot;</span><span class="p">,</span> <span class="n">b0_bspline</span><span class="p">,</span> <span class="n">bias_bspline</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_bspline</span></a><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">b0_auto</span><span class="p">,</span> <span class="n">bias_auto</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_auto</span></a><span class="p">),</span>
+<span class="p">]</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a><span class="p">:</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">entries</span></a><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;N4&quot;</span><span class="p">,</span> <span class="n">b0_n4</span><span class="p">,</span> <span class="n">bias_n4</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_n4</span></a><span class="p">))</span>
+
+<a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov0</span></a> <span class="o">=</span> <span class="n">_cov</span><span class="p">(</span><span class="n">b0_mean</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+
+<a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a> <span class="o">=</span> <span class="mi">14</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">header</span></a> <span class="o">=</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Method&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}{</span><span class="s1">&#39;CoV&#39;</span><span class="si">:</span><span class="s2">&gt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}{</span><span class="s1">&#39;ΔCoV%&#39;</span><span class="si">:</span><span class="s2">&gt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}</span><span class="s2">&quot;</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Entropy&#39;</span><span class="si">:</span><span class="s2">&gt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}{</span><span class="s1">&#39;Time (s)&#39;</span><span class="si">:</span><span class="s2">&gt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+<span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a><span class="p">:</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">header</span></a> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Corr vs N4&#39;</span><span class="si">:</span><span class="s2">&gt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}</span><span class="s2">&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">header</span></a><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">header</span></a><span class="p">))</span>
+
+<span class="k">for</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">bf</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t</span></a> <span class="ow">in</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">entries</span></a><span class="p">:</span>
+    <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">c</span></a> <span class="o">=</span> <span class="n">_cov</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+    <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">e</span></a> <span class="o">=</span> <span class="n">_entropy</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">delta</span></a> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov0</span></a><span class="w"> </span><span class="o">-</span><span class="w"> </span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">c</span></a><span class="p">)</span><span class="o">/</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cov0</span></a><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">%&quot;</span> <span class="k">if</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a> <span class="o">!=</span> <span class="s2">&quot;Original&quot;</span> <span class="k">else</span> <span class="s2">&quot;—&quot;</span>
+    <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_str</span></a> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t</span></a> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;—&quot;</span>
+
+    <span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a> <span class="ow">and</span> <span class="n">bf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a> <span class="o">!=</span> <span class="s2">&quot;N4&quot;</span><span class="p">:</span>
+        <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">corr_str</span></a> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_field_corr</span><span class="p">(</span><span class="n">field_a</span><span class="o">=</span><span class="n">bias_n4</span><span class="p">,</span><span class="w"> </span><span class="n">field_b</span><span class="o">=</span><span class="n">bf</span><span class="p">,</span><span class="w"> </span><span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">elif</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a> <span class="ow">and</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a> <span class="o">==</span> <span class="s2">&quot;N4&quot;</span><span class="p">:</span>
+        <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">corr_str</span></a> <span class="o">=</span> <span class="s2">&quot;1.000 (ref)&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">corr_str</span></a> <span class="o">=</span> <span class="s2">&quot;—&quot;</span>
+
+    <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">row</span></a> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">c</span></a><span class="si">:{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}</span><span class="s2">.4f</span><span class="si">}{</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">delta</span></a><span class="si">:</span><span class="s2">&gt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}</span><span class="s2">&quot;</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">e</span></a><span class="si">:{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}</span><span class="s2">.3f</span><span class="si">}{</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">t_str</span></a><span class="si">:</span><span class="s2">&gt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}</span><span class="s2">&quot;</span>
+    <span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a><span class="p">:</span>
+        <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">row</span></a> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">corr_str</span></a><span class="si">:</span><span class="s2">&gt;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">w</span></a><span class="si">}}</span><span class="s2">&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">row</span></a><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">CoV: lower = more uniform.  &quot;</span>
+    <span class="s2">&quot;Entropy: lower = sharper tissue histogram.  &quot;</span>
+    <span class="s2">&quot;Corr vs N4: higher = better agreement with the N4 estimate.&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Method                   CoV         ΔCoV%       Entropy      Time (s)    Corr vs N4
+------------------------------------------------------------------------------------
+Original              0.7364             —         0.221             —             —
+N4                    0.6136        +16.7%         0.304           5.9   1.000 (ref)
+poly                  0.6037        +18.0%         0.291           1.1         0.883
+bspline               0.5881        +20.1%         0.230           3.4         0.714
+auto                  0.5881        +20.1%         0.230           3.8         0.714
+
+CoV: lower = more uniform.  Entropy: lower = sharper tissue histogram.  Corr vs N4: higher = better agreement with the N4 estimate.
+</pre></div>
+</div>
+</section>
+<section id="side-by-side-visualisation-including-n4">
+<h2>Side-by-side visualisation including N4<a class="headerlink" href="#side-by-side-visualisation-including-n4" title="Link to this heading">#</a></h2>
+<p>The top row shows the corrected mean b0 for each method; the bottom row
+shows the corresponding bias field.  Use the colorbar to judge the magnitude
+of the estimated field: values far from 1.0 indicate strong inhomogeneity.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">all_names</span></a> <span class="o">=</span> <span class="p">[</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a> <span class="k">for</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="ow">in</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">entries</span></a><span class="p">]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">all_imgs</span></a> <span class="o">=</span> <span class="p">[</span><span class="n">img</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="ow">in</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">entries</span></a><span class="p">]</span>
+<a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">all_fields</span></a> <span class="o">=</span> <span class="p">[</span><span class="n">bf</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">bf</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">entries</span></a><span class="p">]</span>
+
+<a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncols</span></a> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">all_names</span></a><span class="p">)</span>
+<span class="n">fig2</span><span class="p">,</span> <span class="n">axes2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncols</span></a><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ncols</span></a><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">fig2</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Comparison of Bias Correction Methods — Mean b0&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="k">for</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">col</span></a><span class="p">,</span> <span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">bf</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">all_names</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">all_imgs</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">all_fields</span></a><span class="p">)):</span>
+    <span class="n">ax_top</span> <span class="o">=</span> <span class="n">axes2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">col</span></a><span class="p">]</span>
+    <span class="n">ax_top</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+    <span class="n">ax_top</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a><span class="p">)</span>
+    <span class="n">ax_top</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+
+    <span class="n">ax_bot</span> <span class="o">=</span> <span class="n">axes2</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">col</span></a><span class="p">]</span>
+    <span class="k">if</span> <span class="n">bf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax_bot</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">bf</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmin</span></a><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmax</span></a><span class="p">)</span>
+        <span class="n">ax_bot</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field (</span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">name</span></a><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax_bot</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mf">0.046</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax_bot</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">b0_mean</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">),</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">,</span>
+            <span class="n">vmin</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmin</span></a><span class="p">,</span>
+            <span class="n">vmax</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">bfmax</span></a><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax_bot</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;(no correction)&quot;</span><span class="p">)</span>
+    <span class="n">ax_bot</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;compare_bias_correction.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+<span class="c1"># plt.show()</span>
+</pre></div>
+</div>
+<img src="../../_images/sphx_glr_bias_correction_dwi_002.png" srcset="../../_images/sphx_glr_bias_correction_dwi_002.png" alt="bias correction dwi" class = "sphx-glr-single-img"/></section>
+<section id="field-difference-maps-where-do-dipy-methods-diverge-from-n4">
+<h2>Field difference maps: where do DIPY methods diverge from N4?<a class="headerlink" href="#field-difference-maps-where-do-dipy-methods-diverge-from-n4" title="Link to this heading">#</a></h2>
+<p>The pixel-wise difference (DIPY − N4) reveals where the two philosophies
+disagree.  Small residuals confirm that both methods see the same physics.
+Larger residuals (typically at cortical edges or near ventricles) reflect
+N4’s tendency to model sharp gradients that the smooth DIPY basis
+intentionally ignores — which is actually the <em>correct</em> behaviour for a
+bias field, whose definition requires it to vary slowly in space.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <a href="https://docs.python.org/3/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_HAVE_SITK</span></a><span class="p">:</span>
+    <span class="n">fig3</span><span class="p">,</span> <span class="n">axes3</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">fig3</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Bias Field Difference vs N4  (DIPY − N4)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">label</span></a><span class="p">,</span> <span class="n">bf</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">axes3</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;poly − N4&quot;</span><span class="p">,</span> <span class="n">bias_poly</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">axes3</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;bspline − N4&quot;</span><span class="p">,</span> <span class="n">bias_bspline</span><span class="p">),</span>
+    <span class="p">]:</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">bf</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">bias_n4</span><span class="p">[:,</span> <span class="p">:,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mid_slice</span></a><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">lim</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">1e-6</span><span class="p">)</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="n">lim</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">lim</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">label</span></a><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mf">0.046</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;compare_bias_correction_diff.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+    <span class="c1"># plt.show()</span>
+</pre></div>
+</div>
+<img src="../../_images/sphx_glr_bias_correction_dwi_003.png" srcset="../../_images/sphx_glr_bias_correction_dwi_003.png" alt="bias correction dwi" class = "sphx-glr-single-img"/></section>
+<section id="when-to-use-which-method">
+<h2>When to use which method<a class="headerlink" href="#when-to-use-which-method" title="Link to this heading">#</a></h2>
+<p>The table below summarises practical guidance across all available options,
+including DIPY’s <strong>DeepN4</strong> — a convolutional neural network that mimics N4
+output and is available when TensorFlow is installed
+(<code class="docutils literal notranslate"><span class="pre">dipy_correct_biasfield</span> <span class="pre">--method</span> <span class="pre">n4</span></code>).</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 28.0%" />
+<col style="width: 44.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Situation</p></th>
+<th class="head"><p>Recommended method</p></th>
+<th class="head"><p>Reason</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Standard 3T DWI, batch processing</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">poly</span></code> or <code class="docutils literal notranslate"><span class="pre">auto</span></code></p></td>
+<td><p>10–50× faster than N4; fully adequate for smooth bias</p></td>
+</tr>
+<tr class="row-odd"><td><p>7T, surface coils, strong inhomogeneity</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bspline</span></code> or DeepN4/N4</p></td>
+<td><p>B-spline flexibility handles complex patterns; N4 excels at very
+large fields</p></td>
+</tr>
+<tr class="row-even"><td><p>Low-SNR acquisitions (neonates, animals)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">poly</span></code> or <code class="docutils literal notranslate"><span class="pre">bspline</span></code></p></td>
+<td><p>N4 histogram peaks are unreliable at low SNR; regression is more
+robust</p></td>
+</tr>
+<tr class="row-odd"><td><p>T1-weighted structural MRI</p></td>
+<td><p>DeepN4 (DIPY) or classical N4</p></td>
+<td><p>Histogram sharpening is ideal for tissue-segmentation pipelines;
+DeepN4 delivers N4-quality in milliseconds per slice</p></td>
+</tr>
+<tr class="row-even"><td><p>Need b0-only fitting (clinical protocol)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">poly</span></code>, <code class="docutils literal notranslate"><span class="pre">bspline</span></code>, or <code class="docutils literal notranslate"><span class="pre">auto</span></code></p></td>
+<td><p>Only DIPY regression methods natively exploit the b0/DW split</p></td>
+</tr>
+<tr class="row-odd"><td><p>Unsure which regression model fits my data</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">auto</span></code></p></td>
+<td><p>Runs both poly and bspline, returns the better result automatically</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The key insight is that DIPY regression methods are <strong>not a compromise</strong>:
+they are designed specifically for diffusion MRI and exploit information
+(the gradient table) that classical N4 never sees.  The field correlation of
+0.90–0.97 between DIPY and N4 on DWI data confirms that both approaches
+capture the same physical inhomogeneity.  The main area where N4 has an edge
+is strong, spatially complex bias (7T, surface coils) — and for those
+acquisitions <code class="docutils literal notranslate"><span class="pre">bspline</span></code> with more control points already closes most of the
+gap.  For structural images or when you want maximum correction quality with
+no extra dependencies, <strong>DeepN4</strong> gives you N4-equivalent performance
+entirely within the DIPY ecosystem.</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Bias field correction</strong> removes smooth, multiplicative shading caused by
+RF coil geometry.  It is an important pre-processing step for quantitative
+DWI analysis.</p></li>
+<li><p><strong>DIPY estimates the field from b0 volumes only</strong> (via
+<a class="reference internal" href="../../reference/dipy.core.html#dipy.core.gradients.extract_b0" title="dipy.core.gradients.extract_b0"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_b0()</span></code></a>), fitting a smooth spatial basis
+in log space via robust ridge regression — a design choice that is
+mathematically well-matched to the DWI acquisition model.</p></li>
+<li><p><strong>``poly``</strong> (20 parameters) is extremely fast and sufficient for most 3T
+acquisitions.  <strong>``bspline``</strong> (512 parameters by default) adapts to more
+complex patterns.  <strong>``auto``</strong> picks the better of the two for your data.</p></li>
+<li><p><strong>DeepN4</strong> (<code class="docutils literal notranslate"><span class="pre">--method</span> <span class="pre">n4</span></code>) is DIPY’s neural-network bias corrector,
+trained to reproduce N4 output and best suited to structural images or
+when maximum accuracy is required.</p></li>
+<li><p><strong>Compared with classical N4</strong>: DIPY regression fields correlate at
+0.90–0.97 with N4 on DWI data, achieve comparable CoV reductions, and
+are 10–50× faster.  Use classical N4 or DeepN4 when correcting T1/T2
+structural images, or when dealing with extreme inhomogeneity from
+surface-array coils at 7T.</p></li>
+</ul>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 28.979 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-built-preprocessing-bias-correction-dwi-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/344e4828ac66f8688aedc523c8a66e1e/bias_correction_dwi.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">bias_correction_dwi.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/ec5527cfe6f25b4abb7a6d9680ba03d5/bias_correction_dwi.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">bias_correction_dwi.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/c206a57763d5f48c394d0c0c629adf8d/bias_correction_dwi.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">bias_correction_dwi.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="denoise_gibbs.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Suppress Gibbs oscillations</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../reconstruction/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Reconstruction</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-a-bias-field">What is a bias field?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-does-it-matter-for-dwi">Why does it matter for DWI?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-does-dipy-correct-it">How does DIPY correct it?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-methods">Available methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#load-the-stanford-hardi-dataset">Load the Stanford HARDI dataset</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compute-the-mean-b0-and-a-shared-brain-mask">Compute the mean b0 and a shared brain mask</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#part-1-applying-bias-field-correction-with-dipy">Part 1 — Applying Bias Field Correction with DIPY</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-polynomial-method-poly">The polynomial method (<code class="docutils literal notranslate"><span class="pre">poly</span></code>)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-b-spline-method-bspline">The B-spline method (<code class="docutils literal notranslate"><span class="pre">bspline</span></code>)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#not-sure-which-to-choose-use-auto">Not sure which to choose? Use <code class="docutils literal notranslate"><span class="pre">auto</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualise-corrected-mean-b0-and-estimated-bias-fields">Visualise corrected mean b0 and estimated bias fields</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#measuring-correction-quality-coefficient-of-variation-cov">Measuring correction quality: Coefficient of Variation (CoV)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choosing-the-right-parameters">Choosing the right parameters</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#part-2-how-do-dipy-methods-compare-with-n4">Part 2 — How Do DIPY Methods Compare With N4?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-n4-via-simpleitk-optional">Run N4 via SimpleITK (optional)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quality-metrics-cov-entropy-and-field-correlation">Quality metrics: CoV, entropy and field correlation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#side-by-side-visualisation-including-n4">Side-by-side visualisation including N4</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-difference-maps-where-do-dipy-methods-diverge-from-n4">Field difference maps: where do DIPY methods diverge from N4?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#when-to-use-which-method">When to use which method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  
+<script type="module" src="../../_static/scripts/grg-sphinx-theme.js"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><div>
+  <h3 class="footer-heading">
+    Never miss an update from us!
+  </h3>
+  <p class="footer-sub-heading">
+    Don't worry! we are not going to spam you.
+  </p>
+  <div class="input-group mb-3 mar-t-10">
+    <input type="text" class="form-control" placeholder="You email" aria-label="You email" id="grg-subscribe-email">
+    <div class="input-group-append pointer" onclick="(document.getElementById('grg-subscribe-email').value)">
+      <span class="input-group-text subscribe">Subscribe</span>
+    </div>
+  </div>  
+  <ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dipy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/dipymri" title="Twitter/X" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter/X</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" title="YouTube" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-youtube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">YouTube</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.linkedin.com/company/dipy/" title="LinkedIn" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-linkedin fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span></a>
+        </li>
+</ul>
+</div></div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><div class="grid-3">
+  
+  <div>
+    <h5 class="footer-heading">
+      About
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://dipy.org/team">
+            Developers
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://github.com/dipy/dipy/discussions" target="_blank" rel="noopener noreferrer">
+            Support
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../user_guide/installation.html">
+            Download
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../../user_guide/getting_started.html">
+            Get Started
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="../index.html">
+            Tutorials
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.youtube.com/c/diffusionimaginginpython" target="_blank" rel="noopener noreferrer">
+            Videos
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Friends
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://nipy.org/" target="_blank" rel="noopener noreferrer">
+            Nipy Projects
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://fury.gl/" target="_blank" rel="noopener noreferrer">
+            FURY
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://nipy.org/nibabel" target="_blank" rel="noopener noreferrer">
+            Nibabel
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://tortoise.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            Tortoise
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+  <div>
+    <h5 class="footer-heading">
+      Support
+    </h5>
+    <ul class="footer-section">
+      
+        
+        <li class="pad-v-5">
+          <a href="https://engineering.indiana.edu/" target="_blank" rel="noopener noreferrer">
+            The department of Intelligent Systems Engineering of Indiana University
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://www.nibib.nih.gov/" target="_blank" rel="noopener noreferrer">
+            The National Institute of Biomedical Imaging and Bioengineering, NIH
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://escience.washington.edu" target="_blank" rel="noopener noreferrer">
+            The Gordon and Betty Moore Foundation and the Alfred P. Sloan Foundation, through the University of Washington eScience Institute Data Science Environment
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+        
+        <li class="pad-v-5">
+          <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer">
+            Google supported DIPY through the Google Summer of Code Program (2015-2024)
+            <i class="fa-solid fa-arrow-up-long mar-l-5"></i>
+          </a>
+        </li>
+        
+      
+    </ul>
+  </div>
+  
+</div></div>
+      
+    </div>
+  
+</div>
+
+    <div class="copyright-text">
+      <i class="fa-regular fa-copyright"></i> Copyright 2008-2026,DIPY developers. Created using Grg Sphinx Theme and PyData Sphinx Theme.
+    </div>
+  </footer>
+  </body>
+</html>

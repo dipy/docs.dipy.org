@@ -7,16 +7,16 @@ dipy_reslice
 Synopsis
 --------
 
-Reslice data with new voxel resolution defined by ``new_vox_sz``
+Reslice data to a new voxel resolution with automatic or manual sizing.
 
-
+This workflow resamples volumetric data to a specified voxel size or automatically determines an optimal isotropic resolution. When automatic calculation is used, the new voxel size balances data quality with computational efficiency by interpolating between the original voxel dimensions.
 
 Usage
 -----
 
 .. code-block:: bash
 
-    dipy_reslice [OPTIONS] input_files new_vox_size
+    dipy_reslice [OPTIONS] input_files
 
 Input Parameters
 ----------------
@@ -26,12 +26,18 @@ Input Parameters
   Path to the input volumes. This path may contain wildcards to
   process multiple inputs at once.
 
-* ``new_vox_size``
-
-  new voxel size.
-
 General Options
 ---------------
+
+* ``--new_vox_size``
+
+  New voxel size as (x, y, z) in mm. If None, it will be
+  automatically calculated using the formula:
+  new_vox = voxel_sorted[1] + (voxel_sorted[2] - voxel_sorted[1]) * vox_factor
+  where voxel_sorted are the original voxel dimensions sorted in
+  ascending order. The calculated value is applied isotropically
+  to all three dimensions.
+  (default: None)
 
 * ``--order``
 
@@ -48,7 +54,7 @@ General Options
 
 * ``--cval``
 
-  Value used for points outside the boundaries of the input if
+  Fill value for points outside the input boundaries when
   mode='constant'.
   (default: 0)
 
@@ -60,17 +66,27 @@ General Options
   use as many cores as possible). 0 raises an error.
   (default: 1)
 
+* ``--vox_factor``
+
+  Interpolation factor for automatic voxel size calculation,
+  ranging from 0.0 to 1.0. Controls the trade-off between the
+  second-largest and largest original voxel dimensions. 0.0: uses
+  second-largest voxel size (finer resolution). 1.0: uses largest voxel
+  size (coarser resolution). 0.14: recommended value for balanced resolution.
+  Only used when new_vox_size is None.
+  (default: 0.14)
+
 Output Options
 --------------
 
 * ``--out_dir``
 
-  Output directory.
+  Output directory for saving results.
   (default:  current directory)
 
 * ``--out_resliced``
 
-  Name of the resliced dataset to be saved.
+  Filename for the resliced output volume.
   (default: resliced.nii.gz)
 
 References
