@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.pickles &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.io.pickles &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -890,12 +885,13 @@ document.write(`
   <h1>Source code for dipy.io.pickles</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Load and save pickles&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
 
 <div class="viewcode-block" id="save_pickle">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.pickles.save_pickle">[docs]</a>
-<span class="k">def</span> <span class="nf">save_pickle</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">dix</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_pickle</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">dix</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save `dix` to `fname` as pickle.</span>
 
 <span class="sd">    Parameters</span>
@@ -912,7 +908,7 @@ document.write(`
 <span class="sd">    &gt;&gt;&gt; fd, fname = mkstemp() # make temporary file (opened, attached to fh)</span>
 <span class="sd">    &gt;&gt;&gt; d={0:{&#39;d&#39;:1}}</span>
 <span class="sd">    &gt;&gt;&gt; save_pickle(fname, d)</span>
-<span class="sd">    &gt;&gt;&gt; d2=load_pickle(fname)</span>
+<span class="sd">    &gt;&gt;&gt; d2=load_pickle(fname, check_safety=False)</span>
 
 <span class="sd">    We remove the temporary file we created for neatness</span>
 
@@ -924,21 +920,23 @@ document.write(`
 <span class="sd">    dipy.io.pickles.load_pickle</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
-    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dix</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
-    <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dix</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="load_pickle">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.pickles.load_pickle">[docs]</a>
-<span class="k">def</span> <span class="nf">load_pickle</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_pickle</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">check_safety</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load object from pickle file `fname`.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fname : str</span>
 <span class="sd">       filename to load dict or other python object</span>
+<span class="sd">    check_safety : bool, optional</span>
+<span class="sd">       If True, emit a warning that pickle files can execute arbitrary code.</span>
+<span class="sd">       Set to False only when loading files from trusted sources.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -950,10 +948,14 @@ document.write(`
 <span class="sd">    dipy.io.pickles.save_pickle</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">inp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
-    <span class="n">dix</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
-    <span class="n">inp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">dix</span></div>
+    <span class="k">if</span> <span class="n">check_safety</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;pickle.load() executes arbitrary code; only load files from trusted sources.&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inp</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span></div>
 
 </pre></div>
 

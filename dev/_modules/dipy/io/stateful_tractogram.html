@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.stateful_tractogram &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.io.stateful_tractogram &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,32 +883,32 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.io.stateful_tractogram</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">bisect</span> <span class="kn">import</span> <span class="n">bisect</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">bisect</span><span class="w"> </span><span class="kn">import</span> <span class="n">bisect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">product</span>
 
-<span class="kn">from</span> <span class="nn">nibabel.affines</span> <span class="kn">import</span> <span class="n">apply_affine</span>
-<span class="kn">from</span> <span class="nn">nibabel.streamlines.tractogram</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.streamlines.tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">PerArrayDict</span><span class="p">,</span>
     <span class="n">PerArraySequenceDict</span><span class="p">,</span>
     <span class="n">Tractogram</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.io.dpy</span> <span class="kn">import</span> <span class="n">Streamlines</span>
-<span class="kn">from</span> <span class="nn">dipy.io.utils</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.dpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Streamlines</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Origin</span><span class="p">,</span>
     <span class="n">Space</span><span class="p">,</span>
     <span class="n">get_reference_info</span><span class="p">,</span>
     <span class="n">is_header_compatible</span><span class="p">,</span>
     <span class="n">is_reference_info_valid</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 
-<span class="k">def</span> <span class="nf">set_sft_logger_level</span><span class="p">(</span><span class="n">log_level</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_sft_logger_level</span><span class="p">(</span><span class="n">log_level</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Change the logger of the StatefulTractogram</span>
 <span class="sd">    to one on the following: DEBUG, INFO, WARNING, CRITICAL, ERROR</span>
 
@@ -927,7 +922,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram">[docs]</a>
-<span class="k">class</span> <span class="nc">StatefulTractogram</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StatefulTractogram</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for stateful representation of collections of streamlines</span>
 <span class="sd">    Object designed to be identical no matter the file format</span>
 <span class="sd">    (trk, tck, vtk, fib, dpy). Facilitate transformation between space and</span>
@@ -935,7 +930,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">streamlines</span><span class="p">,</span>
         <span class="n">reference</span><span class="p">,</span>
@@ -1046,7 +1041,7 @@ document.write(`
 <div class="viewcode-block" id="StatefulTractogram.are_compatible">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.are_compatible">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">are_compatible</span><span class="p">(</span><span class="n">sft_1</span><span class="p">,</span> <span class="n">sft_2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">are_compatible</span><span class="p">(</span><span class="n">sft_1</span><span class="p">,</span> <span class="n">sft_2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compatibility verification of two StatefulTractogram to ensure space,</span>
 <span class="sd">        origin, data_per_point and data_per_streamline consistency&quot;&quot;&quot;</span>
 
@@ -1076,7 +1071,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.from_sft">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">from_sft</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">sft</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">data_per_point</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_per_streamline</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_sft</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">sft</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">data_per_point</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_per_streamline</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an instance of `StatefulTractogram` from another instance</span>
 <span class="sd">        of `StatefulTractogram`.</span>
 
@@ -1108,7 +1103,7 @@ document.write(`
         <span class="k">return</span> <span class="n">new_sft</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate the string for printing&quot;&quot;&quot;</span>
         <span class="n">affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_affine</span><span class="p">,</span> <span class="n">formatter</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;float_kind&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
@@ -1128,11 +1123,11 @@ document.write(`
 
         <span class="k">return</span> <span class="n">text</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Define the length of the object&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_streamline_count</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Slice all data in a consistent way&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">key</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -1144,7 +1139,7 @@ document.write(`
             <span class="n">data_per_streamline</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_per_streamline</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Robust StatefulTractogram equality test&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">are_compatible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -1170,16 +1165,13 @@ document.write(`
             <span class="n">dps_equal</span> <span class="o">=</span> <span class="n">dps_equal</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data_per_streamline</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">other</span><span class="o">.</span><span class="n">data_per_streamline</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-3</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">dps_equal</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">dps_equal</span>
 
-        <span class="k">return</span> <span class="kc">True</span>
-
-    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Robust StatefulTractogram equality test (NOT)&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
 
-    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_sft</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_sft</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Addition of two sft with attributes consistency checks&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">are_compatible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_sft</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -1207,12 +1199,12 @@ document.write(`
             <span class="n">data_per_streamline</span><span class="o">=</span><span class="n">data_per_streamline</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">other</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dtype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dtype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for dtype_dict&quot;&quot;&quot;</span>
 
         <span class="n">dtype_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -1232,47 +1224,47 @@ document.write(`
         <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">dtype_dict</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">space_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">space_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for spatial attribute&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_affine</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voxel_sizes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voxel_order</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the current space&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">affine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">affine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the reference affine&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_affine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the reference dimensions&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">voxel_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">voxel_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the reference voxel sizes&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voxel_sizes</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">voxel_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">voxel_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the reference voxel order&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voxel_order</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for origin standard&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Partially safe getter for streamlines&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span>
 
     <span class="nd">@dtype_dict</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">dtype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype_dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dtype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype_dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Modify dtype_dict.</span>
 
 <span class="sd">        Parameters</span>
@@ -1311,13 +1303,13 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.get_streamlines_copy">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.get_streamlines_copy">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_streamlines_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_streamlines_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe getter for streamlines (for slicing)&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
 
     <span class="nd">@streamlines</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Modify streamlines. Creating a new object would be less risky.</span>
 
 <span class="sd">        Parameters</span>
@@ -1333,12 +1325,12 @@ document.write(`
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Streamlines has been modified.&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">data_per_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data_per_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for data_per_point&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">data_per_point</span>
 
     <span class="nd">@data_per_point</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">data_per_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data_per_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Modify point data . Creating a new object would be less risky.</span>
 
 <span class="sd">        Parameters</span>
@@ -1352,12 +1344,12 @@ document.write(`
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Data_per_point has been modified.&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">data_per_streamline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data_per_streamline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for data_per_streamline&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">data_per_streamline</span>
 
     <span class="nd">@data_per_streamline</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">data_per_streamline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data_per_streamline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Modify point data . Creating a new object would be less risky.</span>
 
 <span class="sd">        Parameters</span>
@@ -1371,21 +1363,21 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.get_data_per_point_keys">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.get_data_per_point_keys">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_data_per_point_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_data_per_point_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of the data_per_point attribute names&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_per_point</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
 
 <div class="viewcode-block" id="StatefulTractogram.get_data_per_streamline_keys">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.get_data_per_streamline_keys">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_data_per_streamline_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_data_per_streamline_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of the data_per_streamline attribute names&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_per_streamline</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
 
 <div class="viewcode-block" id="StatefulTractogram.to_vox">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.to_vox">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to transform streamlines and update state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_voxmm_to_vox</span><span class="p">()</span>
@@ -1397,7 +1389,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.to_voxmm">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.to_voxmm">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to transform streamlines and update state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vox_to_voxmm</span><span class="p">()</span>
@@ -1409,7 +1401,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.to_rasmm">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.to_rasmm">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to transform streamlines and update state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vox_to_rasmm</span><span class="p">()</span>
@@ -1419,7 +1411,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">_lpsmm_to_rasmm</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span> <span class="nf">to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vox_to_lpsmm</span><span class="p">()</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
@@ -1429,7 +1421,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.to_space">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.to_space">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_space</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_space</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to transform streamlines to a particular space using</span>
 <span class="sd">        an enum and update state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">target_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
@@ -1449,7 +1441,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.to_origin">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.to_origin">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_origin</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_origin</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to change streamlines to a particular origin standard</span>
 <span class="sd">        False means NIFTI (center) and True means TrackVis (corner)&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">target_origin</span> <span class="o">==</span> <span class="n">Origin</span><span class="o">.</span><span class="n">NIFTI</span><span class="p">:</span>
@@ -1465,7 +1457,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.to_center">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.to_center">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to shift streamlines so the center of voxel is</span>
 <span class="sd">        the origin&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span> <span class="o">==</span> <span class="n">Origin</span><span class="o">.</span><span class="n">TRACKVIS</span><span class="p">:</span>
@@ -1474,7 +1466,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.to_corner">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.to_corner">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_corner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_corner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to shift streamlines so the corner of voxel is</span>
 <span class="sd">        the origin&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span> <span class="o">==</span> <span class="n">Origin</span><span class="o">.</span><span class="n">NIFTI</span><span class="p">:</span>
@@ -1483,7 +1475,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.compute_bounding_box">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.compute_bounding_box">[docs]</a>
-    <span class="k">def</span> <span class="nf">compute_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the bounding box of the streamlines in their current state</span>
 
 <span class="sd">        Returns</span>
@@ -1501,7 +1493,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulTractogram.is_bbox_in_vox_valid">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.is_bbox_in_vox_valid">[docs]</a>
-    <span class="k">def</span> <span class="nf">is_bbox_in_vox_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_bbox_in_vox_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify that the bounding box is valid in voxel space.</span>
 <span class="sd">        Negative coordinates or coordinates above the volume dimensions</span>
 <span class="sd">        are considered invalid in voxel space.</span>
@@ -1546,7 +1538,7 @@ document.write(`
 <div class="viewcode-block" id="StatefulTractogram.remove_invalid_streamlines">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_tractogram.StatefulTractogram.remove_invalid_streamlines">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">remove_invalid_streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_invalid_streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove streamlines with invalid coordinates from the object.</span>
 <span class="sd">        Will also remove the data_per_point and data_per_streamline.</span>
 <span class="sd">        Invalid coordinates are any X,Y,Z values above the reference</span>
@@ -1577,13 +1569,12 @@ document.write(`
         <span class="p">)</span>
         <span class="n">ic_offsets_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">min_condition</span><span class="p">,</span> <span class="n">max_condition</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="n">indices_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ic_offsets_indices</span><span class="p">:</span>
-            <span class="n">indices_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">indices_to_remove</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">{</span>
                 <span class="n">bisect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_offsets</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-            <span class="p">)</span>
-
-        <span class="n">indices_to_remove</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">indices_to_remove</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ic_offsets_indices</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
 
         <span class="n">indices_to_keep</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span>
@@ -1611,15 +1602,15 @@ document.write(`
         <span class="k">return</span> <span class="n">indices_to_remove</span><span class="p">,</span> <span class="n">indices_to_keep</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_get_streamline_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_streamline_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe getter for the number of streamlines&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_point_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_point_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe getter for the number of streamlines&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">total_nb_rows</span>
 
-    <span class="k">def</span> <span class="nf">_vox_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_vox_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform streamlines&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1629,7 +1620,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_voxmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_voxmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform streamlines&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1639,7 +1630,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_vox_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_vox_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform streamlines&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1649,7 +1640,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_rasmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rasmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform streamlines&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1659,7 +1650,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_voxmm_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_voxmm_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform streamlines&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1670,7 +1661,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_rasmm_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rasmm_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform streamlines&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1681,7 +1672,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_lpsmm_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lpsmm_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">LPSMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1692,7 +1683,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_rasmm_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rasmm_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1703,7 +1694,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_lpsmm_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lpsmm_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">LPSMM</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_lpsmm_to_rasmm</span><span class="p">()</span>
@@ -1712,7 +1703,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_voxmm_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_voxmm_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_voxmm_to_rasmm</span><span class="p">()</span>
@@ -1721,7 +1712,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_lpsmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lpsmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">LPSMM</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_lpsmm_to_rasmm</span><span class="p">()</span>
@@ -1730,7 +1721,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_vox_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_vox_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vox_to_rasmm</span><span class="p">()</span>
@@ -1739,7 +1730,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_shift_voxel_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_shift_voxel_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to switch the origin from center to corner</span>
 <span class="sd">        and vice versa&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">streamlines</span><span class="p">:</span>
@@ -1765,7 +1756,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_is_data_per_point_valid</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_data_per_point_valid</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify that the number of item in data is X and that each of these</span>
 <span class="sd">        items has Y_i items.</span>
 
@@ -1817,7 +1808,7 @@ document.write(`
     <span class="k">return</span> <span class="kc">True</span>
 
 
-<span class="k">def</span> <span class="nf">_is_data_per_streamline_valid</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_data_per_streamline_valid</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify that the number of item in data is X</span>
 
 <span class="sd">        X being the number of streamlines</span>

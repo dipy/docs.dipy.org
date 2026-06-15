@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.force &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.reconst.force &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,23 +883,33 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.reconst.force</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.reconst._force_search</span> <span class="kn">import</span> <span class="n">search_inner_product</span> <span class="k">as</span> <span class="n">_cython_search</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.base</span> <span class="kn">import</span> <span class="n">ReconstFit</span><span class="p">,</span> <span class="n">ReconstModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.multi_voxel</span> <span class="kn">import</span> <span class="n">multi_voxel_fit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">unique_bvals_tolerance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">PeaksAndMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst._force_search</span><span class="w"> </span><span class="kn">import</span> <span class="n">search_inner_product</span> <span class="k">as</span> <span class="n">_cython_search</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReconstFit</span><span class="p">,</span> <span class="n">ReconstModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.multi_voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_voxel_fit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">sf_to_sh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.force</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">generate_force_simulations</span><span class="p">,</span>
+    <span class="n">get_default_diffusivity_config</span><span class="p">,</span>
+    <span class="n">load_force_simulations</span><span class="p">,</span>
+    <span class="n">save_force_simulations</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 <span class="c1"># Named constants</span>
 <span class="n">EPSILON</span> <span class="o">=</span> <span class="mf">1e-12</span>
 
 
-<span class="k">def</span> <span class="nf">_get_force_cache_dir</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_force_cache_dir</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the FORCE simulation cache directory inside .dipy.</span>
 
 <span class="sd">    Uses ``DIPY_HOME`` environment variable if set, otherwise defaults</span>
@@ -924,7 +929,7 @@ document.write(`
     <span class="k">return</span> <span class="n">cache_dir</span>
 
 
-<span class="k">def</span> <span class="nf">_gtab_matches</span><span class="p">(</span><span class="n">entry_bvals</span><span class="p">,</span> <span class="n">entry_bvecs</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bval_tol</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">bvec_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_gtab_matches</span><span class="p">(</span><span class="n">entry_bvals</span><span class="p">,</span> <span class="n">entry_bvecs</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bval_tol</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">bvec_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check whether stored bvals/bvecs match a GradientTable.</span>
 
 <span class="sd">    Parameters</span>
@@ -960,7 +965,7 @@ document.write(`
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_diffusivity_matches</span><span class="p">(</span><span class="n">entry_config</span><span class="p">,</span> <span class="n">current_config</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_diffusivity_matches</span><span class="p">(</span><span class="n">entry_config</span><span class="p">,</span> <span class="n">current_config</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check whether two diffusivity configurations are equivalent.</span>
 
 <span class="sd">    Parameters</span>
@@ -994,26 +999,26 @@ document.write(`
     <span class="k">return</span> <span class="kc">True</span>
 
 
-<span class="k">def</span> <span class="nf">_load_cache_registry</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_cache_registry</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load the cache registry JSON from *cache_dir*.</span>
 
 <span class="sd">    Returns an empty list if the file does not exist yet.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">registry_path</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="o">/</span> <span class="s2">&quot;cache_registry.json&quot;</span>
     <span class="k">if</span> <span class="n">registry_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">registry_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">registry_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[]</span>
 
 
-<span class="k">def</span> <span class="nf">_save_cache_registry</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">registry</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_save_cache_registry</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">registry</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Persist *registry* as JSON in *cache_dir*.&quot;&quot;&quot;</span>
     <span class="n">registry_path</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="o">/</span> <span class="s2">&quot;cache_registry.json&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">registry_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">registry</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_locked_registry_update</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">update_fn</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_locked_registry_update</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">update_fn</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read-modify-write the cache registry under an exclusive file lock.</span>
 
 <span class="sd">    Parameters</span>
@@ -1027,7 +1032,7 @@ document.write(`
     <span class="n">lock_path</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="o">/</span> <span class="s2">&quot;cache_registry.lock&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">lock_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">lock_fh</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">msvcrt</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">msvcrt</span>
 
             <span class="n">msvcrt</span><span class="o">.</span><span class="n">locking</span><span class="p">(</span><span class="n">lock_fh</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">msvcrt</span><span class="o">.</span><span class="n">LK_LOCK</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1038,7 +1043,7 @@ document.write(`
                 <span class="n">lock_fh</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
                 <span class="n">msvcrt</span><span class="o">.</span><span class="n">locking</span><span class="p">(</span><span class="n">lock_fh</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">msvcrt</span><span class="o">.</span><span class="n">LK_UNLCK</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">fcntl</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">fcntl</span>
 
             <span class="n">fcntl</span><span class="o">.</span><span class="n">flock</span><span class="p">(</span><span class="n">lock_fh</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">LOCK_EX</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1049,7 +1054,7 @@ document.write(`
                 <span class="n">fcntl</span><span class="o">.</span><span class="n">flock</span><span class="p">(</span><span class="n">lock_fh</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">LOCK_UN</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_find_cached_simulation</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">diffusivity_config</span><span class="p">,</span> <span class="n">num_simulations</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_find_cached_simulation</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">diffusivity_config</span><span class="p">,</span> <span class="n">num_simulations</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Search the registry for a simulation matching the given parameters.</span>
 
 <span class="sd">    Parameters</span>
@@ -1082,7 +1087,7 @@ document.write(`
     <span class="k">return</span> <span class="kc">None</span>
 
 
-<span class="k">def</span> <span class="nf">_register_cached_simulation</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_register_cached_simulation</span><span class="p">(</span>
     <span class="n">cache_dir</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">diffusivity_config</span><span class="p">,</span> <span class="n">num_simulations</span><span class="p">,</span> <span class="n">filename</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a new entry to the cache registry.</span>
@@ -1102,7 +1107,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Convert numpy types to plain Python for JSON serialisation</span>
-    <span class="k">def</span> <span class="nf">_to_json</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_to_json</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
@@ -1123,7 +1128,7 @@ document.write(`
         <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
     <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">_append</span><span class="p">(</span><span class="n">registry</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_append</span><span class="p">(</span><span class="n">registry</span><span class="p">):</span>
         <span class="n">registry</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">registry</span>
 
@@ -1132,7 +1137,7 @@ document.write(`
 
 <div class="viewcode-block" id="SignalIndex">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.SignalIndex">[docs]</a>
-<span class="k">class</span> <span class="nc">SignalIndex</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SignalIndex</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Index for inner product similarity search.</span>
 
 <span class="sd">    Uses optimized Cython BLAS for fast matrix multiplication</span>
@@ -1144,7 +1149,7 @@ document.write(`
 <span class="sd">        Dimension of vectors.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dimension must be positive, got </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
@@ -1153,7 +1158,7 @@ document.write(`
 
 <div class="viewcode-block" id="SignalIndex.add">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.SignalIndex.add">[docs]</a>
-    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add vectors to the index.</span>
 
 <span class="sd">        Parameters</span>
@@ -1194,7 +1199,7 @@ document.write(`
 
 <div class="viewcode-block" id="SignalIndex.search">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.SignalIndex.search">[docs]</a>
-    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Search for k nearest neighbors by inner product.</span>
 
 <span class="sd">        Parameters</span>
@@ -1236,8 +1241,7 @@ document.write(`
 
         <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntotal</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;k=</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> exceeds index size (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ntotal</span><span class="si">}</span><span class="s2">); &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;clamping to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ntotal</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;k=</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> exceeds index size (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ntotal</span><span class="si">}</span><span class="s2">); clamping to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ntotal</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
                 <span class="ne">UserWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
@@ -1251,20 +1255,20 @@ document.write(`
 
 <div class="viewcode-block" id="SignalIndex.reset">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.SignalIndex.reset">[docs]</a>
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove all vectors from the index.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_xb</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ntotal</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;SignalIndex(d=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="si">}</span><span class="s2">, ntotal=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ntotal</span><span class="si">}</span><span class="s2">)&quot;</span></div>
 
 
 
 <div class="viewcode-block" id="normalize_signals">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.normalize_signals">[docs]</a>
-<span class="k">def</span> <span class="nf">normalize_signals</span><span class="p">(</span><span class="n">signals</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_signals</span><span class="p">(</span><span class="n">signals</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;L2-normalize signal array for cosine similarity search.</span>
 
 <span class="sd">    Parameters</span>
@@ -1286,7 +1290,7 @@ document.write(`
 
 <div class="viewcode-block" id="create_signal_index">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.create_signal_index">[docs]</a>
-<span class="k">def</span> <span class="nf">create_signal_index</span><span class="p">(</span><span class="n">signals_norm</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_signal_index</span><span class="p">(</span><span class="n">signals_norm</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create index for cosine similarity search.</span>
 
 <span class="sd">    Parameters</span>
@@ -1308,7 +1312,7 @@ document.write(`
 
 <div class="viewcode-block" id="softmax_stable">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.softmax_stable">[docs]</a>
-<span class="k">def</span> <span class="nf">softmax_stable</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">softmax_stable</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Numerically stable softmax.</span>
 
 <span class="sd">    Parameters</span>
@@ -1331,7 +1335,7 @@ document.write(`
 
 <div class="viewcode-block" id="compute_uncertainty_ambiguity">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.compute_uncertainty_ambiguity">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_uncertainty_ambiguity</span><span class="p">(</span><span class="n">scores</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_uncertainty_ambiguity</span><span class="p">(</span><span class="n">scores</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute uncertainty and ambiguity metrics from match scores.</span>
 
 <span class="sd">    Parameters</span>
@@ -1360,9 +1364,153 @@ document.write(`
 
 
 
+<span class="n">MICRO_PARAMS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;fa&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;md&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;rd&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;wm_fraction&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;gm_fraction&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;csf_fraction&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;num_fibers&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dispersion&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nd&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ufa_voxel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ak&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;rk&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mk&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;kfa&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_weighted_percentile</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Batch weighted percentile.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vals : ndarray (N, K)</span>
+<span class="sd">        Parameter values across K neighbors per voxel.</span>
+<span class="sd">    weights : ndarray (N, K)</span>
+<span class="sd">        Posterior weights.</span>
+<span class="sd">    q : float</span>
+<span class="sd">        Quantile in [0, 1].</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : ndarray (N,)</span>
+<span class="sd">        Weighted percentile for each voxel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">sw</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cw</span> <span class="o">=</span> <span class="n">cw</span> <span class="o">/</span> <span class="p">(</span><span class="n">cw</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">EPSILON</span><span class="p">)</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">cw</span> <span class="o">&gt;=</span> <span class="n">q</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sv</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">sv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">j</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fwhm_kde_batch</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_grid</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Batch FWHM via weighted KDE.</span>
+
+<span class="sd">    Estimates the full width at half maximum of the weighted posterior</span>
+<span class="sd">    density for each voxel using a Gaussian kernel density estimate.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vals : ndarray (N, K)</span>
+<span class="sd">        Parameter values across K neighbors.</span>
+<span class="sd">    weights : ndarray (N, K)</span>
+<span class="sd">        Posterior weights.</span>
+<span class="sd">    n_grid : int, optional</span>
+<span class="sd">        Number of grid points for KDE evaluation.</span>
+<span class="sd">    batch_size : int, optional</span>
+<span class="sd">        Internal batch size to limit memory usage.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fwhm : ndarray (N,)</span>
+<span class="sd">        FWHM in parameter units.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">N</span><span class="p">,</span> <span class="n">K</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">fwhm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+        <span class="n">vals_batch</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">weights_batch</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+
+        <span class="n">lo</span> <span class="o">=</span> <span class="n">vals_batch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="n">vals_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">span</span> <span class="o">=</span> <span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="mf">0.15</span> <span class="o">*</span> <span class="p">(</span><span class="n">span</span> <span class="o">+</span> <span class="n">EPSILON</span><span class="p">)</span>
+        <span class="n">lo_p</span><span class="p">,</span> <span class="n">hi_p</span> <span class="o">=</span> <span class="n">lo</span> <span class="o">-</span> <span class="n">pad</span><span class="p">,</span> <span class="n">hi</span> <span class="o">+</span> <span class="n">pad</span>
+        <span class="n">span_p</span> <span class="o">=</span> <span class="n">hi_p</span> <span class="o">-</span> <span class="n">lo_p</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_grid</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">lo_p</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">span_p</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="n">bw</span> <span class="o">=</span> <span class="n">span_p</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">K</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">)</span>
+        <span class="n">bw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">bw</span><span class="p">,</span> <span class="n">EPSILON</span><span class="p">)</span>
+
+        <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">grid</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="n">vals_batch</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="n">bw</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">density</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">diff</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights_batch</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">peak</span> <span class="o">=</span> <span class="n">density</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">half_peak</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">peak</span>
+        <span class="n">above</span> <span class="o">=</span> <span class="n">density</span> <span class="o">&gt;=</span> <span class="n">half_peak</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="n">any_above</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">above</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">above</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">n_grid</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">above</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">last</span><span class="p">]</span> <span class="o">-</span> <span class="n">grid</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">first</span><span class="p">]</span>
+        <span class="n">f</span><span class="p">[</span><span class="o">~</span><span class="n">any_above</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">fwhm</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
+
+    <span class="k">return</span> <span class="n">fwhm</span>
+
+
+<div class="viewcode-block" id="compute_microstructure_uncertainty_ambiguity">
+<a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.compute_microstructure_uncertainty_ambiguity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_microstructure_uncertainty_ambiguity</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">prior_range</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute per-microstructure uncertainty and ambiguity.</span>
+
+<span class="sd">    Uncertainty is the weighted interquartile range of the posterior density,</span>
+<span class="sd">    normalized by the prior range. Ambiguity is the full width at half</span>
+<span class="sd">    maximum (FWHM) of the weighted posterior density, similarly normalized.</span>
+<span class="sd">    Both are in [0, 1] where 0 means no spread and 1 means the posterior</span>
+<span class="sd">    spans the entire prior range.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vals : ndarray (N, K)</span>
+<span class="sd">        Parameter values for K neighbors per voxel.</span>
+<span class="sd">    weights : ndarray (N, K)</span>
+<span class="sd">        Posterior weights (softmax).</span>
+<span class="sd">    prior_range : float</span>
+<span class="sd">        Max minus min of this parameter across the simulation library.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    uncertainty : ndarray (N,)</span>
+<span class="sd">        Weighted IQR / prior_range (fraction in [0, 1]).</span>
+<span class="sd">    ambiguity : ndarray (N,)</span>
+<span class="sd">        FWHM / prior_range (fraction in [0, 1]).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">q75</span> <span class="o">=</span> <span class="n">_weighted_percentile</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">)</span>
+    <span class="n">q25</span> <span class="o">=</span> <span class="n">_weighted_percentile</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
+    <span class="n">uncertainty</span> <span class="o">=</span> <span class="p">((</span><span class="n">q75</span> <span class="o">-</span> <span class="n">q25</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">prior_range</span> <span class="o">+</span> <span class="n">EPSILON</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">fwhm</span> <span class="o">=</span> <span class="n">_fwhm_kde_batch</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+    <span class="n">ambiguity</span> <span class="o">=</span> <span class="p">(</span><span class="n">fwhm</span> <span class="o">/</span> <span class="p">(</span><span class="n">prior_range</span> <span class="o">+</span> <span class="n">EPSILON</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">ambiguity</span></div>
+
+
+
 <div class="viewcode-block" id="postprocess_peaks">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.postprocess_peaks">[docs]</a>
-<span class="k">def</span> <span class="nf">postprocess_peaks</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target_sphere</span><span class="p">,</span> <span class="n">fracs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">postprocess_peaks</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target_sphere</span><span class="p">,</span> <span class="n">fracs</span><span class="p">):</span>
     <span class="n">original_shape</span> <span class="o">=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">preds_flat</span> <span class="o">=</span> <span class="n">preds</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">fracs_flat</span> <span class="o">=</span> <span class="n">fracs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">fracs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
@@ -1398,10 +1546,10 @@ document.write(`
 
 <div class="viewcode-block" id="FORCEModel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.FORCEModel">[docs]</a>
-<span class="k">class</span> <span class="nc">FORCEModel</span><span class="p">(</span><span class="n">ReconstModel</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FORCEModel</span><span class="p">(</span><span class="n">ReconstModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;FORCE reconstruction model for signal matching based microstructure.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gtab</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1471,7 +1619,7 @@ document.write(`
 
 <div class="viewcode-block" id="FORCEModel.generate">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.FORCEModel.generate">[docs]</a>
-    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">num_simulations</span><span class="o">=</span><span class="mi">500000</span><span class="p">,</span>
@@ -1532,12 +1680,26 @@ document.write(`
 <span class="sd">        self : FORCEModel</span>
 <span class="sd">            Model with simulations loaded.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">dipy.sims.force</span> <span class="kn">import</span> <span class="p">(</span>
-            <span class="n">generate_force_simulations</span><span class="p">,</span>
-            <span class="n">get_default_diffusivity_config</span><span class="p">,</span>
-            <span class="n">load_force_simulations</span><span class="p">,</span>
-            <span class="n">save_force_simulations</span><span class="p">,</span>
-        <span class="p">)</span>
+
+        <span class="n">b0_thr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gtab</span><span class="p">,</span> <span class="s2">&quot;b0_threshold&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="n">unique_bvals</span> <span class="o">=</span> <span class="n">unique_bvals_tolerance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">n_nonzero_shells</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">unique_bvals</span> <span class="o">&gt;</span> <span class="n">b0_thr</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">compute_dki</span> <span class="ow">and</span> <span class="n">n_nonzero_shells</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;compute_dki=True but only </span><span class="si">{</span><span class="n">n_nonzero_shells</span><span class="si">}</span><span class="s2"> non-zero &quot;</span>
+                <span class="s2">&quot;b-value shell found (need at least 2). &quot;</span>
+                <span class="s2">&quot;Disabling DKI computation.&quot;</span><span class="p">,</span>
+                <span class="ne">UserWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">compute_dki</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">compute_dki</span> <span class="ow">and</span> <span class="n">n_nonzero_shells</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="n">n_nonzero_shells</span><span class="si">}</span><span class="s2"> non-zero b-value shells. &quot;</span>
+                <span class="s2">&quot;You can compute DKI metrics (AK, RK, MK, KFA) by &quot;</span>
+                <span class="s2">&quot;setting compute_dki=True.&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># Resolve the diffusivity config that will actually be used</span>
         <span class="n">resolved_config</span> <span class="o">=</span> <span class="p">(</span>
@@ -1585,7 +1747,7 @@ document.write(`
             <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">_get_force_cache_dir</span><span class="p">()</span>
             <span class="n">filename_holder</span> <span class="o">=</span> <span class="p">{}</span>
 
-            <span class="k">def</span> <span class="nf">_append_and_name</span><span class="p">(</span><span class="n">registry</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">_append_and_name</span><span class="p">(</span><span class="n">registry</span><span class="p">):</span>
                 <span class="n">idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">registry</span><span class="p">)</span>
                 <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;force_sim_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">.npz&quot;</span>
                 <span class="n">filename_holder</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fname</span>
@@ -1610,7 +1772,7 @@ document.write(`
 
 <div class="viewcode-block" id="FORCEModel.load">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.FORCEModel.load">[docs]</a>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load pre-computed simulations from file.</span>
 
 <span class="sd">        Parameters</span>
@@ -1624,14 +1786,12 @@ document.write(`
 <span class="sd">            Model with simulations loaded.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">dipy.sims.force</span> <span class="kn">import</span> <span class="n">load_force_simulations</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">simulations</span> <span class="o">=</span> <span class="n">load_force_simulations</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_library</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_prepare_library</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_library</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare library for matching.&quot;&quot;&quot;</span>
         <span class="n">signals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulations</span><span class="p">[</span><span class="s2">&quot;signals&quot;</span><span class="p">]</span>
 
@@ -1649,8 +1809,16 @@ document.write(`
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_penalty_array</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">penalty</span> <span class="o">*</span> <span class="n">num_fibers</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
+        <span class="c1"># Prior ranges for microstructure uncertainty normalization</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prior_ranges</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">MICRO_PARAMS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="n">arr</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_prior_ranges</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">arr</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_fetch_params_batched</span><span class="p">(</span><span class="n">lib_idx</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fetch_params_batched</span><span class="p">(</span><span class="n">lib_idx</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorised parameter look-up for best-match indices.</span>
 
 <span class="sd">        Parameters</span>
@@ -1690,7 +1858,7 @@ document.write(`
         <span class="k">return</span> <span class="n">params</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_posterior_params_batched</span><span class="p">(</span><span class="n">neighbors</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">lib_idx</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_posterior_params_batched</span><span class="p">(</span><span class="n">neighbors</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">lib_idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorised posterior-averaging over neighbours.</span>
 
 <span class="sd">        Parameters</span>
@@ -1709,7 +1877,7 @@ document.write(`
 <span class="sd">        params : dict of ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_wavg</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_wavg</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">W</span> <span class="o">*</span> <span class="n">d</span><span class="p">[</span><span class="n">field</span><span class="p">][</span><span class="n">neighbors</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
@@ -1756,7 +1924,7 @@ document.write(`
         <span class="n">shared_obj</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;_penalty_array&quot;</span><span class="p">,</span> <span class="s2">&quot;_index&quot;</span><span class="p">,</span> <span class="s2">&quot;simulations&quot;</span><span class="p">),</span>
         <span class="n">chunk_size</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;serial&quot;</span><span class="p">:</span> <span class="mi">10_000</span><span class="p">,</span> <span class="s2">&quot;ray&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span><span class="p">},</span>
     <span class="p">)</span>
-    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit model to data.</span>
 
 <span class="sd">        Parameters</span>
@@ -1827,8 +1995,9 @@ document.write(`
         <span class="n">best</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">lib_idx</span> <span class="o">=</span> <span class="n">neighbors</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vox</span><span class="p">),</span> <span class="n">best</span><span class="p">]</span>
 
+        <span class="n">W</span> <span class="o">=</span> <span class="n">softmax_stable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_beta</span> <span class="o">*</span> <span class="n">S</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_posterior</span><span class="p">:</span>
-            <span class="n">W</span> <span class="o">=</span> <span class="n">softmax_stable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_beta</span> <span class="o">*</span> <span class="n">S</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">entropy</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">W</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">W</span> <span class="o">+</span> <span class="n">EPSILON</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
             <span class="n">params_arrays</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_posterior_params_batched</span><span class="p">(</span><span class="n">neighbors</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">lib_idx</span><span class="p">)</span>
@@ -1840,6 +2009,17 @@ document.write(`
             <span class="n">params_arrays</span><span class="p">[</span><span class="s2">&quot;uncertainty&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">U</span>
             <span class="n">params_arrays</span><span class="p">[</span><span class="s2">&quot;ambiguity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span>
             <span class="n">params_arrays</span><span class="p">[</span><span class="s2">&quot;entropy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_vox</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># Per-microstructure uncertainty and ambiguity from posterior density</span>
+        <span class="n">prior_ranges</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_prior_ranges&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">MICRO_PARAMS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">d</span> <span class="ow">and</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">prior_ranges</span><span class="p">:</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="n">neighbors</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+                <span class="n">u</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">compute_microstructure_uncertainty_ambiguity</span><span class="p">(</span>
+                    <span class="n">vals</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">prior_ranges</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">params_arrays</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;uncertainty_</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span>
+                <span class="n">params_arrays</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;ambiguity_</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
 
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;_raw&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">params_arrays</span>
@@ -1871,10 +2051,10 @@ document.write(`
 
 <div class="viewcode-block" id="FORCEFit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.FORCEFit">[docs]</a>
-<span class="k">class</span> <span class="nc">FORCEFit</span><span class="p">(</span><span class="n">ReconstFit</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FORCEFit</span><span class="p">(</span><span class="n">ReconstFit</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;FORCE model fit results for a single voxel.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a FORCEFit class instance.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="s2">&quot;entropy&quot;</span> <span class="ow">in</span> <span class="n">params</span>
@@ -1886,114 +2066,254 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">fa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fractional anisotropy.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;fa&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">md</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">md</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Mean diffusivity.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;md&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">rd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Radial diffusivity.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;rd&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">wm_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wm_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;White matter fraction.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;wm_fraction&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">gm_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gm_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gray matter fraction.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;gm_fraction&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">csf_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">csf_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;CSF fraction.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;csf_fraction&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_fibers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_fibers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of fibers.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;num_fibers&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dispersion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dispersion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Orientation dispersion.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;dispersion&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">nd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Neurite density.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;nd&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ufa_wm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ufa_wm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;microFA in white matter.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ufa_wm&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ufa_voxel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ufa_voxel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Voxel-averaged microFA.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ufa_voxel&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ak</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ak</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Axial kurtosis (DKI).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ak&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">rk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Radial kurtosis (DKI).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">mk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Mean kurtosis (DKI).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">kfa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">kfa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Kurtosis fractional anisotropy (DKI).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kfa&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">odf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">odf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Orientation distribution function.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;odf&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">predicted_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predicted_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Predicted signal from matched library entry (cleaned DWI).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;predicted_signal&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">uncertainty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Uncertainty (IQR of penalized scores).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;uncertainty&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ambiguity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Ambiguity (fraction above half-max).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;ambiguity&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Entropy (posterior mode only).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entropy&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fiber configuration label.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">fracs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fracs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fiber fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fracs&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fracs&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_fa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for FA (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_fa&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_fa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for FA (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_fa&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_md</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for MD (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_md&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_md</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for MD (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_md&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_rd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for RD (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_rd&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_rd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for RD (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_rd&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_wm_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for WM fraction (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_wm_fraction&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_wm_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for WM fraction (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_wm_fraction&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_gm_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for GM fraction (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_gm_fraction&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_gm_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for GM fraction (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_gm_fraction&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_csf_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for CSF fraction (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_csf_fraction&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_csf_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for CSF fraction (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_csf_fraction&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_num_fibers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for num_fibers (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_num_fibers&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_num_fibers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for num_fibers (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_num_fibers&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_dispersion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for dispersion (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_dispersion&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_dispersion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for dispersion (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_dispersion&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_nd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for ND (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_nd&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_nd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for ND (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_nd&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_ufa_voxel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Uncertainty for microFA voxel (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_ufa_voxel&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_ufa_voxel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for microFA voxel (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_ufa_voxel&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_ak</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for AK (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_ak&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_ak</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for AK (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_ak&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_rk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for RK (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_rk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_rk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for RK (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_rk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_mk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for MK (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_mk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_mk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for MK (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_mk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uncertainty_kfa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure uncertainty for KFA (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uncertainty_kfa&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ambiguity_kfa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Per-microstructure ambiguity for KFA (fraction of prior range).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ambiguity_kfa&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
 
 
@@ -2003,7 +2323,7 @@ document.write(`
 
 <div class="viewcode-block" id="compute_entropy">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.compute_entropy">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_entropy</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_entropy</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute entropy of posterior weights.</span>
 
 <span class="sd">    Parameters</span>
@@ -2022,7 +2342,7 @@ document.write(`
 
 <div class="viewcode-block" id="posterior_mean_signal">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.posterior_mean_signal">[docs]</a>
-<span class="k">def</span> <span class="nf">posterior_mean_signal</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">posterior_mean_signal</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute posterior mean signal from neighbors.</span>
 
 <span class="sd">    Parameters</span>
@@ -2053,7 +2373,7 @@ document.write(`
 
 <div class="viewcode-block" id="posterior_odf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.posterior_odf">[docs]</a>
-<span class="k">def</span> <span class="nf">posterior_odf</span><span class="p">(</span><span class="n">odfs</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">n_dirs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">posterior_odf</span><span class="p">(</span><span class="n">odfs</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">n_dirs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute posterior ODF from neighbors.</span>
 
 <span class="sd">    Parameters</span>
@@ -2088,7 +2408,7 @@ document.write(`
 
 <div class="viewcode-block" id="force_peaks">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.force.force_peaks">[docs]</a>
-<span class="k">def</span> <span class="nf">force_peaks</span><span class="p">(</span><span class="n">fitted_object</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sh_order</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">force_peaks</span><span class="p">(</span><span class="n">fitted_object</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sh_order</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a PeaksAndMetrics object from a FORCEFit or MultiVoxelFit.</span>
 
 <span class="sd">    Parameters</span>
@@ -2100,9 +2420,7 @@ document.write(`
 <span class="sd">    sh_order : int, optional</span>
 <span class="sd">        Spherical harmonics order for the coefficients.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">dipy.direction.peaks</span> <span class="kn">import</span> <span class="n">PeaksAndMetrics</span>
-    <span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">sf_to_sh</span>
-    <span class="kn">from</span> <span class="nn">dipy.sims.force</span> <span class="kn">import</span> <span class="n">default_sphere</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.force</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span>
 
     <span class="n">labels</span> <span class="o">=</span> <span class="n">fitted_object</span><span class="o">.</span><span class="n">label</span>
     <span class="n">fracs</span> <span class="o">=</span> <span class="n">fitted_object</span><span class="o">.</span><span class="n">fracs</span>

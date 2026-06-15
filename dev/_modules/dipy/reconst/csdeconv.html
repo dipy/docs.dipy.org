@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.csdeconv &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.reconst.csdeconv &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,22 +883,22 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.reconst.csdeconv</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numbers</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numbers</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">quad</span>
-<span class="kn">import</span> <span class="nn">scipy.linalg</span> <span class="k">as</span> <span class="nn">la</span>
-<span class="kn">import</span> <span class="nn">scipy.linalg.lapack</span> <span class="k">as</span> <span class="nn">ll</span>
-<span class="kn">import</span> <span class="nn">scipy.special</span> <span class="k">as</span> <span class="nn">sps</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">quad</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.linalg</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">la</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.linalg.lapack</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ll</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sps</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.geometry</span> <span class="kn">import</span> <span class="n">cart2sphere</span><span class="p">,</span> <span class="n">vec2vec_rotmat</span>
-<span class="kn">from</span> <span class="nn">dipy.core.ndindex</span> <span class="kn">import</span> <span class="n">ndindex</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">default_sphere</span><span class="p">,</span> <span class="n">get_sphere</span><span class="p">,</span> <span class="n">small_sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.direction.peaks</span> <span class="kn">import</span> <span class="n">peaks_from_model</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="n">TensorModel</span><span class="p">,</span> <span class="n">fractional_anisotropy</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.multi_voxel</span> <span class="kn">import</span> <span class="n">multi_voxel_fit</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">cart2sphere</span><span class="p">,</span> <span class="n">vec2vec_rotmat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.ndindex</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndindex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span><span class="p">,</span> <span class="n">get_sphere</span><span class="p">,</span> <span class="n">small_sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">peaks_from_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dti</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorModel</span><span class="p">,</span> <span class="n">fractional_anisotropy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.multi_voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_voxel_fit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">SphHarmFit</span><span class="p">,</span>
     <span class="n">SphHarmModel</span><span class="p">,</span>
     <span class="n">forward_sdeconv_mat</span><span class="p">,</span>
@@ -914,16 +909,16 @@ document.write(`
     <span class="n">sph_harm_ind_list</span><span class="p">,</span>
     <span class="n">sph_harm_lookup</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.utils</span> <span class="kn">import</span> <span class="n">_mask_from_roi</span><span class="p">,</span> <span class="n">_roi_in_volume</span>
-<span class="kn">from</span> <span class="nn">dipy.sims.voxel</span> <span class="kn">import</span> <span class="n">single_tensor</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.compatibility</span> <span class="kn">import</span> <span class="n">check_max_version</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.deprecator</span> <span class="kn">import</span> <span class="n">deprecated_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_mask_from_roi</span><span class="p">,</span> <span class="n">_roi_in_volume</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">single_tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.compatibility</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_max_version</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span>
 
 
 <div class="viewcode-block" id="AxSymShResponse">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse">[docs]</a>
-<span class="k">class</span> <span class="nc">AxSymShResponse</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AxSymShResponse</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A simple wrapper for response functions represented using only axially</span>
 <span class="sd">    symmetric, even spherical harmonic functions (ie, m == 0 and l is even).</span>
 
@@ -938,7 +933,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S0</span><span class="p">,</span> <span class="n">dwi_response</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bvalue</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S0</span><span class="p">,</span> <span class="n">dwi_response</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bvalue</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">S0</span> <span class="o">=</span> <span class="n">S0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dwi_response</span> <span class="o">=</span> <span class="n">dwi_response</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bvalue</span> <span class="o">=</span> <span class="n">bvalue</span>
@@ -948,7 +943,7 @@ document.write(`
 
 <div class="viewcode-block" id="AxSymShResponse.basis">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse.basis">[docs]</a>
-    <span class="k">def</span> <span class="nf">basis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sphere</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">basis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sphere</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A basis that maps the response coefficients onto a sphere.&quot;&quot;&quot;</span>
         <span class="n">theta</span> <span class="o">=</span> <span class="n">sphere</span><span class="o">.</span><span class="n">theta</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
         <span class="n">phi</span> <span class="o">=</span> <span class="n">sphere</span><span class="o">.</span><span class="n">phi</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
@@ -957,7 +952,7 @@ document.write(`
 
 <div class="viewcode-block" id="AxSymShResponse.on_sphere">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.AxSymShResponse.on_sphere">[docs]</a>
-    <span class="k">def</span> <span class="nf">on_sphere</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sphere</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_sphere</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sphere</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates the response function on sphere.&quot;&quot;&quot;</span>
         <span class="n">B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">(</span><span class="n">sphere</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi_response</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
@@ -967,10 +962,12 @@ document.write(`
 
 <div class="viewcode-block" id="ConstrainedSphericalDeconvModel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel">[docs]</a>
-<span class="k">class</span> <span class="nc">ConstrainedSphericalDeconvModel</span><span class="p">(</span><span class="n">SphHarmModel</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstrainedSphericalDeconvModel</span><span class="p">(</span><span class="n">SphHarmModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constrained Spherical Deconvolution (CSD) model.&quot;&quot;&quot;</span>
+
     <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gtab</span><span class="p">,</span>
         <span class="n">response</span><span class="p">,</span>
@@ -1092,7 +1089,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
 
     <span class="nd">@multi_voxel_fit</span>
-    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">dwi_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_where_dwi</span><span class="p">]</span>
         <span class="n">shm_coeff</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">csdeconv</span><span class="p">(</span>
             <span class="n">dwi_data</span><span class="p">,</span>
@@ -1107,7 +1104,7 @@ document.write(`
 <div class="viewcode-block" id="ConstrainedSphericalDeconvModel.predict">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSphericalDeconvModel.predict">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sh_coeff</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sh_coeff</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute a signal prediction given spherical harmonic coefficients</span>
 <span class="sd">        for the provided GradientTable class instance.</span>
 
@@ -1155,10 +1152,12 @@ document.write(`
 
 <div class="viewcode-block" id="ConstrainedSDTModel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.ConstrainedSDTModel">[docs]</a>
-<span class="k">class</span> <span class="nc">ConstrainedSDTModel</span><span class="p">(</span><span class="n">SphHarmModel</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstrainedSDTModel</span><span class="p">(</span><span class="n">SphHarmModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constrained Spherical Deconvolution Transform (SDT) model.&quot;&quot;&quot;</span>
+
     <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">reg_sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.1</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Spherical Deconvolution Transform (SDT)</span>
@@ -1241,7 +1240,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">sh_order_max</span> <span class="o">=</span> <span class="n">sh_order_max</span>
 
     <span class="nd">@multi_voxel_fit</span>
-    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">s_sh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">B_dwi</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_where_dwi</span><span class="p">],</span> <span class="n">rcond</span><span class="o">=-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c1"># initial ODF estimation</span>
         <span class="n">odf_sh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">s_sh</span><span class="p">)</span>
@@ -1263,7 +1262,7 @@ document.write(`
 
 <div class="viewcode-block" id="estimate_response">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.estimate_response">[docs]</a>
-<span class="k">def</span> <span class="nf">estimate_response</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">evals</span><span class="p">,</span> <span class="n">S0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">estimate_response</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">evals</span><span class="p">,</span> <span class="n">S0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimate single fiber response function</span>
 
 <span class="sd">    Parameters</span>
@@ -1290,7 +1289,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.forward_sdt_deconv_mat">[docs]</a>
 <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;l_values&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">forward_sdt_deconv_mat</span><span class="p">(</span><span class="n">ratio</span><span class="p">,</span> <span class="n">l_values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">r2_term</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">forward_sdt_deconv_mat</span><span class="p">(</span><span class="n">ratio</span><span class="p">,</span> <span class="n">l_values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">r2_term</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Build forward sharpening deconvolution transform (SDT) matrix</span>
 
 <span class="sd">    Parameters</span>
@@ -1336,17 +1335,20 @@ document.write(`
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_orders</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">r2_term</span><span class="p">:</span>
             <span class="n">sharp</span> <span class="o">=</span> <span class="n">quad</span><span class="p">(</span>
-                <span class="k">lambda</span> <span class="n">z</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">:</span> <span class="n">lpn</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="o">*</span> <span class="n">sps</span><span class="o">.</span><span class="n">gamma</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
-                <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ratio</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span>
-                <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ratio</span><span class="p">)</span> <span class="o">*</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="mf">1.5</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">z</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="n">lpn</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="o">*</span> <span class="n">sps</span><span class="o">.</span><span class="n">gamma</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+                    <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ratio</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span>
+                    <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ratio</span><span class="p">)</span> <span class="o">*</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="mf">1.5</span><span class="p">)</span>
+                <span class="p">),</span>
                 <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>
                 <span class="mf">1.0</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sharp</span> <span class="o">=</span> <span class="n">quad</span><span class="p">(</span>
-                <span class="k">lambda</span> <span class="n">z</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">:</span> <span class="n">lpn</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ratio</span><span class="p">)</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">z</span><span class="p">)),</span>
+                <span class="k">lambda</span> <span class="n">z</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="n">lpn</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ratio</span><span class="p">)</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">z</span><span class="p">))</span>
+                <span class="p">),</span>
                 <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>
                 <span class="mf">1.0</span><span class="p">,</span>
             <span class="p">)</span>
@@ -1364,7 +1366,7 @@ document.write(`
 <span class="n">potrf</span><span class="p">,</span> <span class="n">potrs</span> <span class="o">=</span> <span class="n">ll</span><span class="o">.</span><span class="n">get_lapack_funcs</span><span class="p">((</span><span class="s2">&quot;potrf&quot;</span><span class="p">,</span> <span class="s2">&quot;potrs&quot;</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">_solve_cholesky</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_solve_cholesky</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
     <span class="n">L</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">potrf</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">overwrite_a</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clean</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">info</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">info</span><span class="si">}</span><span class="s2">-th leading minor not positive definite&quot;</span>
@@ -1382,7 +1384,7 @@ document.write(`
 <div class="viewcode-block" id="csdeconv">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.csdeconv">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">csdeconv</span><span class="p">(</span><span class="n">dwsignal</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">B_reg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">csdeconv</span><span class="p">(</span><span class="n">dwsignal</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">B_reg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Constrained-regularized spherical deconvolution (CSD).</span>
 
 <span class="sd">    Deconvolves the axially symmetric single fiber response function `r_rh` in</span>
@@ -1554,7 +1556,7 @@ document.write(`
 <div class="viewcode-block" id="odf_deconv">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.odf_deconv">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">odf_deconv</span><span class="p">(</span><span class="n">odf_sh</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">B_reg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">r2_term</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">odf_deconv</span><span class="p">(</span><span class="n">odf_sh</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">B_reg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">r2_term</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;ODF constrained-regularized spherical deconvolution using</span>
 <span class="sd">    the Sharpening Deconvolution Transform (SDT).</span>
 
@@ -1661,7 +1663,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.odf_sh_to_sharp">[docs]</a>
 <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">odf_sh_to_sharp</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">odf_sh_to_sharp</span><span class="p">(</span>
     <span class="n">odfs_sh</span><span class="p">,</span>
     <span class="n">sphere</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1751,7 +1753,7 @@ document.write(`
 <div class="viewcode-block" id="mask_for_response_ssst">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.mask_for_response_ssst">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">mask_for_response_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">roi_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_for_response_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">roi_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Computation of mask for single-shell single-tissue (ssst) response</span>
 <span class="sd">        function using FA.</span>
 
@@ -1815,7 +1817,7 @@ document.write(`
     <span class="n">mask</span><span class="p">[</span><span class="n">fa</span> <span class="o">&gt;</span> <span class="n">fa_thr</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;No voxel with a FA higher than </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">fa_thr</span><span class="p">)</span><span class="si">}</span><span class="s2"> were found.</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;No voxel with a FA higher than </span><span class="si">{</span><span class="n">fa_thr</span><span class="si">}</span><span class="s2"> were found.</span>
 <span class="s2">        Try a larger roi or a lower threshold.&quot;&quot;&quot;</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
@@ -1825,7 +1827,7 @@ document.write(`
 
 <div class="viewcode-block" id="response_from_mask_ssst">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.response_from_mask_ssst">[docs]</a>
-<span class="k">def</span> <span class="nf">response_from_mask_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">response_from_mask_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Computation of single-shell single-tissue (ssst) response</span>
 <span class="sd">        function from a given mask.</span>
 
@@ -1888,7 +1890,7 @@ document.write(`
 <div class="viewcode-block" id="auto_response_ssst">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.auto_response_ssst">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">auto_response_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">roi_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">auto_response_ssst</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">roi_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roi_radii</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fa_thr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Automatic estimation of single-shell single-tissue (ssst) response</span>
 <span class="sd">        function using FA.</span>
 
@@ -1935,7 +1937,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_get_response</span><span class="p">(</span><span class="n">S0s</span><span class="p">,</span> <span class="n">lambdas</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_response</span><span class="p">(</span><span class="n">S0s</span><span class="p">,</span> <span class="n">lambdas</span><span class="p">):</span>
     <span class="n">S0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">S0s</span><span class="p">)</span> <span class="k">if</span> <span class="n">S0s</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="c1"># Check if lambdas is empty</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">lambdas</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
@@ -1953,7 +1955,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.recursive_response">[docs]</a>
 <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">recursive_response</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">recursive_response</span><span class="p">(</span>
     <span class="n">gtab</span><span class="p">,</span>
     <span class="n">data</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -2088,7 +2090,7 @@ document.write(`
 
 <div class="viewcode-block" id="fa_trace_to_lambdas">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.fa_trace_to_lambdas">[docs]</a>
-<span class="k">def</span> <span class="nf">fa_trace_to_lambdas</span><span class="p">(</span><span class="n">fa</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span> <span class="n">trace</span><span class="o">=</span><span class="mf">0.0021</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fa_trace_to_lambdas</span><span class="p">(</span><span class="n">fa</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span> <span class="n">trace</span><span class="o">=</span><span class="mf">0.0021</span><span class="p">):</span>
     <span class="n">lambda1</span> <span class="o">=</span> <span class="p">(</span><span class="n">trace</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">fa</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">fa</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
     <span class="n">lambda2</span> <span class="o">=</span> <span class="p">(</span><span class="n">trace</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">fa</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">fa</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
     <span class="n">evals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lambda1</span><span class="p">,</span> <span class="n">lambda2</span><span class="p">,</span> <span class="n">lambda2</span><span class="p">])</span>

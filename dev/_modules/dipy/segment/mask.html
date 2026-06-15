@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.segment.mask &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.segment.mask &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,25 +883,25 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.segment.mask</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">binary_dilation</span><span class="p">,</span> <span class="n">generate_binary_structure</span><span class="p">,</span> <span class="n">median_filter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">binary_dilation</span><span class="p">,</span> <span class="n">generate_binary_structure</span><span class="p">,</span> <span class="n">median_filter</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">skimage.filters</span> <span class="kn">import</span> <span class="n">threshold_otsu</span> <span class="k">as</span> <span class="n">otsu</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">skimage.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">threshold_otsu</span> <span class="k">as</span> <span class="n">otsu</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">dipy.segment.threshold</span> <span class="kn">import</span> <span class="n">otsu</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.threshold</span><span class="w"> </span><span class="kn">import</span> <span class="n">otsu</span>
 
-<span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="n">color_fa</span><span class="p">,</span> <span class="n">fractional_anisotropy</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.utils</span> <span class="kn">import</span> <span class="n">remove_holes_and_islands</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.deprecator</span> <span class="kn">import</span> <span class="n">deprecated_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dti</span><span class="w"> </span><span class="kn">import</span> <span class="n">color_fa</span><span class="p">,</span> <span class="n">fractional_anisotropy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">remove_holes_and_islands</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span>
 
 
 <div class="viewcode-block" id="multi_median">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.mask.multi_median">[docs]</a>
-<span class="k">def</span> <span class="nf">multi_median</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">median_radius</span><span class="p">,</span> <span class="n">numpass</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">multi_median</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">median_radius</span><span class="p">,</span> <span class="n">numpass</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Applies median filter multiple times on input data.</span>
 
 <span class="sd">    Parameters</span>
@@ -941,7 +936,7 @@ document.write(`
 
 <div class="viewcode-block" id="applymask">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.mask.applymask">[docs]</a>
-<span class="k">def</span> <span class="nf">applymask</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">applymask</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask vol with mask.</span>
 
 <span class="sd">    Parameters</span>
@@ -969,7 +964,7 @@ document.write(`
 
 <div class="viewcode-block" id="bounding_box">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.mask.bounding_box">[docs]</a>
-<span class="k">def</span> <span class="nf">bounding_box</span><span class="p">(</span><span class="n">vol</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bounding_box</span><span class="p">(</span><span class="n">vol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the bounding box of nonzero intensity voxels in the volume.</span>
 
 <span class="sd">    Parameters</span>
@@ -1008,7 +1003,7 @@ document.write(`
 
 <div class="viewcode-block" id="crop">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.mask.crop">[docs]</a>
-<span class="k">def</span> <span class="nf">crop</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">crop</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Crops the input volume.</span>
 
 <span class="sd">    Parameters</span>
@@ -1031,9 +1026,9 @@ document.write(`
 
 <div class="viewcode-block" id="median_otsu">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.mask.median_otsu">[docs]</a>
-<span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;autocrop&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.11.0&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;1.13.0&quot;</span><span class="p">)</span>
+<span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;autocrop&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.11&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;1.13&quot;</span><span class="p">)</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">median_otsu</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">median_otsu</span><span class="p">(</span>
     <span class="n">input_volume</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">vol_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1152,7 +1147,7 @@ document.write(`
 <div class="viewcode-block" id="segment_from_cfa">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.mask.segment_from_cfa">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">segment_from_cfa</span><span class="p">(</span><span class="n">tensor_fit</span><span class="p">,</span> <span class="n">roi</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_cfa</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">segment_from_cfa</span><span class="p">(</span><span class="n">tensor_fit</span><span class="p">,</span> <span class="n">roi</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_cfa</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Segment the cfa inside roi using the values from threshold as bounds.</span>
 
@@ -1202,7 +1197,7 @@ document.write(`
 
 <div class="viewcode-block" id="clean_cc_mask">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.mask.clean_cc_mask">[docs]</a>
-<span class="k">def</span> <span class="nf">clean_cc_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">clean_cc_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cleans a segmentation of the corpus callosum so no random pixels</span>
 <span class="sd">    are included.</span>
@@ -1218,7 +1213,7 @@ document.write(`
 <span class="sd">        Binary mask of the cleaned segmentation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">label</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">label</span>
 
     <span class="n">new_cc_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 

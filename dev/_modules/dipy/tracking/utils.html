@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.tracking.utils &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.tracking.utils &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -937,28 +932,28 @@ document.write(`
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">combinations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
-<span class="kn">from</span> <span class="nn">nibabel.affines</span> <span class="kn">import</span> <span class="n">apply_affine</span>
-<span class="kn">from</span> <span class="nn">nibabel.streamlines</span> <span class="kn">import</span> <span class="n">ArraySequence</span> <span class="k">as</span> <span class="n">Streamlines</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.streamlines</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArraySequence</span> <span class="k">as</span> <span class="n">Streamlines</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">cdist</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.geometry</span> <span class="kn">import</span> <span class="n">dist_to_corner</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking</span> <span class="kn">import</span> <span class="n">metrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">dist_to_corner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics</span>
 
 <span class="c1"># Import helper functions shared with vox2track</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking._utils</span> <span class="kn">import</span> <span class="n">_mapping_to_voxel</span><span class="p">,</span> <span class="n">_to_voxel_coordinates</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.vox2track</span> <span class="kn">import</span> <span class="n">_streamlines_in_mask</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_mapping_to_voxel</span><span class="p">,</span> <span class="n">_to_voxel_coordinates</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.vox2track</span><span class="w"> </span><span class="kn">import</span> <span class="n">_streamlines_in_mask</span>
 
 
 <div class="viewcode-block" id="density_map">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.density_map">[docs]</a>
-<span class="k">def</span> <span class="nf">density_map</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">vol_dims</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.density_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">density_map</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">vol_dims</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Count the number of unique streamlines that pass through each voxel.</span>
 
 <span class="sd">    Parameters</span>
@@ -1003,9 +998,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="connectivity_matrix">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.connectivity_matrix">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.connectivity_matrix">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">connectivity_matrix</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">connectivity_matrix</span><span class="p">(</span>
     <span class="n">streamlines</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
     <span class="n">label_volume</span><span class="p">,</span>
@@ -1138,19 +1133,27 @@ document.write(`
 
 
 <div class="viewcode-block" id="ndbincount">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.ndbincount">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.ndbincount">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">ndbincount</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ndbincount</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Like bincount, but for nd-indices.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x : array_like (N, M)</span>
+<span class="sd">    x : array-like (N, M)</span>
 <span class="sd">        M indices to a an Nd-array</span>
-<span class="sd">    weights : array_like (M,), optional</span>
+<span class="sd">    weights : array-like (M,), optional</span>
 <span class="sd">        Weights associated with indices</span>
-<span class="sd">    shape : optional</span>
-<span class="sd">        the shape of the output</span>
+<span class="sd">    shape : tuple, optional</span>
+<span class="sd">        The shape of the output array. If not provided,</span>
+<span class="sd">        the shape is inferred from the maximum indices.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : ndarray</span>
+<span class="sd">        An Nd-array of counts (or weighted counts) where</span>
+<span class="sd">        each element represents the number of occurrences</span>
+<span class="sd">        of the corresponding index combination.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1165,10 +1168,26 @@ document.write(`
 
 
 <div class="viewcode-block" id="reduce_labels">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.reduce_labels">[docs]</a>
-<span class="k">def</span> <span class="nf">reduce_labels</span><span class="p">(</span><span class="n">label_volume</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.reduce_labels">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reduce_labels</span><span class="p">(</span><span class="n">label_volume</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce an array of labels to the integers from 0 to n with smallest</span>
 <span class="sd">    possible n.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    label_volume : ndarray</span>
+<span class="sd">        An array of labels represented as integers. The labels do not</span>
+<span class="sd">        need to be contiguous or start from zero.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    new_labels : ndarray</span>
+<span class="sd">        An array of the same shape as `label_volume` where each label</span>
+<span class="sd">        has been replaced by its index in the sorted unique labels array,</span>
+<span class="sd">        giving contiguous integers starting from 0.</span>
+<span class="sd">    lookup : ndarray, shape (n,)</span>
+<span class="sd">        A 1D array of the unique labels in sorted order. The original</span>
+<span class="sd">        labels can be recovered using ``lookup[new_labels]``.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -1193,8 +1212,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="subsegment">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.subsegment">[docs]</a>
-<span class="k">def</span> <span class="nf">subsegment</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">max_segment_length</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.subsegment">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">subsegment</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">max_segment_length</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Split the segments of the streamlines into small segments.</span>
 
 <span class="sd">    Replaces each segment of each of the streamlines with the smallest possible</span>
@@ -1274,9 +1293,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="seeds_from_mask">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.seeds_from_mask">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.seeds_from_mask">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">seeds_from_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">seeds_from_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create seeds for fiber tracking from a binary mask.</span>
 
 <span class="sd">    Seeds points are placed evenly distributed in all voxels of ``mask`` which</span>
@@ -1351,9 +1370,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="random_seeds_from_mask">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.random_seeds_from_mask">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.random_seeds_from_mask">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">random_seeds_from_mask</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">random_seeds_from_mask</span><span class="p">(</span>
     <span class="n">mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">seeds_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed_count_per_voxel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create randomly placed seeds for fiber tracking from a binary mask.</span>
@@ -1468,7 +1487,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_with_initialize</span><span class="p">(</span><span class="n">generator</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_with_initialize</span><span class="p">(</span><span class="n">generator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Allow one to write a generator with initialization code.</span>
 
 <span class="sd">    All code up to the first yield is run as soon as the generator function is</span>
@@ -1477,7 +1496,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">generator</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">helper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">helper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">gen</span> <span class="o">=</span> <span class="n">generator</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">next</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">gen</span>
@@ -1486,10 +1505,10 @@ document.write(`
 
 
 <div class="viewcode-block" id="target">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.target">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.target">[docs]</a>
 <span class="nd">@_with_initialize</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">target</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">target</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter streamlines based on whether or not they pass through an ROI.</span>
 
 <span class="sd">    Parameters</span>
@@ -1533,17 +1552,17 @@ document.write(`
             <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">ind</span><span class="o">.</span><span class="n">T</span>
             <span class="n">state</span> <span class="o">=</span> <span class="n">target_mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;streamlines points are outside of target_mask&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;streamlines points are outside of target_mask&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
         <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="o">==</span> <span class="n">include</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">sl</span></div>
 
 
 
 <div class="viewcode-block" id="target_line_based">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.target_line_based">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.target_line_based">[docs]</a>
 <span class="nd">@_with_initialize</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">target_line_based</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">target_line_based</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter streamlines based on whether or not they pass through a ROI,</span>
 <span class="sd">    using a line-based algorithm. Mostly used as a replacement of `target`</span>
 <span class="sd">    for compressed streamlines.</span>
@@ -1596,9 +1615,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="clip_streamlines_to_target">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.clip_streamlines_to_target">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.clip_streamlines_to_target">[docs]</a>
 <span class="nd">@_with_initialize</span>
-<span class="k">def</span> <span class="nf">clip_streamlines_to_target</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">clip_streamlines_to_target</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Clip streamlines to where they first touch a target ROI.</span>
 
 <span class="sd">    Parameters</span>
@@ -1635,7 +1654,7 @@ document.write(`
             <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">ind</span><span class="o">.</span><span class="n">T</span>
             <span class="n">state</span> <span class="o">=</span> <span class="n">target_mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;streamline points are outside of target_mask&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;streamline points are outside of target_mask&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
         <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
             <span class="n">mymin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">state</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
             <span class="n">mymax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">state</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
@@ -1649,9 +1668,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="streamline_near_roi">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.streamline_near_roi">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.streamline_near_roi">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">streamline_near_roi</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">roi_coords</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;any&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">streamline_near_roi</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">roi_coords</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;any&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Is a streamline near an ROI.</span>
 
 <span class="sd">    Implements the inner loops of the :func:`near_roi` function.</span>
@@ -1708,9 +1727,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="near_roi">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.near_roi">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.near_roi">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">near_roi</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">region_of_interest</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;any&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">near_roi</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">region_of_interest</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;any&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Provide filtering criteria for a set of streamlines based on whether</span>
 <span class="sd">    they fall within a tolerance distance from an ROI.</span>
 
@@ -1781,8 +1800,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="length">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.length">[docs]</a>
-<span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.length">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the lengths of many streamlines in a bundle.</span>
 
 <span class="sd">    Parameters</span>
@@ -1801,9 +1820,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="unique_rows">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.unique_rows">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.unique_rows">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">unique_rows</span><span class="p">(</span><span class="n">in_array</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;f4&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unique_rows</span><span class="p">(</span><span class="n">in_array</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;f4&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the unique rows in an array.</span>
 
 <span class="sd">    Parameters</span>
@@ -1837,10 +1856,10 @@ document.write(`
 
 
 <div class="viewcode-block" id="transform_tracking_output">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.transform_tracking_output">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.transform_tracking_output">[docs]</a>
 <span class="nd">@_with_initialize</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">transform_tracking_output</span><span class="p">(</span><span class="n">tracking_output</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">transform_tracking_output</span><span class="p">(</span><span class="n">tracking_output</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply a linear transformation, given by affine, to streamlines.</span>
 
 <span class="sd">    Parameters</span>
@@ -1876,8 +1895,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="reduce_rois">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.reduce_rois">[docs]</a>
-<span class="k">def</span> <span class="nf">reduce_rois</span><span class="p">(</span><span class="n">rois</span><span class="p">,</span> <span class="n">include</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.reduce_rois">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reduce_rois</span><span class="p">(</span><span class="n">rois</span><span class="p">,</span> <span class="n">include</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce multiple ROIs to one inclusion and one exclusion ROI.</span>
 
 <span class="sd">    Parameters</span>
@@ -1926,7 +1945,28 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_min_at</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_min_at</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set minimum values at given indices of an array.</span>
+
+<span class="sd">    A fallback implementation of ``np.minimum.at`` for environments</span>
+<span class="sd">    where it is not available.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a : ndarray</span>
+<span class="sd">        The array to update in place with minimum values.</span>
+<span class="sd">    index : sequence of array-like</span>
+<span class="sd">        Indices into `a` where the minimum operation is applied.</span>
+<span class="sd">        Each element corresponds to one dimension of `a`.</span>
+<span class="sd">    value : ndarray</span>
+<span class="sd">        Values to compare against the current values in `a`.</span>
+<span class="sd">        The minimum of the existing and new values is stored.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        The array `a` is modified in place.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
     <span class="n">sort_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
     <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">(</span><span class="n">sort_keys</span><span class="p">)</span>
@@ -1948,9 +1988,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="path_length">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.path_length">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.path_length">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">path_length</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">aoi</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">path_length</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">aoi</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the shortest path, along any streamline, between aoi and</span>
 <span class="sd">    each voxel.</span>
 
@@ -2004,7 +2044,28 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_part_segments</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">break_points</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_part_segments</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">break_points</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate segments of a streamline based on break points.</span>
+
+<span class="sd">    Splits a streamline at the given break points and yields each</span>
+<span class="sd">    segment that has more than one point, skipping the first segment</span>
+<span class="sd">    (all points before the first break point).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    streamline : ndarray, shape (N, 3)</span>
+<span class="sd">        A single streamline represented as an array of N points</span>
+<span class="sd">        in 3D space.</span>
+<span class="sd">    break_points : ndarray, shape (N,)</span>
+<span class="sd">        A boolean or integer array indicating where to split the</span>
+<span class="sd">        streamline. Non-zero values mark the break positions.</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    segment : ndarray, shape (M, 3)</span>
+<span class="sd">        Each segment of the streamline with more than one point.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">segments</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">break_points</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
     <span class="c1"># Skip first segment, all points before first break</span>
     <span class="c1"># first segment is empty when break_points[0] == 0</span>
@@ -2014,7 +2075,27 @@ document.write(`
             <span class="k">yield</span> <span class="n">each</span>
 
 
-<span class="k">def</span> <span class="nf">_as_segments</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">break_points</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_segments</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">break_points</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate all segments of a streamline in both directions.</span>
+
+<span class="sd">    Yields segments from the streamline in forward direction followed</span>
+<span class="sd">    by segments from the streamline in reverse direction.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    streamline : ndarray, shape (N, 3)</span>
+<span class="sd">        A single streamline represented as an array of N points</span>
+<span class="sd">        in 3D space.</span>
+<span class="sd">    break_points : ndarray, shape (N,)</span>
+<span class="sd">        A boolean or integer array indicating where to split the</span>
+<span class="sd">        streamline. Non-zero values mark the break positions.</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    segment : ndarray, shape (M, 3)</span>
+<span class="sd">        Each segment of the streamline with more than one point,</span>
+<span class="sd">        yielded in forward then reverse direction.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">_part_segments</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">break_points</span><span class="p">):</span>
         <span class="k">yield</span> <span class="n">seg</span>
     <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">_part_segments</span><span class="p">(</span><span class="n">streamline</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">break_points</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
@@ -2022,8 +2103,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="max_angle_from_curvature">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.max_angle_from_curvature">[docs]</a>
-<span class="k">def</span> <span class="nf">max_angle_from_curvature</span><span class="p">(</span><span class="n">min_radius_curvature</span><span class="p">,</span> <span class="n">step_size</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.max_angle_from_curvature">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">max_angle_from_curvature</span><span class="p">(</span><span class="n">min_radius_curvature</span><span class="p">,</span> <span class="n">step_size</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the maximum deviation angle from the minimum radius curvature.</span>
 
 <span class="sd">    See :footcite:p:`Tournier2012` for further details about the method.</span>
@@ -2057,8 +2138,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="min_radius_curvature_from_angle">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.min_radius_curvature_from_angle">[docs]</a>
-<span class="k">def</span> <span class="nf">min_radius_curvature_from_angle</span><span class="p">(</span><span class="n">max_angle</span><span class="p">,</span> <span class="n">step_size</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.min_radius_curvature_from_angle">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">min_radius_curvature_from_angle</span><span class="p">(</span><span class="n">max_angle</span><span class="p">,</span> <span class="n">step_size</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get minimum radius of curvature from a deviation angle.</span>
 
 <span class="sd">    See :footcite:p:`Tournier2012` for further details about the method.</span>
@@ -2093,8 +2174,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="seeds_directions_pairs">
-<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.direction.ptt_direction_getter.seeds_directions_pairs">[docs]</a>
-<span class="k">def</span> <span class="nf">seeds_directions_pairs</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_cross</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">peak_values</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.utils.seeds_directions_pairs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">seeds_directions_pairs</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_cross</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">peak_values</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pair each seed to the corresponding peaks. If multiple peaks are available</span>
 <span class="sd">    the seed is repeated for each.</span>

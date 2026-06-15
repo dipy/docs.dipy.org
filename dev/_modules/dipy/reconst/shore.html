@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.shore &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.reconst.shore &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,25 +883,25 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.reconst.shore</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">factorial</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">factorial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">genlaguerre</span><span class="p">,</span> <span class="n">hyp2f1</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">genlaguerre</span><span class="p">,</span> <span class="n">hyp2f1</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.geometry</span> <span class="kn">import</span> <span class="n">cart2sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.cache</span> <span class="kn">import</span> <span class="n">Cache</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.multi_voxel</span> <span class="kn">import</span> <span class="n">multi_voxel_fit</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">real_sh_descoteaux_from_index</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">cart2sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.multi_voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_voxel_fit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">real_sh_descoteaux_from_index</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
 <span class="n">cvxpy</span><span class="p">,</span> <span class="n">have_cvxpy</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;cvxpy&quot;</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">&quot;1.4.1&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ShoreModel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreModel">[docs]</a>
-<span class="k">class</span> <span class="nc">ShoreModel</span><span class="p">(</span><span class="n">Cache</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShoreModel</span><span class="p">(</span><span class="n">Cache</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Simple Harmonic Oscillator based Reconstruction and Estimation</span>
 <span class="sd">    (SHORE) of the diffusion signal.</span>
 
@@ -936,7 +931,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gtab</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1075,7 +1070,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">pos_radius</span> <span class="o">=</span> <span class="n">pos_radius</span>
 
     <span class="nd">@multi_voxel_fit</span>
-    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Lshore</span> <span class="o">=</span> <span class="n">l_shore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">radial_order</span><span class="p">)</span>
         <span class="n">Nshore</span> <span class="o">=</span> <span class="n">n_shore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">radial_order</span><span class="p">)</span>
         <span class="c1"># Generate the SHORE basis</span>
@@ -1150,8 +1145,8 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit">[docs]</a>
-<span class="k">class</span> <span class="nc">ShoreFit</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">shore_coef</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShoreFit</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">shore_coef</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates diffusion properties for a single voxel</span>
 
 <span class="sd">        Parameters</span>
@@ -1170,7 +1165,7 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit.pdf_grid">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit.pdf_grid">[docs]</a>
-    <span class="k">def</span> <span class="nf">pdf_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">,</span> <span class="n">radius_max</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pdf_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">,</span> <span class="n">radius_max</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Applies the analytical FFT on $S$ to generate the diffusion</span>
 <span class="sd">        propagator. This is calculated on a discrete 3D grid in order to</span>
 <span class="sd">        obtain an EAP similar to that which is obtained with DSI.</span>
@@ -1210,7 +1205,7 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit.pdf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit.pdf">[docs]</a>
-    <span class="k">def</span> <span class="nf">pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r_points</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r_points</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Diffusion propagator on a given set of real points.</span>
 <span class="sd">        if the array r_points is non writeable, then intermediate</span>
 <span class="sd">        results are cached for faster recalculation</span>
@@ -1231,7 +1226,7 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit.odf_sh">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit.odf_sh">[docs]</a>
-    <span class="k">def</span> <span class="nf">odf_sh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">odf_sh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the real analytical ODF in terms of Spherical</span>
 <span class="sd">        Harmonics.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1275,7 +1270,7 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit.odf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit.odf">[docs]</a>
-    <span class="k">def</span> <span class="nf">odf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sphere</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">odf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sphere</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the ODF for a given discrete sphere.&quot;&quot;&quot;</span>
         <span class="n">upsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cache_get</span><span class="p">(</span><span class="s2">&quot;shore_matrix_odf&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sphere</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">upsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1288,7 +1283,7 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit.rtop_signal">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit.rtop_signal">[docs]</a>
-    <span class="k">def</span> <span class="nf">rtop_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rtop_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the analytical return to origin probability (RTOP)</span>
 <span class="sd">        from the signal.</span>
 
@@ -1314,7 +1309,7 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit.rtop_pdf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit.rtop_pdf">[docs]</a>
-    <span class="k">def</span> <span class="nf">rtop_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rtop_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the analytical return to origin probability (RTOP)</span>
 <span class="sd">        from the pdf.</span>
 
@@ -1340,7 +1335,7 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit.msd">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit.msd">[docs]</a>
-    <span class="k">def</span> <span class="nf">msd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">msd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the analytical mean squared displacement (MSD).</span>
 
 <span class="sd">        See :footcite:p:`Wu2007` for a definition of the method.</span>
@@ -1380,14 +1375,14 @@ document.write(`
 
 <div class="viewcode-block" id="ShoreFit.fitted_signal">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.ShoreFit.fitted_signal">[docs]</a>
-    <span class="k">def</span> <span class="nf">fitted_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fitted_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The fitted signal.&quot;&quot;&quot;</span>
         <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cache_get</span><span class="p">(</span><span class="s2">&quot;shore_matrix&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gtab</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shore_coef</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shore_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shore_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The SHORE coefficients&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shore_coef</span></div>
 
@@ -1396,7 +1391,7 @@ document.write(`
 <div class="viewcode-block" id="shore_matrix">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.shore_matrix">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">shore_matrix</span><span class="p">(</span><span class="n">radial_order</span><span class="p">,</span> <span class="n">zeta</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">shore_matrix</span><span class="p">(</span><span class="n">radial_order</span><span class="p">,</span> <span class="n">zeta</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span><span class="p">)):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute the SHORE matrix for modified Merlet&#39;s 3D-SHORE.</span>
 
 <span class="sd">    See :footcite:p:`Merlet2013` for the definition.</span>
@@ -1466,13 +1461,13 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_kappa</span><span class="p">(</span><span class="n">zeta</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ell</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_kappa</span><span class="p">(</span><span class="n">zeta</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ell</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">factorial</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">ell</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">zeta</span><span class="o">**</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">)))</span>
 
 
 <div class="viewcode-block" id="shore_matrix_pdf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.shore_matrix_pdf">[docs]</a>
-<span class="k">def</span> <span class="nf">shore_matrix_pdf</span><span class="p">(</span><span class="n">radial_order</span><span class="p">,</span> <span class="n">zeta</span><span class="p">,</span> <span class="n">rtab</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">shore_matrix_pdf</span><span class="p">(</span><span class="n">radial_order</span><span class="p">,</span> <span class="n">zeta</span><span class="p">,</span> <span class="n">rtab</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute the SHORE propagator matrix.</span>
 
 <span class="sd">    See :footcite:p:`Merlet2013` for the definition.</span>
@@ -1513,13 +1508,13 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_kappa_pdf</span><span class="p">(</span><span class="n">zeta</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ell</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_kappa_pdf</span><span class="p">(</span><span class="n">zeta</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ell</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mi">16</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">zeta</span><span class="o">**</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">factorial</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">ell</span><span class="p">))</span> <span class="o">/</span> <span class="n">gamma</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="shore_matrix_odf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.shore_matrix_odf">[docs]</a>
-<span class="k">def</span> <span class="nf">shore_matrix_odf</span><span class="p">(</span><span class="n">radial_order</span><span class="p">,</span> <span class="n">zeta</span><span class="p">,</span> <span class="n">sphere_vertices</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">shore_matrix_odf</span><span class="p">(</span><span class="n">radial_order</span><span class="p">,</span> <span class="n">zeta</span><span class="p">,</span> <span class="n">sphere_vertices</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute the SHORE ODF matrix.</span>
 
 <span class="sd">    See :footcite:p:`Merlet2013` for the definition.</span>
@@ -1561,7 +1556,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_kappa_odf</span><span class="p">(</span><span class="n">zeta</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ell</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_kappa_odf</span><span class="p">(</span><span class="n">zeta</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ell</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
         <span class="p">(</span><span class="n">gamma</span><span class="p">(</span><span class="n">ell</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">ell</span> <span class="o">+</span> <span class="mi">3</span><span class="p">))</span>
         <span class="o">/</span> <span class="p">(</span><span class="mi">16</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">zeta</span><span class="o">**</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">factorial</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">ell</span><span class="p">)</span> <span class="o">*</span> <span class="n">gamma</span><span class="p">(</span><span class="n">ell</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
@@ -1570,7 +1565,7 @@ document.write(`
 
 <div class="viewcode-block" id="l_shore">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.l_shore">[docs]</a>
-<span class="k">def</span> <span class="nf">l_shore</span><span class="p">(</span><span class="n">radial_order</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">l_shore</span><span class="p">(</span><span class="n">radial_order</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the angular regularisation matrix for SHORE basis&quot;&quot;&quot;</span>
     <span class="n">F</span> <span class="o">=</span> <span class="n">radial_order</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="n">n_c</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">6.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">F</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">F</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">F</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)))</span>
@@ -1588,7 +1583,7 @@ document.write(`
 
 <div class="viewcode-block" id="n_shore">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.n_shore">[docs]</a>
-<span class="k">def</span> <span class="nf">n_shore</span><span class="p">(</span><span class="n">radial_order</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">n_shore</span><span class="p">(</span><span class="n">radial_order</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the angular regularisation matrix for SHORE basis&quot;&quot;&quot;</span>
     <span class="n">F</span> <span class="o">=</span> <span class="n">radial_order</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="n">n_c</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">6.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">F</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">F</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">F</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)))</span>
@@ -1606,7 +1601,7 @@ document.write(`
 
 <div class="viewcode-block" id="create_rspace">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.create_rspace">[docs]</a>
-<span class="k">def</span> <span class="nf">create_rspace</span><span class="p">(</span><span class="n">gridsize</span><span class="p">,</span> <span class="n">radius_max</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_rspace</span><span class="p">(</span><span class="n">gridsize</span><span class="p">,</span> <span class="n">radius_max</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the real space table, that contains the points in which</span>
 <span class="sd">        to compute the pdf.</span>
 
@@ -1627,11 +1622,12 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">radius</span> <span class="o">=</span> <span class="n">gridsize</span> <span class="o">//</span> <span class="mi">2</span>
-    <span class="n">vecs</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="n">vecs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
+    <span class="n">vecs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">]</span>
 
     <span class="n">vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">tab</span> <span class="o">=</span> <span class="n">vecs</span> <span class="o">/</span> <span class="n">radius</span>
@@ -1644,7 +1640,7 @@ document.write(`
 
 <div class="viewcode-block" id="shore_indices">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.shore_indices">[docs]</a>
-<span class="k">def</span> <span class="nf">shore_indices</span><span class="p">(</span><span class="n">radial_order</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">shore_indices</span><span class="p">(</span><span class="n">radial_order</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Given the basis order and the index, return the shore indices n, l, m</span>
 <span class="sd">    for modified Merlet&#39;s 3D-SHORE</span>
 
@@ -1717,7 +1713,7 @@ document.write(`
 
 <div class="viewcode-block" id="shore_order">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shore.shore_order">[docs]</a>
-<span class="k">def</span> <span class="nf">shore_order</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">ell</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">shore_order</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">ell</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Given the indices (n,l,m) of the basis, return the minimum order</span>
 <span class="sd">    for those indices and their index for modified Merlet&#39;s 3D-SHORE.</span>
 

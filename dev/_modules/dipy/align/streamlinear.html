@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.streamlinear &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.align.streamlinear &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -856,8 +851,6 @@ document.write(`
 
 
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -870,10 +863,7 @@ document.write(`
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
     
-    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
-    
-    
-    <li class="breadcrumb-item"><a href="../align.html" class="nav-link">dipy.align</a></li>
+    <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
     <li class="breadcrumb-item active" aria-current="page">dipy.align.s...</li>
   </ul>
@@ -893,22 +883,22 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.align.streamlinear</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">abc</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">combinations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.align.bundlemin</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.bundlemin</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">_bundle_minimum_distance</span><span class="p">,</span>
     <span class="n">_bundle_minimum_distance_asymmetric</span><span class="p">,</span>
     <span class="n">distance_matrix_mdf</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.core.geometry</span> <span class="kn">import</span> <span class="n">compose_matrix</span><span class="p">,</span> <span class="n">compose_transformations</span><span class="p">,</span> <span class="n">decompose_matrix</span>
-<span class="kn">from</span> <span class="nn">dipy.core.optimize</span> <span class="kn">import</span> <span class="n">Optimizer</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.clustering</span> <span class="kn">import</span> <span class="n">qbx_and_merge</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.streamline</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose_matrix</span><span class="p">,</span> <span class="n">compose_transformations</span><span class="p">,</span> <span class="n">decompose_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.clustering</span><span class="w"> </span><span class="kn">import</span> <span class="n">qbx_and_merge</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Streamlines</span><span class="p">,</span>
     <span class="n">center_streamlines</span><span class="p">,</span>
     <span class="n">length</span><span class="p">,</span>
@@ -917,7 +907,7 @@ document.write(`
     <span class="n">transform_streamlines</span><span class="p">,</span>
     <span class="n">unlist_streamlines</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 <span class="n">DEFAULT_BOUNDS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">(</span><span class="o">-</span><span class="mi">35</span><span class="p">,</span> <span class="mi">35</span><span class="p">),</span>
@@ -937,9 +927,9 @@ document.write(`
 
 <div class="viewcode-block" id="StreamlineDistanceMetric">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.StreamlineDistanceMetric">[docs]</a>
-<span class="k">class</span> <span class="nc">StreamlineDistanceMetric</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamlineDistanceMetric</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;An abstract class for the metric used for streamline registration.</span>
 
 <span class="sd">        If the two sets of streamlines match exactly then method ``distance``</span>
@@ -961,13 +951,13 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span> <span class="o">=</span> <span class="n">num_threads</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
         <span class="k">pass</span>
 
 <div class="viewcode-block" id="StreamlineDistanceMetric.distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.StreamlineDistanceMetric.distance">[docs]</a>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;calculate distance for current set of parameters.&quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 </div>
@@ -976,7 +966,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleMinDistanceMetric">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleMinDistanceMetric">[docs]</a>
-<span class="k">class</span> <span class="nc">BundleMinDistanceMetric</span><span class="p">(</span><span class="n">StreamlineDistanceMetric</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BundleMinDistanceMetric</span><span class="p">(</span><span class="n">StreamlineDistanceMetric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Bundle-based Minimum Distance aka BMD.</span>
 
 <span class="sd">    This is the cost function used by the StreamlineLinearRegistration.</span>
@@ -995,7 +985,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleMinDistanceMetric.setup">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleMinDistanceMetric.setup">[docs]</a>
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup static and moving sets of streamlines.</span>
 
 <span class="sd">        Parameters</span>
@@ -1014,19 +1004,19 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_moving</span><span class="p">(</span><span class="n">moving</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_set_static</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_static</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">):</span>
         <span class="n">static_centered_pts</span><span class="p">,</span> <span class="n">st_idx</span> <span class="o">=</span> <span class="n">unlist_streamlines</span><span class="p">(</span><span class="n">static</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">static_centered_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span>
             <span class="n">static_centered_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">block_size</span> <span class="o">=</span> <span class="n">st_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_set_moving</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_moving</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moving_centered_pts</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">unlist_streamlines</span><span class="p">(</span><span class="n">moving</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BundleMinDistanceMetric.distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleMinDistanceMetric.distance">[docs]</a>
-    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Distance calculated from this Metric.</span>
 
 <span class="sd">        Parameters</span>
@@ -1048,7 +1038,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleMinDistanceMatrixMetric">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleMinDistanceMatrixMetric">[docs]</a>
-<span class="k">class</span> <span class="nc">BundleMinDistanceMatrixMetric</span><span class="p">(</span><span class="n">StreamlineDistanceMetric</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BundleMinDistanceMatrixMetric</span><span class="p">(</span><span class="n">StreamlineDistanceMetric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Bundle-based Minimum Distance aka BMD</span>
 
 <span class="sd">    This is the cost function used by the StreamlineLinearRegistration</span>
@@ -1067,7 +1057,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleMinDistanceMatrixMetric.setup">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleMinDistanceMatrixMetric.setup">[docs]</a>
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup static and moving sets of streamlines.</span>
 
 <span class="sd">        Parameters</span>
@@ -1091,7 +1081,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleMinDistanceMatrixMetric.distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleMinDistanceMatrixMetric.distance">[docs]</a>
-    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Distance calculated from this Metric.</span>
 
 <span class="sd">        Parameters</span>
@@ -1106,7 +1096,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleMinDistanceAsymmetricMetric">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleMinDistanceAsymmetricMetric">[docs]</a>
-<span class="k">class</span> <span class="nc">BundleMinDistanceAsymmetricMetric</span><span class="p">(</span><span class="n">BundleMinDistanceMetric</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BundleMinDistanceAsymmetricMetric</span><span class="p">(</span><span class="n">BundleMinDistanceMetric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Asymmetric Bundle-based Minimum distance.</span>
 
 <span class="sd">    This is a cost function that can be used by the</span>
@@ -1116,7 +1106,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleMinDistanceAsymmetricMetric.distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleMinDistanceAsymmetricMetric.distance">[docs]</a>
-    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Distance calculated from this Metric.</span>
 
 <span class="sd">        Parameters</span>
@@ -1134,7 +1124,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleSumDistanceMatrixMetric">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleSumDistanceMatrixMetric">[docs]</a>
-<span class="k">class</span> <span class="nc">BundleSumDistanceMatrixMetric</span><span class="p">(</span><span class="n">BundleMinDistanceMatrixMetric</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BundleSumDistanceMatrixMetric</span><span class="p">(</span><span class="n">BundleMinDistanceMatrixMetric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Bundle-based Sum Distance aka BMD</span>
 
 <span class="sd">    This is a cost function that can be used by the</span>
@@ -1153,7 +1143,7 @@ document.write(`
 
 <div class="viewcode-block" id="BundleSumDistanceMatrixMetric.distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.BundleSumDistanceMatrixMetric.distance">[docs]</a>
-    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Distance calculated from this Metric</span>
 
 <span class="sd">        Parameters</span>
@@ -1168,7 +1158,7 @@ document.write(`
 
 <div class="viewcode-block" id="JointBundleMinDistanceMetric">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.JointBundleMinDistanceMetric">[docs]</a>
-<span class="k">class</span> <span class="nc">JointBundleMinDistanceMetric</span><span class="p">(</span><span class="n">StreamlineDistanceMetric</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">JointBundleMinDistanceMetric</span><span class="p">(</span><span class="n">StreamlineDistanceMetric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Bundle-based Minimum Distance for joint optimization.</span>
 
 <span class="sd">    This cost function is used by the StreamlineLinearRegistration class when</span>
@@ -1192,7 +1182,7 @@ document.write(`
 
 <div class="viewcode-block" id="JointBundleMinDistanceMetric.setup">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.JointBundleMinDistanceMetric.setup">[docs]</a>
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup static and moving sets of streamlines.</span>
 
 <span class="sd">        Parameters</span>
@@ -1213,7 +1203,7 @@ document.write(`
 
 <div class="viewcode-block" id="JointBundleMinDistanceMetric.distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.JointBundleMinDistanceMetric.distance">[docs]</a>
-    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Distance calculated from this Metric.</span>
 
 <span class="sd">        Parameters</span>
@@ -1241,9 +1231,9 @@ document.write(`
 
 <div class="viewcode-block" id="StreamlineLinearRegistration">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.StreamlineLinearRegistration">[docs]</a>
-<span class="k">class</span> <span class="nc">StreamlineLinearRegistration</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamlineLinearRegistration</span><span class="p">:</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1330,7 +1320,7 @@ document.write(`
 <span class="sd">        ----------</span>
 <span class="sd">        .. footbibliography::</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_x0</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span>
 
@@ -1348,7 +1338,7 @@ document.write(`
 <div class="viewcode-block" id="StreamlineLinearRegistration.optimize">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.StreamlineLinearRegistration.optimize">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mat</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mat</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the minimum of the provided metric.</span>
 
 <span class="sd">        Parameters</span>
@@ -1437,15 +1427,13 @@ document.write(`
 
         <span class="n">mat</span> <span class="o">=</span> <span class="n">compose_transformations</span><span class="p">(</span><span class="n">moving_mat</span><span class="p">,</span> <span class="n">opt_mat</span><span class="p">,</span> <span class="n">static_mat</span><span class="p">)</span>
 
-        <span class="n">mat_history</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">if</span> <span class="n">opt</span><span class="o">.</span><span class="n">evolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">opt</span><span class="o">.</span><span class="n">evolution</span><span class="p">:</span>
-                <span class="n">mat_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="n">compose_transformations</span><span class="p">(</span>
-                        <span class="n">moving_mat</span><span class="p">,</span> <span class="n">compose_matrix44</span><span class="p">(</span><span class="n">vecs</span><span class="p">),</span> <span class="n">static_mat</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">opt</span><span class="o">.</span><span class="n">evolution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mat_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mat_history</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">compose_transformations</span><span class="p">(</span><span class="n">moving_mat</span><span class="p">,</span> <span class="n">compose_matrix44</span><span class="p">(</span><span class="n">vecs</span><span class="p">),</span> <span class="n">static_mat</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">opt</span><span class="o">.</span><span class="n">evolution</span>
+            <span class="p">]</span>
 
         <span class="c1"># If we are running halfway streamline linear registration (for</span>
         <span class="c1"># groupwise registration or atlasing) the registration map is different</span>
@@ -1462,7 +1450,7 @@ document.write(`
         <span class="k">return</span> <span class="n">srm</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_set_x0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_x0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;check if input is of correct type.&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="s2">&quot;ndim&quot;</span><span class="p">):</span>
@@ -1511,8 +1499,8 @@ document.write(`
 
 <div class="viewcode-block" id="StreamlineRegistrationMap">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.StreamlineRegistrationMap">[docs]</a>
-<span class="k">class</span> <span class="nc">StreamlineRegistrationMap</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matopt</span><span class="p">,</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">matopt_history</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">iterations</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamlineRegistrationMap</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matopt</span><span class="p">,</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">matopt_history</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">iterations</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A map holding the optimum affine matrix and some other parameters</span>
 <span class="sd">        of the optimization</span>
 
@@ -1547,7 +1535,7 @@ document.write(`
 
 <div class="viewcode-block" id="StreamlineRegistrationMap.transform">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.StreamlineRegistrationMap.transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform moving streamlines to the static.</span>
 
 <span class="sd">        Parameters</span>
@@ -1570,8 +1558,8 @@ document.write(`
 
 <div class="viewcode-block" id="JointStreamlineRegistrationMap">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.JointStreamlineRegistrationMap">[docs]</a>
-<span class="k">class</span> <span class="nc">JointStreamlineRegistrationMap</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">matopt_history</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">iterations</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">JointStreamlineRegistrationMap</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">matopt_history</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">iterations</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A map holding the optimum affine matrices for halfway streamline</span>
 <span class="sd">        linear registration and some other parameters of the optimization.</span>
 
@@ -1614,7 +1602,7 @@ document.write(`
 
 <div class="viewcode-block" id="JointStreamlineRegistrationMap.transform">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.JointStreamlineRegistrationMap.transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform both static and moving bundles to the halfway space.</span>
 
 <span class="sd">        All this does is apply ``self.matrix1`` and `self.matrix2`` to the</span>
@@ -1645,7 +1633,7 @@ document.write(`
 <div class="viewcode-block" id="bundle_sum_distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.bundle_sum_distance">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">bundle_sum_distance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundle_sum_distance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MDF distance optimization function (SUM).</span>
 
 <span class="sd">    We minimize the distance between moving streamlines as they align</span>
@@ -1687,7 +1675,7 @@ document.write(`
 
 <div class="viewcode-block" id="bundle_min_distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.bundle_min_distance">[docs]</a>
-<span class="k">def</span> <span class="nf">bundle_min_distance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundle_min_distance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MDF-based pairwise distance optimization function (MIN).</span>
 
 <span class="sd">    We minimize the distance between moving streamlines as they align</span>
@@ -1734,7 +1722,7 @@ document.write(`
 <div class="viewcode-block" id="bundle_min_distance_fast">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.bundle_min_distance_fast">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">bundle_min_distance_fast</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="n">block_size</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundle_min_distance_fast</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="n">block_size</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MDF-based pairwise distance optimization function (MIN).</span>
 
 <span class="sd">    We minimize the distance between moving streamlines as they align</span>
@@ -1801,7 +1789,7 @@ document.write(`
 
 <div class="viewcode-block" id="bundle_min_distance_asymmetric_fast">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.bundle_min_distance_asymmetric_fast">[docs]</a>
-<span class="k">def</span> <span class="nf">bundle_min_distance_asymmetric_fast</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundle_min_distance_asymmetric_fast</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MDF-based pairwise distance optimization function (MIN).</span>
 
 <span class="sd">    We minimize the distance between moving streamlines as they align</span>
@@ -1850,7 +1838,7 @@ document.write(`
 
 <div class="viewcode-block" id="remove_clusters_by_size">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.remove_clusters_by_size">[docs]</a>
-<span class="k">def</span> <span class="nf">remove_clusters_by_size</span><span class="p">(</span><span class="n">clusters</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_clusters_by_size</span><span class="p">(</span><span class="n">clusters</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="n">ob</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_size</span><span class="p">,</span> <span class="n">clusters</span><span class="p">)</span>
 
     <span class="n">centroids</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">()</span>
@@ -1864,7 +1852,7 @@ document.write(`
 <div class="viewcode-block" id="progressive_slr">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.progressive_slr">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">progressive_slr</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">progressive_slr</span><span class="p">(</span>
     <span class="n">static</span><span class="p">,</span>
     <span class="n">moving</span><span class="p">,</span>
     <span class="n">metric</span><span class="p">,</span>
@@ -1998,7 +1986,7 @@ document.write(`
 <div class="viewcode-block" id="slr_with_qbx">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.slr_with_qbx">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">slr_with_qbx</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">slr_with_qbx</span><span class="p">(</span>
     <span class="n">static</span><span class="p">,</span>
     <span class="n">moving</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -2090,7 +2078,7 @@ document.write(`
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Static streamlines size </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">static</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moving streamlines size </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">moving</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">check_range</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="n">greater_than</span><span class="p">,</span> <span class="n">lt</span><span class="o">=</span><span class="n">less_than</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_range</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="n">greater_than</span><span class="p">,</span> <span class="n">lt</span><span class="o">=</span><span class="n">less_than</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">length</span><span class="p">(</span><span class="n">streamline</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">gt</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">length</span><span class="p">(</span><span class="n">streamline</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">lt</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2203,7 +2191,7 @@ document.write(`
 <div class="viewcode-block" id="groupwise_slr">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.groupwise_slr">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">groupwise_slr</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">groupwise_slr</span><span class="p">(</span>
     <span class="n">bundles</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">x0</span><span class="o">=</span><span class="s2">&quot;affine&quot;</span><span class="p">,</span>
@@ -2264,7 +2252,7 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">group_distance</span><span class="p">(</span><span class="n">bundles</span><span class="p">,</span> <span class="n">n_bundle</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">group_distance</span><span class="p">(</span><span class="n">bundles</span><span class="p">,</span> <span class="n">n_bundle</span><span class="p">):</span>
         <span class="n">all_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_bundle</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_pairs</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_pairs</span><span class="p">):</span>
@@ -2299,7 +2287,7 @@ document.write(`
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Preprocessing: bundle </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_bundle</span><span class="si">}</span><span class="s2">: &quot;</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bundles</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="si">}</span><span class="s2"> streamlines found.&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bundles</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="si">}</span><span class="s2"> streamlines found.&quot;</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">select_random</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2379,7 +2367,7 @@ document.write(`
 <div class="viewcode-block" id="get_unique_pairs">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.get_unique_pairs">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_unique_pairs</span><span class="p">(</span><span class="n">n_bundle</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pairs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_unique_pairs</span><span class="p">(</span><span class="n">n_bundle</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pairs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Make unique pairs from n_bundle bundles.</span>
 
 <span class="sd">    The function allows to input a previous pairs assignment so that the new</span>
@@ -2432,14 +2420,14 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_threshold</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">th</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_threshold</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">th</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">th</span><span class="p">),</span> <span class="o">-</span><span class="n">th</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="compose_matrix44">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.compose_matrix44">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">compose_matrix44</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compose_matrix44</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compose a 4x4 transformation matrix.</span>
 
 <span class="sd">    Parameters</span>
@@ -2487,7 +2475,7 @@ document.write(`
 <div class="viewcode-block" id="decompose_matrix44">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamlinear.decompose_matrix44">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">decompose_matrix44</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">decompose_matrix44</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a 4x4 homogeneous matrix return the parameter vector.</span>
 
 <span class="sd">    Parameters</span>

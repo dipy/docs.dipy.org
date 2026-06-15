@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.io &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.workflows.io &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,53 +883,54 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.workflows.io</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">enum</span>
-<span class="kn">import</span> <span class="nn">importlib</span>
-<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getmembers</span><span class="p">,</span> <span class="n">isfunction</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">enum</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">getmembers</span><span class="p">,</span> <span class="n">isfunction</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">trx.trx_file_memmap</span> <span class="k">as</span> <span class="nn">tmm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">trx.trx_file_memmap</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tmm</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">extract_b0</span><span class="p">,</span>
     <span class="n">extract_dwi_shell</span><span class="p">,</span>
     <span class="n">gradient_table</span><span class="p">,</span>
     <span class="n">mask_non_weighted_bvals</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.core.sphere</span> <span class="kn">import</span> <span class="n">Sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.io.peaks</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">load_pam</span><span class="p">,</span>
     <span class="n">niftis_to_pam</span><span class="p">,</span>
     <span class="n">pam_to_niftis</span><span class="p">,</span>
     <span class="n">tensor_to_pam</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.io.streamline</span> <span class="kn">import</span> <span class="n">load_tractogram</span><span class="p">,</span> <span class="n">save_tractogram</span>
-<span class="kn">from</span> <span class="nn">dipy.io.utils</span> <span class="kn">import</span> <span class="n">split_filename_extension</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">convert_sh_descoteaux_tournier</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.utils</span> <span class="kn">import</span> <span class="n">convert_tensors</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.streamlinespeed</span> <span class="kn">import</span> <span class="n">length</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.tractogram</span> <span class="kn">import</span> <span class="n">concatenate_tractogram</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.base</span> <span class="kn">import</span> <span class="n">format_key_value_table</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.utils</span> <span class="kn">import</span> <span class="n">handle_vol_idx</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_tractogram</span><span class="p">,</span> <span class="n">save_tractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_filename_extension</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_sh_descoteaux_tournier</span><span class="p">,</span> <span class="n">order_from_ncoef</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_tensors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamlinespeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">length</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">concatenate_tractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">format_key_value_table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">handle_vol_idx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span>
 
 <span class="n">ne</span><span class="p">,</span> <span class="n">have_ne</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;numexpr&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="StatsPropertyName">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.StatsPropertyName">[docs]</a>
-<span class="k">class</span> <span class="nc">StatsPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StatsPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Statistical data property names.&quot;&quot;&quot;</span>
 
     <span class="n">MIN</span> <span class="o">=</span> <span class="s2">&quot;min&quot;</span>
@@ -947,7 +943,7 @@ document.write(`
 
 <div class="viewcode-block" id="PercentilePropertyName">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.PercentilePropertyName">[docs]</a>
-<span class="k">class</span> <span class="nc">PercentilePropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PercentilePropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Percentile data property names.&quot;&quot;&quot;</span>
 
     <span class="n">PERCENTILE_2</span> <span class="o">=</span> <span class="s2">&quot;2nd percentile&quot;</span>
@@ -957,7 +953,7 @@ document.write(`
 
 <div class="viewcode-block" id="VolumetricPropertyName">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.VolumetricPropertyName">[docs]</a>
-<span class="k">class</span> <span class="nc">VolumetricPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">VolumetricPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Volumetric data property names.&quot;&quot;&quot;</span>
 
     <span class="n">AFFINE</span> <span class="o">=</span> <span class="s2">&quot;Affine matrix&quot;</span>
@@ -970,7 +966,7 @@ document.write(`
 
 <div class="viewcode-block" id="BvalPropertyName">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.BvalPropertyName">[docs]</a>
-<span class="k">class</span> <span class="nc">BvalPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BvalPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;b-value data property names.&quot;&quot;&quot;</span>
 
     <span class="n">B0_THRESHOLD</span> <span class="o">=</span> <span class="s2">&quot;b0 threshold&quot;</span>
@@ -983,7 +979,7 @@ document.write(`
 
 <div class="viewcode-block" id="BvecPropertyName">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.BvecPropertyName">[docs]</a>
-<span class="k">class</span> <span class="nc">BvecPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BvecPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;b-vector data property names.&quot;&quot;&quot;</span>
 
     <span class="n">B_VECTORS</span> <span class="o">=</span> <span class="s2">&quot;b-vectors&quot;</span>
@@ -995,7 +991,7 @@ document.write(`
 
 <div class="viewcode-block" id="TractographyPropertyName">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.TractographyPropertyName">[docs]</a>
-<span class="k">class</span> <span class="nc">TractographyPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TractographyPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tractography data property names.&quot;&quot;&quot;</span>
 
     <span class="n">DPP_KEYS</span> <span class="o">=</span> <span class="s2">&quot;Data per point keys&quot;</span>
@@ -1009,7 +1005,35 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_print_property_information</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">):</span>
+<div class="viewcode-block" id="PamPropertyName">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.PamPropertyName">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PamPropertyName</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;PAM5 (PeaksAndMetrics) data property names.&quot;&quot;&quot;</span>
+
+    <span class="n">VERSION</span> <span class="o">=</span> <span class="s2">&quot;PAM5 version&quot;</span>
+    <span class="n">DIMENSIONS</span> <span class="o">=</span> <span class="s2">&quot;Volume dimensions&quot;</span>
+    <span class="n">VOXEL_SIZE</span> <span class="o">=</span> <span class="s2">&quot;Voxel size&quot;</span>
+    <span class="n">VOXEL_ORDER</span> <span class="o">=</span> <span class="s2">&quot;Voxel order&quot;</span>
+    <span class="n">NUM_PEAKS</span> <span class="o">=</span> <span class="s2">&quot;Peaks per voxel (max)&quot;</span>
+    <span class="n">PEAK_COVERAGE</span> <span class="o">=</span> <span class="s2">&quot;Peak coverage (fraction)&quot;</span>
+    <span class="n">MEAN_PEAKS</span> <span class="o">=</span> <span class="s2">&quot;Mean peaks per non-empty voxel&quot;</span>
+    <span class="n">PEAK_DIRS_SHAPE</span> <span class="o">=</span> <span class="s2">&quot;Peak dirs shape&quot;</span>
+    <span class="n">PEAK_VALUES_SHAPE</span> <span class="o">=</span> <span class="s2">&quot;Peak values shape&quot;</span>
+    <span class="n">PEAK_INDICES_SHAPE</span> <span class="o">=</span> <span class="s2">&quot;Peak indices shape&quot;</span>
+    <span class="n">SPHERE_VERTICES</span> <span class="o">=</span> <span class="s2">&quot;Sphere vertices&quot;</span>
+    <span class="n">SHM_COEFF_SHAPE</span> <span class="o">=</span> <span class="s2">&quot;SH coefficients shape&quot;</span>
+    <span class="n">SH_ORDER</span> <span class="o">=</span> <span class="s2">&quot;SH order&quot;</span>
+    <span class="n">B_SHAPE</span> <span class="o">=</span> <span class="s2">&quot;B matrix shape&quot;</span>
+    <span class="n">GFA_SHAPE</span> <span class="o">=</span> <span class="s2">&quot;GFA shape&quot;</span>
+    <span class="n">QA_SHAPE</span> <span class="o">=</span> <span class="s2">&quot;QA shape&quot;</span>
+    <span class="n">ODF_SHAPE</span> <span class="o">=</span> <span class="s2">&quot;ODF shape&quot;</span>
+    <span class="n">TOTAL_WEIGHT</span> <span class="o">=</span> <span class="s2">&quot;Total weight&quot;</span>
+    <span class="n">ANG_THR</span> <span class="o">=</span> <span class="s2">&quot;Angular threshold&quot;</span>
+    <span class="n">AFFINE</span> <span class="o">=</span> <span class="s2">&quot;Affine matrix&quot;</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_property_information</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print a property, value pair left-aligned at the given width.</span>
 
 <span class="sd">    Parameters</span>
@@ -1025,7 +1049,7 @@ document.write(`
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prop</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">alignment_space</span><span class="si">}}{</span><span class="n">val</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_print_stats_information</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_stats_information</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print statistical information left-aligned at the given width.</span>
 
 <span class="sd">    Prints minimum, maximum, median, mean and standard deviation values of</span>
@@ -1049,7 +1073,7 @@ document.write(`
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tab</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;std dev:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">alignment_space</span><span class="si">}}{</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_print_volumetric_information</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">vox_sz</span><span class="p">,</span> <span class="n">affcodes</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_volumetric_information</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">vox_sz</span><span class="p">,</span> <span class="n">affcodes</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print volumetric information.</span>
 
 <span class="sd">    Parameters</span>
@@ -1069,7 +1093,7 @@ document.write(`
 <span class="sd">        indentation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_print_voxel_information</span><span class="p">(</span><span class="n">_name</span><span class="p">,</span> <span class="n">_data</span><span class="p">,</span> <span class="n">_alignment_space</span><span class="p">,</span> <span class="n">_tab</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_print_voxel_information</span><span class="p">(</span><span class="n">_name</span><span class="p">,</span> <span class="n">_data</span><span class="p">,</span> <span class="n">_alignment_space</span><span class="p">,</span> <span class="n">_tab</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Print voxel information.</span>
 
 <span class="sd">        Parameters</span>
@@ -1127,7 +1151,7 @@ document.write(`
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_print_bval_data_information</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">,</span> <span class="n">bshell_thr</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_bval_data_information</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">,</span> <span class="n">bshell_thr</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print b-value information.</span>
 
 <span class="sd">    Parameters</span>
@@ -1157,8 +1181,8 @@ document.write(`
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_print_bvec_data_information</span><span class="p">(</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">bvecs_tol</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print b-vector information.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_bvec_data_information</span><span class="p">(</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">bvecs_tol</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Print b-vector information.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1166,7 +1190,7 @@ document.write(`
 <span class="sd">        b-vectors.</span>
 <span class="sd">    bvecs_tol : float</span>
 <span class="sd">        Threshold used to check that</span>
-<span class="sd">        :math:`norm(\text{bvec}) = 1 \\pm \text{bvecs_tol}` b-vectors are</span>
+<span class="sd">        :math:`norm(\text{bvec}) = 1 \pm \text{bvecs_tol}` b-vectors are</span>
 <span class="sd">        unit vectors.</span>
 <span class="sd">    alignment_space : int</span>
 <span class="sd">        Character width for the property, value pair alignment.</span>
@@ -1190,7 +1214,7 @@ document.write(`
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_print_tractography_information</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_tractography_information</span><span class="p">(</span>
     <span class="n">sft</span><span class="p">,</span> <span class="n">lengths_mm</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">step_size</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print tractogram information.</span>
@@ -1260,9 +1284,186 @@ document.write(`
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_pam_information</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print PAM5 (PeaksAndMetrics) information.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pam : PeaksAndMetrics</span>
+<span class="sd">        Loaded PAM5 object.</span>
+<span class="sd">    version : str</span>
+<span class="sd">        PAM5 file format version.</span>
+<span class="sd">    alignment_space : int</span>
+<span class="sd">        Character width for the property, value pair alignment.</span>
+<span class="sd">    tab : str</span>
+<span class="sd">        Whitespace characters corresponding to a tab character for the</span>
+<span class="sd">        indentation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_print_property_information</span><span class="p">(</span><span class="n">PamPropertyName</span><span class="o">.</span><span class="n">VERSION</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">)</span>
+    <span class="n">_print_property_information</span><span class="p">(</span>
+        <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">DIMENSIONS</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">peak_dirs</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">])),</span>
+        <span class="n">alignment_space</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;affine&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vox_sz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">VOXEL_SIZE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">vox_sz</span><span class="p">)),</span>
+            <span class="n">alignment_space</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">VOXEL_ORDER</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="n">aff2axcodes</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">affine</span><span class="p">)),</span>
+            <span class="n">alignment_space</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">VOXEL_SIZE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">VOXEL_ORDER</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="n">_print_property_information</span><span class="p">(</span>
+        <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">NUM_PEAKS</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_dirs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+        <span class="n">alignment_space</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">nonzero_peaks</span> <span class="o">=</span> <span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">voxel_has_peak</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">nonzero_peaks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">n_voxels</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">n_nonempty</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">voxel_has_peak</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="n">coverage</span> <span class="o">=</span> <span class="n">n_nonempty</span> <span class="o">/</span> <span class="n">n_voxels</span> <span class="k">if</span> <span class="n">n_voxels</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">_print_property_information</span><span class="p">(</span>
+        <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">PEAK_COVERAGE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coverage</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">n_nonempty</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_voxels</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">alignment_space</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_nonempty</span><span class="p">:</span>
+        <span class="n">mean_peaks</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">nonzero_peaks</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">n_nonempty</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mean_peaks</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">_print_property_information</span><span class="p">(</span>
+        <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">MEAN_PEAKS</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mean_peaks</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">alignment_space</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">_print_property_information</span><span class="p">(</span>
+        <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">PEAK_DIRS_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="n">pam</span><span class="o">.</span><span class="n">peak_dirs</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">alignment_space</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_print_property_information</span><span class="p">(</span>
+        <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">PEAK_VALUES_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">alignment_space</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_print_property_information</span><span class="p">(</span>
+        <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">PEAK_INDICES_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="n">pam</span><span class="o">.</span><span class="n">peak_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">alignment_space</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_print_property_information</span><span class="p">(</span>
+        <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">SPHERE_VERTICES</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="n">alignment_space</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Peak values stats:&quot;</span><span class="p">)</span>
+    <span class="n">_print_stats_information</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;shm_coeff&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">SHM_COEFF_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">alignment_space</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sh_order</span> <span class="o">=</span> <span class="n">order_from_ncoef</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">_print_property_information</span><span class="p">(</span>
+                <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">SH_ORDER</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">sh_order</span><span class="p">,</span> <span class="n">alignment_space</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not derive SH order from shm_coeff with &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> coefficients.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">_print_property_information</span><span class="p">(</span>
+                <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">SH_ORDER</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">SHM_COEFF_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">SH_ORDER</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">B</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">B_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">B</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">B_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;gfa&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">gfa</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">GFA_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">gfa</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;GFA stats:&quot;</span><span class="p">)</span>
+        <span class="n">_print_stats_information</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">gfa</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">GFA_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;qa&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">qa</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">QA_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">qa</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;QA stats:&quot;</span><span class="p">)</span>
+        <span class="n">_print_stats_information</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">qa</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">QA_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;odf&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">odf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">ODF_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">odf</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">ODF_SHAPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;total_weight&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">total_weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">TOTAL_WEIGHT</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">total_weight</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">TOTAL_WEIGHT</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;ang_thr&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">ang_thr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">ANG_THR</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">ang_thr</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">ANG_THR</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;affine&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pam</span><span class="o">.</span><span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">PamPropertyName</span><span class="o">.</span><span class="n">AFFINE</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">:</span><span class="se">\n</span><span class="si">{</span><span class="n">pam</span><span class="o">.</span><span class="n">affine</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">PamPropertyName</span><span class="o">.</span><span class="n">AFFINE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;Not available&quot;</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+
+
 <div class="viewcode-block" id="format_data_names_table">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.format_data_names_table">[docs]</a>
-<span class="k">def</span> <span class="nf">format_data_names_table</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_data_names_table</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Format dataset names and fetcher summaries as an ASCII table.</span>
 
 <span class="sd">    Parameters</span>
@@ -1276,7 +1477,7 @@ document.write(`
 <span class="sd">        Dataset names and fetcher summaries formatted as an ASCII table.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_doc_summary</span><span class="p">(</span><span class="n">fetcher_function</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_doc_summary</span><span class="p">(</span><span class="n">fetcher_function</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract a short description from a fetcher docstring.</span>
 
 <span class="sd">        Parameters</span>
@@ -1317,17 +1518,17 @@ document.write(`
 
 <div class="viewcode-block" id="IoInfoFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.IoInfoFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">IoInfoFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IoInfoFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="IoInfoFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.IoInfoFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;io_info&quot;</span></div>
 
 
 <div class="viewcode-block" id="IoInfoFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.IoInfoFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
@@ -1335,19 +1536,20 @@ document.write(`
         <span class="n">bshell_thr</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
         <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Provides useful information about different files used in</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Provides useful information about different files used in</span>
 <span class="sd">        medical imaging. Any number of input files can be provided. The</span>
 <span class="sd">        program identifies the type of file by its extension.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        input_files : variable string or Path</span>
-<span class="sd">            Any number of NIfTI, bvals, bvecs or tractography data files.</span>
+<span class="sd">            Any number of NIfTI, bvals, bvecs, tractography or PAM5</span>
+<span class="sd">            (``*.pam5``) data files.</span>
 <span class="sd">        b0_threshold : float, optional</span>
 <span class="sd">            Threshold used to find b0 volumes.</span>
 <span class="sd">        bvecs_tol : float, optional</span>
 <span class="sd">            Threshold used to check that</span>
-<span class="sd">            :math:`norm(\text{bvec}) = 1 \\pm \text{bvecs_tol}` b-vectors are</span>
+<span class="sd">            :math:`norm(\text{bvec}) = 1 \pm \text{bvecs_tol}` b-vectors are</span>
 <span class="sd">            unit vectors.</span>
 <span class="sd">        bshell_thr : float, optional</span>
 <span class="sd">            Threshold for distinguishing b-values in different shells.</span>
@@ -1479,6 +1681,18 @@ document.write(`
                     <span class="n">tab</span><span class="p">,</span>
                 <span class="p">)</span>
 
+            <span class="k">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.pam5&quot;</span><span class="p">:</span>
+                <span class="n">pam_property_length</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="nb">max</span><span class="p">([</span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">PamPropertyName</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))</span> <span class="o">+</span> <span class="mi">2</span>
+                <span class="p">)</span>
+                <span class="n">pam</span> <span class="o">=</span> <span class="n">load_pam</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+                <span class="n">_print_pam_information</span><span class="p">(</span>
+                    <span class="n">pam</span><span class="p">,</span>
+                    <span class="s2">&quot;0.0.1&quot;</span><span class="p">,</span>
+                    <span class="nb">max</span><span class="p">(</span><span class="n">pam_property_length</span><span class="p">,</span> <span class="n">stats_property_length</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">tab</span><span class="p">),</span>
+                    <span class="n">tab</span><span class="p">,</span>
+                <span class="p">)</span>
+
         <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">()</span></div>
 </div>
 
@@ -1486,18 +1700,18 @@ document.write(`
 
 <div class="viewcode-block" id="FetchFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.FetchFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">FetchFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FetchFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="FetchFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.FetchFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;fetch&quot;</span></div>
 
 
 <div class="viewcode-block" id="FetchFlow.get_fetcher_datanames">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.FetchFlow.get_fetcher_datanames">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_fetcher_datanames</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fetcher_datanames</span><span class="p">():</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets available dataset and function names.</span>
 
 <span class="sd">        Returns</span>
@@ -1524,7 +1738,7 @@ document.write(`
 <div class="viewcode-block" id="FetchFlow.load_module">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.FetchFlow.load_module">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">load_module</span><span class="p">(</span><span class="n">module_path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_module</span><span class="p">(</span><span class="n">module_path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load / reload an external module.</span>
 
 <span class="sd">        Parameters</span>
@@ -1545,7 +1759,7 @@ document.write(`
 
 <div class="viewcode-block" id="FetchFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.FetchFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data_names</span><span class="p">,</span>
         <span class="n">subjects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1560,12 +1774,16 @@ document.write(`
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Download files to folder and check their md5 checksums.</span>
 
-<span class="sd">        To see all available datasets, please type &quot;list&quot; in data_names.</span>
+<span class="sd">        - To see all available datasets, please type &quot;dipy_fetch list&quot;.</span>
+<span class="sd">        - To download all datasets, please type &quot;dipy_fetch all&quot;.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        data_names : variable string or Path</span>
-<span class="sd">            Any number of Nifti1, bvals or bvecs files.</span>
+<span class="sd">        data_names : variable string</span>
+<span class="sd">            One or more dataset names to fetch. Use ``list`` to print all</span>
+<span class="sd">            available names or ``all`` to fetch everything. Available names</span>
+<span class="sd">            include (among others): ``atlas_schaefer_2018``,</span>
+<span class="sd">            ``bundle_atlas_hcp842``, ``stanford_hardi``, ``mni_template``.</span>
 <span class="sd">        subjects : variable string, optional</span>
 <span class="sd">            Identifiers of the subjects to download. Used only by the HBN &amp; HCP dataset.</span>
 <span class="sd">            For example with HBN dataset: --subject NDARAA948VFH NDAREK918EC2</span>
@@ -1642,7 +1860,7 @@ document.write(`
                         <span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;Error while fetching HCP dataset: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span>
+                            <span class="sa">f</span><span class="s2">&quot;Error while fetching HCP dataset: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span>
                         <span class="p">)</span>
                 <span class="k">elif</span> <span class="n">data_name</span> <span class="o">==</span> <span class="s2">&quot;hbn&quot;</span><span class="p">:</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">subjects</span><span class="p">:</span>
@@ -1656,14 +1874,14 @@ document.write(`
                         <span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;Error while fetching HBN dataset: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span>
+                            <span class="sa">f</span><span class="s2">&quot;Error while fetching HBN dataset: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span>
                         <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">available_data</span><span class="p">[</span><span class="n">data_name</span><span class="p">](</span><span class="n">include_optional</span><span class="o">=</span><span class="n">include_optional</span><span class="p">)</span>
 
             <span class="n">nb_success</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_names</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">skipped_names</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fetched </span><span class="si">{</span><span class="n">nb_success</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> Files &quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fetched </span><span class="si">{</span><span class="n">nb_success</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> Datasets &quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">skipped_names</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipped data name(s): </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">skipped_names</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -1687,17 +1905,17 @@ document.write(`
 
 <div class="viewcode-block" id="SplitFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.SplitFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">SplitFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SplitFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="SplitFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.SplitFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;split&quot;</span></div>
 
 
 <div class="viewcode-block" id="SplitFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.SplitFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_files</span><span class="p">,</span> <span class="n">vol_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">out_split</span><span class="o">=</span><span class="s2">&quot;split.nii.gz&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_files</span><span class="p">,</span> <span class="n">vol_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">out_split</span><span class="o">=</span><span class="s2">&quot;split.nii.gz&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits the input 4D file and extracts the required 3D volume.</span>
 
 <span class="sd">        Parameters</span>
@@ -1730,17 +1948,17 @@ document.write(`
 
 <div class="viewcode-block" id="ExtractB0Flow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractB0Flow">[docs]</a>
-<span class="k">class</span> <span class="nc">ExtractB0Flow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExtractB0Flow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ExtractB0Flow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractB0Flow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;extract_b0&quot;</span></div>
 
 
 <div class="viewcode-block" id="ExtractB0Flow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractB0Flow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -1850,17 +2068,17 @@ document.write(`
 
 <div class="viewcode-block" id="ExtractShellFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractShellFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ExtractShellFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExtractShellFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ExtractShellFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractShellFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;extract_shell&quot;</span></div>
 
 
 <div class="viewcode-block" id="ExtractShellFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractShellFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -1957,17 +2175,17 @@ document.write(`
 
 <div class="viewcode-block" id="ExtractVolumeFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractVolumeFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ExtractVolumeFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExtractVolumeFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ExtractVolumeFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractVolumeFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;extract_volume&quot;</span></div>
 
 
 <div class="viewcode-block" id="ExtractVolumeFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ExtractVolumeFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_files</span><span class="p">,</span> <span class="n">vol_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">grouped</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">out_vol</span><span class="o">=</span><span class="s2">&quot;volume.nii.gz&quot;</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts the required volume from the input 4D file.</span>
@@ -2015,17 +2233,17 @@ document.write(`
 
 <div class="viewcode-block" id="ConcatenateTractogramFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConcatenateTractogramFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ConcatenateTractogramFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcatenateTractogramFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ConcatenateTractogramFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConcatenateTractogramFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;concatracks&quot;</span></div>
 
 
 <div class="viewcode-block" id="ConcatenateTractogramFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConcatenateTractogramFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">tractogram_files</span><span class="p">,</span>
         <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -2113,17 +2331,17 @@ document.write(`
 
 <div class="viewcode-block" id="ConvertSHFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertSHFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ConvertSHFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConvertSHFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ConvertSHFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertSHFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;convert_dipy_mrtrix&quot;</span></div>
 
 
 <div class="viewcode-block" id="ConvertSHFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertSHFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -2159,17 +2377,17 @@ document.write(`
 
 <div class="viewcode-block" id="ConvertTensorsFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertTensorsFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ConvertTensorsFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConvertTensorsFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ConvertTensorsFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertTensorsFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;convert_tensors&quot;</span></div>
 
 
 <div class="viewcode-block" id="ConvertTensorsFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertTensorsFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">tensor_files</span><span class="p">,</span>
         <span class="n">from_format</span><span class="o">=</span><span class="s2">&quot;mrtrix&quot;</span><span class="p">,</span>
@@ -2207,17 +2425,17 @@ document.write(`
 
 <div class="viewcode-block" id="ConvertTractogramFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertTractogramFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ConvertTractogramFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConvertTractogramFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ConvertTractogramFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertTractogramFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;convert_tractogram&quot;</span></div>
 
 
 <div class="viewcode-block" id="ConvertTractogramFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.ConvertTractogramFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -2295,17 +2513,17 @@ document.write(`
 
 <div class="viewcode-block" id="NiftisToPamFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.NiftisToPamFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">NiftisToPamFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NiftisToPamFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="NiftisToPamFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.NiftisToPamFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;niftis_to_pam&quot;</span></div>
 
 
 <div class="viewcode-block" id="NiftisToPamFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.NiftisToPamFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">peaks_dir_files</span><span class="p">,</span>
         <span class="n">peaks_values_files</span><span class="p">,</span>
@@ -2382,17 +2600,17 @@ document.write(`
 
 <div class="viewcode-block" id="TensorToPamFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.TensorToPamFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">TensorToPamFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TensorToPamFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="TensorToPamFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.TensorToPamFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;tensor_to_niftis&quot;</span></div>
 
 
 <div class="viewcode-block" id="TensorToPamFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.TensorToPamFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">evals_files</span><span class="p">,</span>
         <span class="n">evecs_files</span><span class="p">,</span>
@@ -2449,17 +2667,17 @@ document.write(`
 
 <div class="viewcode-block" id="PamToNiftisFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.PamToNiftisFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">PamToNiftisFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PamToNiftisFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="PamToNiftisFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.PamToNiftisFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;pam_to_niftis&quot;</span></div>
 
 
 <div class="viewcode-block" id="PamToNiftisFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.PamToNiftisFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pam_files</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -2533,15 +2751,15 @@ document.write(`
 
 <div class="viewcode-block" id="MathFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.MathFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">MathFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MathFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="MathFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.MathFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;math_flow&quot;</span></div>
 
 
-    <span class="k">def</span> <span class="nf">broadcast_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vol_dict</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">broadcast_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vol_dict</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
         <span class="n">variables</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b\w+\b&quot;</span><span class="p">,</span> <span class="n">operation</span><span class="p">)</span>
         <span class="n">variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variables</span> <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">vol_dict</span><span class="p">]</span>
 
@@ -2558,7 +2776,7 @@ document.write(`
         <span class="k">try</span><span class="p">:</span>
             <span class="n">broadcast_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_shapes</span><span class="p">(</span><span class="o">*</span><span class="n">updated_shapes</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape mismatch after adding dimensions: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape mismatch after adding dimensions: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">vol_dict</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">broadcast_shape</span><span class="p">:</span>
@@ -2568,7 +2786,7 @@ document.write(`
 
 <div class="viewcode-block" id="MathFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.io.MathFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">operation</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
@@ -2680,7 +2898,7 @@ document.write(`
                 <span class="sa">f</span><span class="s2">&quot; volumes available with the following keys: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">vol_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">()</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">()</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="k">if</span> <span class="n">dtype</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -2691,7 +2909,7 @@ document.write(`
                     <span class="s2">&quot;https://numpy.org/doc/stable/reference/arrays.interface.html&quot;</span>
                 <span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">()</span> <span class="kn">from</span> <span class="nn">e</span>
+                <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">()</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
             <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>

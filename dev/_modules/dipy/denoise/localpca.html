@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.denoise.localpca &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.denoise.localpca &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,20 +883,20 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.denoise.localpca</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">eigh</span>
-<span class="kn">from</span> <span class="nn">scipy.linalg.lapack</span> <span class="kn">import</span> <span class="n">dgesvd</span> <span class="k">as</span> <span class="n">svd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">eigh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.linalg.lapack</span><span class="w"> </span><span class="kn">import</span> <span class="n">dgesvd</span> <span class="k">as</span> <span class="n">real_svd</span><span class="p">,</span> <span class="n">zgesvd</span> <span class="k">as</span> <span class="n">complex_svd</span>
 
-<span class="kn">from</span> <span class="nn">dipy.denoise.pca_noise_estimate</span> <span class="kn">import</span> <span class="n">pca_noise_estimate</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.denoise.pca_noise_estimate</span><span class="w"> </span><span class="kn">import</span> <span class="n">pca_noise_estimate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
 
 
 <div class="viewcode-block" id="dimensionality_problem_message">
 <a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.dimensionality_problem_message">[docs]</a>
-<span class="k">def</span> <span class="nf">dimensionality_problem_message</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">spr</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dimensionality_problem_message</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">spr</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Message about the number of samples being smaller than one less the</span>
 <span class="sd">    dimensionality of the data to be denoised.</span>
 
@@ -928,7 +923,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_pca_classifier</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">nvoxels</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_pca_classifier</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">nvoxels</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Classifies which PCA eigenvalues are related to noise and estimates the</span>
 <span class="sd">    noise variance</span>
 
@@ -978,7 +973,7 @@ document.write(`
 
 <div class="viewcode-block" id="create_patch_radius_arr">
 <a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.create_patch_radius_arr">[docs]</a>
-<span class="k">def</span> <span class="nf">create_patch_radius_arr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">pr</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_patch_radius_arr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">pr</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the patch radius array from the data to be denoised and the patch</span>
 <span class="sd">    radius.</span>
 
@@ -1011,7 +1006,7 @@ document.write(`
 
 <div class="viewcode-block" id="compute_patch_size">
 <a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.compute_patch_size">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_patch_size</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_patch_size</span><span class="p">(</span><span class="n">patch_radius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute patch size from the patch radius.</span>
 
 <span class="sd">    it is twice the radius plus one.</span>
@@ -1033,7 +1028,7 @@ document.write(`
 
 <div class="viewcode-block" id="compute_num_samples">
 <a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.compute_num_samples">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_num_samples</span><span class="p">(</span><span class="n">patch_size</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_num_samples</span><span class="p">(</span><span class="n">patch_size</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the number of samples as the dot product of the elements.</span>
 
 <span class="sd">    Parameters</span>
@@ -1053,7 +1048,7 @@ document.write(`
 
 <div class="viewcode-block" id="compute_suggested_patch_radius">
 <a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.compute_suggested_patch_radius">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_suggested_patch_radius</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_suggested_patch_radius</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the suggested patch radius.</span>
 
 <span class="sd">    Parameters</span>
@@ -1085,7 +1080,7 @@ document.write(`
 <div class="viewcode-block" id="genpca">
 <a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.genpca">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">genpca</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">genpca</span><span class="p">(</span>
     <span class="n">arr</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1104,7 +1099,8 @@ document.write(`
 <span class="sd">    arr : 4D array</span>
 <span class="sd">        Array of data to be denoised. The dimensions are (X, Y, Z, N), where N</span>
 <span class="sd">        are the diffusion gradient directions. The first 3 dimension must have</span>
-<span class="sd">        size &gt;= 2 * patch_radius + 1 or size = 1.</span>
+<span class="sd">        size &gt;= 2 * patch_radius + 1 or size = 1. Both real and complex-valued</span>
+<span class="sd">        arrays are supported.</span>
 <span class="sd">    sigma : float or 3D array, optional</span>
 <span class="sd">        Standard deviation of the noise estimated from the data. If no sigma</span>
 <span class="sd">        is given, this will be estimated based on random matrix theory</span>
@@ -1143,8 +1139,10 @@ document.write(`
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    denoised_arr : 4D array</span>
-<span class="sd">        This is the denoised array of the same size as that of the input data,</span>
-<span class="sd">        clipped to non-negative values.</span>
+<span class="sd">        This is the denoised array of the same size as that of the input data.</span>
+<span class="sd">        If the input data is real-valued, the output is clipped to non-negative</span>
+<span class="sd">        values. If complex-valued, the denoised complex signal is returned</span>
+<span class="sd">        without clipping.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -1160,6 +1158,8 @@ document.write(`
     <span class="c1"># We retain float64 precision, iff the input is in this precision:</span>
     <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
         <span class="n">calc_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+    <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">complexfloating</span><span class="p">):</span>
+        <span class="n">calc_dtype</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span>
     <span class="c1"># Otherwise, we&#39;ll calculate things in float32 (saving memory)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">calc_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
@@ -1241,23 +1241,24 @@ document.write(`
                 <span class="k">if</span> <span class="n">is_svd</span><span class="p">:</span>
                     <span class="c1"># PCA using an SVD</span>
                     <span class="n">svd_args</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                    <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">Vt</span> <span class="o">=</span> <span class="n">svd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">*</span><span class="n">svd_args</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">calc_dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">complexfloating</span><span class="p">):</span>
+                        <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">Vt</span> <span class="o">=</span> <span class="n">complex_svd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">*</span><span class="n">svd_args</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">Vt</span> <span class="o">=</span> <span class="n">real_svd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">*</span><span class="n">svd_args</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
                     <span class="c1"># Items in S are the eigenvalues, but in ascending order</span>
                     <span class="c1"># We invert the order (=&gt; descending), square and normalize</span>
                     <span class="c1"># \lambda_i = s_i^2 / n</span>
                     <span class="n">d</span> <span class="o">=</span> <span class="n">S</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="c1"># Rows of Vt are eigenvectors, but also in ascending</span>
                     <span class="c1"># eigenvalue order:</span>
-                    <span class="n">W</span> <span class="o">=</span> <span class="n">Vt</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
-
+                    <span class="n">W</span> <span class="o">=</span> <span class="n">Vt</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">T</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># PCA using an Eigenvalue decomposition</span>
-                    <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+                    <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">X</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
                     <span class="n">C</span> <span class="o">=</span> <span class="n">C</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="p">[</span><span class="n">d</span><span class="p">,</span> <span class="n">W</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigh</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="c1"># Random matrix theory</span>
                     <span class="n">this_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_pca_classifier</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Predefined variance</span>
@@ -1270,8 +1271,8 @@ document.write(`
                 <span class="n">ncomps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">d</span> <span class="o">&lt;</span> <span class="n">tau</span><span class="p">)</span>
                 <span class="n">W</span><span class="p">[:,</span> <span class="p">:</span><span class="n">ncomps</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
-                <span class="c1"># This is equations 1 and 2 in Manjon 2013:</span>
-                <span class="n">Xest</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="n">M</span>
+                <span class="c1"># This is adapted from equations 1 and 2 in Manjon 2013:</span>
+                <span class="n">Xest</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="n">M</span>
                 <span class="n">Xest</span> <span class="o">=</span> <span class="n">Xest</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">patch_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">patch_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">patch_size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dim</span><span class="p">)</span>
                 <span class="c1"># This is equation 3 in Manjon 2013:</span>
                 <span class="n">this_theta</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">dim</span> <span class="o">-</span> <span class="n">ncomps</span><span class="p">)</span>
@@ -1282,8 +1283,12 @@ document.write(`
                     <span class="n">thetavar</span><span class="p">[</span><span class="n">ix1</span><span class="p">:</span><span class="n">ix2</span><span class="p">,</span> <span class="n">jx1</span><span class="p">:</span><span class="n">jx2</span><span class="p">,</span> <span class="n">kx1</span><span class="p">:</span><span class="n">kx2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_theta</span>
 
     <span class="n">denoised_arr</span> <span class="o">=</span> <span class="n">thetax</span> <span class="o">/</span> <span class="n">theta</span>
-    <span class="n">denoised_arr</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">denoised_arr</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">calc_dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">complexfloating</span><span class="p">):</span>
+        <span class="n">denoised_arr</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">denoised_arr</span><span class="p">)</span>
+
     <span class="n">denoised_arr</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
     <span class="k">if</span> <span class="n">return_sigma</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">var</span> <span class="o">=</span> <span class="n">var</span> <span class="o">/</span> <span class="n">thetavar</span>
@@ -1299,7 +1304,7 @@ document.write(`
 <div class="viewcode-block" id="localpca">
 <a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.localpca">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">localpca</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">localpca</span><span class="p">(</span>
     <span class="n">arr</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1322,7 +1327,8 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    arr : 4D array</span>
 <span class="sd">        Array of data to be denoised. The dimensions are (X, Y, Z, N), where N</span>
-<span class="sd">        are the diffusion gradient directions.</span>
+<span class="sd">        are the diffusion gradient directions. Both real and complex-valued</span>
+<span class="sd">        arrays are supported.</span>
 <span class="sd">    sigma : float or 3D array, optional</span>
 <span class="sd">        Standard deviation of the noise estimated from the data. If not given,</span>
 <span class="sd">        calculate using method in :footcite:t:`Manjon2013`.</span>
@@ -1374,8 +1380,10 @@ document.write(`
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    denoised_arr : 4D array</span>
-<span class="sd">        This is the denoised array of the same size as that of the input data,</span>
-<span class="sd">        clipped to non-negative values</span>
+<span class="sd">        This is the denoised array of the same size as that of the input data.</span>
+<span class="sd">        If the input data is real-valued, the output is clipped to non-negative</span>
+<span class="sd">        values. If complex-valued, the denoised complex signal is returned</span>
+<span class="sd">        without clipping.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -1412,7 +1420,7 @@ document.write(`
 <div class="viewcode-block" id="mppca">
 <a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.denoise.localpca.mppca">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">mppca</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mppca</span><span class="p">(</span>
     <span class="n">arr</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1431,7 +1439,8 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    arr : 4D array</span>
 <span class="sd">        Array of data to be denoised. The dimensions are (X, Y, Z, N), where N</span>
-<span class="sd">        are the diffusion gradient directions.</span>
+<span class="sd">        are the diffusion gradient directions. Both real and complex-valued</span>
+<span class="sd">        arrays are supported.</span>
 <span class="sd">    mask : 3D boolean array, optional</span>
 <span class="sd">        A mask with voxels that are true inside the brain and false outside of</span>
 <span class="sd">        it. The function denoises within the true part and returns zeros</span>
@@ -1456,8 +1465,10 @@ document.write(`
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    denoised_arr : 4D array</span>
-<span class="sd">        This is the denoised array of the same size as that of the input data,</span>
-<span class="sd">        clipped to non-negative values</span>
+<span class="sd">        This is the denoised array of the same size as that of the input data.</span>
+<span class="sd">        If the input data is real-valued, the output is clipped to non-negative</span>
+<span class="sd">        values. If complex-valued, the denoised complex signal is returned</span>
+<span class="sd">        without clipping.</span>
 <span class="sd">    sigma : 3D array (when return_sigma=True)</span>
 <span class="sd">        Estimate of the spatial varying standard deviation of the noise</span>
 

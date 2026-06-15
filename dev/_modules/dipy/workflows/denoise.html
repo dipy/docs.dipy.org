@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.denoise &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.workflows.denoise &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,37 +883,37 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.workflows.denoise</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Sequence</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
-<span class="kn">from</span> <span class="nn">dipy.denoise.gibbs</span> <span class="kn">import</span> <span class="n">gibbs_removal</span>
-<span class="kn">from</span> <span class="nn">dipy.denoise.localpca</span> <span class="kn">import</span> <span class="n">localpca</span><span class="p">,</span> <span class="n">mppca</span>
-<span class="kn">from</span> <span class="nn">dipy.denoise.nlmeans</span> <span class="kn">import</span> <span class="n">nlmeans</span>
-<span class="kn">from</span> <span class="nn">dipy.denoise.noise_estimate</span> <span class="kn">import</span> <span class="n">estimate_sigma</span>
-<span class="kn">from</span> <span class="nn">dipy.denoise.patch2self</span> <span class="kn">import</span> <span class="n">patch2self</span>
-<span class="kn">from</span> <span class="nn">dipy.denoise.pca_noise_estimate</span> <span class="kn">import</span> <span class="n">pca_noise_estimate</span>
-<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">gradient_table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.denoise.gibbs</span><span class="w"> </span><span class="kn">import</span> <span class="n">gibbs_removal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.denoise.localpca</span><span class="w"> </span><span class="kn">import</span> <span class="n">localpca</span><span class="p">,</span> <span class="n">mppca</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.denoise.nlmeans</span><span class="w"> </span><span class="kn">import</span> <span class="n">nlmeans</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.denoise.noise_estimate</span><span class="w"> </span><span class="kn">import</span> <span class="n">estimate_sigma</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.denoise.patch2self</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch2self</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.denoise.pca_noise_estimate</span><span class="w"> </span><span class="kn">import</span> <span class="n">pca_noise_estimate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span>
 
 
 <div class="viewcode-block" id="Patch2SelfFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.Patch2SelfFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">Patch2SelfFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Patch2SelfFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="Patch2SelfFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.Patch2SelfFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;patch2self&quot;</span></div>
 
 
 <div class="viewcode-block" id="Patch2SelfFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.Patch2SelfFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bval_files</span><span class="p">,</span>
@@ -1023,17 +1018,17 @@ document.write(`
 
 <div class="viewcode-block" id="NLMeansFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.NLMeansFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">NLMeansFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NLMeansFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="NLMeansFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.NLMeansFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;nlmeans&quot;</span></div>
 
 
 <div class="viewcode-block" id="NLMeansFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.NLMeansFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">sigma</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,),</span>
@@ -1116,17 +1111,17 @@ document.write(`
 
 <div class="viewcode-block" id="LPCAFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.LPCAFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">LPCAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LPCAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="LPCAFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.LPCAFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;lpca&quot;</span></div>
 
 
 <div class="viewcode-block" id="LPCAFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.LPCAFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -1228,17 +1223,17 @@ document.write(`
 
 <div class="viewcode-block" id="MPPCAFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.MPPCAFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">MPPCAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MPPCAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="MPPCAFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.MPPCAFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;mppca&quot;</span></div>
 
 
 <div class="viewcode-block" id="MPPCAFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.MPPCAFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">patch_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
@@ -1308,17 +1303,17 @@ document.write(`
 
 <div class="viewcode-block" id="GibbsRingingFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.GibbsRingingFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">GibbsRingingFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GibbsRingingFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="GibbsRingingFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.GibbsRingingFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;gibbs_ringing&quot;</span></div>
 
 
 <div class="viewcode-block" id="GibbsRingingFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.denoise.GibbsRingingFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">slice_axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.panel &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.viz.panel &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,28 +883,28 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.viz.panel</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
-<span class="kn">from</span> <span class="nn">dipy.viz.gmem</span> <span class="kn">import</span> <span class="n">GlobalHorizon</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.gmem</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalHorizon</span>
 
 <span class="n">fury</span><span class="p">,</span> <span class="n">have_fury</span><span class="p">,</span> <span class="n">setup_module</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
     <span class="s2">&quot;fury&quot;</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">&quot;0.10.0&quot;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="s2">&quot;1.0.0&quot;</span>
 <span class="p">)</span>
 
 <span class="k">if</span> <span class="n">have_fury</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">dipy.viz</span> <span class="kn">import</span> <span class="n">actor</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <span class="n">ui</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">actor</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <span class="n">ui</span>
 
 
 <div class="viewcode-block" id="build_label">
 <a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.panel.build_label">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">build_label</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_label</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple utility function to build labels</span>
 
 <span class="sd">    Parameters</span>
@@ -939,14 +934,14 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_color_slider</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_color_slider</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
     <span class="n">slider</span><span class="o">.</span><span class="n">default_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">slider</span><span class="o">.</span><span class="n">track</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">slider</span><span class="o">.</span><span class="n">active_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">slider</span><span class="o">.</span><span class="n">handle</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_color_dslider</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_color_dslider</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
     <span class="n">slider</span><span class="o">.</span><span class="n">default_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">slider</span><span class="o">.</span><span class="n">track</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">slider</span><span class="o">.</span><span class="n">active_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
@@ -957,7 +952,7 @@ document.write(`
 <div class="viewcode-block" id="slicer_panel">
 <a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.panel.slicer_panel">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">slicer_panel</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">slicer_panel</span><span class="p">(</span>
     <span class="n">scene</span><span class="p">,</span>
     <span class="n">iren</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1079,7 +1074,7 @@ document.write(`
 
     <span class="n">_color_slider</span><span class="p">(</span><span class="n">line_slider_z</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">change_slice_z</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_slice_z</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
         <span class="n">z</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">slider</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
         <span class="n">mem</span><span class="o">.</span><span class="n">slicer_curr_actor_z</span><span class="o">.</span><span class="n">display_extent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">pam</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1099,7 +1094,7 @@ document.write(`
 
     <span class="n">_color_slider</span><span class="p">(</span><span class="n">line_slider_x</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">change_slice_x</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_slice_x</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">slider</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
         <span class="n">mem</span><span class="o">.</span><span class="n">slicer_curr_actor_x</span><span class="o">.</span><span class="n">display_extent</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">scene</span><span class="o">.</span><span class="n">reset_clipping_range</span><span class="p">()</span>
@@ -1116,7 +1111,7 @@ document.write(`
 
     <span class="n">_color_slider</span><span class="p">(</span><span class="n">line_slider_y</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">change_slice_y</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_slice_y</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
         <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">slider</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 
         <span class="n">mem</span><span class="o">.</span><span class="n">slicer_curr_actor_y</span><span class="o">.</span><span class="n">display_extent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
@@ -1135,7 +1130,7 @@ document.write(`
 
     <span class="n">_color_dslider</span><span class="p">(</span><span class="n">double_slider</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">apply_colormap</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_colormap</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">mem</span><span class="o">.</span><span class="n">slicer_rgb</span><span class="p">:</span>
             <span class="k">return</span>
 
@@ -1162,7 +1157,7 @@ document.write(`
         <span class="n">mem</span><span class="o">.</span><span class="n">slicer_curr_actor_z</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">SetLookupTable</span><span class="p">(</span><span class="n">lut</span><span class="p">)</span>
         <span class="n">mem</span><span class="o">.</span><span class="n">slicer_curr_actor_z</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">on_change_ds</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_change_ds</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">slider</span><span class="o">.</span><span class="n">_values</span>
         <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="o">=</span> <span class="n">values</span>
         <span class="n">apply_colormap</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">)</span>
@@ -1186,7 +1181,7 @@ document.write(`
 
     <span class="n">_color_slider</span><span class="p">(</span><span class="n">opacity_slider</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">change_opacity</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_opacity</span><span class="p">(</span><span class="n">slider</span><span class="p">):</span>
         <span class="n">slicer_opacity</span> <span class="o">=</span> <span class="n">slider</span><span class="o">.</span><span class="n">value</span>
         <span class="n">mem</span><span class="o">.</span><span class="n">slicer_curr_actor_x</span><span class="o">.</span><span class="n">opacity</span><span class="p">(</span><span class="n">slicer_opacity</span><span class="p">)</span>
         <span class="n">mem</span><span class="o">.</span><span class="n">slicer_curr_actor_y</span><span class="o">.</span><span class="n">opacity</span><span class="p">(</span><span class="n">slicer_opacity</span><span class="p">)</span>
@@ -1203,7 +1198,7 @@ document.write(`
 
     <span class="n">_color_slider</span><span class="p">(</span><span class="n">volume_slider</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">change_volume</span><span class="p">(</span><span class="n">istyle</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">slider</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">change_volume</span><span class="p">(</span><span class="n">istyle</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">slider</span><span class="p">):</span>
         <span class="n">vol_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">slider</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
         <span class="n">mem</span><span class="o">.</span><span class="n">slicer_vol_idx</span> <span class="o">=</span> <span class="n">vol_idx</span>
 
@@ -1260,7 +1255,7 @@ document.write(`
 
         <span class="n">istyle</span><span class="o">.</span><span class="n">force_render</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">left_click_picker_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ev</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">left_click_picker_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ev</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the value of the clicked voxel and show it in the panel.&quot;&quot;&quot;</span>
 
         <span class="n">event_pos</span> <span class="o">=</span> <span class="n">iren</span><span class="o">.</span><span class="n">GetEventPosition</span><span class="p">()</span>
@@ -1273,7 +1268,7 @@ document.write(`
             <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">picker_label</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2">) </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">picker_label</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">) </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="n">mem</span><span class="o">.</span><span class="n">slicer_vol_idx</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">mem</span><span class="o">.</span><span class="n">slicer_vol</span> <span class="o">=</span> <span class="n">tmp_new</span>
@@ -1319,7 +1314,7 @@ document.write(`
     <span class="n">line_slider_label_x</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">x_counter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">label_callback_x</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label_callback_x</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="n">line_slider_label_x</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">line_slider_label_x</span><span class="o">.</span><span class="n">visibility</span>
         <span class="n">line_slider_x</span><span class="o">.</span><span class="n">set_visibility</span><span class="p">(</span><span class="n">line_slider_label_x</span><span class="o">.</span><span class="n">visibility</span><span class="p">)</span>
         <span class="n">cnt</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">x_counter</span><span class="p">)</span>
@@ -1335,7 +1330,7 @@ document.write(`
     <span class="n">line_slider_label_y</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">y_counter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">label_callback_y</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label_callback_y</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="n">line_slider_label_y</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">line_slider_label_y</span><span class="o">.</span><span class="n">visibility</span>
         <span class="n">line_slider_y</span><span class="o">.</span><span class="n">set_visibility</span><span class="p">(</span><span class="n">line_slider_label_y</span><span class="o">.</span><span class="n">visibility</span><span class="p">)</span>
         <span class="n">cnt</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">y_counter</span><span class="p">)</span>
@@ -1351,7 +1346,7 @@ document.write(`
     <span class="n">line_slider_label_z</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">z_counter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">label_callback_z</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label_callback_z</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="n">line_slider_label_z</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">line_slider_label_z</span><span class="o">.</span><span class="n">visibility</span>
         <span class="n">line_slider_z</span><span class="o">.</span><span class="n">set_visibility</span><span class="p">(</span><span class="n">line_slider_label_z</span><span class="o">.</span><span class="n">visibility</span><span class="p">)</span>
         <span class="n">cnt</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">z_counter</span><span class="p">)</span>
@@ -1370,7 +1365,7 @@ document.write(`
     <span class="n">double_slider_label</span> <span class="o">=</span> <span class="n">build_label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Colormap&quot;</span><span class="p">)</span>
     <span class="n">slicer_panel_label</span> <span class="o">=</span> <span class="n">build_label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Slicer panel&quot;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">label_colormap_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label_colormap_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">mem</span><span class="o">.</span><span class="n">slicer_colormap_cnt</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mem</span><span class="o">.</span><span class="n">slicer_colormaps</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">mem</span><span class="o">.</span><span class="n">slicer_colormap_cnt</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1389,7 +1384,7 @@ document.write(`
     <span class="p">)</span>
 
     <span class="c1"># volume_slider.on_right_mouse_button_released = change_volume2</span>
-    <span class="k">def</span> <span class="nf">label_opacity_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label_opacity_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">opacity_slider</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">opacity_slider</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">100</span>
             <span class="n">opacity_slider</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>

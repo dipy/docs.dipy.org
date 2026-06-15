@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.core.gradients &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.core.gradients &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,25 +883,26 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.core.gradients</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">inv</span><span class="p">,</span> <span class="n">polar</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">inv</span><span class="p">,</span> <span class="n">polar</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.geometry</span> <span class="kn">import</span> <span class="n">vec2vec_rotmat</span><span class="p">,</span> <span class="n">vector_norm</span>
-<span class="kn">from</span> <span class="nn">dipy.core.onetime</span> <span class="kn">import</span> <span class="n">auto_attr</span>
-<span class="kn">from</span> <span class="nn">dipy.core.sphere</span> <span class="kn">import</span> <span class="n">HemiSphere</span><span class="p">,</span> <span class="n">disperse_charges</span>
-<span class="kn">from</span> <span class="nn">dipy.io</span> <span class="kn">import</span> <span class="n">gradients</span> <span class="k">as</span> <span class="n">io</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">vec2vec_rotmat</span><span class="p">,</span> <span class="n">vector_norm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.onetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_attr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">HemiSphere</span><span class="p">,</span> <span class="n">disperse_charges</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">gradients</span> <span class="k">as</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 <span class="n">WATER_GYROMAGNETIC_RATIO</span> <span class="o">=</span> <span class="mf">267.513e6</span>  <span class="c1"># 1/(sT)</span>
 
 
 <div class="viewcode-block" id="b0_threshold_empty_gradient_message">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.b0_threshold_empty_gradient_message">[docs]</a>
-<span class="k">def</span> <span class="nf">b0_threshold_empty_gradient_message</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">b0_threshold_empty_gradient_message</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Message about the ``b0_threshold`` value resulting in no gradient</span>
 <span class="sd">    selection.</span>
 
@@ -938,7 +934,7 @@ document.write(`
 
 <div class="viewcode-block" id="b0_threshold_update_slicing_message">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.b0_threshold_update_slicing_message">[docs]</a>
-<span class="k">def</span> <span class="nf">b0_threshold_update_slicing_message</span><span class="p">(</span><span class="n">slice_start</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">b0_threshold_update_slicing_message</span><span class="p">(</span><span class="n">slice_start</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Message for b0 threshold value update for slicing.</span>
 
 <span class="sd">    Parameters</span>
@@ -958,7 +954,7 @@ document.write(`
 
 <div class="viewcode-block" id="mask_non_weighted_bvals">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.mask_non_weighted_bvals">[docs]</a>
-<span class="k">def</span> <span class="nf">mask_non_weighted_bvals</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_non_weighted_bvals</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a diffusion gradient-weighting mask for the b-values according to</span>
 <span class="sd">    the provided b0 threshold value.</span>
 
@@ -983,7 +979,7 @@ document.write(`
 
 <div class="viewcode-block" id="GradientTable">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.GradientTable">[docs]</a>
-<span class="k">class</span> <span class="nc">GradientTable</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GradientTable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Diffusion gradient information</span>
 
 <span class="sd">    Parameters</span>
@@ -1028,7 +1024,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gradients</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1037,7 +1033,7 @@ document.write(`
         <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
         <span class="n">btens</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for GradientTable class&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for GradientTable class.&quot;&quot;&quot;</span>
         <span class="n">gradients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gradients</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gradients</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">gradients</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;gradients should be an (N, 3) array&quot;</span><span class="p">)</span>
@@ -1065,8 +1061,8 @@ document.write(`
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">btens</span><span class="si">}</span><span class="s2"> is an invalid value for btens. &quot;</span>
-                        <span class="o">+</span> <span class="s2">&quot;Please provide one of the following: &quot;</span>
-                        <span class="o">+</span> <span class="s2">&quot;&#39;LTE&#39;, &#39;PTE&#39;, &#39;STE&#39;, &#39;CTE&#39;.&quot;</span>
+                        <span class="s2">&quot;Please provide one of the following: &quot;</span>
+                        <span class="s2">&quot;&#39;LTE&#39;, &#39;PTE&#39;, &#39;STE&#39;, &#39;CTE&#39;.&quot;</span>
                     <span class="p">)</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">bvec</span><span class="p">,</span> <span class="n">bval</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bvecs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bvals</span><span class="p">)):</span>
                     <span class="k">if</span> <span class="n">btens</span> <span class="o">==</span> <span class="s2">&quot;STE&quot;</span><span class="p">:</span>
@@ -1100,8 +1096,8 @@ document.write(`
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">btens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2"> is an invalid value in btens. &quot;</span>
-                            <span class="o">+</span> <span class="s2">&quot;Array element options: &#39;LTE&#39;, &#39;PTE&#39;, &#39;STE&#39;, &quot;</span>
-                            <span class="o">+</span> <span class="s2">&quot;&#39;CTE&#39;.&quot;</span>
+                            <span class="s2">&quot;Array element options: &#39;LTE&#39;, &#39;PTE&#39;, &#39;STE&#39;, &quot;</span>
+                            <span class="s2">&quot;&#39;CTE&#39;.&quot;</span>
                         <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">btens</span> <span class="o">=</span> <span class="n">b_tensors</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">btens</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">btens</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span>
@@ -1113,28 +1109,28 @@ document.write(`
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">btens</span><span class="si">}</span><span class="s2"> is an invalid value for btens. &quot;</span>
-                    <span class="o">+</span> <span class="s2">&quot;Please provide a string, an array of &quot;</span>
-                    <span class="o">+</span> <span class="s2">&quot;strings, or an array of exact b-tensors. &quot;</span>
-                    <span class="o">+</span> <span class="s2">&quot;String options: &#39;LTE&#39;, &#39;PTE&#39;, &#39;STE&#39;, &#39;CTE&#39;&quot;</span>
+                    <span class="s2">&quot;Please provide a string, an array of &quot;</span>
+                    <span class="s2">&quot;strings, or an array of exact b-tensors. &quot;</span>
+                    <span class="s2">&quot;String options: &#39;LTE&#39;, &#39;PTE&#39;, &#39;STE&#39;, &#39;CTE&#39;&quot;</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">btens</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">bvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">vector_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gradients</span><span class="p">)</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">big_delta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">small_delta</span> <span class="o">/</span> <span class="mf">3.0</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">qvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">qvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tau</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">big_delta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">small_delta</span> <span class="o">/</span> <span class="mf">3.0</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bvals</span> <span class="o">/</span> <span class="n">tau</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">gradient_strength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gradient_strength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tau</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">big_delta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">small_delta</span> <span class="o">/</span> <span class="mf">3.0</span>
         <span class="n">qvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bvals</span> <span class="o">/</span> <span class="n">tau</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
         <span class="n">gradient_strength</span> <span class="o">=</span> <span class="p">(</span>
@@ -1143,18 +1139,18 @@ document.write(`
         <span class="k">return</span> <span class="n">gradient_strength</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">b0s_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">b0s_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">mask_non_weighted_bvals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b0_threshold</span><span class="p">)</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">bvecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bvecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># To get unit vectors we divide by bvals, where bvals is 0 we divide by</span>
         <span class="c1"># 1 to avoid making nans</span>
         <span class="n">denom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bvals</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bvals</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">denom</span> <span class="o">=</span> <span class="n">denom</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradients</span> <span class="o">/</span> <span class="n">denom</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span><span class="p">]</span>  <span class="c1"># convert in a list if integer.</span>
 
@@ -1198,11 +1194,11 @@ document.write(`
         <span class="c1"># of GradientTable.</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_logging</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_logging</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">show</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="k">if</span> <span class="n">use_logging</span> <span class="k">else</span> <span class="nb">print</span>
         <span class="n">show</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;B-values shape </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bvals</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;         min </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bvals</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2">f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;         max </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bvals</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -1211,7 +1207,7 @@ document.write(`
         <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;          max </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bvecs</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">msg</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the number of gradients. Includes the b0s.</span>
 
 <span class="sd">        Examples</span>
@@ -1229,7 +1225,7 @@ document.write(`
 <div class="viewcode-block" id="gradient_table_from_bvals_bvecs">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.gradient_table_from_bvals_bvecs">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">gradient_table_from_bvals_bvecs</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gradient_table_from_bvals_bvecs</span><span class="p">(</span>
     <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">btens</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a GradientTable from a bvals array and a bvecs array</span>
@@ -1343,7 +1339,7 @@ document.write(`
 <div class="viewcode-block" id="gradient_table_from_qvals_bvecs">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.gradient_table_from_qvals_bvecs">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">gradient_table_from_qvals_bvecs</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gradient_table_from_qvals_bvecs</span><span class="p">(</span>
     <span class="n">qvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">,</span> <span class="n">big_delta</span><span class="p">,</span> <span class="n">small_delta</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-2</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A general function for creating diffusion MR gradients.</span>
@@ -1428,7 +1424,7 @@ document.write(`
 <div class="viewcode-block" id="gradient_table_from_gradient_strength_bvecs">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.gradient_table_from_gradient_strength_bvecs">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">gradient_table_from_gradient_strength_bvecs</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gradient_table_from_gradient_strength_bvecs</span><span class="p">(</span>
     <span class="n">gradient_strength</span><span class="p">,</span> <span class="n">bvecs</span><span class="p">,</span> <span class="n">big_delta</span><span class="p">,</span> <span class="n">small_delta</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-2</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A general function for creating diffusion MR gradients.</span>
@@ -1514,7 +1510,7 @@ document.write(`
 <div class="viewcode-block" id="gradient_table">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.gradient_table">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">gradient_table</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gradient_table</span><span class="p">(</span>
     <span class="n">bvals</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bvecs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1658,7 +1654,7 @@ document.write(`
 <div class="viewcode-block" id="reorient_bvecs">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.reorient_bvecs">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">reorient_bvecs</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">affines</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reorient_bvecs</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">affines</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reorient the directions in a GradientTable.</span>
 
 <span class="sd">    When correcting for motion, rotation of the diffusion-weighted volumes</span>
@@ -1735,7 +1731,7 @@ document.write(`
 <div class="viewcode-block" id="generate_bvecs">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.generate_bvecs">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">generate_bvecs</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_bvecs</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates N bvectors.</span>
 
 <span class="sd">    Uses dipy.core.sphere.disperse_charges to model electrostatic repulsion on</span>
@@ -1772,7 +1768,7 @@ document.write(`
 <div class="viewcode-block" id="round_bvals">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.round_bvals">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">round_bvals</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bmag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">round_bvals</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bmag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;This function rounds the b-values</span>
 
 <span class="sd">    Parameters</span>
@@ -1802,7 +1798,7 @@ document.write(`
 <div class="viewcode-block" id="unique_bvals_tolerance">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.unique_bvals_tolerance">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">unique_bvals_tolerance</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unique_bvals_tolerance</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gives the unique b-values of the data, within a tolerance gap</span>
 
 <span class="sd">    The b-values must be regrouped in clusters easily separated by a</span>
@@ -1864,7 +1860,7 @@ document.write(`
 <div class="viewcode-block" id="get_bval_indices">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.get_bval_indices">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_bval_indices</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_bval_indices</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get indices where the b-value is `bval`</span>
 
@@ -1891,7 +1887,7 @@ document.write(`
 <div class="viewcode-block" id="unique_bvals_magnitude">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.unique_bvals_magnitude">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">unique_bvals_magnitude</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bmag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rbvals</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unique_bvals_magnitude</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bmag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rbvals</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This function gives the unique rounded b-values of the data</span>
 
 <span class="sd">    Parameters</span>
@@ -1924,7 +1920,7 @@ document.write(`
 <div class="viewcode-block" id="check_multi_b">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.check_multi_b">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">check_multi_b</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">n_bvals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">non_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bmag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_multi_b</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">n_bvals</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">non_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bmag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check if you have enough different b-values in your gradient table</span>
 
@@ -1954,14 +1950,11 @@ document.write(`
         <span class="n">bvals</span> <span class="o">=</span> <span class="n">bvals</span><span class="p">[</span><span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span>
 
     <span class="n">uniqueb</span> <span class="o">=</span> <span class="n">unique_bvals_magnitude</span><span class="p">(</span><span class="n">bvals</span><span class="p">,</span> <span class="n">bmag</span><span class="o">=</span><span class="n">bmag</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">uniqueb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n_bvals</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+    <span class="k">return</span> <span class="n">uniqueb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">n_bvals</span></div>
 
 
 
-<span class="k">def</span> <span class="nf">_btens_to_params_2d</span><span class="p">(</span><span class="n">btens_2d</span><span class="p">,</span> <span class="n">ztol</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_btens_to_params_2d</span><span class="p">(</span><span class="n">btens_2d</span><span class="p">,</span> <span class="n">ztol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute trace, anisotropy and asymmetry parameters from a single b-tensor</span>
 
 <span class="sd">    Auxiliary function where calculation of `bval`, bdelta` and `b_eta` from a</span>
@@ -2034,7 +2027,7 @@ document.write(`
 <div class="viewcode-block" id="btens_to_params">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.btens_to_params">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">btens_to_params</span><span class="p">(</span><span class="n">btens</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ztol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">btens_to_params</span><span class="p">(</span><span class="n">btens</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ztol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute trace, anisotropy and asymmetry parameters from b-tensors.</span>
 
 <span class="sd">    Parameters</span>
@@ -2110,7 +2103,7 @@ document.write(`
 
 <div class="viewcode-block" id="params_to_btens">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.params_to_btens">[docs]</a>
-<span class="k">def</span> <span class="nf">params_to_btens</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bdelta</span><span class="p">,</span> <span class="n">b_eta</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">params_to_btens</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bdelta</span><span class="p">,</span> <span class="n">b_eta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute b-tensor from trace, anisotropy and asymmetry parameters.</span>
 
 <span class="sd">    Parameters</span>
@@ -2170,9 +2163,21 @@ document.write(`
 
 <div class="viewcode-block" id="ornt_mapping">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.ornt_mapping">[docs]</a>
-<span class="k">def</span> <span class="nf">ornt_mapping</span><span class="p">(</span><span class="n">ornt1</span><span class="p">,</span> <span class="n">ornt2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the mapping needing to get from orn1 to orn2.&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ornt_mapping</span><span class="p">(</span><span class="n">ornt1</span><span class="p">,</span> <span class="n">ornt2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the mapping needing to get from orn1 to orn2.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ornt1 : ndarray</span>
+<span class="sd">        The first orientation array.</span>
+<span class="sd">    ornt2 : ndarray</span>
+<span class="sd">        The second orientation array.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mapping : ndarray</span>
+<span class="sd">        The mapping array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">mapping</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">ornt1</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span> <span class="s2">&quot;int&quot;</span><span class="p">)</span>
     <span class="n">mapping</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="n">A</span> <span class="o">=</span> <span class="n">ornt1</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
@@ -2188,10 +2193,10 @@ document.write(`
 <div class="viewcode-block" id="reorient_vectors">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.reorient_vectors">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">reorient_vectors</span><span class="p">(</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">current_ornt</span><span class="p">,</span> <span class="n">new_ornt</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reorient_vectors</span><span class="p">(</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">current_ornt</span><span class="p">,</span> <span class="n">new_ornt</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Change the orientation of gradients or other vectors.</span>
 
-<span class="sd">    Moves vectors, storted along axis, from current_ornt to new_ornt. For</span>
+<span class="sd">    Moves vectors, stored along axis, from current_ornt to new_ornt. For</span>
 <span class="sd">    example the vector [x, y, z] in &quot;RAS&quot; will be [-x, -y, z] in &quot;LPS&quot;.</span>
 
 <span class="sd">    R: Right</span>
@@ -2223,7 +2228,7 @@ document.write(`
 <div class="viewcode-block" id="reorient_on_axis">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.reorient_on_axis">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">reorient_on_axis</span><span class="p">(</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">current_ornt</span><span class="p">,</span> <span class="n">new_ornt</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reorient_on_axis</span><span class="p">(</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">current_ornt</span><span class="p">,</span> <span class="n">new_ornt</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current_ornt</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">current_ornt</span> <span class="o">=</span> <span class="n">orientation_from_string</span><span class="p">(</span><span class="n">current_ornt</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_ornt</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -2246,10 +2251,90 @@ document.write(`
 
 
 
+<div class="viewcode-block" id="get_orientation_from_affine">
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.get_orientation_from_affine">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_orientation_from_affine</span><span class="p">(</span><span class="n">affine</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the orientation of the affine transformation matrix.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    affine : ndarray</span>
+<span class="sd">        The affine transformation matrix of shape (4, 4).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    orientation : str</span>
+<span class="sd">        The orientation of the affine transformation matrix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="n">affine</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;affine must be a (4, 4) numpy array&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="n">aff2axcodes</span><span class="p">(</span><span class="n">affine</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="get_affine_with_new_orientation">
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.get_affine_with_new_orientation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_affine_with_new_orientation</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">new_orientation</span><span class="o">=</span><span class="s2">&quot;RAS&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure the affine transformation matrix is in the new orientation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    affine : ndarray</span>
+<span class="sd">        The affine transformation matrix of shape (4, 4).</span>
+<span class="sd">    new_orientation : str, optional</span>
+<span class="sd">        The new orientation to ensure. Valid orientations are 3 letter combinations</span>
+<span class="sd">        of the letters R, A, S, L, P, I. Where each letter should be used only once.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    new_affine : ndarray</span>
+<span class="sd">        The affine transformation matrix of shape (4, 4) in the new orientation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">current_orientation</span> <span class="o">=</span> <span class="n">get_orientation_from_affine</span><span class="p">(</span><span class="n">affine</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_orientation</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_orientation</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span>
+        <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="n">letter</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;l&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">letter</span> <span class="ow">in</span> <span class="n">new_orientation</span>
+        <span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;new_orientation must be a string containing the new orientation. &quot;</span>
+            <span class="s2">&quot;Valid orientations are 3 letter combinations of the letters &quot;</span>
+            <span class="s2">&quot;R, A, S, L, P, I. Where each letter should be used only once.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">current_orientation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="n">new_orientation</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="n">co_mapping</span> <span class="o">=</span> <span class="n">orientation_from_string</span><span class="p">(</span><span class="n">current_orientation</span><span class="p">)</span>
+        <span class="n">no_mapping</span> <span class="o">=</span> <span class="n">orientation_from_string</span><span class="p">(</span><span class="n">new_orientation</span><span class="p">)</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="n">ornt_mapping</span><span class="p">(</span><span class="n">co_mapping</span><span class="p">,</span> <span class="n">no_mapping</span><span class="p">)</span>
+
+        <span class="n">voxel_xform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">affine</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">voxel_xform</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">out_axis</span><span class="p">,</span> <span class="p">(</span><span class="n">in_axis</span><span class="p">,</span> <span class="n">sign</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mapping</span><span class="p">):</span>
+            <span class="n">voxel_xform</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">in_axis</span><span class="p">),</span> <span class="n">out_axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
+
+        <span class="n">new_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">voxel_xform</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_affine</span></div>
+
+
+
 <div class="viewcode-block" id="orientation_from_string">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.orientation_from_string">[docs]</a>
-<span class="k">def</span> <span class="nf">orientation_from_string</span><span class="p">(</span><span class="n">string_ornt</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return an array representation of an ornt string.&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">orientation_from_string</span><span class="p">(</span><span class="n">string_ornt</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return an array representation of an ornt string.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    string_ornt : str</span>
+<span class="sd">        The orientation string to convert to an array.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ornt : ndarray</span>
+<span class="sd">        The orientation array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">orientation_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
         <span class="s2">&quot;l&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
@@ -2269,8 +2354,19 @@ document.write(`
 
 <div class="viewcode-block" id="orientation_to_string">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.orientation_to_string">[docs]</a>
-<span class="k">def</span> <span class="nf">orientation_to_string</span><span class="p">(</span><span class="n">ornt</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a string representation of a 3d ornt.&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">orientation_to_string</span><span class="p">(</span><span class="n">ornt</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a string representation of a 3d ornt.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ornt : ndarray</span>
+<span class="sd">        The orientation array to convert to a string.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    string_ornt : str</span>
+<span class="sd">        The orientation string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">_check_ornt</span><span class="p">(</span><span class="n">ornt</span><span class="p">):</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">ornt</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; does not seem to be a valid orientation&quot;</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
@@ -2289,7 +2385,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_check_ornt</span><span class="p">(</span><span class="n">ornt</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_ornt</span><span class="p">(</span><span class="n">ornt</span><span class="p">):</span>
     <span class="n">uniq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ornt</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniq</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ornt</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq</span><span class="p">))</span>
@@ -2302,7 +2398,7 @@ document.write(`
 
 <div class="viewcode-block" id="extract_b0">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.extract_b0">[docs]</a>
-<span class="k">def</span> <span class="nf">extract_b0</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">b0_mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">group_contiguous_b0</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_b0</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">b0_mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">group_contiguous_b0</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract a set of b0 volumes from a dwi dataset.</span>
 
 <span class="sd">    Parameters</span>
@@ -2341,9 +2437,7 @@ document.write(`
     <span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Invalid strategy: </span><span class="si">{}</span><span class="s2">. Valid strategies are: first, all, mean.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">strategy</span>
-            <span class="p">)</span>
+            <span class="sa">f</span><span class="s2">&quot;Invalid strategy: </span><span class="si">{</span><span class="n">strategy</span><span class="si">}</span><span class="s2">. Valid strategies are: first, all, mean.&quot;</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">group_contiguous_b0</span><span class="p">:</span>
@@ -2372,7 +2466,7 @@ document.write(`
 
 <div class="viewcode-block" id="extract_dwi_shell">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.gradients.extract_dwi_shell">[docs]</a>
-<span class="k">def</span> <span class="nf">extract_dwi_shell</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">bvals_to_extract</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">group_shells</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_dwi_shell</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">bvals_to_extract</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">group_shells</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract diffusion-weighted imaging (DWI) volumes based on b-value shells.</span>
 
 <span class="sd">    Parameters</span>

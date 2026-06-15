@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.tracking.streamline &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.tracking.streamline &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,26 +883,26 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.tracking.streamline</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">import</span> <span class="nn">types</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
-<span class="kn">from</span> <span class="nn">nibabel.affines</span> <span class="kn">import</span> <span class="n">apply_affine</span>
-<span class="kn">from</span> <span class="nn">nibabel.streamlines</span> <span class="kn">import</span> <span class="n">ArraySequence</span> <span class="k">as</span> <span class="n">Streamlines</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.streamlines</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArraySequence</span> <span class="k">as</span> <span class="n">Streamlines</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">cdist</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.geometry</span> <span class="kn">import</span> <span class="n">dist_to_corner</span>
-<span class="kn">from</span> <span class="nn">dipy.core.interpolation</span> <span class="kn">import</span> <span class="n">interpolate_scalar_3d</span><span class="p">,</span> <span class="n">interpolate_vector_3d</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.distances</span> <span class="kn">import</span> <span class="n">bundles_distances_mdf</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.streamlinespeed</span> <span class="kn">import</span> <span class="n">length</span><span class="p">,</span> <span class="n">set_number_of_points</span>
-<span class="kn">import</span> <span class="nn">dipy.tracking.utils</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">dist_to_corner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.interpolation</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate_scalar_3d</span><span class="p">,</span> <span class="n">interpolate_vector_3d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.distances</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundles_distances_mdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamlinespeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">length</span><span class="p">,</span> <span class="n">set_number_of_points</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dipy.tracking.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ut</span>
 
 
 <div class="viewcode-block" id="unlist_streamlines">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.unlist_streamlines">[docs]</a>
-<span class="k">def</span> <span class="nf">unlist_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unlist_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the streamlines not as a list but as an array and an offset</span>
 
 <span class="sd">    Parameters</span>
@@ -940,7 +935,7 @@ document.write(`
 
 <div class="viewcode-block" id="relist_streamlines">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.relist_streamlines">[docs]</a>
-<span class="k">def</span> <span class="nf">relist_streamlines</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">offsets</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">relist_streamlines</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">offsets</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a representation of a set of streamlines as a large array and</span>
 <span class="sd">    an offsets array return the streamlines as a list of shorter arrays.</span>
 
@@ -959,8 +954,9 @@ document.write(`
 
     <span class="n">streamlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>
 
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="n">streamlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">:</span> <span class="n">offsets</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="n">streamlines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="n">points</span><span class="p">[</span><span class="n">offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">:</span> <span class="n">offsets</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">streamlines</span></div>
 
@@ -968,7 +964,7 @@ document.write(`
 
 <div class="viewcode-block" id="center_streamlines">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.center_streamlines">[docs]</a>
-<span class="k">def</span> <span class="nf">center_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">center_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Move streamlines to the origin</span>
 
 <span class="sd">    Parameters</span>
@@ -991,7 +987,7 @@ document.write(`
 
 <div class="viewcode-block" id="deform_streamlines">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.deform_streamlines">[docs]</a>
-<span class="k">def</span> <span class="nf">deform_streamlines</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">deform_streamlines</span><span class="p">(</span>
     <span class="n">streamlines</span><span class="p">,</span>
     <span class="n">deform_field</span><span class="p">,</span>
     <span class="n">stream_to_current_grid</span><span class="p">,</span>
@@ -1044,7 +1040,7 @@ document.write(`
 <div class="viewcode-block" id="transform_streamlines">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.transform_streamlines">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">transform_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">transform_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply affine transformation to streamlines</span>
 
 <span class="sd">    Parameters</span>
@@ -1086,7 +1082,7 @@ document.write(`
 <div class="viewcode-block" id="select_random_set_of_streamlines">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.select_random_set_of_streamlines">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">select_random_set_of_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">select_random_set_of_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Select a random set of streamlines</span>
 
 <span class="sd">    Parameters</span>
@@ -1122,7 +1118,7 @@ document.write(`
 <div class="viewcode-block" id="select_by_rois">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.select_by_rois">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">select_by_rois</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">rois</span><span class="p">,</span> <span class="n">include</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">select_by_rois</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">rois</span><span class="p">,</span> <span class="n">include</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Select streamlines based on logical relations with several regions of</span>
 <span class="sd">    interest (ROIs). For example, select streamlines that pass near ROI1,</span>
 <span class="sd">    but only if they do not pass near ROI2.</span>
@@ -1250,7 +1246,7 @@ document.write(`
 <div class="viewcode-block" id="cluster_confidence">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.cluster_confidence">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">cluster_confidence</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cluster_confidence</span><span class="p">(</span>
     <span class="n">streamlines</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_mdf</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">subsample</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">power</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the cluster confidence index (cci), which is an</span>
@@ -1325,7 +1321,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_orient_by_roi_generator</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">roi1</span><span class="p">,</span> <span class="n">roi2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_orient_by_roi_generator</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">roi1</span><span class="p">,</span> <span class="n">roi2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function to `orient_by_rois`</span>
 
@@ -1343,15 +1339,35 @@ document.write(`
             <span class="k">yield</span> <span class="n">sl</span>
 
 
-<span class="k">def</span> <span class="nf">_orient_by_roi_list</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">roi1</span><span class="p">,</span> <span class="n">roi2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Helper function to `orient_by_rois`</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_orient_by_roi_list</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">roi1</span><span class="p">,</span> <span class="n">roi2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to `orient_by_rois`.</span>
 
 <span class="sd">    Performs the inner loop separately. This is needed, because functions with</span>
 <span class="sd">    `yield` always return a generator.</span>
 
 <span class="sd">    Flips the streamlines in place (as needed) and returns a reference to the</span>
 <span class="sd">    updated list.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    out : list of ndarray</span>
+<span class="sd">        A list of streamlines, each of shape (N, 3), to be oriented</span>
+<span class="sd">        in place based on their proximity to the two ROIs.</span>
+<span class="sd">    roi1 : ndarray, shape (M, 3)</span>
+<span class="sd">        An array of coordinates representing the first region of</span>
+<span class="sd">        interest. Streamlines will be oriented so that they start</span>
+<span class="sd">        closer to roi1.</span>
+<span class="sd">    roi2 : ndarray, shape (K, 3)</span>
+<span class="sd">        An array of coordinates representing the second region of</span>
+<span class="sd">        interest. Streamlines will be oriented so that they end</span>
+<span class="sd">        closer to roi2.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : list of ndarray</span>
+<span class="sd">        The same list of streamlines passed as input, with some</span>
+<span class="sd">        streamlines flipped in place so that they are oriented</span>
+<span class="sd">        from roi1 towards roi2.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
         <span class="n">dist1</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">sl</span><span class="p">,</span> <span class="n">roi1</span><span class="p">,</span> <span class="s2">&quot;euclidean&quot;</span><span class="p">)</span>
@@ -1368,7 +1384,7 @@ document.write(`
 <div class="viewcode-block" id="orient_by_rois">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.orient_by_rois">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">orient_by_rois</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">orient_by_rois</span><span class="p">(</span>
     <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">roi1</span><span class="p">,</span> <span class="n">roi2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">as_generator</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Orient a set of streamlines according to a pair of ROIs</span>
@@ -1447,8 +1463,29 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_orient_by_sl_generator</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">std_array</span><span class="p">,</span> <span class="n">fgarray</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function that implements the generator version of this&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_orient_by_sl_generator</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">std_array</span><span class="p">,</span> <span class="n">fgarray</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function that implements the generator version of orient_by_sl.</span>
+
+<span class="sd">    Yields streamlines oriented to match the direction of a standard</span>
+<span class="sd">    streamline by comparing direct and flipped Euclidean distances.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    out : list of ndarray</span>
+<span class="sd">        A list of streamlines each of shape (N, 3) to be oriented.</span>
+<span class="sd">    std_array : ndarray, shape (N, 3)</span>
+<span class="sd">        The standard streamline used as a reference for orientation.</span>
+<span class="sd">        Each streamline in `fgarray` is compared against this.</span>
+<span class="sd">    fgarray : list of ndarray</span>
+<span class="sd">        A list of streamlines each of shape (N, 3) used to compute</span>
+<span class="sd">        distances against `std_array` to determine orientation.</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    sl : ndarray, shape (N, 3)</span>
+<span class="sd">        Each streamline from `out` yielded in the correct orientation</span>
+<span class="sd">        to match the direction of `std_array`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fgarray</span><span class="p">):</span>
         <span class="n">dist_direct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">sl</span> <span class="o">-</span> <span class="n">std_array</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
         <span class="n">dist_flipped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">sl</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">std_array</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
@@ -1458,8 +1495,31 @@ document.write(`
             <span class="k">yield</span> <span class="n">out</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_orient_by_sl_list</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">std_array</span><span class="p">,</span> <span class="n">fgarray</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function that implements the sequence version of this&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_orient_by_sl_list</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">std_array</span><span class="p">,</span> <span class="n">fgarray</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function that implements the sequence version of orient_by_sl.</span>
+
+<span class="sd">    Orients streamlines in place to match the direction of a standard</span>
+<span class="sd">    streamline by comparing direct and flipped Euclidean distances.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    out : list of ndarray</span>
+<span class="sd">        A list of streamlines each of shape (N, 3) to be oriented</span>
+<span class="sd">        in place based on comparison with `std_array`.</span>
+<span class="sd">    std_array : ndarray, shape (N, 3)</span>
+<span class="sd">        The standard streamline used as a reference for orientation.</span>
+<span class="sd">        Each streamline in `fgarray` is compared against this.</span>
+<span class="sd">    fgarray : list of ndarray</span>
+<span class="sd">        A list of streamlines each of shape (N, 3) used to compute</span>
+<span class="sd">        distances against `std_array` to determine orientation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : list of ndarray</span>
+<span class="sd">        The same list of streamlines passed as input, with some</span>
+<span class="sd">        streamlines flipped in place to match the direction of</span>
+<span class="sd">        `std_array`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fgarray</span><span class="p">):</span>
         <span class="n">dist_direct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">sl</span> <span class="o">-</span> <span class="n">std_array</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
         <span class="n">dist_flipped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">sl</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">std_array</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
@@ -1473,7 +1533,7 @@ document.write(`
 <div class="viewcode-block" id="orient_by_streamline">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.orient_by_streamline">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">orient_by_streamline</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">orient_by_streamline</span><span class="p">(</span>
     <span class="n">streamlines</span><span class="p">,</span> <span class="n">standard</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">as_generator</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1527,7 +1587,7 @@ document.write(`
 
 
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">_extract_vals</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">threedvec</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_extract_vals</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">threedvec</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function for use with `values_from_volume`.</span>
 
@@ -1595,7 +1655,7 @@ document.write(`
 
 <div class="viewcode-block" id="values_from_volume">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.values_from_volume">[docs]</a>
-<span class="k">def</span> <span class="nf">values_from_volume</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">values_from_volume</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract values of a scalar/vector along each streamline from a volume.</span>
 
 <span class="sd">    Parameters</span>
@@ -1633,20 +1693,18 @@ document.write(`
             <span class="k">return</span> <span class="n">_extract_vals</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">threedvec</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
             <span class="n">streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">)</span>
-        <span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-            <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_extract_vals</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ii</span><span class="p">],</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">))</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">_extract_vals</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ii</span><span class="p">],</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="p">]</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vals</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">new_vals</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">sl_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">streamlines</span><span class="p">)):</span>
-                <span class="n">sl_vals</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-                    <span class="n">sl_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="n">sl_idx</span><span class="p">])</span>
-                <span class="n">new_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sl_vals</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">new_vals</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="n">sl_idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])])</span><span class="o">.</span><span class="n">T</span>
+                <span class="k">for</span> <span class="n">sl_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">streamlines</span><span class="p">))</span>
+            <span class="p">]</span>
 
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_extract_vals</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
@@ -1657,7 +1715,20 @@ document.write(`
 
 <div class="viewcode-block" id="nbytes">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.streamline.nbytes">[docs]</a>
-<span class="k">def</span> <span class="nf">nbytes</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">nbytes</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the memory footprint of a streamlines object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    streamlines : StatefulTractogram or ArraySequence</span>
+<span class="sd">        A streamlines object with a `_data` attribute containing</span>
+<span class="sd">        the raw streamline data as a numpy array.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    size : float</span>
+<span class="sd">        The memory footprint of the streamlines data in megabytes (MB).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="o">**</span><span class="mi">2</span></div>
 
 </pre></div>

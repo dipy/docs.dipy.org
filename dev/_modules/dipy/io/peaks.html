@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.peaks &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.io.peaks &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,19 +883,19 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.io.peaks</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">h5py</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.sphere</span> <span class="kn">import</span> <span class="n">Sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.direction.peaks</span> <span class="kn">import</span> <span class="n">PeaksAndMetrics</span><span class="p">,</span> <span class="n">reshape_peaks_for_visualization</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">save_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="n">quantize_evecs</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">PeaksAndMetrics</span><span class="p">,</span> <span class="n">reshape_peaks_for_visualization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_nifti</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dti</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantize_evecs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 
-<span class="k">def</span> <span class="nf">_safe_save</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_safe_save</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Safe saving of arrays with specific names.</span>
 
 <span class="sd">    Parameters</span>
@@ -919,7 +914,7 @@ document.write(`
 
 <div class="viewcode-block" id="load_pam">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.peaks.load_pam">[docs]</a>
-<span class="k">def</span> <span class="nf">load_pam</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_pam</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a PeaksAndMetrics HDF5 file (PAM5).</span>
 
 <span class="sd">    Parameters</span>
@@ -936,7 +931,7 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;.pam5&quot;</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;This function supports only PAM5 (HDF5) files&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;This function supports only PAM5 (HDF5) files&quot;</span><span class="p">)</span>
 
     <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
 
@@ -1000,7 +995,7 @@ document.write(`
 
 <div class="viewcode-block" id="save_pam">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.peaks.save_pam">[docs]</a>
-<span class="k">def</span> <span class="nf">save_pam</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">pam</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_pam</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">pam</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save all important attributes of object PeaksAndMetrics in a PAM5 file (HDF5).</span>
 
 <span class="sd">    Parameters</span>
@@ -1018,7 +1013,7 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;.pam5&quot;</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;This function saves only PAM5 (HDF5) files&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;This function saves only PAM5 (HDF5) files&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
         <span class="nb">hasattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">&quot;peak_dirs&quot;</span><span class="p">)</span>
@@ -1097,7 +1092,7 @@ document.write(`
 
 <div class="viewcode-block" id="pam_to_niftis">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.peaks.pam_to_niftis">[docs]</a>
-<span class="k">def</span> <span class="nf">pam_to_niftis</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">pam_to_niftis</span><span class="p">(</span>
     <span class="n">pam</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">fname_peaks_dir</span><span class="o">=</span><span class="s2">&quot;peaks_dirs.nii.gz&quot;</span><span class="p">,</span>
@@ -1162,7 +1157,7 @@ document.write(`
 
 <div class="viewcode-block" id="niftis_to_pam">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.peaks.niftis_to_pam">[docs]</a>
-<span class="k">def</span> <span class="nf">niftis_to_pam</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">niftis_to_pam</span><span class="p">(</span>
     <span class="n">affine</span><span class="p">,</span>
     <span class="n">peak_dirs</span><span class="p">,</span>
     <span class="n">peak_values</span><span class="p">,</span>
@@ -1242,7 +1237,7 @@ document.write(`
 
 <div class="viewcode-block" id="tensor_to_pam">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.peaks.tensor_to_pam">[docs]</a>
-<span class="k">def</span> <span class="nf">tensor_to_pam</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">tensor_to_pam</span><span class="p">(</span>
     <span class="n">evals</span><span class="p">,</span>
     <span class="n">evecs</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
@@ -1296,12 +1291,12 @@ document.write(`
 <span class="sd">    pam : PeaksAndMetrics</span>
 <span class="sd">        Object holding peaks information and metrics.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">npeaks</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">npeaks</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">npeaks</span>
+    <span class="n">npeaks</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">npeaks</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="n">evals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">shape</span> <span class="o">=</span> <span class="n">evals</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
-    <span class="n">peaks_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+    <span class="n">peaks_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
     <span class="n">peaks_dirs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">npeaks</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">evecs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">npeaks</span><span class="p">,</span> <span class="p">:]</span>
-    <span class="n">peaks_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,)))</span>
+    <span class="n">peaks_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,))</span>
     <span class="n">peaks_values</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">npeaks</span><span class="p">]</span> <span class="o">=</span> <span class="n">evals</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">npeaks</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">generate_peaks_indices</span><span class="p">:</span>

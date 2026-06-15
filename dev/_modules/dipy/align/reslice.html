@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.reslice &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.align.reslice &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -856,8 +851,6 @@ document.write(`
 
 
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -870,10 +863,7 @@ document.write(`
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
     
-    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
-    
-    
-    <li class="breadcrumb-item"><a href="../align.html" class="nav-link">dipy.align</a></li>
+    <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
     <li class="breadcrumb-item active" aria-current="page">dipy.align.reslice</li>
   </ul>
@@ -893,26 +883,159 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.align.reslice</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">affine_transform</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">affine_transform</span>
 
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.multiproc</span> <span class="kn">import</span> <span class="n">determine_num_processes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.multiproc</span><span class="w"> </span><span class="kn">import</span> <span class="n">determine_num_processes</span>
 
 
-<span class="k">def</span> <span class="nf">_affine_transform</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_affine_transform</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;.*scipy.*18.*&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">affine_transform</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_lanczos_kernel</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">num_lobes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lanczos kernel: sinc(x) * sinc(x/a) for |x| &lt; a, else 0.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    values : array-like</span>
+<span class="sd">        Input values.</span>
+<span class="sd">    num_lobes : int</span>
+<span class="sd">        Kernel support half-width. Values where ``|x| &gt;= num_lobes`` are</span>
+<span class="sd">        set to 0 regardless of position in the array. Typically 2 or 3.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : ndarray</span>
+<span class="sd">        Kernel values at values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">num_lobes</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sinc</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sinc</span><span class="p">(</span><span class="n">values</span> <span class="o">/</span> <span class="n">num_lobes</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lanczos_resample_1d_axis0</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">out_size</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_lobes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply 1D Lanczos resampling along axis 0 of an N-dimensional array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray, shape (in_size, ...)</span>
+<span class="sd">        Input array. Must be float64.</span>
+<span class="sd">    scale : float</span>
+<span class="sd">        Ratio new_zoom / old_zoom for this axis.</span>
+<span class="sd">    out_size : int</span>
+<span class="sd">        Number of output samples along axis 0.</span>
+<span class="sd">    num_lobes : int, optional</span>
+<span class="sd">        Lanczos kernel lobes (2 or 3).</span>
+<span class="sd">    mode : str, optional</span>
+<span class="sd">        Boundary mode: &#39;constant&#39;, &#39;nearest&#39;, &#39;reflect&#39;, or &#39;wrap&#39;.</span>
+<span class="sd">    cval : float, optional</span>
+<span class="sd">        Fill value for mode=&#39;constant&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : ndarray, shape (out_size, ...), float64</span>
+<span class="sd">        Resampled array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">valid_modes</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="s2">&quot;wrap&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_modes</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid mode </span><span class="si">{</span><span class="n">mode</span><span class="si">!r}</span><span class="s2">. Valid modes: </span><span class="si">{</span><span class="n">valid_modes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">in_size</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">extra_dims</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">bc_shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">*</span> <span class="n">extra_dims</span>
+
+    <span class="n">out_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">out_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">in_coords</span> <span class="o">=</span> <span class="n">out_idx</span> <span class="o">*</span> <span class="n">scale</span>
+    <span class="n">floor_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">in_coords</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intp</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">out_size</span><span class="p">,)</span> <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">out_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">delta</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">num_lobes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">num_lobes</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">neigh</span> <span class="o">=</span> <span class="n">floor_coords</span> <span class="o">+</span> <span class="n">delta</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">_lanczos_kernel</span><span class="p">(</span><span class="n">in_coords</span> <span class="o">-</span> <span class="n">neigh</span><span class="p">,</span> <span class="n">num_lobes</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;wrap&quot;</span><span class="p">:</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">neigh</span><span class="p">,</span> <span class="n">in_size</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;reflect&quot;</span><span class="p">:</span>
+            <span class="n">period</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">in_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">in_size</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">neigh</span><span class="p">,</span> <span class="n">period</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">idx</span> <span class="o">&gt;=</span> <span class="n">in_size</span><span class="p">,</span> <span class="n">period</span> <span class="o">-</span> <span class="n">idx</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">neigh</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">in_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;constant&quot;</span><span class="p">:</span>
+                <span class="n">invalid</span> <span class="o">=</span> <span class="p">(</span><span class="n">neigh</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">neigh</span> <span class="o">&gt;=</span> <span class="n">in_size</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">invalid</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                    <span class="n">sample</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">sample</span><span class="p">[</span><span class="n">invalid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cval</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">w</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">bc_shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">sample</span>
+        <span class="n">weight_sum</span> <span class="o">+=</span> <span class="n">w</span>
+
+    <span class="n">nonzero</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">weight_sum</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-10</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">bc_shape</span><span class="p">)</span>
+    <span class="n">weight_sum_bc</span> <span class="o">=</span> <span class="n">weight_sum</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">bc_shape</span><span class="p">)</span>
+    <span class="n">fill</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cval</span><span class="p">)</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;constant&quot;</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nonzero</span><span class="p">,</span> <span class="n">result</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nonzero</span><span class="p">,</span> <span class="n">weight_sum_bc</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">fill</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lanczos_resample_3d</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">output_shape</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_lobes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resample a 3D volume using separable Lanczos interpolation.</span>
+
+<span class="sd">    Applies 1D Lanczos resampling along each spatial axis in sequence.</span>
+<span class="sd">    Separability of the Lanczos kernel makes this equivalent to the full</span>
+<span class="sd">    3D tensor-product kernel at a fraction of the cost.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray, shape (I, J, K)</span>
+<span class="sd">        Input 3D volume.</span>
+<span class="sd">    scale : ndarray, shape (3,)</span>
+<span class="sd">        Scaling factors per axis (new_zooms / zooms).</span>
+<span class="sd">    output_shape : tuple of int</span>
+<span class="sd">        Shape of the output volume.</span>
+<span class="sd">    num_lobes : int, optional</span>
+<span class="sd">        Lanczos kernel lobes (2 or 3).</span>
+<span class="sd">    mode : str, optional</span>
+<span class="sd">        Boundary mode: &#39;constant&#39;, &#39;nearest&#39;, &#39;reflect&#39;, or &#39;wrap&#39;.</span>
+<span class="sd">    cval : float, optional</span>
+<span class="sd">        Fill value for mode=&#39;constant&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : ndarray, shape output_shape, dtype matches data.dtype</span>
+<span class="sd">        Resampled volume.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vol</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">vol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">vol</span> <span class="o">=</span> <span class="n">_lanczos_resample_1d_axis0</span><span class="p">(</span>
+            <span class="n">vol</span><span class="p">,</span>
+            <span class="n">scale</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span>
+            <span class="n">output_shape</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span>
+            <span class="n">num_lobes</span><span class="o">=</span><span class="n">num_lobes</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+            <span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">vol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vol</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="reslice">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.reslice.reslice">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">reslice</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reslice</span><span class="p">(</span>
     <span class="n">data</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
     <span class="n">zooms</span><span class="p">,</span>
@@ -936,10 +1059,11 @@ document.write(`
 <span class="sd">        voxel size for (i,j,k) dimensions</span>
 <span class="sd">    new_zooms : tuple, shape (3,)</span>
 <span class="sd">        new voxel size for (i,j,k) after resampling</span>
-<span class="sd">    order : int, from 0 to 5</span>
-<span class="sd">        order of interpolation for resampling/reslicing,</span>
-<span class="sd">        0 nearest interpolation, 1 trilinear etc..</span>
-<span class="sd">        if you don&#39;t want any smoothing 0 is the option you need.</span>
+<span class="sd">    order : int or str</span>
+<span class="sd">        Interpolation order. Integer 0–5 selects spline order via scipy</span>
+<span class="sd">        (0 nearest, 1 trilinear, …). String values ``&#39;lanczos&#39;`` or</span>
+<span class="sd">        ``&#39;lanczos2&#39;`` select a 2-lobe Lanczos kernel; ``&#39;lanczos3&#39;``</span>
+<span class="sd">        selects a 3-lobe Lanczos kernel.</span>
 <span class="sd">    mode : string (&#39;constant&#39;, &#39;nearest&#39;, &#39;reflect&#39; or &#39;wrap&#39;)</span>
 <span class="sd">        Points outside the boundaries of the input are filled according</span>
 <span class="sd">        to the given mode.</span>
@@ -950,7 +1074,8 @@ document.write(`
 <span class="sd">        Split the calculation to a pool of children processes. This only</span>
 <span class="sd">        applies to 4D `data` arrays. Default is 1. If &lt; 0 the maximal number</span>
 <span class="sd">        of cores minus ``num_processes + 1`` is used (enter -1 to use as many</span>
-<span class="sd">        cores as possible). 0 raises an error.</span>
+<span class="sd">        cores as possible). 0 raises an error. Ignored when order is</span>
+<span class="sd">        ``&#39;lanczos&#39;``, ``&#39;lanczos2&#39;``, or ``&#39;lanczos3&#39;``.</span>
 <span class="sd">    new_shape : tuple, shape (3,), optional</span>
 <span class="sd">        Sets the shape the image should take after affine transformation.</span>
 <span class="sd">        If None, it is calculated through the affine matrix and current shape.</span>
@@ -984,6 +1109,28 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">num_processes</span> <span class="o">=</span> <span class="n">determine_num_processes</span><span class="p">(</span><span class="n">num_processes</span><span class="p">)</span>
 
+    <span class="n">lanczos_lobes</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">order</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;lanczos&quot;</span><span class="p">,</span> <span class="s2">&quot;lanczos2&quot;</span><span class="p">):</span>
+            <span class="n">lanczos_lobes</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="n">order</span> <span class="o">==</span> <span class="s2">&quot;lanczos3&quot;</span><span class="p">:</span>
+            <span class="n">lanczos_lobes</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown interpolation order </span><span class="si">{</span><span class="n">order</span><span class="si">!r}</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;Valid string values: &#39;lanczos&#39;, &#39;lanczos2&#39;, &#39;lanczos3&#39;.&quot;</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">order</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;order must be 0-5, got </span><span class="si">{</span><span class="n">order</span><span class="si">!r}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="n">_valid_modes_lanczos</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="s2">&quot;wrap&quot;</span><span class="p">)</span>
+    <span class="n">_valid_modes_scipy</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="s2">&quot;mirror&quot;</span><span class="p">,</span> <span class="s2">&quot;wrap&quot;</span><span class="p">)</span>
+    <span class="n">_valid_modes</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">_valid_modes_lanczos</span> <span class="k">if</span> <span class="n">lanczos_lobes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_valid_modes_scipy</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_valid_modes</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid mode </span><span class="si">{</span><span class="n">mode</span><span class="si">!r}</span><span class="s2">. Valid modes: </span><span class="si">{</span><span class="n">_valid_modes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="c1"># We are suppressing warnings emitted by scipy &gt;= 0.18,</span>
     <span class="c1"># described in https://github.com/dipy/dipy/issues/1107.</span>
     <span class="c1"># These warnings are not relevant to us, as long as our offset</span>
@@ -992,42 +1139,69 @@ document.write(`
         <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;.*scipy.*18.*&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">)</span>
         <span class="n">new_zooms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_zooms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;f8&quot;</span><span class="p">)</span>
         <span class="n">zooms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zooms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;f8&quot;</span><span class="p">)</span>
-        <span class="n">R</span> <span class="o">=</span> <span class="n">new_zooms</span> <span class="o">/</span> <span class="n">zooms</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">new_zooms</span> <span class="o">/</span> <span class="n">zooms</span>
         <span class="k">if</span> <span class="n">new_shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">new_shape</span> <span class="o">=</span> <span class="n">zooms</span> <span class="o">/</span> <span class="n">new_zooms</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
             <span class="n">new_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">new_shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;i8&quot;</span><span class="p">))</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;matrix&quot;</span><span class="p">:</span> <span class="n">R</span><span class="p">,</span>
-            <span class="s2">&quot;output_shape&quot;</span><span class="p">:</span> <span class="n">new_shape</span><span class="p">,</span>
-            <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="n">order</span><span class="p">,</span>
-            <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="n">mode</span><span class="p">,</span>
-            <span class="s2">&quot;cval&quot;</span><span class="p">:</span> <span class="n">cval</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">data2</span> <span class="o">=</span> <span class="n">affine_transform</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="n">data2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">new_shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],),</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">num_processes</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-                    <span class="n">affine_transform</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">output</span><span class="o">=</span><span class="n">data2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-                    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]}</span>
-                    <span class="n">_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-                    <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_kwargs</span><span class="p">)</span>
-                <span class="n">mp</span><span class="o">.</span><span class="n">set_start_method</span><span class="p">(</span><span class="s2">&quot;spawn&quot;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">pool</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">num_processes</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">_affine_transform</span><span class="p">,</span> <span class="n">params</span><span class="p">)):</span>
-                    <span class="n">data2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span>
-                <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;dimension of data should be 3 or 4 but you provided </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
-        <span class="n">Rx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
-        <span class="n">Rx</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
-        <span class="n">affine2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">Rx</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">lanczos_lobes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">data2</span> <span class="o">=</span> <span class="n">_lanczos_resample_3d</span><span class="p">(</span>
+                    <span class="n">data</span><span class="p">,</span>
+                    <span class="n">scale</span><span class="p">,</span>
+                    <span class="n">new_shape</span><span class="p">,</span>
+                    <span class="n">num_lobes</span><span class="o">=</span><span class="n">lanczos_lobes</span><span class="p">,</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+                    <span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">new_shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],),</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">vol_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">data2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">vol_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">_lanczos_resample_3d</span><span class="p">(</span>
+                        <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">vol_idx</span><span class="p">],</span>
+                        <span class="n">scale</span><span class="p">,</span>
+                        <span class="n">new_shape</span><span class="p">,</span>
+                        <span class="n">num_lobes</span><span class="o">=</span><span class="n">lanczos_lobes</span><span class="p">,</span>
+                        <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+                        <span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;matrix&quot;</span><span class="p">:</span> <span class="n">scale</span><span class="p">,</span>
+                <span class="s2">&quot;output_shape&quot;</span><span class="p">:</span> <span class="n">new_shape</span><span class="p">,</span>
+                <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="n">order</span><span class="p">,</span>
+                <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="n">mode</span><span class="p">,</span>
+                <span class="s2">&quot;cval&quot;</span><span class="p">:</span> <span class="n">cval</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">data2</span> <span class="o">=</span> <span class="n">affine_transform</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">new_shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],),</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">num_processes</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="n">affine_transform</span><span class="p">(</span>
+                            <span class="nb">input</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">output</span><span class="o">=</span><span class="n">data2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]}</span>
+                        <span class="n">_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+                        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_kwargs</span><span class="p">)</span>
+                    <span class="n">mp</span><span class="o">.</span><span class="n">set_start_method</span><span class="p">(</span><span class="s2">&quot;spawn&quot;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">pool</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">num_processes</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">_affine_transform</span><span class="p">,</span> <span class="n">params</span><span class="p">)):</span>
+                        <span class="n">data2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span>
+                    <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">affine_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">affine_scale</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
+        <span class="n">affine2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">affine_scale</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">data2</span><span class="p">,</span> <span class="n">affine2</span><span class="p">)</span></div>
 
 </pre></div>

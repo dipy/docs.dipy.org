@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.segment.bundles &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.segment.bundles &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,34 +883,34 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.segment.bundles</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">chain</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 
-<span class="kn">from</span> <span class="nn">nibabel.affines</span> <span class="kn">import</span> <span class="n">apply_affine</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.align.streamlinear</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamlinear</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BundleMinDistanceAsymmetricMetric</span><span class="p">,</span>
     <span class="n">BundleMinDistanceMetric</span><span class="p">,</span>
     <span class="n">BundleSumDistanceMatrixMetric</span><span class="p">,</span>
     <span class="n">StreamlineLinearRegistration</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.clustering</span> <span class="kn">import</span> <span class="n">qbx_and_merge</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.distances</span> <span class="kn">import</span> <span class="n">bundles_distances_mam</span><span class="p">,</span> <span class="n">bundles_distances_mdf</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.streamline</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.clustering</span><span class="w"> </span><span class="kn">import</span> <span class="n">qbx_and_merge</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.distances</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundles_distances_mam</span><span class="p">,</span> <span class="n">bundles_distances_mdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Streamlines</span><span class="p">,</span>
     <span class="n">length</span><span class="p">,</span>
     <span class="n">nbytes</span><span class="p">,</span>
     <span class="n">select_random_set_of_streamlines</span><span class="p">,</span>
     <span class="n">set_number_of_points</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 
 <div class="viewcode-block" id="check_range">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.check_range">[docs]</a>
-<span class="k">def</span> <span class="nf">check_range</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">gt</span><span class="p">,</span> <span class="n">lt</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_range</span><span class="p">(</span><span class="n">streamline</span><span class="p">,</span> <span class="n">gt</span><span class="p">,</span> <span class="n">lt</span><span class="p">):</span>
     <span class="n">length_s</span> <span class="o">=</span> <span class="n">length</span><span class="p">(</span><span class="n">streamline</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">length_s</span> <span class="o">&gt;</span> <span class="n">gt</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">length_s</span> <span class="o">&lt;</span> <span class="n">lt</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -926,7 +921,7 @@ document.write(`
 
 <div class="viewcode-block" id="bundle_adjacency">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.bundle_adjacency">[docs]</a>
-<span class="k">def</span> <span class="nf">bundle_adjacency</span><span class="p">(</span><span class="n">dtracks0</span><span class="p">,</span> <span class="n">dtracks1</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundle_adjacency</span><span class="p">(</span><span class="n">dtracks0</span><span class="p">,</span> <span class="n">dtracks1</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find bundle adjacency between two given tracks/bundles</span>
 
 <span class="sd">    See :footcite:p:`Garyfallidis2012a` for further details about the method.</span>
@@ -981,7 +976,7 @@ document.write(`
 <div class="viewcode-block" id="ba_analysis">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.ba_analysis">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">ba_analysis</span><span class="p">(</span><span class="n">recognized_bundle</span><span class="p">,</span> <span class="n">expert_bundle</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nb_pts</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">6.0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ba_analysis</span><span class="p">(</span><span class="n">recognized_bundle</span><span class="p">,</span> <span class="n">expert_bundle</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nb_pts</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">6.0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates bundle adjacency score between two given bundles</span>
 
 <span class="sd">    See :footcite:p:`Garyfallidis2012a` for further details about the method.</span>
@@ -1021,7 +1016,7 @@ document.write(`
 <div class="viewcode-block" id="cluster_bundle">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.cluster_bundle">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">cluster_bundle</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">clust_thr</span><span class="p">,</span> <span class="n">rng</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nb_pts</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">select_randomly</span><span class="o">=</span><span class="mi">500000</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cluster_bundle</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">clust_thr</span><span class="p">,</span> <span class="n">rng</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nb_pts</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">select_randomly</span><span class="o">=</span><span class="mi">500000</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Clusters bundles</span>
 
 <span class="sd">    See :footcite:p:`Garyfallidis2012a` for further details about the method.</span>
@@ -1061,7 +1056,7 @@ document.write(`
 <div class="viewcode-block" id="bundle_shape_similarity">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.bundle_shape_similarity">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">bundle_shape_similarity</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundle_shape_similarity</span><span class="p">(</span>
     <span class="n">bundle1</span><span class="p">,</span> <span class="n">bundle2</span><span class="p">,</span> <span class="n">rng</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">clust_thr</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">),</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">6</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates bundle shape similarity between two given bundles using</span>
@@ -1116,9 +1111,9 @@ document.write(`
 
 <div class="viewcode-block" id="RecoBundles">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.RecoBundles">[docs]</a>
-<span class="k">class</span> <span class="nc">RecoBundles</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecoBundles</span><span class="p">:</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">streamlines</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1209,7 +1204,7 @@ document.write(`
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Streamlines have </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_centroids</span><span class="si">}</span><span class="s2"> centroids&quot;</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Total loading duration </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2"> s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_cluster_streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clust_thr</span><span class="p">,</span> <span class="n">nb_pts</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cluster_streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clust_thr</span><span class="p">,</span> <span class="n">nb_pts</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;# Cluster streamlines using QBx&quot;</span><span class="p">)</span>
@@ -1241,7 +1236,7 @@ document.write(`
 <div class="viewcode-block" id="RecoBundles.recognize">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.RecoBundles.recognize">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">recognize</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">recognize</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_bundle</span><span class="p">,</span>
         <span class="n">model_clust_thr</span><span class="p">,</span>
@@ -1388,7 +1383,7 @@ document.write(`
 <div class="viewcode-block" id="RecoBundles.refine">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.RecoBundles.refine">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">refine</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">refine</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_bundle</span><span class="p">,</span>
         <span class="n">pruned_streamlines</span><span class="p">,</span>
@@ -1542,7 +1537,7 @@ document.write(`
 
 <div class="viewcode-block" id="RecoBundles.evaluate_results">
 <a class="viewcode-back" href="../../../reference/dipy.segment.html#dipy.segment.bundles.RecoBundles.evaluate_results">[docs]</a>
-    <span class="k">def</span> <span class="nf">evaluate_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_bundle</span><span class="p">,</span> <span class="n">pruned_streamlines</span><span class="p">,</span> <span class="n">slr_select</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_bundle</span><span class="p">,</span> <span class="n">pruned_streamlines</span><span class="p">,</span> <span class="n">slr_select</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare the similarity between two given bundles, model bundle,</span>
 <span class="sd">        and extracted bundle.</span>
 
@@ -1593,7 +1588,7 @@ document.write(`
 
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_cluster_model_bundle</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cluster_model_bundle</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">model_bundle</span><span class="p">,</span> <span class="n">model_clust_thr</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nb_pts</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">select_randomly</span><span class="o">=</span><span class="mi">500000</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
@@ -1618,7 +1613,7 @@ document.write(`
         <span class="k">return</span> <span class="n">model_centroids</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_reduce_search_space</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reduce_search_space</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">model_centroids</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">reduction_thr</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">reduction_distance</span><span class="o">=</span><span class="s2">&quot;mdf&quot;</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
@@ -1662,7 +1657,7 @@ document.write(`
         <span class="k">return</span> <span class="n">neighb_streamlines</span><span class="p">,</span> <span class="n">neighb_indices</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_register_neighb_to_model</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_neighb_to_model</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_bundle</span><span class="p">,</span>
         <span class="n">neighb_streamlines</span><span class="p">,</span>
@@ -1740,7 +1735,7 @@ document.write(`
         <span class="k">return</span> <span class="n">transf_streamlines</span><span class="p">,</span> <span class="n">slr_bmd</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_prune_what_not_in_model</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prune_what_not_in_model</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_centroids</span><span class="p">,</span>
         <span class="n">transf_streamlines</span><span class="p">,</span>

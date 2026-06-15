@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.tracking.local_tracking &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.tracking.local_tracking &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,35 +883,55 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.tracking.local_tracking</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span>
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking</span> <span class="kn">import</span> <span class="n">utils</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.localtrack</span> <span class="kn">import</span> <span class="n">local_tracker</span><span class="p">,</span> <span class="n">pft_tracker</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.stopping_criterion</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.localtrack</span><span class="w"> </span><span class="kn">import</span> <span class="n">local_tracker</span><span class="p">,</span> <span class="n">pft_tracker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.stopping_criterion</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AnatomicalStoppingCriterion</span><span class="p">,</span>
     <span class="n">StreamlineStatus</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.utils</span> <span class="kn">import</span> <span class="n">fast_numpy</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.deprecator</span> <span class="kn">import</span> <span class="n">deprecate_with_version</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">fast_numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecate_with_version</span>
 
 
 <span class="nd">@deprecate_with_version</span><span class="p">(</span>
     <span class="s2">&quot;Using EuDXDirectionGetter-based objects (e.g., PeaksAndMetrics) as &quot;</span>
     <span class="s2">&quot;direction_getter in LocalTracking is deprecated. &quot;</span>
     <span class="s2">&quot;Please use dipy.tracking.tracker.eudx_tracking instead.&quot;</span><span class="p">,</span>
-    <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.12.0&quot;</span><span class="p">,</span>
-    <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0.0&quot;</span><span class="p">,</span>
+    <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.12&quot;</span><span class="p">,</span>
+    <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="k">def</span> <span class="nf">_warn_old_eudx_localtracking_api</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_old_eudx_localtracking_api</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Warn users about the deprecated EuDX local tracking API.</span>
+
+<span class="sd">    This function serves as a placeholder for backwards compatibility</span>
+<span class="sd">    and does not perform any operation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 
 
-<span class="k">def</span> <span class="nf">_is_eudx_direction_getter</span><span class="p">(</span><span class="n">direction_getter</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_eudx_direction_getter</span><span class="p">(</span><span class="n">direction_getter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if a direction getter is an EuDX direction getter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    direction_getter : object</span>
+<span class="sd">        The direction getter object to check. This can be any object</span>
+<span class="sd">        that has a class hierarchy accessible via ``__mro__``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if the direction getter is an instance of</span>
+<span class="sd">        ``EuDXDirectionGetter`` from</span>
+<span class="sd">        ``dipy.reconst.eudx_direction_getter``, False otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span>
         <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;EuDXDirectionGetter&quot;</span>
         <span class="ow">and</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s2">&quot;dipy.reconst.eudx_direction_getter&quot;</span>
@@ -926,9 +941,11 @@ document.write(`
 
 <div class="viewcode-block" id="LocalTracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.local_tracking.LocalTracking">[docs]</a>
-<span class="k">class</span> <span class="nc">LocalTracking</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LocalTracking</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Local tractography class.&quot;&quot;&quot;</span>
+
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_voxel_size</span><span class="p">(</span><span class="n">affine</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_voxel_size</span><span class="p">(</span><span class="n">affine</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the voxel sizes of an image from the affine.</span>
 
 <span class="sd">        Checks that the affine does not have any shear because local_tracker</span>
@@ -948,7 +965,7 @@ document.write(`
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dotlin</span><span class="o">.</span><span class="n">diagonal</span><span class="p">())</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">direction_getter</span><span class="p">,</span>
         <span class="n">stopping_criterion</span><span class="p">,</span>
@@ -1053,12 +1070,12 @@ document.write(`
         <span class="p">):</span>
             <span class="n">warn</span><span class="p">(</span>
                 <span class="s2">&quot;Unidirectional tractography will be performed &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;without providing initial directions nor &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;randomizing extracted initial forward &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;directions. This may introduce directional &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;biases in the reconstructed streamlines. &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;See ``initial_directions`` and &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;``randomize_forward_direction`` parameters.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;without providing initial directions nor &quot;</span>
+                <span class="s2">&quot;randomizing extracted initial forward &quot;</span>
+                <span class="s2">&quot;directions. This may introduce directional &quot;</span>
+                <span class="s2">&quot;biases in the reconstructed streamlines. &quot;</span>
+                <span class="s2">&quot;See ``initial_directions`` and &quot;</span>
+                <span class="s2">&quot;``randomize_forward_direction`` parameters.&quot;</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
 
@@ -1075,7 +1092,25 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span> <span class="o">=</span> <span class="n">random_seed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_seeds</span> <span class="o">=</span> <span class="n">save_seeds</span>
 
-    <span class="k">def</span> <span class="nf">_tracker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">first_step</span><span class="p">,</span> <span class="n">streamline</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_tracker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">first_step</span><span class="p">,</span> <span class="n">streamline</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Track a streamline from a seed point using local tracking.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        seed : ndarray, shape (3,)</span>
+<span class="sd">            The seed point in voxel coordinates where tracking starts.</span>
+<span class="sd">        first_step : ndarray, shape (3,)</span>
+<span class="sd">            The initial direction of the first tracking step.</span>
+<span class="sd">        streamline : ndarray</span>
+<span class="sd">            An array to store the streamline points generated</span>
+<span class="sd">            during tracking.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        end : int</span>
+<span class="sd">            An integer indicating the stopping criterion that ended</span>
+<span class="sd">            the streamline tracking.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">local_tracker</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">direction_getter</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stopping_criterion</span><span class="p">,</span>
@@ -1087,7 +1122,18 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">fixed_stepsize</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate over tractogram streamlines.</span>
+
+<span class="sd">        Generates streamlines from seeds, transforms them to point</span>
+<span class="sd">        space and returns them.</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        streamline : ndarray, shape (N, 3)</span>
+<span class="sd">            A single streamline in world coordinates. If `save_seeds`</span>
+<span class="sd">            is True, yields a tuple of (streamline, seed).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Make tracks, move them to point space and return</span>
         <span class="n">track</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_tractogram</span><span class="p">()</span>
 
@@ -1095,8 +1141,19 @@ document.write(`
             <span class="n">track</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">save_seeds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_seeds</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_generate_tractogram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A streamline generator&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_tractogram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a tractogram by tracking streamlines from seeds.</span>
+
+<span class="sd">        Tracks streamlines in both forward and backward directions</span>
+<span class="sd">        from each seed point using the direction getter and stopping</span>
+<span class="sd">        criterion. Applies random seeding if specified.</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        streamline : ndarray, shape (N, 3)</span>
+<span class="sd">            A single streamline in voxel coordinates. If `save_seeds`</span>
+<span class="sd">            is True, yields a tuple of (streamline, seed).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Get inverse transform (lin/offset) for seeds</span>
         <span class="n">inv_A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
@@ -1188,9 +1245,9 @@ document.write(`
 
 <div class="viewcode-block" id="ParticleFilteringTracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.local_tracking.ParticleFilteringTracking">[docs]</a>
-<span class="k">class</span> <span class="nc">ParticleFilteringTracking</span><span class="p">(</span><span class="n">LocalTracking</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParticleFilteringTracking</span><span class="p">(</span><span class="n">LocalTracking</span><span class="p">):</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">direction_getter</span><span class="p">,</span>
         <span class="n">stopping_criterion</span><span class="p">,</span>
@@ -1326,7 +1383,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">particle_stream_statuses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
             <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">particle_count</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">intp</span>
         <span class="p">)</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ParticleFilteringTracking</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">direction_getter</span><span class="o">=</span><span class="n">direction_getter</span><span class="p">,</span>
             <span class="n">stopping_criterion</span><span class="o">=</span><span class="n">stopping_criterion</span><span class="p">,</span>
             <span class="n">seeds</span><span class="o">=</span><span class="n">seeds</span><span class="p">,</span>
@@ -1344,7 +1401,25 @@ document.write(`
             <span class="n">initial_directions</span><span class="o">=</span><span class="n">initial_directions</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_tracker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">first_step</span><span class="p">,</span> <span class="n">streamline</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_tracker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">first_step</span><span class="p">,</span> <span class="n">streamline</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Track a streamline using particle filtering tractography.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        seed : ndarray, shape (3,)</span>
+<span class="sd">            The seed point in voxel coordinates where tracking starts.</span>
+<span class="sd">        first_step : ndarray, shape (3,)</span>
+<span class="sd">            The initial direction of the first tracking step.</span>
+<span class="sd">        streamline : ndarray</span>
+<span class="sd">            An array to store the streamline points generated</span>
+<span class="sd">            during tracking.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        end : int</span>
+<span class="sd">            An integer indicating the stopping criterion that ended</span>
+<span class="sd">            the streamline tracking.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pft_tracker</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">direction_getter</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stopping_criterion</span><span class="p">,</span>

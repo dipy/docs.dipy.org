@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.core.sphere &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.core.sphere &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,37 +883,31 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.core.sphere</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">optimize</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">Delaunay</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">optimize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">Delaunay</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.geometry</span> <span class="kn">import</span> <span class="n">cart2sphere</span><span class="p">,</span> <span class="n">sphere2cart</span><span class="p">,</span> <span class="n">vector_norm</span>
-<span class="kn">from</span> <span class="nn">dipy.core.onetime</span> <span class="kn">import</span> <span class="n">auto_attr</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.recspeed</span> <span class="kn">import</span> <span class="n">remove_similar_vertices</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">cart2sphere</span><span class="p">,</span> <span class="n">sphere2cart</span><span class="p">,</span> <span class="n">vector_norm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.onetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_attr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.recspeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">remove_similar_vertices</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Sphere&quot;</span><span class="p">,</span> <span class="s2">&quot;HemiSphere&quot;</span><span class="p">,</span> <span class="s2">&quot;faces_from_sphere_vertices&quot;</span><span class="p">,</span> <span class="s2">&quot;unique_edges&quot;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_all_specified</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="kc">True</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_all_specified</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_some_specified</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-    <span class="k">return</span> <span class="kc">False</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_some_specified</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="faces_from_sphere_vertices">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.faces_from_sphere_vertices">[docs]</a>
-<span class="k">def</span> <span class="nf">faces_from_sphere_vertices</span><span class="p">(</span><span class="n">vertices</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">faces_from_sphere_vertices</span><span class="p">(</span><span class="n">vertices</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Triangulate a set of vertices on the sphere.</span>
 
@@ -944,7 +933,7 @@ document.write(`
 <div class="viewcode-block" id="unique_edges">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.unique_edges">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">unique_edges</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_mapping</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unique_edges</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_mapping</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract all unique edges from given triangular faces.</span>
 
 <span class="sd">    Parameters</span>
@@ -986,7 +975,7 @@ document.write(`
 <div class="viewcode-block" id="unique_sets">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.unique_sets">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">unique_sets</span><span class="p">(</span><span class="n">sets</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unique_sets</span><span class="p">(</span><span class="n">sets</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove duplicate sets.</span>
 
 <span class="sd">    Parameters</span>
@@ -1023,8 +1012,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="Sphere">
-<a class="viewcode-back" href="../../../reference/dipy.direction.html#dipy.core.sphere.Sphere">[docs]</a>
-<span class="k">class</span> <span class="nc">Sphere</span><span class="p">:</span>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.Sphere">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Sphere</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Points on the unit sphere.</span>
 
 <span class="sd">    The sphere can be constructed using one of three conventions::</span>
@@ -1052,7 +1041,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1108,34 +1097,34 @@ document.write(`
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Vertices are not on the unit sphere.&quot;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">sphere2cart</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">))</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">faces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">faces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">faces</span> <span class="o">=</span> <span class="n">faces_from_sphere_vertices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">faces</span>
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">unique_edges</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">faces</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Sphere.subdivide">
-<a class="viewcode-back" href="../../../reference/dipy.direction.html#dipy.core.sphere.Sphere.subdivide">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.Sphere.subdivide">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">subdivide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">subdivide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Subdivides each face of the sphere into four new faces.</span>
 
 <span class="sd">        New vertices are created at a, b, and c. Then each face [x, y, z] is</span>
@@ -1186,8 +1175,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="Sphere.find_closest">
-<a class="viewcode-back" href="../../../reference/dipy.direction.html#dipy.core.sphere.Sphere.find_closest">[docs]</a>
-    <span class="k">def</span> <span class="nf">find_closest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.Sphere.find_closest">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_closest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find the index of the vertex in the Sphere closest to the input vector</span>
 
@@ -1209,8 +1198,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="HemiSphere">
-<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.core.sphere.HemiSphere">[docs]</a>
-<span class="k">class</span> <span class="nc">HemiSphere</span><span class="p">(</span><span class="n">Sphere</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.HemiSphere">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HemiSphere</span><span class="p">(</span><span class="n">Sphere</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Points on the unit sphere.</span>
 
 <span class="sd">    A HemiSphere is similar to a Sphere but it takes antipodal symmetry into</span>
@@ -1251,7 +1240,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1280,10 +1269,10 @@ document.write(`
         <span class="n">Sphere</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="o">=</span><span class="n">uniq_vertices</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span> <span class="n">faces</span><span class="o">=</span><span class="n">faces</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HemiSphere.from_sphere">
-<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.core.sphere.HemiSphere.from_sphere">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.HemiSphere.from_sphere">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">from_sphere</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_sphere</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create instance from a Sphere&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="n">theta</span><span class="o">=</span><span class="n">sphere</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span>
@@ -1295,8 +1284,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="HemiSphere.mirror">
-<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.core.sphere.HemiSphere.mirror">[docs]</a>
-    <span class="k">def</span> <span class="nf">mirror</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.HemiSphere.mirror">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mirror</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a full Sphere from a HemiSphere&quot;&quot;&quot;</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span>
         <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">])</span>
@@ -1311,15 +1300,15 @@ document.write(`
 
 
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">faces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">faces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">])</span>
         <span class="n">faces</span> <span class="o">=</span> <span class="n">faces_from_sphere_vertices</span><span class="p">(</span><span class="n">vertices</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">unique_sets</span><span class="p">(</span><span class="n">faces</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">))</span>
 
 <div class="viewcode-block" id="HemiSphere.subdivide">
-<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.core.sphere.HemiSphere.subdivide">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.HemiSphere.subdivide">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">subdivide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">subdivide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a more subdivided HemiSphere</span>
 
 <span class="sd">        See Sphere.subdivide for full documentation.</span>
@@ -1331,8 +1320,8 @@ document.write(`
 
 
 <div class="viewcode-block" id="HemiSphere.find_closest">
-<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.core.sphere.HemiSphere.find_closest">[docs]</a>
-    <span class="k">def</span> <span class="nf">find_closest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.HemiSphere.find_closest">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_closest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find the index of the vertex in the Sphere closest to the input vector,</span>
 <span class="sd">        taking into account antipodal symmetry</span>
@@ -1354,7 +1343,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_switch_vertex</span><span class="p">(</span><span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">,</span> <span class="n">vertices</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_switch_vertex</span><span class="p">(</span><span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">,</span> <span class="n">vertices</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;When we mirror an edge (a, b). We can either create (a, b) and (a&#39;, b&#39;)</span>
 <span class="sd">    OR (a, b&#39;) and (a&#39;, b). The angles of edges (a, b) and (a, b&#39;) are</span>
 <span class="sd">    supplementary, so we choose the two new edges such that their angles are</span>
@@ -1368,7 +1357,7 @@ document.write(`
     <span class="n">index2</span> <span class="o">%=</span> <span class="n">n</span>
 
 
-<span class="k">def</span> <span class="nf">_get_forces</span><span class="p">(</span><span class="n">charges</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_forces</span><span class="p">(</span><span class="n">charges</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Given a set of charges on the surface of the sphere gets total force</span>
 <span class="sd">    those charges exert on each other.</span>
 
@@ -1402,9 +1391,9 @@ document.write(`
 
 
 <div class="viewcode-block" id="disperse_charges">
-<a class="viewcode-back" href="../../../reference/dipy.denoise.html#dipy.core.sphere.disperse_charges">[docs]</a>
+<a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.disperse_charges">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">disperse_charges</span><span class="p">(</span><span class="n">hemi</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">const</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">disperse_charges</span><span class="p">(</span><span class="n">hemi</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">const</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Models electrostatic repulsion on the unit sphere</span>
 
 <span class="sd">    Places charges on a sphere and simulates the repulsive forces felt by each</span>
@@ -1467,7 +1456,7 @@ document.write(`
 <div class="viewcode-block" id="fibonacci_sphere">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.fibonacci_sphere">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">fibonacci_sphere</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">hemisphere</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">randomize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fibonacci_sphere</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">hemisphere</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">randomize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate points on the surface of a sphere using Fibonacci Spiral.</span>
 
@@ -1521,7 +1510,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_equality_constraints</span><span class="p">(</span><span class="n">vects</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_equality_constraints</span><span class="p">(</span><span class="n">vects</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Spherical equality constraint. Returns 0 if vects lies on the unit</span>
 <span class="sd">    sphere. Note that a flattened array is returned because `scipy.optimize`</span>
 <span class="sd">    expects a 1-D array.</span>
@@ -1542,7 +1531,7 @@ document.write(`
     <span class="k">return</span> <span class="p">(</span><span class="n">vects</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span>
 
 
-<span class="k">def</span> <span class="nf">_grad_equality_constraints</span><span class="p">(</span><span class="n">vects</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_grad_equality_constraints</span><span class="p">(</span><span class="n">vects</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return normals to the surface constraint (which corresponds to</span>
 <span class="sd">    the gradient of the implicit function).</span>
 
@@ -1567,7 +1556,7 @@ document.write(`
 
 
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">_get_forces_alt</span><span class="p">(</span><span class="n">vects</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_forces_alt</span><span class="p">(</span><span class="n">vects</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Electrostatic-repulsion objective function.</span>
 
 <span class="sd">    The alpha parameter controls the power repulsion (energy varies as</span>
@@ -1616,7 +1605,7 @@ document.write(`
 
 
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">_get_grad_forces_alt</span><span class="p">(</span><span class="n">vects</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_grad_forces_alt</span><span class="p">(</span><span class="n">vects</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;1st-order derivative of electrostatic-like repulsion energy.</span>
 
 <span class="sd">    The weights ensure equal importance of each  shell to the objective function</span>
@@ -1660,13 +1649,13 @@ document.write(`
     <span class="n">forces</span> <span class="o">=</span> <span class="n">forces</span><span class="p">[:</span><span class="n">nb_points</span><span class="p">]</span> <span class="o">+</span> <span class="n">forces</span><span class="p">[</span><span class="n">nb_points</span><span class="p">:]</span>
     <span class="n">forces</span> <span class="o">=</span> <span class="n">forces</span> <span class="o">*</span> <span class="n">weights</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">nb_points</span><span class="p">,</span> <span class="n">nb_points</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">forces</span> <span class="o">=</span> <span class="n">forces</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">forces</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">nb_points</span> <span class="o">*</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">forces</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nb_points</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="disperse_charges_alt">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.disperse_charges_alt">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">disperse_charges_alt</span><span class="p">(</span><span class="n">init_pointset</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.0e-3</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">disperse_charges_alt</span><span class="p">(</span><span class="n">init_pointset</span><span class="p">,</span> <span class="n">iters</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.0e-3</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reimplementation of disperse_charges making use of</span>
 <span class="sd">    `scipy.optimize.fmin_slsqp`.</span>
 
@@ -1704,7 +1693,7 @@ document.write(`
 <div class="viewcode-block" id="euler_characteristic_check">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.sphere.euler_characteristic_check">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">euler_characteristic_check</span><span class="p">(</span><span class="n">sphere</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">chi</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">euler_characteristic_check</span><span class="p">(</span><span class="n">sphere</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">chi</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Checks the euler characteristic of a sphere</span>
 
 <span class="sd">    If $f$ = number of faces, $e$ = number_of_edges and $v$ = number of</span>

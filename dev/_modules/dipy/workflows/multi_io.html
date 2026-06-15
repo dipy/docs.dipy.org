@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.multi_io &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.workflows.multi_io &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,21 +883,21 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.workflows.multi_io</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">re</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.io.utils</span> <span class="kn">import</span> <span class="n">split_filename_extension</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.base</span> <span class="kn">import</span> <span class="n">get_args_default</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_filename_extension</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_args_default</span>
 
 
-<span class="k">def</span> <span class="nf">_resolve_path_or_pattern</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_path_or_pattern</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve a file path, directory, or glob pattern into a list of Path objects.</span>
 
 <span class="sd">    Parameters</span>
@@ -931,10 +926,10 @@ document.write(`
 
 <div class="viewcode-block" id="common_start">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.multi_io.common_start">[docs]</a>
-<span class="k">def</span> <span class="nf">common_start</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">sb</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">common_start</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">sb</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the longest common substring from the beginning of sa and sb.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_iter</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_iter</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">sb</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">a</span>
@@ -947,7 +942,7 @@ document.write(`
 
 <div class="viewcode-block" id="slash_to_under">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.multi_io.slash_to_under">[docs]</a>
-<span class="k">def</span> <span class="nf">slash_to_under</span><span class="p">(</span><span class="n">dir_str</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">slash_to_under</span><span class="p">(</span><span class="n">dir_str</span><span class="p">):</span>
     <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">))</span></div>
 
 
@@ -955,7 +950,7 @@ document.write(`
 <div class="viewcode-block" id="connect_output_paths">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.multi_io.connect_output_paths">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">connect_output_paths</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">connect_output_paths</span><span class="p">(</span>
     <span class="n">inputs</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">out_files</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">output_strategy</span><span class="o">=</span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span> <span class="n">mix_names</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a list of output files paths based on input files and</span>
@@ -1020,9 +1015,9 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dname</span> <span class="o">=</span> <span class="n">out_dir</span>
 
-        <span class="n">updated_out_files</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">out_file</span> <span class="ow">in</span> <span class="n">out_files</span><span class="p">:</span>
-            <span class="n">updated_out_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">dname</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">mix_pref</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_file</span><span class="p">)))</span>
+        <span class="n">updated_out_files</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Path</span><span class="p">(</span><span class="n">dname</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">mix_pref</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_file</span><span class="p">))</span> <span class="k">for</span> <span class="n">out_file</span> <span class="ow">in</span> <span class="n">out_files</span>
+        <span class="p">]</span>
 
         <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">updated_out_files</span><span class="p">)</span>
 
@@ -1032,7 +1027,7 @@ document.write(`
 
 <div class="viewcode-block" id="concatenate_inputs">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.multi_io.concatenate_inputs">[docs]</a>
-<span class="k">def</span> <span class="nf">concatenate_inputs</span><span class="p">(</span><span class="n">multi_inputs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">concatenate_inputs</span><span class="p">(</span><span class="n">multi_inputs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Concatenate list of inputs.&quot;&quot;&quot;</span>
     <span class="n">mixing_names</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">inps</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">multi_inputs</span><span class="p">):</span>
@@ -1049,7 +1044,7 @@ document.write(`
 <div class="viewcode-block" id="io_iterator">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.multi_io.io_iterator">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">io_iterator</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">io_iterator</span><span class="p">(</span>
     <span class="n">inputs</span><span class="p">,</span>
     <span class="n">out_dir</span><span class="p">,</span>
     <span class="n">fnames</span><span class="p">,</span>
@@ -1093,7 +1088,7 @@ document.write(`
 
 
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">_io_iterator</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">fnc</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">output_strategy</span><span class="o">=</span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span> <span class="n">mix_names</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_io_iterator</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">fnc</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">output_strategy</span><span class="o">=</span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span> <span class="n">mix_names</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an IOIterator using introspection.</span>
 
 <span class="sd">    Parameters</span>
@@ -1114,7 +1109,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Create a new object that does not contain the ``self`` dict item</span>
-    <span class="k">def</span> <span class="nf">_selfless_dict</span><span class="p">(</span><span class="n">_values</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_selfless_dict</span><span class="p">(</span><span class="n">_values</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">_values</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s2">&quot;self&quot;</span><span class="p">}</span>
 
     <span class="n">args</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargvalues</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
@@ -1131,13 +1126,9 @@ document.write(`
     <span class="n">len_defaults</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span>
     <span class="n">split_at</span> <span class="o">=</span> <span class="n">len_args</span> <span class="o">-</span> <span class="n">len_defaults</span>
 
-    <span class="n">inputs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="n">arv</span><span class="p">]</span> <span class="k">for</span> <span class="n">arv</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[:</span><span class="n">split_at</span><span class="p">]]</span>
     <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">out_dir</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-
-    <span class="c1"># inputs</span>
-    <span class="k">for</span> <span class="n">arv</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[:</span><span class="n">split_at</span><span class="p">]:</span>
-        <span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">arv</span><span class="p">])</span>
 
     <span class="c1"># defaults</span>
     <span class="n">out_keys</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1160,7 +1151,7 @@ document.write(`
 
 <div class="viewcode-block" id="IOIterator">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.multi_io.IOIterator">[docs]</a>
-<span class="k">class</span> <span class="nc">IOIterator</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IOIterator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create output filenames that work nicely with multiple input files from</span>
 <span class="sd">    multiple directories (processing multiple subjects with one command)</span>
 
@@ -1170,13 +1161,13 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">output_strategy</span><span class="o">=</span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span> <span class="n">mix_names</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">output_strategy</span><span class="o">=</span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span> <span class="n">mix_names</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_strategy</span> <span class="o">=</span> <span class="n">output_strategy</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mix_names</span> <span class="o">=</span> <span class="n">mix_names</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">out_keys</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">set_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file_existence_check</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">input_args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_args</span><span class="p">:</span>
@@ -1191,16 +1182,16 @@ document.write(`
                     <span class="n">_nested</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_resolve_path_or_pattern</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">_nested</span><span class="p">)))</span>
 
-    <span class="k">def</span> <span class="nf">set_out_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_out_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">out_dir</span>
 
-    <span class="k">def</span> <span class="nf">set_out_fnames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_out_fnames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">out_fnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">set_output_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_output_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">out_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">create_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">updated_inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="n">connect_output_paths</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
@@ -1215,14 +1206,14 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;No inputs&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">create_directories</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_directories</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">outputs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
                 <span class="n">directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">directory</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">directory</span><span class="o">.</span><span class="n">exists</span><span class="p">()):</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
         <span class="n">IO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">ins</span><span class="p">,</span> <span class="n">out</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -1233,7 +1224,7 @@ document.write(`
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">i_o</span>
 
-    <span class="k">def</span> <span class="nf">file_existence_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">file_existence_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
         <span class="n">input_args</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>

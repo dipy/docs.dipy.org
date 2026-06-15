@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.stats &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.workflows.stats &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,35 +883,35 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.workflows.stats</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">binary_dilation</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">binary_dilation</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">gradient_table</span>
-<span class="kn">from</span> <span class="nn">dipy.io</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.io.peaks</span> <span class="kn">import</span> <span class="n">load_pam</span>
-<span class="kn">from</span> <span class="nn">dipy.io.streamline</span> <span class="kn">import</span> <span class="n">load_tractogram</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="n">TensorModel</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.bundles</span> <span class="kn">import</span> <span class="n">bundle_shape_similarity</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <span class="n">bounding_box</span><span class="p">,</span> <span class="n">segment_from_cfa</span>
-<span class="kn">from</span> <span class="nn">dipy.stats.analysis</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">gradient_table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_pam</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_tractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dti</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.bundles</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundle_shape_similarity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">bounding_box</span><span class="p">,</span> <span class="n">segment_from_cfa</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.stats.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">anatomical_measures</span><span class="p">,</span>
     <span class="n">assignment_map</span><span class="p">,</span>
     <span class="n">buan_profile</span><span class="p">,</span>
     <span class="n">peak_values</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.streamline</span> <span class="kn">import</span> <span class="n">transform_streamlines</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">transform_streamlines</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span>
 
 <span class="n">pd</span><span class="p">,</span> <span class="n">have_pd</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;pandas&quot;</span><span class="p">)</span>
 <span class="n">smf</span><span class="p">,</span> <span class="n">have_smf</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;statsmodels.formula.api&quot;</span><span class="p">)</span>
@@ -926,17 +921,17 @@ document.write(`
 
 <div class="viewcode-block" id="SNRinCCFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.SNRinCCFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">SNRinCCFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SNRinCCFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="SNRinCCFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.SNRinCCFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;snrincc&quot;</span></div>
 
 
 <div class="viewcode-block" id="SNRinCCFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.SNRinCCFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data_files</span><span class="p">,</span>
         <span class="n">bvals_files</span><span class="p">,</span>
@@ -1084,7 +1079,7 @@ document.write(`
 <div class="viewcode-block" id="buan_bundle_profiles">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.buan_bundle_profiles">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">buan_bundle_profiles</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">buan_bundle_profiles</span><span class="p">(</span>
     <span class="n">model_bundle_folder</span><span class="p">,</span>
     <span class="n">bundle_folder</span><span class="p">,</span>
     <span class="n">orig_bundle_folder</span><span class="p">,</span>
@@ -1233,18 +1228,18 @@ document.write(`
 
 <div class="viewcode-block" id="BundleAnalysisTractometryFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.BundleAnalysisTractometryFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">BundleAnalysisTractometryFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BundleAnalysisTractometryFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="BundleAnalysisTractometryFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.BundleAnalysisTractometryFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;ba&quot;</span></div>
 
 
 <div class="viewcode-block" id="BundleAnalysisTractometryFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.BundleAnalysisTractometryFlow.run">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_bundle_folder</span><span class="p">,</span>
         <span class="n">subject_folder</span><span class="p">,</span>
@@ -1328,7 +1323,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">_run_group</span><span class="p">(</span><span class="n">model_bundle_folder</span><span class="p">,</span> <span class="n">subject_path</span><span class="p">,</span> <span class="n">no_disks</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_run_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_bundle_folder</span><span class="p">,</span> <span class="n">subject_path</span><span class="p">,</span> <span class="n">no_disks</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_bundle_folder</span><span class="p">,</span> <span class="n">subject_path</span><span class="p">,</span> <span class="n">no_disks</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Run group-mode tractometry (patient/control subdirectory structure).</span>
 
 <span class="sd">        Parameters</span>
@@ -1378,7 +1373,7 @@ document.write(`
                     <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span>
                 <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_run_single_subject</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_single_subject</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_bundle_folder</span><span class="p">,</span>
         <span class="n">subject_path</span><span class="p">,</span>
@@ -1491,17 +1486,17 @@ document.write(`
 
 <div class="viewcode-block" id="LinearMixedModelsFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.LinearMixedModelsFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">LinearMixedModelsFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearMixedModelsFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="LinearMixedModelsFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.LinearMixedModelsFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;lmm&quot;</span></div>
 
 
 <div class="viewcode-block" id="LinearMixedModelsFlow.get_metric_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.LinearMixedModelsFlow.get_metric_name">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_metric_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metric_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits the path string and returns name of anatomical measure</span>
 <span class="sd">        (eg: fa), bundle name eg(AF_L) and bundle name with metric name</span>
 <span class="sd">        (eg: AF_L_fa)</span>
@@ -1532,7 +1527,7 @@ document.write(`
 
 <div class="viewcode-block" id="LinearMixedModelsFlow.save_lmm_plot">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.LinearMixedModelsFlow.save_lmm_plot">[docs]</a>
-    <span class="k">def</span> <span class="nf">save_lmm_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_file</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle_name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_lmm_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_file</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle_name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves LMM plot with segment/disk number on x-axis and</span>
 <span class="sd">        -log10(pvalues) on y-axis in out_dir folder.</span>
 
@@ -1599,7 +1594,7 @@ document.write(`
 <div class="viewcode-block" id="LinearMixedModelsFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.LinearMixedModelsFlow.run">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h5_files</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">no_disks</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h5_files</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">no_disks</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow of linear Mixed Models.</span>
 
 <span class="sd">        Applies linear Mixed Models on bundles of subjects and saves the</span>
@@ -1662,18 +1657,18 @@ document.write(`
 
 <div class="viewcode-block" id="BundleShapeAnalysis">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.BundleShapeAnalysis">[docs]</a>
-<span class="k">class</span> <span class="nc">BundleShapeAnalysis</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BundleShapeAnalysis</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="BundleShapeAnalysis.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.BundleShapeAnalysis.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;BS&quot;</span></div>
 
 
 <div class="viewcode-block" id="BundleShapeAnalysis.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.stats.BundleShapeAnalysis.run">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject_folder</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">clust_thr</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">),</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject_folder</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">clust_thr</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">),</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow of bundle analytics.</span>
 
 <span class="sd">        Applies bundle shape similarity analysis on bundles of subjects and</span>
@@ -1728,18 +1723,15 @@ document.write(`
         <span class="k">for</span> <span class="n">bun</span> <span class="ow">in</span> <span class="n">bundles</span><span class="p">:</span>
             <span class="c1"># bundle shape similarity matrix</span>
             <span class="n">ba_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">bun</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">all_subjects</span><span class="p">:</span>
-                <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
-
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sub</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_subjects</span><span class="p">):</span>
                 <span class="n">bundle1</span> <span class="o">=</span> <span class="n">load_tractogram</span><span class="p">(</span>
                     <span class="n">Path</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;rec_bundles&quot;</span> <span class="o">/</span> <span class="n">bun</span><span class="p">,</span>
                     <span class="n">reference</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
                     <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="p">)</span><span class="o">.</span><span class="n">streamlines</span>
 
-                <span class="k">for</span> <span class="n">subi</span> <span class="ow">in</span> <span class="n">all_subjects</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">subi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_subjects</span><span class="p">):</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">subi</span><span class="p">)</span>
 
                     <span class="n">bundle2</span> <span class="o">=</span> <span class="n">load_tractogram</span><span class="p">(</span>
@@ -1753,9 +1745,6 @@ document.write(`
                     <span class="p">)</span>
 
                     <span class="n">ba_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ba_value</span>
-
-                    <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;saving BA score matrix&quot;</span><span class="p">)</span>
             <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">bun</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.npy&quot;</span><span class="p">),</span> <span class="n">ba_matrix</span><span class="p">)</span>
 

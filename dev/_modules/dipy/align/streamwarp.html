@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.streamwarp &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.align.streamwarp &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -856,8 +851,6 @@ document.write(`
 
 
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -870,10 +863,7 @@ document.write(`
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
     
-    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
-    
-    
-    <li class="breadcrumb-item"><a href="../align.html" class="nav-link">dipy.align</a></li>
+    <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
     <li class="breadcrumb-item active" aria-current="page">dipy.align.s...</li>
   </ul>
@@ -893,29 +883,29 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.align.streamwarp</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 
-<span class="kn">from</span> <span class="nn">dipy.align.bundlemin</span> <span class="kn">import</span> <span class="n">distance_matrix_mdf</span>
-<span class="kn">from</span> <span class="nn">dipy.align.cpd</span> <span class="kn">import</span> <span class="n">DeformableRegistration</span>
-<span class="kn">from</span> <span class="nn">dipy.align.streamlinear</span> <span class="kn">import</span> <span class="n">slr_with_qbx</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.clustering</span> <span class="kn">import</span> <span class="n">QuickBundles</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.metricspeed</span> <span class="kn">import</span> <span class="n">AveragePointwiseEuclideanMetric</span>
-<span class="kn">from</span> <span class="nn">dipy.stats.analysis</span> <span class="kn">import</span> <span class="n">assignment_map</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.streamline</span> <span class="kn">import</span> <span class="n">Streamlines</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">unlist_streamlines</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
-<span class="kn">from</span> <span class="nn">dipy.viz.plotting</span> <span class="kn">import</span> <span class="n">bundle_profile_plot</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.bundlemin</span><span class="w"> </span><span class="kn">import</span> <span class="n">distance_matrix_mdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.cpd</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeformableRegistration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamlinear</span><span class="w"> </span><span class="kn">import</span> <span class="n">slr_with_qbx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.clustering</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuickBundles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.metricspeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">AveragePointwiseEuclideanMetric</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.stats.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">assignment_map</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Streamlines</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">unlist_streamlines</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundle_profile_plot</span>
 
 <span class="n">pd</span><span class="p">,</span> <span class="n">have_pd</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;pandas&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="average_bundle_length">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamwarp.average_bundle_length">[docs]</a>
-<span class="k">def</span> <span class="nf">average_bundle_length</span><span class="p">(</span><span class="n">bundle</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">average_bundle_length</span><span class="p">(</span><span class="n">bundle</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find average Euclidean length of the bundle in mm.</span>
 
 <span class="sd">    Parameters</span>
@@ -940,7 +930,7 @@ document.write(`
 
 <div class="viewcode-block" id="find_missing">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamwarp.find_missing">[docs]</a>
-<span class="k">def</span> <span class="nf">find_missing</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">cb</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_missing</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">cb</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find unmatched streamline indices in moving bundle.</span>
 
 <span class="sd">    Parameters</span>
@@ -965,7 +955,7 @@ document.write(`
 <div class="viewcode-block" id="bundlewarp">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamwarp.bundlewarp">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">bundlewarp</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundlewarp</span><span class="p">(</span>
     <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Register two bundles using nonlinear method.</span>
@@ -1106,7 +1096,7 @@ document.write(`
 
 <div class="viewcode-block" id="bundlewarp_vector_filed">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamwarp.bundlewarp_vector_filed">[docs]</a>
-<span class="k">def</span> <span class="nf">bundlewarp_vector_filed</span><span class="p">(</span><span class="n">moving_aligned</span><span class="p">,</span> <span class="n">deformed_bundle</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundlewarp_vector_filed</span><span class="p">(</span><span class="n">moving_aligned</span><span class="p">,</span> <span class="n">deformed_bundle</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate vector fields.</span>
 
 <span class="sd">    Vector field computation as the difference between each streamline point</span>
@@ -1153,7 +1143,7 @@ document.write(`
 <div class="viewcode-block" id="bundlewarp_shape_analysis">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.streamwarp.bundlewarp_shape_analysis">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">bundlewarp_shape_analysis</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bundlewarp_shape_analysis</span><span class="p">(</span>
     <span class="n">moving_aligned</span><span class="p">,</span> <span class="n">deformed_bundle</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">no_disks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">plotting</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate bundle shape difference profile.</span>

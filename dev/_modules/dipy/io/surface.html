@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.surface &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.io.surface &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,43 +883,43 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.io.surface</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">import</span> <span class="nn">gzip</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
-<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.io.stateful_surface</span> <span class="kn">import</span> <span class="n">StatefulSurface</span>
-<span class="kn">from</span> <span class="nn">dipy.io.utils</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.stateful_surface</span><span class="w"> </span><span class="kn">import</span> <span class="n">StatefulSurface</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Origin</span><span class="p">,</span>
     <span class="n">Space</span><span class="p">,</span>
     <span class="n">get_reference_info</span><span class="p">,</span>
     <span class="n">split_filename_extension</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.io.vtk</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.vtk</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_polydata_triangles</span><span class="p">,</span>
     <span class="n">get_polydata_vertices</span><span class="p">,</span>
     <span class="n">load_polydata</span><span class="p">,</span>
     <span class="n">save_polydata</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
 <span class="n">vtk</span><span class="p">,</span> <span class="n">have_vtk</span><span class="p">,</span> <span class="n">setup_module</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
     <span class="s2">&quot;vtk&quot;</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">&quot;9.0.0&quot;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="s2">&quot;9.1.0&quot;</span>
 <span class="p">)</span>
 
 <span class="k">if</span> <span class="n">have_vtk</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">vtk</span>
-    <span class="kn">import</span> <span class="nn">vtk.util.numpy_support</span> <span class="k">as</span> <span class="nn">ns</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">vtk</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">vtk.util.numpy_support</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ns</span>
 
 
 <div class="viewcode-block" id="load_surface">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.load_surface">[docs]</a>
-<span class="k">def</span> <span class="nf">load_surface</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_surface</span><span class="p">(</span>
     <span class="n">fname</span><span class="p">,</span>
     <span class="n">reference</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1081,7 +1076,7 @@ document.write(`
 
 <div class="viewcode-block" id="save_surface">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.save_surface">[docs]</a>
-<span class="k">def</span> <span class="nf">save_surface</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_surface</span><span class="p">(</span>
     <span class="n">sfs</span><span class="p">,</span>
     <span class="n">fname</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1235,7 +1230,7 @@ document.write(`
 <div class="viewcode-block" id="load_pial">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.load_pial">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">load_pial</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_meta</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_pial</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_meta</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load pial file.</span>
 
 <span class="sd">    Parameters</span>
@@ -1258,7 +1253,7 @@ document.write(`
             <span class="n">data</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">freesurfer</span><span class="o">.</span><span class="n">read_geometry</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">read_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No metadata found, please use a pial file with metadata.&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> provided does not have geometry data.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> provided does not have geometry data.&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">data</span></div>
 
@@ -1266,7 +1261,7 @@ document.write(`
 
 <div class="viewcode-block" id="save_pial">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.save_pial">[docs]</a>
-<span class="k">def</span> <span class="nf">save_pial</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_pial</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save pial file.</span>
 
 <span class="sd">    Parameters</span>
@@ -1286,7 +1281,7 @@ document.write(`
 
 <div class="viewcode-block" id="load_gifti">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.load_gifti">[docs]</a>
-<span class="k">def</span> <span class="nf">load_gifti</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_header</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_gifti</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_header</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load gifti file.</span>
 
 <span class="sd">    Parameters</span>
@@ -1304,7 +1299,7 @@ document.write(`
 <span class="sd">        (vertices, faces)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">reader</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reader</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">split_filename_extension</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.gii.gz&quot;</span><span class="p">:</span>
@@ -1324,7 +1319,7 @@ document.write(`
 
 <div class="viewcode-block" id="save_gifti">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.save_gifti">[docs]</a>
-<span class="k">def</span> <span class="nf">save_gifti</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_gifti</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save gifti file.</span>
 <span class="sd">    https://netneurolab.github.io/neuromaps/_modules/neuromaps/images.html</span>
 
@@ -1353,7 +1348,7 @@ document.write(`
 
 <div class="viewcode-block" id="apply_freesurfer_transform">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.apply_freesurfer_transform">[docs]</a>
-<span class="k">def</span> <span class="nf">apply_freesurfer_transform</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">inv</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_freesurfer_transform</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">inv</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply the freesurfer transform to the vertices to bring them to RASMM space</span>
 <span class="sd">    or to bring them back to the original space.</span>

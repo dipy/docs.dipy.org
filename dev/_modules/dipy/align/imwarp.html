@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.imwarp &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.align.imwarp &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -856,8 +851,6 @@ document.write(`
 
 
 
-
-
 <nav aria-label="Breadcrumb" class="d-print-none">
   <ul class="bd-breadcrumbs">
     
@@ -870,10 +863,7 @@ document.write(`
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
     
     
-    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
-    
-    
-    <li class="breadcrumb-item"><a href="../align.html" class="nav-link">dipy.align</a></li>
+    <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
     <li class="breadcrumb-item active" aria-current="page">dipy.align.imwarp</li>
   </ul>
@@ -895,48 +885,24 @@ document.write(`
   <h1>Source code for dipy.align.imwarp</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Classes and functions for Symmetric Diffeomorphic Registration&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
 
-<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
-<span class="kn">from</span> <span class="nn">nibabel.streamlines</span> <span class="kn">import</span> <span class="n">ArraySequence</span> <span class="k">as</span> <span class="n">Streamlines</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="k">as</span> <span class="nn">npl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.streamlines</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArraySequence</span> <span class="k">as</span> <span class="n">Streamlines</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.linalg</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npl</span>
 
-<span class="kn">from</span> <span class="nn">dipy.align</span> <span class="kn">import</span> <span class="n">Bunch</span><span class="p">,</span> <span class="n">VerbosityLevels</span><span class="p">,</span> <span class="n">floating</span><span class="p">,</span> <span class="n">vector_fields</span> <span class="k">as</span> <span class="n">vfu</span>
-<span class="kn">from</span> <span class="nn">dipy.align.scalespace</span> <span class="kn">import</span> <span class="n">ScaleSpace</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-
-<span class="n">RegistrationStages</span> <span class="o">=</span> <span class="n">Bunch</span><span class="p">(</span>
-    <span class="n">INIT_START</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">INIT_END</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">OPT_START</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-    <span class="n">OPT_END</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-    <span class="n">SCALE_START</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-    <span class="n">SCALE_END</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-    <span class="n">ITER_START</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
-    <span class="n">ITER_END</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="sd">&quot;&quot;&quot;Registration Stages</span>
-
-<span class="sd">This enum defines the different stages which the Volumetric Registration</span>
-<span class="sd">may be in. The value of the stage is passed as a parameter to the call-back</span>
-<span class="sd">function so that it can react accordingly.</span>
-
-<span class="sd">INIT_START: optimizer initialization starts</span>
-<span class="sd">INIT_END: optimizer initialization ends</span>
-<span class="sd">OPT_START: optimization starts</span>
-<span class="sd">OPT_END: optimization ends</span>
-<span class="sd">SCALE_START: optimization at a new scale space resolution starts</span>
-<span class="sd">SCALE_END: optimization at the current scale space resolution ends</span>
-<span class="sd">ITER_START: a new iteration starts</span>
-<span class="sd">ITER_END: the current iteration ends</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align</span><span class="w"> </span><span class="kn">import</span> <span class="n">vector_fields</span> <span class="k">as</span> <span class="n">vfu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.scalespace</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScaleSpace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegistrationStages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">VerbosityLevels</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 
 <div class="viewcode-block" id="mult_aff">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.mult_aff">[docs]</a>
-<span class="k">def</span> <span class="nf">mult_aff</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mult_aff</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the matrix product A.dot(B) considering None as the identity</span>
 
 <span class="sd">    Parameters</span>
@@ -959,7 +925,7 @@ document.write(`
 
 <div class="viewcode-block" id="get_direction_and_spacings">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.get_direction_and_spacings">[docs]</a>
-<span class="k">def</span> <span class="nf">get_direction_and_spacings</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_direction_and_spacings</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extracts the rotational and spacing components from a matrix</span>
 
 <span class="sd">    Extracts the rotational and spacing (voxel dimensions) components from a</span>
@@ -1002,9 +968,9 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap">[docs]</a>
-<span class="k">class</span> <span class="nc">DiffeomorphicMap</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DiffeomorphicMap</span><span class="p">:</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dim</span><span class="p">,</span>
         <span class="n">disp_shape</span><span class="p">,</span>
@@ -1107,7 +1073,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.interpret_matrix">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.interpret_matrix">[docs]</a>
-    <span class="k">def</span> <span class="nf">interpret_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">interpret_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Try to interpret `obj` as a matrix</span>
 
 <span class="sd">        Some operations are performed faster if we know in advance if a matrix</span>
@@ -1136,7 +1102,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.get_forward_field">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.get_forward_field">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_forward_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_forward_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deformation field to transform an image in the forward direction</span>
 
 <span class="sd">        Returns the deformation field that must be used to warp an image under</span>
@@ -1151,7 +1117,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.get_backward_field">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.get_backward_field">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_backward_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_backward_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deformation field to transform an image in the backward direction</span>
 
 <span class="sd">        Returns the deformation field that must be used to warp an image under</span>
@@ -1166,17 +1132,17 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.allocate">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.allocate">[docs]</a>
-    <span class="k">def</span> <span class="nf">allocate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">allocate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a zero displacement field</span>
 
 <span class="sd">        Creates a zero displacement field (the identity transformation).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disp_shape</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">floating</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">backward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disp_shape</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">floating</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disp_shape</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disp_shape</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></div>
 
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_get_warping_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interpolation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">warp_coordinates</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_warping_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interpolation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">warp_coordinates</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Appropriate warping function for the given interpolation type</span>
 
 <span class="sd">        Returns the right warping function from vector_fields that must be</span>
@@ -1209,8 +1175,8 @@ document.write(`
                 <span class="k">return</span> <span class="n">vfu</span><span class="o">.</span><span class="n">warp_3d_nn</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_warp_coordinates_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coord2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">world2coord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Warps the list of points in the forward direction</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_warp_coordinates_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coord2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">world2coord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Warps the list of points in the forward direction.</span>
 
 <span class="sd">        Applies this diffeomorphic map to the list of points given by `points`.</span>
 <span class="sd">        We assume that the points&#39; coordinates are mapped to world coordinates</span>
@@ -1221,9 +1187,15 @@ document.write(`
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        points :</span>
-<span class="sd">        coord2world :</span>
-<span class="sd">        world2coord :</span>
+<span class="sd">        points : array, shape (N, dim) or Streamlines object</span>
+<span class="sd">            Input points (or streamlines) to be warped in the forward direction.</span>
+<span class="sd">        coord2world : array, shape (dim+1, dim+1), optional</span>
+<span class="sd">            Affine matrix mapping input coordinates to world coordinates.</span>
+<span class="sd">            If None, identity is assumed.</span>
+<span class="sd">        world2coord : array, shape (dim+1, dim+1), optional</span>
+<span class="sd">            Affine matrix mapping world coordinates to the output coordinate system.</span>
+<span class="sd">            If None, output is returned in world coordinates.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">warp_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_warping_function</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">warp_coordinates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">coord2prealigned</span> <span class="o">=</span> <span class="n">mult_aff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prealign</span><span class="p">,</span> <span class="n">coord2world</span><span class="p">)</span>
@@ -1233,8 +1205,8 @@ document.write(`
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_warp_coordinates_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coord2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">world2coord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Warps the list of points in the backward direction</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_warp_coordinates_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coord2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">world2coord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Warps the list of points in the backward direction.</span>
 
 <span class="sd">        Applies this diffeomorphic map to the list of points given by `points`.</span>
 <span class="sd">        We assume that the points&#39; coordinates are mapped to world coordinates</span>
@@ -1245,9 +1217,15 @@ document.write(`
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        points :</span>
-<span class="sd">        coord2world :</span>
-<span class="sd">        world2coord :</span>
+<span class="sd">        points : array, shape (N, dim) or Streamlines object</span>
+<span class="sd">            Input points (or streamlines) to be warped in the backward direction.</span>
+<span class="sd">        coord2world : array, shape (dim+1, dim+1), optional</span>
+<span class="sd">            Affine matrix mapping input coordinates to world coordinates.</span>
+<span class="sd">            If None, identity is assumed.</span>
+<span class="sd">        world2coord : array, shape (dim+1, dim+1), optional</span>
+<span class="sd">            Affine matrix mapping world coordinates to the output coordinate system.</span>
+<span class="sd">            If None, output is returned in world coordinates.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">warp_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_warping_function</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">warp_coordinates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">world2invprealigned</span> <span class="o">=</span> <span class="n">mult_aff</span><span class="p">(</span><span class="n">world2coord</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prealign_inv</span><span class="p">)</span>
@@ -1261,7 +1239,7 @@ document.write(`
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_warp_forward</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_warp_forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">image</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1365,12 +1343,12 @@ document.write(`
 
         <span class="c1"># Convert the data to required types to use the cythonized functions</span>
         <span class="k">if</span> <span class="n">interpolation</span> <span class="o">==</span> <span class="s2">&quot;nearest&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">floating</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
-                <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">floating</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">):</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">):</span>
                 <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">floating</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
         <span class="n">warp_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_warping_function</span><span class="p">(</span><span class="n">interpolation</span><span class="p">)</span>
 
@@ -1385,7 +1363,7 @@ document.write(`
         <span class="k">return</span> <span class="n">warped</span>
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_warp_backward</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_warp_backward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">image</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1488,12 +1466,12 @@ document.write(`
         <span class="n">affine_disp</span> <span class="o">=</span> <span class="n">mult_aff</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">Pinv</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">interpolation</span> <span class="o">==</span> <span class="s2">&quot;nearest&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">floating</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
-                <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">floating</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">):</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">):</span>
                 <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">floating</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
         <span class="n">warp_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_warping_function</span><span class="p">(</span><span class="n">interpolation</span><span class="p">)</span>
 
@@ -1511,7 +1489,7 @@ document.write(`
 <div class="viewcode-block" id="DiffeomorphicMap.transform">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.transform">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">image</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1577,7 +1555,7 @@ document.write(`
 <div class="viewcode-block" id="DiffeomorphicMap.transform_inverse">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.transform_inverse">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">transform_inverse</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform_inverse</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">image</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1641,7 +1619,7 @@ document.write(`
 <div class="viewcode-block" id="DiffeomorphicMap.transform_points">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.transform_points">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">transform_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coord2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">world2coord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coord2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">world2coord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Warp the list of points in the forward direction.</span>
 
 <span class="sd">        Applies this diffeomorphic map to the list of points (or streamlines)</span>
@@ -1654,12 +1632,14 @@ document.write(`
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        points : array, shape (N, dim) or Streamlines object</span>
-
+<span class="sd">            Input points (or streamlines) to be warped. Can be an array of</span>
+<span class="sd">            shape (N, dim) or a Streamlines object.</span>
 <span class="sd">        coord2world : array, shape (dim+1, dim+1), optional</span>
-<span class="sd">            affine matrix mapping points to world coordinates</span>
-
+<span class="sd">            Affine matrix mapping input coordinates to world coordinates.</span>
+<span class="sd">            If None, identity is assumed.</span>
 <span class="sd">        world2coord : array, shape (dim+1, dim+1), optional</span>
-<span class="sd">            affine matrix mapping world coordinates to points</span>
+<span class="sd">            Affine matrix mapping world coordinates to the output coordinate system.</span>
+<span class="sd">            If None, output is returned in world coordinates.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform_coordinates</span><span class="p">(</span>
@@ -1670,7 +1650,7 @@ document.write(`
 <div class="viewcode-block" id="DiffeomorphicMap.transform_points_inverse">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.transform_points_inverse">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">transform_points_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coord2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">world2coord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform_points_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coord2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">world2coord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Warp the list of points in the backward direction.</span>
 
 <span class="sd">        Applies this diffeomorphic map to the list of points (or streamlines)</span>
@@ -1683,12 +1663,14 @@ document.write(`
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        points : array, shape (N, dim) or Streamlines object</span>
-
+<span class="sd">            Input points (or streamlines) to be warped. Can be an array of</span>
+<span class="sd">            shape (N, dim) or a Streamlines object.</span>
 <span class="sd">        coord2world : array, shape (dim+1, dim+1), optional</span>
-<span class="sd">            affine matrix mapping points to world coordinates</span>
-
+<span class="sd">            Affine matrix mapping input coordinates to world coordinates.</span>
+<span class="sd">            If None, identity is assumed.</span>
 <span class="sd">        world2coord : array, shape (dim+1, dim+1), optional</span>
-<span class="sd">            affine matrix mapping world coordinates to points</span>
+<span class="sd">            Affine matrix mapping world coordinates to the output coordinate system.</span>
+<span class="sd">            If None, output is returned in world coordinates.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform_coordinates</span><span class="p">(</span>
@@ -1697,7 +1679,7 @@ document.write(`
 
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_transform_coordinates</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_transform_coordinates</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">coord2world</span><span class="p">,</span> <span class="n">world2coord</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
         <span class="n">is_streamline_obj</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">Streamlines</span><span class="p">)</span>
@@ -1724,7 +1706,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.inverse">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.inverse">[docs]</a>
-    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Inverse of this DiffeomorphicMap instance</span>
 
 <span class="sd">        Returns a diffeomorphic map object representing the inverse of this</span>
@@ -1754,7 +1736,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.expand_fields">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.expand_fields">[docs]</a>
-    <span class="k">def</span> <span class="nf">expand_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expand_factors</span><span class="p">,</span> <span class="n">new_shape</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expand_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expand_factors</span><span class="p">,</span> <span class="n">new_shape</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Expands the displacement fields from current shape to new_shape</span>
 
 <span class="sd">        Up-samples the discretization of the displacement fields to be of</span>
@@ -1789,7 +1771,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.compute_inversion_error">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.compute_inversion_error">[docs]</a>
-    <span class="k">def</span> <span class="nf">compute_inversion_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_inversion_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Inversion error of the displacement fields</span>
 
 <span class="sd">        Estimates the inversion error of the displacement fields by computing</span>
@@ -1830,7 +1812,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.shallow_copy">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.shallow_copy">[docs]</a>
-    <span class="k">def</span> <span class="nf">shallow_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shallow_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Shallow copy of this DiffeomorphicMap instance</span>
 
 <span class="sd">        Creates a shallow copy of this diffeomorphic map (the arrays are not</span>
@@ -1860,7 +1842,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.warp_endomorphism">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.warp_endomorphism">[docs]</a>
-    <span class="k">def</span> <span class="nf">warp_endomorphism</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">warp_endomorphism</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Composition of this DiffeomorphicMap with a given endomorphism</span>
 
 <span class="sd">        Creates a new DiffeomorphicMap C with the same properties as self and</span>
@@ -1921,7 +1903,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.get_simplified_transform">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.get_simplified_transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_simplified_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_simplified_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs a simplified version of this Diffeomorhic Map</span>
 
 <span class="sd">        The simplified version incorporates the pre-align transform, as well as</span>
@@ -1994,9 +1976,9 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicRegistration">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicRegistration">[docs]</a>
-<span class="k">class</span> <span class="nc">DiffeomorphicRegistration</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DiffeomorphicRegistration</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Diffeomorphic Registration</span>
 
 <span class="sd">        This abstract class defines the interface to be implemented by any</span>
@@ -2016,7 +1998,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicRegistration.set_level_iters">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicRegistration.set_level_iters">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_level_iters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level_iters</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_level_iters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level_iters</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the number of iterations at each pyramid level</span>
 
 <span class="sd">        Establishes the maximum number of iterations to be performed at each</span>
@@ -2036,7 +2018,7 @@ document.write(`
 <div class="viewcode-block" id="DiffeomorphicRegistration.optimize">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicRegistration.optimize">[docs]</a>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts the metric optimization</span>
 
 <span class="sd">        This is the main function each specialized class derived from this must</span>
@@ -2048,7 +2030,7 @@ document.write(`
 <div class="viewcode-block" id="DiffeomorphicRegistration.get_map">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicRegistration.get_map">[docs]</a>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">get_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the resulting diffeomorphic map after optimization</span>
 <span class="sd">        &quot;&quot;&quot;</span></div>
@@ -2057,7 +2039,7 @@ document.write(`
 <div class="viewcode-block" id="DiffeomorphicRegistration.get_intermediate_maps">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicRegistration.get_intermediate_maps">[docs]</a>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">get_intermediate_maps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_intermediate_maps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the transforms mapping the input images toward the reference image.</span>
 <span class="sd">        &quot;&quot;&quot;</span></div>
@@ -2067,9 +2049,11 @@ document.write(`
 
 <div class="viewcode-block" id="SymmetricDiffeomorphicRegistration">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.SymmetricDiffeomorphicRegistration">[docs]</a>
-<span class="k">class</span> <span class="nc">SymmetricDiffeomorphicRegistration</span><span class="p">(</span><span class="n">DiffeomorphicRegistration</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SymmetricDiffeomorphicRegistration</span><span class="p">(</span><span class="n">DiffeomorphicRegistration</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Symmetric Diffeomorphic Registration algorithm.&quot;&quot;&quot;</span>
+
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">metric</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -2115,7 +2099,7 @@ document.write(`
 <span class="sd">            to be called after each iteration (this optimizer will call this</span>
 <span class="sd">            function passing self as parameter)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">SymmetricDiffeomorphicRegistration</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">level_iters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">level_iters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">]</span>
 
@@ -2141,7 +2125,7 @@ document.write(`
 
 <div class="viewcode-block" id="SymmetricDiffeomorphicRegistration.update">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.SymmetricDiffeomorphicRegistration.update">[docs]</a>
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">current_displacement</span><span class="p">,</span> <span class="n">new_displacement</span><span class="p">,</span> <span class="n">disp_world2grid</span><span class="p">,</span> <span class="n">time_scaling</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Composition of the current displacement field with the given field</span>
@@ -2194,7 +2178,7 @@ document.write(`
 
 <div class="viewcode-block" id="SymmetricDiffeomorphicRegistration.get_map">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.SymmetricDiffeomorphicRegistration.get_map">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the resulting diffeomorphic map.</span>
 
 <span class="sd">        Returns the DiffeomorphicMap registering the moving image towards</span>
@@ -2211,7 +2195,7 @@ document.write(`
 
 <div class="viewcode-block" id="SymmetricDiffeomorphicRegistration.get_intermediate_maps">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.SymmetricDiffeomorphicRegistration.get_intermediate_maps">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_intermediate_maps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_intermediate_maps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the transforms mapping the input images toward the reference.</span>
 
 <span class="sd">        Returns the DiffeomorphicMap objects mapping points in the static</span>
@@ -2240,7 +2224,7 @@ document.write(`
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_to_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_to_ref</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_connect_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Assign the methods to be called according to the image dimension</span>
 
 <span class="sd">        Assigns the appropriate functions to be called for displacement field</span>
@@ -2254,7 +2238,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">invert_vector_field</span> <span class="o">=</span> <span class="n">vfu</span><span class="o">.</span><span class="n">invert_vector_field_fixed_point_3d</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">compose</span> <span class="o">=</span> <span class="n">vfu</span><span class="o">.</span><span class="n">compose_vector_fields_3d</span>
 
-    <span class="k">def</span> <span class="nf">_init_optimizer</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_optimizer</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">static</span><span class="p">,</span> <span class="n">moving</span><span class="p">,</span> <span class="n">static_grid2world</span><span class="p">,</span> <span class="n">moving_grid2world</span><span class="p">,</span> <span class="n">prealign</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the registration optimizer</span>
@@ -2396,12 +2380,12 @@ document.write(`
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moving_to_ref</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_end_optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_end_optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Frees the resources allocated during initialization&quot;&quot;&quot;</span>
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_ss</span>
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_ss</span>
 
-    <span class="k">def</span> <span class="nf">_iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs one symmetric iteration</span>
 
 <span class="sd">        Performs one iteration of the SyN algorithm:</span>
@@ -2542,7 +2526,7 @@ document.write(`
 
         <span class="k">return</span> <span class="n">der</span>
 
-    <span class="k">def</span> <span class="nf">__set_no_boundary_displacement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_no_boundary_displacement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;set zero displacements at the boundary</span>
 
 <span class="sd">        Parameters</span>
@@ -2564,7 +2548,7 @@ document.write(`
             <span class="n">step</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">step</span>
 
-    <span class="k">def</span> <span class="nf">__invert_models</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_disp_world2grid</span><span class="p">,</span> <span class="n">current_disp_spacing</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__invert_models</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_disp_world2grid</span><span class="p">,</span> <span class="n">current_disp_spacing</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Converting static - moving models in both direction.</span>
 
 <span class="sd">        Parameters</span>
@@ -2625,7 +2609,7 @@ document.write(`
             <span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_approximate_derivative_direct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_approximate_derivative_direct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Derivative of the degree-2 polynomial fit of the given x, y pairs</span>
 
 <span class="sd">        Directly computes the derivative of the least-squares-fit quadratic</span>
@@ -2654,7 +2638,7 @@ document.write(`
         <span class="n">y0</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">beta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">x0</span> <span class="o">+</span> <span class="n">beta</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">y0</span>
 
-    <span class="k">def</span> <span class="nf">_get_energy_derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_energy_derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Approximate derivative of the energy profile</span>
 
 <span class="sd">        Returns the derivative of the estimated energy as a function of &quot;time&quot;</span>
@@ -2672,7 +2656,7 @@ document.write(`
         <span class="n">der</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_approximate_derivative_direct</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">der</span>
 
-    <span class="k">def</span> <span class="nf">_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts the optimization</span>
 
 <span class="sd">        The main multi-scale symmetric optimization algorithm</span>
@@ -2743,7 +2727,7 @@ document.write(`
 <div class="viewcode-block" id="SymmetricDiffeomorphicRegistration.optimize">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.SymmetricDiffeomorphicRegistration.optimize">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimize</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">static</span><span class="p">,</span>
         <span class="n">moving</span><span class="p">,</span>
@@ -2792,8 +2776,8 @@ document.write(`
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pre-align: </span><span class="si">{</span><span class="n">prealign</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_optimizer</span><span class="p">(</span>
-            <span class="n">static</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">floating</span><span class="p">),</span>
-            <span class="n">moving</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">floating</span><span class="p">),</span>
+            <span class="n">static</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+            <span class="n">moving</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
             <span class="n">static_grid2world</span><span class="p">,</span>
             <span class="n">moving_grid2world</span><span class="p">,</span>
             <span class="n">prealign</span><span class="p">,</span>

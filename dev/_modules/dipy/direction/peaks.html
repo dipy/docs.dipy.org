@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.direction.peaks &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.direction.peaks &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,37 +883,37 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.direction.peaks</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">repeat</span>
-<span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">repeat</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">os</span><span class="w"> </span><span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">scipy.optimize</span> <span class="k">as</span> <span class="nn">opt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">opt</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.interpolation</span> <span class="kn">import</span> <span class="n">trilinear_interpolate4d</span>
-<span class="kn">from</span> <span class="nn">dipy.core.ndindex</span> <span class="kn">import</span> <span class="n">ndindex</span>
-<span class="kn">from</span> <span class="nn">dipy.core.sphere</span> <span class="kn">import</span> <span class="n">Sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">default_sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dirspeed</span> <span class="kn">import</span> <span class="n">peak_directions</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.eudx_direction_getter</span> <span class="kn">import</span> <span class="n">EuDXDirectionGetter</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.odf</span> <span class="kn">import</span> <span class="n">gfa</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.recspeed</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.interpolation</span><span class="w"> </span><span class="kn">import</span> <span class="n">trilinear_interpolate4d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.ndindex</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndindex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dirspeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">peak_directions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.eudx_direction_getter</span><span class="w"> </span><span class="kn">import</span> <span class="n">EuDXDirectionGetter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.odf</span><span class="w"> </span><span class="kn">import</span> <span class="n">gfa</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.recspeed</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">local_maxima</span><span class="p">,</span>
     <span class="n">remove_similar_vertices</span><span class="p">,</span>
     <span class="n">search_descending</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">sh_to_sf_matrix</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.deprecator</span> <span class="kn">import</span> <span class="n">deprecated_params</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.multiproc</span> <span class="kn">import</span> <span class="n">determine_num_processes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">sh_to_sf_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.multiproc</span><span class="w"> </span><span class="kn">import</span> <span class="n">determine_num_processes</span>
 
 
 <div class="viewcode-block" id="peak_directions_nl">
 <a class="viewcode-back" href="../../../reference/dipy.direction.html#dipy.direction.peaks.peak_directions_nl">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">peak_directions_nl</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">peak_directions_nl</span><span class="p">(</span>
     <span class="n">sphere_eval</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
@@ -959,7 +954,7 @@ document.write(`
     <span class="n">seeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">sphere</span><span class="o">.</span><span class="n">theta</span><span class="p">[</span><span class="n">indices</span><span class="p">],</span> <span class="n">sphere</span><span class="o">.</span><span class="n">phi</span><span class="p">[</span><span class="n">indices</span><span class="p">]])</span>
 
     <span class="c1"># Helper function</span>
-    <span class="k">def</span> <span class="nf">_helper</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_helper</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="n">sphere</span> <span class="o">=</span> <span class="n">Sphere</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">phi</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="o">-</span><span class="n">sphere_eval</span><span class="p">(</span><span class="n">sphere</span><span class="p">)</span>
 
@@ -993,7 +988,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_pam_from_attrs</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_pam_from_attrs</span><span class="p">(</span>
     <span class="n">klass</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="n">peak_indices</span><span class="p">,</span> <span class="n">peak_values</span><span class="p">,</span> <span class="n">peak_dirs</span><span class="p">,</span> <span class="n">gfa</span><span class="p">,</span> <span class="n">qa</span><span class="p">,</span> <span class="n">shm_coeff</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">odf</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1046,8 +1041,8 @@ document.write(`
 
 <div class="viewcode-block" id="PeaksAndMetrics">
 <a class="viewcode-back" href="../../../reference/dipy.direction.html#dipy.direction.peaks.PeaksAndMetrics">[docs]</a>
-<span class="k">class</span> <span class="nc">PeaksAndMetrics</span><span class="p">(</span><span class="n">EuDXDirectionGetter</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PeaksAndMetrics</span><span class="p">(</span><span class="n">EuDXDirectionGetter</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_pam_from_attrs</span><span class="p">,</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span>
@@ -1063,7 +1058,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_peaks_from_model_parallel</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_peaks_from_model_parallel</span><span class="p">(</span>
     <span class="n">model</span><span class="p">,</span>
     <span class="n">data</span><span class="p">,</span>
     <span class="n">sphere</span><span class="p">,</span>
@@ -1217,7 +1212,7 @@ document.write(`
     <span class="k">return</span> <span class="n">pam</span>
 
 
-<span class="k">def</span> <span class="nf">_peaks_from_model_parallel_sub</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_peaks_from_model_parallel_sub</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
     <span class="p">(</span><span class="n">data_file_name</span><span class="p">,</span> <span class="n">mask_file_name</span><span class="p">)</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="p">(</span><span class="n">start_pos</span><span class="p">,</span> <span class="n">end_pos</span><span class="p">)</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
@@ -1267,7 +1262,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.direction.html#dipy.direction.peaks.peaks_from_model">[docs]</a>
 <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">peaks_from_model</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">peaks_from_model</span><span class="p">(</span>
     <span class="n">model</span><span class="p">,</span>
     <span class="n">data</span><span class="p">,</span>
     <span class="n">sphere</span><span class="p">,</span>
@@ -1402,19 +1397,19 @@ document.write(`
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mask is not the same shape as data.&quot;</span><span class="p">)</span>
 
     <span class="n">gfa_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">qa_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,)))</span>
+    <span class="n">qa_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,))</span>
 
-    <span class="n">peak_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
-    <span class="n">peak_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,)))</span>
+    <span class="n">peak_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">peak_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,))</span>
     <span class="n">peak_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
     <span class="n">peak_indices</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">return_sh</span><span class="p">:</span>
         <span class="n">n_shm_coeff</span> <span class="o">=</span> <span class="p">(</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
-        <span class="n">shm_coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_shm_coeff</span><span class="p">,)))</span>
+        <span class="n">shm_coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_shm_coeff</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">return_odf</span><span class="p">:</span>
-        <span class="n">odf_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="p">),)))</span>
+        <span class="n">odf_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="p">),))</span>
 
     <span class="n">global_max</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
     <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">ndindex</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
@@ -1476,7 +1471,7 @@ document.write(`
 
 <div class="viewcode-block" id="reshape_peaks_for_visualization">
 <a class="viewcode-back" href="../../../reference/dipy.direction.html#dipy.direction.peaks.reshape_peaks_for_visualization">[docs]</a>
-<span class="k">def</span> <span class="nf">reshape_peaks_for_visualization</span><span class="p">(</span><span class="n">peaks</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reshape_peaks_for_visualization</span><span class="p">(</span><span class="n">peaks</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reshape peaks for visualization.</span>
 
 <span class="sd">    Reshape and convert to float32 a set of peaks for visualisation with mrtrix</span>
@@ -1500,7 +1495,7 @@ document.write(`
 
 <div class="viewcode-block" id="peaks_from_positions">
 <a class="viewcode-back" href="../../../reference/dipy.direction.html#dipy.direction.peaks.peaks_from_positions">[docs]</a>
-<span class="k">def</span> <span class="nf">peaks_from_positions</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">peaks_from_positions</span><span class="p">(</span>
     <span class="n">positions</span><span class="p">,</span>
     <span class="n">odfs</span><span class="p">,</span>
     <span class="n">sphere</span><span class="p">,</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.rumba &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.reconst.rumba &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -890,23 +885,23 @@ document.write(`
   <h1>Source code for dipy.reconst.rumba</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Robust and Unbiased Model-BAsed Spherical Deconvolution (RUMBA-SD)&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.geometry</span> <span class="kn">import</span> <span class="n">vec2vec_rotmat</span>
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="n">get_bval_indices</span><span class="p">,</span> <span class="n">gradient_table</span><span class="p">,</span> <span class="n">unique_bvals_tolerance</span>
-<span class="kn">from</span> <span class="nn">dipy.core.onetime</span> <span class="kn">import</span> <span class="n">auto_attr</span>
-<span class="kn">from</span> <span class="nn">dipy.core.sphere</span> <span class="kn">import</span> <span class="n">Sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="n">AxSymShResponse</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.multi_voxel</span> <span class="kn">import</span> <span class="n">multi_voxel_fit</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.odf</span> <span class="kn">import</span> <span class="n">OdfFit</span><span class="p">,</span> <span class="n">OdfModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="n">lazy_index</span><span class="p">,</span> <span class="n">normalize_data</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <span class="n">bounding_box</span><span class="p">,</span> <span class="n">crop</span>
-<span class="kn">from</span> <span class="nn">dipy.sims.voxel</span> <span class="kn">import</span> <span class="n">all_tensor_evecs</span><span class="p">,</span> <span class="n">single_tensor</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">vec2vec_rotmat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_bval_indices</span><span class="p">,</span> <span class="n">gradient_table</span><span class="p">,</span> <span class="n">unique_bvals_tolerance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.onetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_attr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.csdeconv</span><span class="w"> </span><span class="kn">import</span> <span class="n">AxSymShResponse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.multi_voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_voxel_fit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.odf</span><span class="w"> </span><span class="kn">import</span> <span class="n">OdfFit</span><span class="p">,</span> <span class="n">OdfModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazy_index</span><span class="p">,</span> <span class="n">normalize_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">bounding_box</span><span class="p">,</span> <span class="n">crop</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">all_tensor_evecs</span><span class="p">,</span> <span class="n">single_tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 <span class="c1"># Machine precision for numerical stability in division</span>
 <span class="n">_EPS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
@@ -914,9 +909,9 @@ document.write(`
 
 <div class="viewcode-block" id="RumbaSDModel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaSDModel">[docs]</a>
-<span class="k">class</span> <span class="nc">RumbaSDModel</span><span class="p">(</span><span class="n">OdfModel</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RumbaSDModel</span><span class="p">(</span><span class="n">OdfModel</span><span class="p">):</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gtab</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1033,7 +1028,7 @@ document.write(`
         <span class="k">if</span> <span class="n">R</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">n_iter</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">n_coils</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;R, n_iter, and n_coils must be &gt;= 1, but R=</span><span class="si">{</span><span class="n">R</span><span class="si">}</span><span class="s2">,&quot;</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;n_iter=</span><span class="si">{</span><span class="n">n_iter</span><span class="si">}</span><span class="s2">, and n_coils=</span><span class="si">{</span><span class="n">n_coils</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;n_iter=</span><span class="si">{</span><span class="n">n_iter</span><span class="si">}</span><span class="s2">, and n_coils=</span><span class="si">{</span><span class="n">n_coils</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">R</span> <span class="o">=</span> <span class="n">R</span>
@@ -1063,7 +1058,7 @@ document.write(`
 
 <div class="viewcode-block" id="RumbaSDModel.fit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaSDModel.fit">[docs]</a>
-    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fit fODF and GM/CSF volume fractions.</span>
 
@@ -1097,7 +1092,7 @@ document.write(`
 
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_global_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_global_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fit fODF and GM/CSF volume fractions globally.</span>
 
@@ -1127,8 +1122,8 @@ document.write(`
         <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Mask shape should match first 3 dimensions of &quot;</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;data, but data dimensions are f</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> &quot;</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;while mask dimensions are f</span><span class="si">{</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;data, but data dimensions are f</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;while mask dimensions are f</span><span class="si">{</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># Signal repair, normalization</span>
@@ -1171,7 +1166,7 @@ document.write(`
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="nd">@multi_voxel_fit</span>
-    <span class="k">def</span> <span class="nf">_voxelwise_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_voxelwise_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fit fODF and GM/CSF volume fractions voxelwise.</span>
 
@@ -1221,8 +1216,8 @@ document.write(`
 
 <div class="viewcode-block" id="RumbaFit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaFit">[docs]</a>
-<span class="k">class</span> <span class="nc">RumbaFit</span><span class="p">(</span><span class="n">OdfFit</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">model_params</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RumbaFit</span><span class="p">(</span><span class="n">OdfFit</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">model_params</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs fODF, GM/CSF volume fractions, and other derived results.</span>
 
@@ -1244,7 +1239,7 @@ document.write(`
 <div class="viewcode-block" id="RumbaFit.odf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaFit.odf">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">odf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">odf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs fODF at discrete vertices on model sphere for each voxel.</span>
 
@@ -1262,8 +1257,7 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">sphere</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sphere</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sphere</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Reconstruction sphere must be the same as used&quot;</span>
-                <span class="o">+</span> <span class="s2">&quot; in the RUMBA-SD model.&quot;</span>
+                <span class="s2">&quot;Reconstruction sphere must be the same as used in the RUMBA-SD model.&quot;</span>
             <span class="p">)</span>
 
         <span class="n">odf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_params</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
@@ -1273,7 +1267,7 @@ document.write(`
 <div class="viewcode-block" id="RumbaFit.f_gm">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaFit.f_gm">[docs]</a>
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">f_gm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f_gm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs GM volume fraction for each voxel.</span>
 
@@ -1290,7 +1284,7 @@ document.write(`
 <div class="viewcode-block" id="RumbaFit.f_csf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaFit.f_csf">[docs]</a>
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">f_csf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f_csf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs CSF volume fraction for each voxel.</span>
 
@@ -1307,7 +1301,7 @@ document.write(`
 <div class="viewcode-block" id="RumbaFit.f_wm">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaFit.f_wm">[docs]</a>
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">f_wm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f_wm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs white matter volume fraction for each voxel.</span>
 
@@ -1326,7 +1320,7 @@ document.write(`
 <div class="viewcode-block" id="RumbaFit.f_iso">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaFit.f_iso">[docs]</a>
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">f_iso</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f_iso</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs isotropic volume fraction for each voxel.</span>
 
@@ -1345,7 +1339,7 @@ document.write(`
 <div class="viewcode-block" id="RumbaFit.combined_odf_iso">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaFit.combined_odf_iso">[docs]</a>
     <span class="nd">@auto_attr</span>
-    <span class="k">def</span> <span class="nf">combined_odf_iso</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">combined_odf_iso</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructs fODF combined with isotropic volume fraction at discrete</span>
 <span class="sd">        vertices on model sphere.</span>
@@ -1367,7 +1361,7 @@ document.write(`
 <div class="viewcode-block" id="RumbaFit.predict">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.RumbaFit.predict">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute signal prediction on model gradient table given given fODF</span>
 <span class="sd">        and GM/CSF volume fractions for each voxel.</span>
@@ -1420,7 +1414,7 @@ document.write(`
 <div class="viewcode-block" id="rumba_deconv">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.rumba_deconv">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">rumba_deconv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">recon_type</span><span class="o">=</span><span class="s2">&quot;smf&quot;</span><span class="p">,</span> <span class="n">n_coils</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rumba_deconv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">recon_type</span><span class="o">=</span><span class="s2">&quot;smf&quot;</span><span class="p">,</span> <span class="n">n_coils</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fit fODF and GM/CSF volume fractions for a voxel using RUMBA-SD.</span>
 
@@ -1585,7 +1579,7 @@ document.write(`
 
 <div class="viewcode-block" id="mbessel_ratio">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.mbessel_ratio">[docs]</a>
-<span class="k">def</span> <span class="nf">mbessel_ratio</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mbessel_ratio</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fast computation of modified Bessel function ratio (first kind).</span>
 
@@ -1640,7 +1634,7 @@ document.write(`
 
 <div class="viewcode-block" id="generate_kernel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.generate_kernel">[docs]</a>
-<span class="k">def</span> <span class="nf">generate_kernel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="n">wm_response</span><span class="p">,</span> <span class="n">gm_response</span><span class="p">,</span> <span class="n">csf_response</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_kernel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="n">wm_response</span><span class="p">,</span> <span class="n">gm_response</span><span class="p">,</span> <span class="n">csf_response</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate deconvolution kernel</span>
 
@@ -1763,7 +1757,7 @@ document.write(`
 <div class="viewcode-block" id="rumba_deconv_global">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.rumba.rumba_deconv_global">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">rumba_deconv_global</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rumba_deconv_global</span><span class="p">(</span>
     <span class="n">data</span><span class="p">,</span>
     <span class="n">kernel</span><span class="p">,</span>
     <span class="n">mask</span><span class="p">,</span>
@@ -1873,8 +1867,8 @@ document.write(`
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">use_tv</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s2">&quot;Cannot use TV regularization if any spatial&quot;</span>
-            <span class="o">+</span> <span class="s2">&quot;dimensions are 1; &quot;</span>
-            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;provided dimensions were </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;dimensions are 1; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;provided dimensions were </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
     <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1e-7</span>
@@ -1996,7 +1990,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_grad</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_grad</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes one way first difference</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2012,7 +2006,7 @@ document.write(`
     <span class="k">return</span> <span class="n">grad</span>
 
 
-<span class="k">def</span> <span class="nf">_divergence</span><span class="p">(</span><span class="n">F</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_divergence</span><span class="p">(</span><span class="n">F</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes divergence of a 3-dimensional vector field (with one way</span>
 <span class="sd">    first difference)</span>
@@ -2041,7 +2035,7 @@ document.write(`
 
 
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">_reshape_2d_4d</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_reshape_2d_4d</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reshape from 2D to 4D using numpy fancy indexing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.nn.torch.deepn4 &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.nn.torch.deepn4 &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -891,18 +886,18 @@ document.write(`
 <span></span><span class="ch">#!/usr/bin/python</span>
 <span class="sd">&quot;&quot;&quot;Class and helper functions for fitting the DeepN4 model.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">gaussian_filter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">gaussian_filter</span>
 
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">get_fnames</span>
-<span class="kn">from</span> <span class="nn">dipy.nn.utils</span> <span class="kn">import</span> <span class="n">normalize</span><span class="p">,</span> <span class="n">recover_img</span><span class="p">,</span> <span class="n">set_logger_level</span><span class="p">,</span> <span class="n">transform_img</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">doctest_skip_parser</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_fnames</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.nn.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize</span><span class="p">,</span> <span class="n">recover_img</span><span class="p">,</span> <span class="n">set_logger_level</span><span class="p">,</span> <span class="n">transform_img</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">doctest_skip_parser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
 <span class="n">torch</span><span class="p">,</span> <span class="n">have_torch</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;torch&quot;</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">&quot;2.2.0&quot;</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">have_torch</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">torch.nn</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">Conv3d</span><span class="p">,</span>
         <span class="n">ConvTranspose3d</span><span class="p">,</span>
         <span class="n">InstanceNorm3d</span><span class="p">,</span>
@@ -913,7 +908,7 @@ document.write(`
     <span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
 
-    <span class="k">class</span> <span class="nc">Module</span><span class="p">:</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Module</span><span class="p">:</span>
         <span class="k">pass</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -925,7 +920,7 @@ document.write(`
 
 <div class="viewcode-block" id="UNet3D">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.UNet3D">[docs]</a>
-<span class="k">class</span> <span class="nc">UNet3D</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UNet3D</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;3D U-Net architecture for the DeepN4 model.</span>
 
 <span class="sd">    Parameters</span>
@@ -936,8 +931,8 @@ document.write(`
 <span class="sd">        Number of output channels.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">UNet3D</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># Encoder</span>
         <span class="n">c</span> <span class="o">=</span> <span class="mi">32</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ec0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_block</span><span class="p">(</span><span class="n">n_in</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -976,7 +971,7 @@ document.write(`
 
 <div class="viewcode-block" id="UNet3D.encoder_block">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.UNet3D.encoder_block">[docs]</a>
-    <span class="k">def</span> <span class="nf">encoder_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">encoder_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Encoder block for the 3D U-Net.</span>
 
 <span class="sd">        Parameters</span>
@@ -1014,7 +1009,7 @@ document.write(`
 
 <div class="viewcode-block" id="UNet3D.decoder_block">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.UNet3D.decoder_block">[docs]</a>
-    <span class="k">def</span> <span class="nf">decoder_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decoder_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decoder block for the 3D U-Net.</span>
 
 <span class="sd">        Parameters</span>
@@ -1052,7 +1047,7 @@ document.write(`
 
 <div class="viewcode-block" id="UNet3D.forward">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.UNet3D.forward">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward pass of the 3D U-Net.</span>
 
 <span class="sd">        Parameters</span>
@@ -1122,7 +1117,7 @@ document.write(`
 
 <div class="viewcode-block" id="DeepN4">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.DeepN4">[docs]</a>
-<span class="k">class</span> <span class="nc">DeepN4</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DeepN4</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is intended for the DeepN4 model.</span>
 
 <span class="sd">    The DeepN4 model :footcite:p:`Kanakaraj2024` predicts the bias field for</span>
@@ -1134,7 +1129,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@doctest_skip_parser</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Model initialization</span>
 
 <span class="sd">        To obtain the pre-trained model, use fetch_default_weights() like:</span>
@@ -1170,7 +1165,7 @@ document.write(`
 
 <div class="viewcode-block" id="DeepN4.fetch_default_weights">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.DeepN4.fetch_default_weights">[docs]</a>
-    <span class="k">def</span> <span class="nf">fetch_default_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_default_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the model pre-training weights to use for the fitting.&quot;&quot;&quot;</span>
         <span class="n">fetch_model_weights_path</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;deepn4_default_torch_weights&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_model_weights</span><span class="p">(</span><span class="n">fetch_model_weights_path</span><span class="p">)</span></div>
@@ -1178,7 +1173,7 @@ document.write(`
 
 <div class="viewcode-block" id="DeepN4.load_model_weights">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.DeepN4.load_model_weights">[docs]</a>
-    <span class="k">def</span> <span class="nf">load_model_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weights_path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_model_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weights_path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the custom pre-training weights to use for the fitting.</span>
 
 <span class="sd">        Parameters</span>
@@ -1199,10 +1194,10 @@ document.write(`
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Expected input for the provided model weights </span><span class="se">\</span>
 <span class="s2">                             do not match the declared model&quot;</span>
-            <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span></div>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
-    <span class="k">def</span> <span class="nf">__predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_test</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_test</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal prediction function</span>
 <span class="sd">        Predict bias field from input T1 signal</span>
 
@@ -1216,11 +1211,11 @@ document.write(`
 <span class="sd">        np.ndarray (batch, ...)</span>
 <span class="sd">            Predicted bias field</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x_test</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x_test</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
 <div class="viewcode-block" id="DeepN4.pad">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.DeepN4.pad">[docs]</a>
-    <span class="k">def</span> <span class="nf">pad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">sz</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">sz</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Pad or crop the image to the specified size.</span>
 
 <span class="sd">        Parameters</span>
@@ -1270,7 +1265,7 @@ document.write(`
 
 <div class="viewcode-block" id="DeepN4.load_resample">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.DeepN4.load_resample">[docs]</a>
-    <span class="k">def</span> <span class="nf">load_resample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_resample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Preprocess the subject image for the model.</span>
 
 <span class="sd">        This includes padding, normalization, and converting to a tensor.</span>
@@ -1314,7 +1309,7 @@ document.write(`
 
 <div class="viewcode-block" id="DeepN4.predict">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.torch.deepn4.DeepN4.predict">[docs]</a>
-    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">img_affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">img_affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Wrapper function to facilitate prediction of larger dataset.</span>
 <span class="sd">        The function will mask, normalize, split, predict and &#39;re-assemble&#39;</span>
 <span class="sd">        the data as a volume.</span>

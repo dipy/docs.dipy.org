@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.tracking.tracker &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.tracking.tracker &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,26 +883,26 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.tracking.tracker</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">nibabel.affines</span> <span class="kn">import</span> <span class="n">voxel_sizes</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">voxel_sizes</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">default_sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.direction</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BootDirectionGetter</span><span class="p">,</span>
     <span class="n">ClosestPeakDirectionGetter</span><span class="p">,</span>
     <span class="n">ProbabilisticDirectionGetter</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.direction.peaks</span> <span class="kn">import</span> <span class="n">peaks_from_positions</span>
-<span class="kn">from</span> <span class="nn">dipy.direction.pmf</span> <span class="kn">import</span> <span class="n">SHCoeffPmfGen</span><span class="p">,</span> <span class="n">SimplePeakGen</span><span class="p">,</span> <span class="n">SimplePmfGen</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.local_tracking</span> <span class="kn">import</span> <span class="n">LocalTracking</span><span class="p">,</span> <span class="n">ParticleFilteringTracking</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.tracker_parameters</span> <span class="kn">import</span> <span class="n">generate_tracking_parameters</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.tractogen</span> <span class="kn">import</span> <span class="n">generate_tractogram</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking.utils</span> <span class="kn">import</span> <span class="n">seeds_directions_pairs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">peaks_from_positions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.pmf</span><span class="w"> </span><span class="kn">import</span> <span class="n">SHCoeffPmfGen</span><span class="p">,</span> <span class="n">SimplePeakGen</span><span class="p">,</span> <span class="n">SimplePmfGen</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.local_tracking</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalTracking</span><span class="p">,</span> <span class="n">ParticleFilteringTracking</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.tracker_parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_tracking_parameters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.tractogen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_tractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">seeds_directions_pairs</span>
 
 
 <div class="viewcode-block" id="generic_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.generic_tracking">[docs]</a>
-<span class="k">def</span> <span class="nf">generic_tracking</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generic_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">seed_directions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
@@ -1059,7 +1054,7 @@ document.write(`
 
 <div class="viewcode-block" id="probabilistic_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.probabilistic_tracking">[docs]</a>
-<span class="k">def</span> <span class="nf">probabilistic_tracking</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">probabilistic_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
@@ -1179,7 +1174,7 @@ document.write(`
 
 <div class="viewcode-block" id="deterministic_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.deterministic_tracking">[docs]</a>
-<span class="k">def</span> <span class="nf">deterministic_tracking</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">deterministic_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
@@ -1298,7 +1293,7 @@ document.write(`
 
 <div class="viewcode-block" id="ptt_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.ptt_tracking">[docs]</a>
-<span class="k">def</span> <span class="nf">ptt_tracking</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ptt_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
@@ -1436,7 +1431,7 @@ document.write(`
 
 <div class="viewcode-block" id="closestpeak_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.closestpeak_tracking">[docs]</a>
-<span class="k">def</span> <span class="nf">closestpeak_tracking</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">closestpeak_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
@@ -1558,7 +1553,7 @@ document.write(`
 
 <div class="viewcode-block" id="bootstrap_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.bootstrap_tracking">[docs]</a>
-<span class="k">def</span> <span class="nf">bootstrap_tracking</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
@@ -1676,7 +1671,7 @@ document.write(`
 
 <div class="viewcode-block" id="eudx_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.eudx_tracking">[docs]</a>
-<span class="k">def</span> <span class="nf">eudx_tracking</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">eudx_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
@@ -1804,7 +1799,7 @@ document.write(`
 
 <div class="viewcode-block" id="pft_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.pft_tracking">[docs]</a>
-<span class="k">def</span> <span class="nf">pft_tracking</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">pft_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>

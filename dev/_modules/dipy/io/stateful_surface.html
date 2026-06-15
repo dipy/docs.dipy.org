@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.stateful_surface &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.io.stateful_surface &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,28 +883,28 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.io.stateful_surface</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">product</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">nibabel.affines</span> <span class="kn">import</span> <span class="n">apply_affine</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.io.utils</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Origin</span><span class="p">,</span>
     <span class="n">Space</span><span class="p">,</span>
     <span class="n">get_reference_info</span><span class="p">,</span>
     <span class="n">is_header_compatible</span><span class="p">,</span>
     <span class="n">is_reference_info_valid</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.io.vtk</span> <span class="kn">import</span> <span class="n">convert_to_polydata</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.vtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_to_polydata</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;StatefulSurface&quot;</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">set_sfs_logger_level</span><span class="p">(</span><span class="n">log_level</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_sfs_logger_level</span><span class="p">(</span><span class="n">log_level</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Change the logger of the StatefulSurface</span>
 <span class="sd">    to one on the following: DEBUG, INFO, WARNING, CRITICAL, ERROR</span>
 
@@ -923,14 +918,14 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface">[docs]</a>
-<span class="k">class</span> <span class="nc">StatefulSurface</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StatefulSurface</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for stateful representation of meshes and lines</span>
 <span class="sd">    Object designed to be identical no matter the file format</span>
 <span class="sd">    (gii, vtk, ply, stl, obj, pial). Facilitate transformation between space</span>
 <span class="sd">    and data manipulation for each streamline / vertex.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">vertices</span><span class="p">,</span>
         <span class="n">faces</span><span class="p">,</span>
@@ -1056,7 +1051,7 @@ document.write(`
 <div class="viewcode-block" id="StatefulSurface.are_compatible">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.are_compatible">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">are_compatible</span><span class="p">(</span><span class="n">sfs_1</span><span class="p">,</span> <span class="n">sfs_2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">are_compatible</span><span class="p">(</span><span class="n">sfs_1</span><span class="p">,</span> <span class="n">sfs_2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compatibility verification of two StatefulSurface to ensure space,</span>
 <span class="sd">        origin, data_per_vertex consistency&quot;&quot;&quot;</span>
 
@@ -1082,7 +1077,7 @@ document.write(`
 <div class="viewcode-block" id="StatefulSurface.from_sfs">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.from_sfs">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_sfs</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">sfs</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">faces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_per_vertex</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_sfs</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">sfs</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">faces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_per_vertex</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an instance of `StatefulSurface` from another instance</span>
 <span class="sd">        of `StatefulSurface`.</span>
 
@@ -1114,7 +1109,7 @@ document.write(`
         <span class="k">return</span> <span class="n">new_sfs</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate the string for printing&quot;&quot;&quot;</span>
         <span class="n">affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_affine</span><span class="p">,</span> <span class="n">formatter</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;float_kind&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
@@ -1134,15 +1129,15 @@ document.write(`
 
         <span class="k">return</span> <span class="n">text</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Define the length of the object&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_vertex_count</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="c1"># TODO: implement slicing if make sense</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Robust StatefulSurface equality test&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">are_compatible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -1160,26 +1155,23 @@ document.write(`
                 <span class="n">other</span><span class="o">.</span><span class="n">data_per_vertex</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">get_data</span><span class="p">(),</span>
                 <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">dpp_equal</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">dpp_equal</span>
 
-        <span class="k">return</span> <span class="kc">True</span>
-
-    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Robust StatefulSurface equality test (NOT)&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
 
-    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_sfs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_sfs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Addition of two sfs with attributes consistency checks&quot;&quot;&quot;</span>
         <span class="c1"># TODO</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="c1"># TODO</span>
         <span class="k">pass</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dtype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dtype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for dtype_dict&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_vertices&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_faces&quot;</span><span class="p">):</span>
@@ -1199,52 +1191,52 @@ document.write(`
         <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">dtype_dict</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">space_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">space_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for spatial attribute&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_affine</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voxel_sizes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voxel_order</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the current space&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">affine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">affine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the reference affine&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_affine</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the reference dimensions&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">voxel_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">voxel_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the reference voxel sizes&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voxel_sizes</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">voxel_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">voxel_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the reference voxel order&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voxel_order</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for origin standard&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Partially safe getter for vertices&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">faces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">faces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Partially safe getter for faces&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_faces</span>
 
     <span class="nd">@dtype_dict</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">dtype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype_dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dtype_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype_dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Modify dtype_dict.</span>
 
 <span class="sd">        Parameters</span>
@@ -1276,16 +1268,16 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.get_vertices_copy">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.get_vertices_copy">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_vertices_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_vertices_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe getter for vertices (for slicing)&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span> <span class="nf">get_polydata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_polydata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">convert_to_polydata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_faces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_per_vertex</span><span class="p">)</span>
 
     <span class="nd">@vertices</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Modify surface. Creating a new object would be less risky.</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1296,12 +1288,12 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span> <span class="o">=</span> <span class="n">data</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">data_per_vertex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data_per_vertex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for data_per_vertex&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_per_vertex</span>
 
     <span class="nd">@data_per_vertex</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">data_per_vertex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data_per_vertex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Modify vertex data . Creating a new object would be less risky.</span>
 
 <span class="sd">        Parameters</span>
@@ -1315,14 +1307,14 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.get_data_per_vertex_keys">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.get_data_per_vertex_keys">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_data_per_vertex_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_data_per_vertex_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of the data_per_vertex attribute names&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_per_vertex</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
 
 <div class="viewcode-block" id="StatefulSurface.to_vox">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.to_vox">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to transform vertices and update state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_voxmm_to_vox</span><span class="p">()</span>
@@ -1334,7 +1326,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.to_voxmm">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.to_voxmm">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to transform vertices and update state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vox_to_voxmm</span><span class="p">()</span>
@@ -1346,7 +1338,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.to_rasmm">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.to_rasmm">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to transform vertices and update state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vox_to_rasmm</span><span class="p">()</span>
@@ -1356,7 +1348,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">_lpsmm_to_rasmm</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span> <span class="nf">to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vox_to_lpsmm</span><span class="p">()</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
@@ -1366,7 +1358,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.to_space">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.to_space">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_space</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_space</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to transform vertices to a particular space using</span>
 <span class="sd">        an enum and update state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">target_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
@@ -1385,7 +1377,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.to_origin">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.to_origin">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_origin</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_origin</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to change vertices to a particular origin standard</span>
 <span class="sd">        False means NIFTI (center) and True means TrackVis (corner)&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">target_origin</span> <span class="o">==</span> <span class="n">Origin</span><span class="o">.</span><span class="n">NIFTI</span><span class="p">:</span>
@@ -1401,7 +1393,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.to_center">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.to_center">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to shift vertices so the center of voxel is</span>
 <span class="sd">        the origin&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span> <span class="o">==</span> <span class="n">Origin</span><span class="o">.</span><span class="n">TRACKVIS</span><span class="p">:</span>
@@ -1410,7 +1402,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.to_corner">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.to_corner">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_corner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_corner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe function to shift vertices so the corner of voxel is</span>
 <span class="sd">        the origin&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span> <span class="o">==</span> <span class="n">Origin</span><span class="o">.</span><span class="n">NIFTI</span><span class="p">:</span>
@@ -1419,7 +1411,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.compute_bounding_box">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.compute_bounding_box">[docs]</a>
-    <span class="k">def</span> <span class="nf">compute_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the bounding box of the vertices in their current state</span>
 
 <span class="sd">        Returns</span>
@@ -1437,7 +1429,7 @@ document.write(`
 
 <div class="viewcode-block" id="StatefulSurface.is_bbox_in_vox_valid">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.is_bbox_in_vox_valid">[docs]</a>
-    <span class="k">def</span> <span class="nf">is_bbox_in_vox_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_bbox_in_vox_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify that the bounding box is valid in voxel space.</span>
 <span class="sd">        Negative coordinates or coordinates above the volume dimensions</span>
 <span class="sd">        are considered invalid in voxel space.</span>
@@ -1479,19 +1471,19 @@ document.write(`
         <span class="k">return</span> <span class="n">is_valid</span></div>
 
 
-    <span class="k">def</span> <span class="nf">remove_invalid_vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_invalid_vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
         <span class="c1"># TODO: implement if make sense (must cut faces too)</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">_get_face_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_face_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe getter for the number of faces&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_faces</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_vertex_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_vertex_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Safe getter for the number of vertices&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_vox_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_vox_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1501,7 +1493,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_voxmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_voxmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1511,7 +1503,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_vox_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_vox_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1523,7 +1515,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_rasmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rasmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1535,7 +1527,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_voxmm_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_voxmm_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1548,7 +1540,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_rasmm_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rasmm_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1561,7 +1553,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_lpsmm_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lpsmm_to_rasmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">LPSMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1572,7 +1564,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_rasmm_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rasmm_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1583,7 +1575,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_lpsmm_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lpsmm_to_voxmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">LPSMM</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_lpsmm_to_rasmm</span><span class="p">()</span>
@@ -1592,7 +1584,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_voxmm_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_voxmm_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOXMM</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_voxmm_to_rasmm</span><span class="p">()</span>
@@ -1601,7 +1593,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_lpsmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lpsmm_to_vox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">LPSMM</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_lpsmm_to_rasmm</span><span class="p">()</span>
@@ -1610,7 +1602,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_vox_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_vox_to_lpsmm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to transform vertices&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">==</span> <span class="n">Space</span><span class="o">.</span><span class="n">VOX</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vox_to_rasmm</span><span class="p">()</span>
@@ -1619,7 +1611,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrong initial space for this function.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_shift_voxel_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_shift_voxel_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unsafe function to switch the origin from center to corner</span>
 <span class="sd">        and vice versa&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>

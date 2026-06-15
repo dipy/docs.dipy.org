@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.mcsd &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.reconst.mcsd &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,28 +883,28 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.reconst.mcsd</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numbers</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numbers</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core</span> <span class="kn">import</span> <span class="n">geometry</span> <span class="k">as</span> <span class="n">geo</span>
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">geometry</span> <span class="k">as</span> <span class="n">geo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">GradientTable</span><span class="p">,</span>
     <span class="n">get_bval_indices</span><span class="p">,</span>
     <span class="n">gradient_table</span><span class="p">,</span>
     <span class="n">unique_bvals_tolerance</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">default_sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst</span> <span class="kn">import</span> <span class="n">shm</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="n">response_from_mask_ssst</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="n">TensorModel</span><span class="p">,</span> <span class="n">fractional_anisotropy</span><span class="p">,</span> <span class="n">mean_diffusivity</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.multi_voxel</span> <span class="kn">import</span> <span class="n">multi_voxel_fit</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.utils</span> <span class="kn">import</span> <span class="n">_mask_from_roi</span><span class="p">,</span> <span class="n">_roi_in_volume</span>
-<span class="kn">from</span> <span class="nn">dipy.sims.voxel</span> <span class="kn">import</span> <span class="n">single_tensor</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.deprecator</span> <span class="kn">import</span> <span class="n">deprecated_params</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst</span><span class="w"> </span><span class="kn">import</span> <span class="n">shm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.csdeconv</span><span class="w"> </span><span class="kn">import</span> <span class="n">response_from_mask_ssst</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dti</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorModel</span><span class="p">,</span> <span class="n">fractional_anisotropy</span><span class="p">,</span> <span class="n">mean_diffusivity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.multi_voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_voxel_fit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_mask_from_roi</span><span class="p">,</span> <span class="n">_roi_in_volume</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">single_tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
 <span class="n">cvxpy</span><span class="p">,</span> <span class="n">have_cvxpy</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;cvxpy&quot;</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">&quot;1.4.1&quot;</span><span class="p">)</span>
 
@@ -919,7 +914,7 @@ document.write(`
 <div class="viewcode-block" id="multi_tissue_basis">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.multi_tissue_basis">[docs]</a>
 <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">multi_tissue_basis</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="p">,</span> <span class="n">iso_comp</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">multi_tissue_basis</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="p">,</span> <span class="n">iso_comp</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds a basis for multi-shell multi-tissue CSD model.</span>
 
@@ -962,10 +957,10 @@ document.write(`
 
 <div class="viewcode-block" id="MultiShellResponse">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.MultiShellResponse">[docs]</a>
-<span class="k">class</span> <span class="nc">MultiShellResponse</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiShellResponse</span><span class="p">:</span>
     <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="p">,</span> <span class="n">shells</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="p">,</span> <span class="n">shells</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate Multi Shell response function for multiple tissues and</span>
 <span class="sd">        multiple shells.</span>
 
@@ -997,13 +992,13 @@ document.write(`
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;sh_order_max and shape of response do not agree&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">iso</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iso</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sh_order_max</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span></div>
 
 
 
 <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">_inflate_response</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_inflate_response</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Used to inflate the response for the `multiplier_matrix` in the</span>
 <span class="sd">    `MultiShellDeconvModel`.</span>
 
@@ -1034,7 +1029,7 @@ document.write(`
     <span class="k">return</span> <span class="n">kernel</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="n">b_idx</span><span class="p">,</span> <span class="n">n_idx</span><span class="p">)]</span>
 
 
-<span class="k">def</span> <span class="nf">_basic_delta</span><span class="p">(</span><span class="n">iso</span><span class="p">,</span> <span class="n">m_value</span><span class="p">,</span> <span class="n">l_value</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_basic_delta</span><span class="p">(</span><span class="n">iso</span><span class="p">,</span> <span class="n">m_value</span><span class="p">,</span> <span class="n">l_value</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple delta function</span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1058,10 +1053,10 @@ document.write(`
 
 <div class="viewcode-block" id="MultiShellDeconvModel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.MultiShellDeconvModel">[docs]</a>
-<span class="k">class</span> <span class="nc">MultiShellDeconvModel</span><span class="p">(</span><span class="n">shm</span><span class="o">.</span><span class="n">SphHarmModel</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiShellDeconvModel</span><span class="p">(</span><span class="n">shm</span><span class="o">.</span><span class="n">SphHarmModel</span><span class="p">):</span>
     <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gtab</span><span class="p">,</span>
         <span class="n">response</span><span class="p">,</span>
@@ -1122,7 +1117,7 @@ document.write(`
             <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Multi-tissue CSD requires at least 2 tissue compartments&quot;</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">(</span><span class="n">MultiShellDeconvModel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">gtab</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">gtab</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">MultiShellResponse</span><span class="p">):</span>
             <span class="n">bvals</span> <span class="o">=</span> <span class="n">unique_bvals_tolerance</span><span class="p">(</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
@@ -1171,7 +1166,7 @@ document.write(`
 <div class="viewcode-block" id="MultiShellDeconvModel.predict">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.MultiShellDeconvModel.predict">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute a signal prediction given spherical harmonic coefficients</span>
 <span class="sd">        for the provided GradientTable class instance.</span>
 
@@ -1216,7 +1211,7 @@ document.write(`
 
 
     <span class="nd">@multi_voxel_fit</span>
-    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fits the model to diffusion data and returns the model fit.</span>
 
 <span class="sd">        Sometimes the solving process of some voxels can end in a SolverError</span>
@@ -1248,8 +1243,8 @@ document.write(`
 
 <div class="viewcode-block" id="MSDeconvFit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.MSDeconvFit">[docs]</a>
-<span class="k">class</span> <span class="nc">MSDeconvFit</span><span class="p">(</span><span class="n">shm</span><span class="o">.</span><span class="n">SphHarmFit</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MSDeconvFit</span><span class="p">(</span><span class="n">shm</span><span class="o">.</span><span class="n">SphHarmFit</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Abstract class which holds the fit result of MultiShellDeconvModel.</span>
 <span class="sd">        Inherits the SphHarmFit which fits the diffusion data to a spherical</span>
@@ -1269,15 +1264,15 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shm_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shm_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shm_coef</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">iso</span> <span class="p">:]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">all_shm_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">all_shm_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shm_coef</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">volume_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">volume_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tissue_classes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">iso</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shm_coef</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">tissue_classes</span><span class="p">]</span> <span class="o">/</span> <span class="n">SH_CONST</span></div>
 
@@ -1285,7 +1280,7 @@ document.write(`
 
 <div class="viewcode-block" id="solve_qp">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.solve_qp">[docs]</a>
-<span class="k">def</span> <span class="nf">solve_qp</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_qp</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function to set up and solve the Quadratic Program (QP) in CVXPY.</span>
 <span class="sd">    A QP problem has the following form:</span>
@@ -1330,8 +1325,8 @@ document.write(`
 
 <div class="viewcode-block" id="QpFitter">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.QpFitter">[docs]</a>
-<span class="k">class</span> <span class="nc">QpFitter</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">reg</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QpFitter</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">reg</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Makes use of the quadratic programming solver `solve_qp` to fit the</span>
 <span class="sd">        model. The initialization for the model is done using the warm-start by</span>
@@ -1353,7 +1348,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_reg_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="n">reg</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_h_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal</span><span class="p">):</span>
         <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
         <span class="n">Q_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="n">Q</span><span class="p">)</span>
         <span class="n">fodf_sh</span> <span class="o">=</span> <span class="n">solve_qp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_P_mat</span><span class="p">,</span> <span class="n">Q_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_h_mat</span><span class="p">)</span>
@@ -1365,7 +1360,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.multi_shell_fiber_response">[docs]</a>
 <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">multi_shell_fiber_response</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">multi_shell_fiber_response</span><span class="p">(</span>
     <span class="n">sh_order_max</span><span class="p">,</span> <span class="n">bvals</span><span class="p">,</span> <span class="n">wm_rf</span><span class="p">,</span> <span class="n">gm_rf</span><span class="p">,</span> <span class="n">csf_rf</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">btens</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fiber response function estimation for multi-shell data.</span>
@@ -1478,7 +1473,7 @@ document.write(`
 <div class="viewcode-block" id="mask_for_response_msmt">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.mask_for_response_msmt">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">mask_for_response_msmt</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_for_response_msmt</span><span class="p">(</span>
     <span class="n">gtab</span><span class="p">,</span>
     <span class="n">data</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1617,7 +1612,7 @@ document.write(`
 <div class="viewcode-block" id="response_from_mask_msmt">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.response_from_mask_msmt">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">response_from_mask_msmt</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask_wm</span><span class="p">,</span> <span class="n">mask_gm</span><span class="p">,</span> <span class="n">mask_csf</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">response_from_mask_msmt</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask_wm</span><span class="p">,</span> <span class="n">mask_gm</span><span class="p">,</span> <span class="n">mask_csf</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Computation of multi-shell multi-tissue (msmt) response</span>
 <span class="sd">        functions from given tissues masks.</span>
 
@@ -1705,7 +1700,7 @@ document.write(`
 <div class="viewcode-block" id="auto_response_msmt">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.mcsd.auto_response_msmt">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">auto_response_msmt</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">auto_response_msmt</span><span class="p">(</span>
     <span class="n">gtab</span><span class="p">,</span>
     <span class="n">data</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>

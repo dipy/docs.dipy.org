@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.data.fetcher &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.data.fetcher &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -893,34 +888,34 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.data.fetcher</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">contextlib</span>
-<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">md5</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copyfileobj</span>
-<span class="kn">import</span> <span class="nn">tarfile</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">urllib.error</span> <span class="kn">import</span> <span class="n">HTTPError</span><span class="p">,</span> <span class="n">URLError</span>
-<span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
-<span class="kn">import</span> <span class="nn">zipfile</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hashlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">md5</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">copyfileobj</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tarfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.error</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPError</span><span class="p">,</span> <span class="n">URLError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 
-<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">tqdm.auto</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm.auto</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">gradient_table</span><span class="p">,</span>
     <span class="n">gradient_table_from_gradient_strength_bvecs</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">load_nifti_data</span><span class="p">,</span> <span class="n">save_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.io.streamline</span> <span class="kn">import</span> <span class="n">load_tractogram</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">TripWire</span><span class="p">,</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">load_nifti_data</span><span class="p">,</span> <span class="n">save_nifti</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_tractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">TripWire</span><span class="p">,</span> <span class="n">optional_package</span>
 
 <span class="c1"># Set a user-writeable file-system location to put files:</span>
 <span class="k">if</span> <span class="s2">&quot;DIPY_HOME&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
@@ -948,8 +943,8 @@ document.write(`
     <span class="p">{</span><span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 6.1; Win64; x64)&quot;</span><span class="p">},</span>
     <span class="c1"># Firefox 77 Mac</span>
     <span class="p">{</span>
-        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0&quot;</span><span class="p">,</span>  <span class="c1"># noqa</span>
-        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&quot;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Accept-Language&quot;</span><span class="p">:</span> <span class="s2">&quot;en-US,en;q=0.5&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Referer&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.google.com/&quot;</span><span class="p">,</span>
         <span class="s2">&quot;DNT&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
@@ -958,8 +953,8 @@ document.write(`
     <span class="p">},</span>
     <span class="c1"># Firefox 77 Windows</span>
     <span class="p">{</span>
-        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0&quot;</span><span class="p">,</span>  <span class="c1"># noqa</span>
-        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&quot;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Accept-Language&quot;</span><span class="p">:</span> <span class="s2">&quot;en-US,en;q=0.5&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Accept-Encoding&quot;</span><span class="p">:</span> <span class="s2">&quot;gzip, deflate, br&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Referer&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.google.com/&quot;</span><span class="p">,</span>
@@ -972,8 +967,8 @@ document.write(`
         <span class="s2">&quot;Connection&quot;</span><span class="p">:</span> <span class="s2">&quot;keep-alive&quot;</span><span class="p">,</span>
         <span class="s2">&quot;DNT&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Upgrade-Insecure-Requests&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36&quot;</span><span class="p">,</span>  <span class="c1"># noqa</span>
-        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9&quot;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Sec-Fetch-Site&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Sec-Fetch-Mode&quot;</span><span class="p">:</span> <span class="s2">&quot;navigate&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Sec-Fetch-Dest&quot;</span><span class="p">:</span> <span class="s2">&quot;document&quot;</span><span class="p">,</span>
@@ -985,8 +980,8 @@ document.write(`
     <span class="p">{</span>
         <span class="s2">&quot;Connection&quot;</span><span class="p">:</span> <span class="s2">&quot;keep-alive&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Upgrade-Insecure-Requests&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36&quot;</span><span class="p">,</span>  <span class="c1"># noqa</span>
-        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9&quot;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Sec-Fetch-Site&quot;</span><span class="p">:</span> <span class="s2">&quot;same-origin&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Sec-Fetch-Mode&quot;</span><span class="p">:</span> <span class="s2">&quot;navigate&quot;</span><span class="p">,</span>
         <span class="s2">&quot;Sec-Fetch-User&quot;</span><span class="p">:</span> <span class="s2">&quot;?1&quot;</span><span class="p">,</span>
@@ -998,14 +993,14 @@ document.write(`
 <span class="p">]</span>
 
 
-<span class="k">class</span> <span class="nc">FetcherError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FetcherError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span>
 
 
 <div class="viewcode-block" id="copyfileobj_withprogress">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.copyfileobj_withprogress">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">copyfileobj_withprogress</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span> <span class="n">fdst</span><span class="p">,</span> <span class="n">total_length</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">copyfileobj_withprogress</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span> <span class="n">fdst</span><span class="p">,</span> <span class="n">total_length</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
         <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">total_length</span><span class="p">),</span> <span class="n">length</span><span class="p">),</span>
         <span class="n">unit</span><span class="o">=</span><span class="s2">&quot; MB&quot;</span><span class="p">,</span>
@@ -1018,16 +1013,25 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_already_there_msg</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_already_there_msg</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Prints a message indicating that a certain data-set is already in place</span>
+<span class="sd">    Log a message indicating that the dataset is already present.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str</span>
+<span class="sd">        Path to the folder containing the dataset.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Dataset is already in place. If you want to fetch it again &quot;</span>
     <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;please first remove the folder </span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2"> &quot;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_get_file_md5</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_file_md5</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the md5 checksum of a file&quot;&quot;&quot;</span>
     <span class="n">md5_data</span> <span class="o">=</span> <span class="n">md5</span><span class="p">()</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -1039,7 +1043,7 @@ document.write(`
 <div class="viewcode-block" id="check_md5">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.check_md5">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">check_md5</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">stored_md5</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_md5</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">stored_md5</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes the md5 of filename and check if it matches with the supplied</span>
 <span class="sd">    string md5</span>
@@ -1048,7 +1052,7 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    filename : string</span>
 <span class="sd">        Path to a file.</span>
-<span class="sd">    md5 : string</span>
+<span class="sd">    stored_md5 : string, optional</span>
 <span class="sd">        Known md5 of filename to check against. If None (default), checking is</span>
 <span class="sd">        skipped</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1064,7 +1068,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_get_mirror_url</span><span class="p">(</span><span class="n">original_url</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_mirror_url</span><span class="p">(</span><span class="n">original_url</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert original URL to mirror URL preserving path structure.</span>
 
 <span class="sd">    Parameters</span>
@@ -1095,7 +1099,7 @@ document.write(`
     <span class="k">return</span> <span class="kc">None</span>
 
 
-<span class="k">def</span> <span class="nf">_get_file_data</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_file_data</span><span class="p">(</span>
     <span class="n">fname</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">use_headers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">stored_md5</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get data from url and write it to file with retry logic and mirror fallback.</span>
@@ -1247,7 +1251,7 @@ document.write(`
 <div class="viewcode-block" id="fetch_data">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.fetch_data">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">fetch_data</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_data</span><span class="p">(</span>
     <span class="n">files</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">data_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_headers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Downloads files to folder and checks their md5 checksums</span>
@@ -1279,7 +1283,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating new folder </span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">data_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data size is approximately </span><span class="si">{</span><span class="n">data_size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1291,7 +1295,7 @@ document.write(`
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
         <span class="n">url</span><span class="p">,</span> <span class="n">md5</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
         <span class="n">fullpath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">f</span>
-        <span class="k">if</span> <span class="n">fullpath</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">_get_file_md5</span><span class="p">(</span><span class="n">fullpath</span><span class="p">)</span> <span class="o">==</span> <span class="n">md5</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">fullpath</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">md5</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_get_file_md5</span><span class="p">(</span><span class="n">fullpath</span><span class="p">)</span> <span class="o">==</span> <span class="n">md5</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="n">all_skip</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Downloading &quot;</span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s1">&quot; to </span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -1299,7 +1303,7 @@ document.write(`
         <span class="k">try</span><span class="p">:</span>
             <span class="n">_get_file_data</span><span class="p">(</span><span class="n">fullpath</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">use_headers</span><span class="o">=</span><span class="n">use_headers</span><span class="p">,</span> <span class="n">stored_md5</span><span class="o">=</span><span class="n">md5</span><span class="p">)</span>
             <span class="n">successful_downloads</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">except</span> <span class="p">(</span><span class="n">FetcherError</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">failed_files</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
             <span class="k">if</span> <span class="n">raise_on_error</span><span class="p">:</span>
                 <span class="k">raise</span>
@@ -1328,7 +1332,7 @@ document.write(`
 
 
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">_make_fetcher</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_fetcher</span><span class="p">(</span>
     <span class="n">name</span><span class="p">,</span>
     <span class="n">folder</span><span class="p">,</span>
     <span class="n">baseurl</span><span class="p">,</span>
@@ -1385,7 +1389,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">optional_fnames</span> <span class="o">=</span> <span class="n">optional_fnames</span> <span class="ow">or</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">fetcher</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetcher</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">files</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="p">(</span>
             <span class="n">i</span><span class="p">,</span>
@@ -1668,7 +1672,7 @@ document.write(`
     <span class="p">],</span>
     <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Download a DSI dataset with 203 gradient directions&quot;</span><span class="p">,</span>
     <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;See DSI203_license.txt for LICENSE. For the complete datasets&quot;</span>
-    <span class="o">+</span> <span class="s2">&quot; please visit https://dsi-studio.labsolver.org&quot;</span><span class="p">,</span>
+    <span class="s2">&quot; please visit https://dsi-studio.labsolver.org&quot;</span><span class="p">,</span>
     <span class="n">data_size</span><span class="o">=</span><span class="s2">&quot;91MB&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -1743,7 +1747,7 @@ document.write(`
     <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;datasets_multi-site_all_companies.zip&quot;</span><span class="p">)],</span>
     <span class="n">md5_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;e9810fa5bf21b99da786647994d7d5b7&quot;</span><span class="p">],</span>
     <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Download b=0 datasets from multiple MR systems (GE, Philips, &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;Siemens) and different magnetic fields (1.5T and 3T)&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Siemens) and different magnetic fields (1.5T and 3T)&quot;</span><span class="p">,</span>
     <span class="n">data_size</span><span class="o">=</span><span class="s2">&quot;9.2MB&quot;</span><span class="p">,</span>
     <span class="n">unzip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
@@ -1799,8 +1803,8 @@ document.write(`
     <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Download CFIN multi b-value diffusion data&quot;</span><span class="p">,</span>
     <span class="n">msg</span><span class="o">=</span><span class="p">(</span>
         <span class="s2">&quot;This data was provided by Brian Hansen and Sune Jespersen&quot;</span>
-        <span class="o">+</span> <span class="s2">&quot; More details about the data are available in their paper: &quot;</span>
-        <span class="o">+</span> <span class="s2">&quot; https://www.nature.com/articles/sdata201672&quot;</span>
+        <span class="s2">&quot; More details about the data are available in their paper: &quot;</span>
+        <span class="s2">&quot; https://www.nature.com/articles/sdata201672&quot;</span>
     <span class="p">),</span>
 <span class="p">)</span>
 
@@ -2173,11 +2177,11 @@ document.write(`
         <span class="s2">&quot;34bc3d5acea9442d05ef185717780440&quot;</span><span class="p">,</span>
     <span class="p">],</span>
     <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Download Rat Brain DDE data for CTI reconstruction&quot;</span>
-    <span class="o">+</span> <span class="s2">&quot; (Rat #1 data from Henriques et al. MRM 2021).&quot;</span><span class="p">,</span>
+    <span class="s2">&quot; (Rat #1 data from Henriques et al. MRM 2021).&quot;</span><span class="p">,</span>
     <span class="n">data_size</span><span class="o">=</span><span class="s2">&quot;152.92 MB&quot;</span><span class="p">,</span>
     <span class="n">msg</span><span class="o">=</span><span class="p">(</span>
         <span class="s2">&quot;More details about the data are available in the paper: &quot;</span>
-        <span class="o">+</span> <span class="s2">&quot;https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.28938&quot;</span>
+        <span class="s2">&quot;https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.28938&quot;</span>
     <span class="p">),</span>
 <span class="p">)</span>
 
@@ -2211,12 +2215,12 @@ document.write(`
         <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;DiB_mask.nii.gz&quot;</span><span class="p">),</span>
     <span class="p">],</span>
     <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Download QTE data with linear, planar, &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;and spherical tensor encoding. If using this data please cite &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;F Szczepankiewicz, S Hoge, C-F Westin. Linear, planar and &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;spherical tensor-valued diffusion MRI data by free waveform &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;encoding in healthy brain, water, oil and liquid crystals. &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;Data in Brief (2019),&quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;DOI: https://doi.org/10.1016/j.dib.2019.104208&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;and spherical tensor encoding. If using this data please cite &quot;</span>
+    <span class="s2">&quot;F Szczepankiewicz, S Hoge, C-F Westin. Linear, planar and &quot;</span>
+    <span class="s2">&quot;spherical tensor-valued diffusion MRI data by free waveform &quot;</span>
+    <span class="s2">&quot;encoding in healthy brain, water, oil and liquid crystals. &quot;</span>
+    <span class="s2">&quot;Data in Brief (2019),&quot;</span>
+    <span class="s2">&quot;DOI: https://doi.org/10.1016/j.dib.2019.104208&quot;</span><span class="p">,</span>
     <span class="n">md5_list</span><span class="o">=</span><span class="p">[</span>
         <span class="s2">&quot;11f2e0d53e19061654eb3cdfc8fe9827&quot;</span><span class="p">,</span>
         <span class="s2">&quot;15021885b4967437c8cf441c09045c25&quot;</span><span class="p">,</span>
@@ -2246,12 +2250,12 @@ document.write(`
         <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;DiB_mask.nii.gz&quot;</span><span class="p">),</span>
     <span class="p">],</span>
     <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Download QTE data with linear, planar, &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;and spherical tensor encoding. If using this data please cite &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;F Szczepankiewicz, S Hoge, C-F Westin. Linear, planar and &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;spherical tensor-valued diffusion MRI data by free waveform &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;encoding in healthy brain, water, oil and liquid crystals. &quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;Data in Brief (2019),&quot;</span>
-    <span class="o">+</span> <span class="s2">&quot;DOI: https://doi.org/10.1016/j.dib.2019.104208&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;and spherical tensor encoding. If using this data please cite &quot;</span>
+    <span class="s2">&quot;F Szczepankiewicz, S Hoge, C-F Westin. Linear, planar and &quot;</span>
+    <span class="s2">&quot;spherical tensor-valued diffusion MRI data by free waveform &quot;</span>
+    <span class="s2">&quot;encoding in healthy brain, water, oil and liquid crystals. &quot;</span>
+    <span class="s2">&quot;Data in Brief (2019),&quot;</span>
+    <span class="s2">&quot;DOI: https://doi.org/10.1016/j.dib.2019.104208&quot;</span><span class="p">,</span>
     <span class="n">md5_list</span><span class="o">=</span><span class="p">[</span>
         <span class="s2">&quot;424e9cf75b20bc1f7ae1acde26b26da0&quot;</span><span class="p">,</span>
         <span class="s2">&quot;8e70d14fb8f08065a7a0c4d3033179c6&quot;</span><span class="p">,</span>
@@ -2824,9 +2828,107 @@ document.write(`
 <span class="p">)</span>
 
 
+<span class="n">_CBIG_SCHAEFER_URL</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;https://raw.githubusercontent.com/ThomasYeoLab/CBIG/&quot;</span>
+    <span class="s2">&quot;v0.37.0-Xie2025_LBC/stable_projects/brain_parcellation/&quot;</span>
+    <span class="s2">&quot;Schaefer2018_LocalGlobal/Parcellations/MNI/&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># remote_fnames (URL path fragments) and local_fnames (flat filenames under schaefer_2018/)</span>
+<span class="c1"># Order: for each n_rois × yeo_networks: 1mm NIfTI, 2mm NIfTI, LUT</span>
+<span class="n">_schaefer_remote_fnames</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">_schaefer_local_fnames</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">_n</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">_net</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">17</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">_res</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+            <span class="n">_nifti</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Schaefer2018_</span><span class="si">{</span><span class="n">_n</span><span class="si">}</span><span class="s2">Parcels_</span><span class="si">{</span><span class="n">_net</span><span class="si">}</span><span class="s2">Networks_order_FSLMNI152_</span><span class="si">{</span><span class="n">_res</span><span class="si">}</span><span class="s2">mm.nii.gz&quot;</span>
+            <span class="n">_schaefer_remote_fnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_nifti</span><span class="p">)</span>
+            <span class="n">_schaefer_local_fnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">_nifti</span><span class="p">))</span>
+        <span class="n">_lut</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Schaefer2018_</span><span class="si">{</span><span class="n">_n</span><span class="si">}</span><span class="s2">Parcels_</span><span class="si">{</span><span class="n">_net</span><span class="si">}</span><span class="s2">Networks_order.lut&quot;</span>
+        <span class="n">_schaefer_remote_fnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fsleyes_lut/</span><span class="si">{</span><span class="n">_lut</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">_schaefer_local_fnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">_lut</span><span class="p">))</span>
+
+<span class="n">fetch_atlas_schaefer_2018</span> <span class="o">=</span> <span class="n">_make_fetcher</span><span class="p">(</span>
+    <span class="s2">&quot;fetch_atlas_schaefer_2018&quot;</span><span class="p">,</span>
+    <span class="n">dipy_home</span> <span class="o">/</span> <span class="s2">&quot;schaefer_2018&quot;</span><span class="p">,</span>
+    <span class="n">_CBIG_SCHAEFER_URL</span><span class="p">,</span>
+    <span class="n">_schaefer_remote_fnames</span><span class="p">,</span>
+    <span class="n">_schaefer_local_fnames</span><span class="p">,</span>
+    <span class="n">md5_list</span><span class="o">=</span><span class="p">[</span>
+        <span class="s2">&quot;0709e73f84a0cd60687ff4add7f8fd05&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;6b818c184f05f9f349a01159e8b35de2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;86334c261a135d69a84387d073eebf58&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;52fdf9073096aa55b7196e41619442bb&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;d9abc22bdda96f8cb46d70d62cb1b070&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;6efac8a4ef245ac504d5988148b51d55&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;444769dcc6e40edaa2f0ba8095c95bdd&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;8417f572d0ca7ab537c49bb675c0e11e&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;a2efb42c582a7105ddbe186bfb641b78&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;74b10470e93053e255b8dad06d00c9c4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;3275f357163b9764e128771d4ea6ca25&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ca893c1b57f39d849bff1e1a7f464950&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;a72a90d2c948453d8a236d605447a984&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;5662a875f0655503dff76782a0acae22&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;340144a3b8712df1326cc0008aa08455&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;8d18a8f7f0f1c2e4fef9df4b6541b172&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;c6e4fa64fad3f56a146b9ec9dff565d4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;a7952094479be8641ffb60a29f7dc4da&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;c2d57ded9da1d980fc690e27a3c20954&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;f1597d576caf3183d3556b4bf95b00bb&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;44dd784201d0f40ecf80532819e17e15&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;3189b5377d95ca63f2fa096b266cc940&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;739d0c514b2ec3bbf0c1cdf4d5587191&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;b605e30f7faf9339431c74340125aa86&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;382f24cadded6b4f5a1a9c0bf1ad4d21&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1d92d59dce7ede5c11e8616c9379df9b&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;a9ec00e61e95b5e3d2d56835428fc9e1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;102ac3f8c261bed1ae211cf846381b08&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;496b139c53b9a2dcc34563a6977a6fe3&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;e9b8cf692595f6d876a7cce2af2d08ed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fd1901b9cbda75f89cb5b4a8a56ded70&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;9bf5f5689164152985aa2dccd4c4cd3f&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;c71cd38f2f473c3fded38ac0aadde0b4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;4f606a39c85339c4df596606d8bceff2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;4c81bca7608f9205317c3b163ad64c30&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1a76cb45efe341c88303a6e1103e6314&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;a3685d898048138d8feddec8f375e03a&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ad9cab36f881340a4fe0ff69207856af&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;0bac154a8156d0c2c09659a1e294506a&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;54fd2e4cf4121a4316e22a8217f212ef&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;f4391246c9ca0af8566db4006c4f9df0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;7034aec0672208d0cb8c2a458862a891&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;161c71587aa3d69b3ec258fa01faccce&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;9c43eeeacd31c1e6d45cf5bff193ace5&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;c13925708ec43a852d7d6bf69b8e8510&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;86f995da10cebb10173490ae96e80571&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;97ac4e218ba80675dbd01c0a24f83cbd&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;a961d7a3cb8f7e56676d9d10d105efb8&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;d940f34b46b670f6b66a70ec246f013d&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1d249da3a7404b886ef41e1758be3f05&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;5e8199dec8dbc01b79ef93c23cd31d8d&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;d38a1fae6c93283d4bcde725fc3c90c6&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;41ac333929523e7f2db54ba6d690fbda&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;d9986b919871f65ab1e2cd1808ca46f1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;081966bd1041e413f012ac0de159dbc6&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;75e5529a38b9fc4886e54fffece5fb06&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;d6c2f3c0765794f22a50fffb81ef0a86&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;7d0629e04eca724ab5c728ca3d6bcdf3&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;621626ea22c061034aa6e0a615722c02&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;389a5d66c13a260993dd8b4f6b36ddaf&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">doc</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Download the Schaefer 2018 cortical parcellation atlas in MNI152 space &quot;</span>
+        <span class="s2">&quot;for all combinations of parcellation sizes (100-1000 ROIs), Yeo network &quot;</span>
+        <span class="s2">&quot;configurations (7 or 17), and resolutions (1mm and 2mm). See &quot;</span>
+        <span class="s2">&quot;Schaefer et al., Cereb Cortex, 29:3095-3114, 2018.&quot;</span>
+    <span class="p">),</span>
+    <span class="n">data_size</span><span class="o">=</span><span class="s2">&quot;~80MB&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <div class="viewcode-block" id="fetch_disco_dataset">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.fetch_disco_dataset">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_disco_dataset</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_disco_dataset</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Download All DISCO datasets.</span>
 
 <span class="sd">    Notes</span>
@@ -2851,7 +2953,7 @@ document.write(`
 <div class="viewcode-block" id="get_fnames">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.get_fnames">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_fnames</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;small_64D&quot;</span><span class="p">,</span> <span class="n">include_optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_fnames</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;small_64D&quot;</span><span class="p">,</span> <span class="n">include_optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Provide full paths to example or test datasets.</span>
 
 <span class="sd">    Parameters</span>
@@ -2872,6 +2974,8 @@ document.write(`
 <span class="sd">        - &#39;reg_c&#39; small 2D image used for validating registration</span>
 <span class="sd">        - &#39;reg_o&#39; small 2D image used for validation registration</span>
 <span class="sd">        - &#39;cb_2&#39; two vectorized cingulum bundles</span>
+<span class="sd">        - &#39;schaefer_2018_atlas&#39; Schaefer 2018 parcellation atlas</span>
+<span class="sd">          (400 parcels, 7 networks, 1mm resolution)</span>
 <span class="sd">    include_optional : bool, optional</span>
 <span class="sd">        If True, include optional datasets.</span>
 
@@ -3155,13 +3259,16 @@ document.write(`
         <span class="n">af_mni</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;AF_L_recognized.trk&quot;</span>
         <span class="n">af_model</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;AF_L.trk&quot;</span>
         <span class="n">fa</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;fa.nii.gz&quot;</span>
-        <span class="k">return</span> <span class="n">af_orig</span><span class="p">,</span> <span class="n">af_mni</span><span class="p">,</span> <span class="n">af_model</span><span class="p">,</span> <span class="n">fa</span></div>
+        <span class="k">return</span> <span class="n">af_orig</span><span class="p">,</span> <span class="n">af_mni</span><span class="p">,</span> <span class="n">af_model</span><span class="p">,</span> <span class="n">fa</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;schaefer_2018_atlas&quot;</span><span class="p">:</span>
+        <span class="n">fetch_atlas_schaefer_2018</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">get_atlas_schaefer_2018</span><span class="p">()</span></div>
 
 
 
 <div class="viewcode-block" id="read_qtdMRI_test_retest_2subjects">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_qtdMRI_test_retest_2subjects">[docs]</a>
-<span class="k">def</span> <span class="nf">read_qtdMRI_test_retest_2subjects</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_qtdMRI_test_retest_2subjects</span><span class="p">():</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Load test-retest qt-dMRI acquisitions of two C57Bl6 mice.</span>
 
 <span class="sd">    These datasets were used to study test-retest reproducibility of</span>
@@ -3242,7 +3349,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_scil_b0">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_scil_b0">[docs]</a>
-<span class="k">def</span> <span class="nf">read_scil_b0</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_scil_b0</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load GE 3T b0 image form the scil b0 dataset.</span>
 
 <span class="sd">    Returns</span>
@@ -3258,7 +3365,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_siemens_scil_b0">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_siemens_scil_b0">[docs]</a>
-<span class="k">def</span> <span class="nf">read_siemens_scil_b0</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_siemens_scil_b0</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load Siemens 1.5T b0 image from the scil b0 dataset.</span>
 
 <span class="sd">    Returns</span>
@@ -3274,7 +3381,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_isbi2013_2shell">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_isbi2013_2shell">[docs]</a>
-<span class="k">def</span> <span class="nf">read_isbi2013_2shell</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_isbi2013_2shell</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load ISBI 2013 2-shell synthetic dataset.</span>
 
 <span class="sd">    Returns</span>
@@ -3295,7 +3402,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_sherbrooke_3shell">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_sherbrooke_3shell">[docs]</a>
-<span class="k">def</span> <span class="nf">read_sherbrooke_3shell</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_sherbrooke_3shell</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load Sherbrooke 3-shell HARDI dataset.</span>
 
 <span class="sd">    Returns</span>
@@ -3316,7 +3423,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_stanford_labels">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_stanford_labels">[docs]</a>
-<span class="k">def</span> <span class="nf">read_stanford_labels</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_stanford_labels</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read stanford hardi data and label map.&quot;&quot;&quot;</span>
     <span class="c1"># First get the hardi data</span>
     <span class="n">hard_img</span><span class="p">,</span> <span class="n">gtab</span> <span class="o">=</span> <span class="n">read_stanford_hardi</span><span class="p">()</span>
@@ -3329,7 +3436,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_stanford_hardi">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_stanford_hardi">[docs]</a>
-<span class="k">def</span> <span class="nf">read_stanford_hardi</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_stanford_hardi</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load Stanford HARDI dataset.</span>
 
 <span class="sd">    Returns</span>
@@ -3350,7 +3457,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_stanford_t1">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_stanford_t1">[docs]</a>
-<span class="k">def</span> <span class="nf">read_stanford_t1</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_stanford_t1</span><span class="p">():</span>
     <span class="n">f_t1</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;stanford_t1&quot;</span><span class="p">)</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f_t1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">img</span></div>
@@ -3359,7 +3466,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_stanford_pve_maps">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_stanford_pve_maps">[docs]</a>
-<span class="k">def</span> <span class="nf">read_stanford_pve_maps</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_stanford_pve_maps</span><span class="p">():</span>
     <span class="n">f_pve_csf</span><span class="p">,</span> <span class="n">f_pve_gm</span><span class="p">,</span> <span class="n">f_pve_wm</span> <span class="o">=</span> <span class="n">get_fnames</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;stanford_pve_maps&quot;</span><span class="p">)</span>
     <span class="n">img_pve_csf</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f_pve_csf</span><span class="p">)</span>
     <span class="n">img_pve_gm</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f_pve_gm</span><span class="p">)</span>
@@ -3370,7 +3477,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_taiwan_ntu_dsi">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_taiwan_ntu_dsi">[docs]</a>
-<span class="k">def</span> <span class="nf">read_taiwan_ntu_dsi</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_taiwan_ntu_dsi</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load Taiwan NTU dataset.</span>
 
 <span class="sd">    Returns</span>
@@ -3392,7 +3499,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_syn_data">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_syn_data">[docs]</a>
-<span class="k">def</span> <span class="nf">read_syn_data</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_syn_data</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load t1 and b0 volumes from the same session.</span>
 
 <span class="sd">    Returns</span>
@@ -3412,7 +3519,7 @@ document.write(`
 
 <div class="viewcode-block" id="fetch_tissue_data">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.fetch_tissue_data">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_tissue_data</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_tissue_data</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Download images to be used for tissue classification&quot;&quot;&quot;</span>
 
     <span class="n">t1</span> <span class="o">=</span> <span class="s2">&quot;https://ndownloader.figshare.com/files/6965969&quot;</span>
@@ -3452,7 +3559,7 @@ document.write(`
 <div class="viewcode-block" id="read_tissue_data">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_tissue_data">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">read_tissue_data</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="s2">&quot;T1&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_tissue_data</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="s2">&quot;T1&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load images to be used for tissue classification</span>
 
 <span class="sd">    Parameters</span>
@@ -3524,7 +3631,7 @@ document.write(`
 <div class="viewcode-block" id="read_mni_template">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_mni_template">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">read_mni_template</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="s2">&quot;T2&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_mni_template</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="s2">&quot;T2&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read the MNI template from disk.</span>
 
 <span class="sd">    Parameters</span>
@@ -3576,16 +3683,12 @@ document.write(`
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contrast</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_dict_a</span><span class="p">[</span><span class="n">contrast</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">contrast</span><span class="p">:</span>
-                <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_dict_a</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+            <span class="n">out_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_dict_a</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">contrast</span><span class="p">]</span>
     <span class="k">elif</span> <span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contrast</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_dict_c</span><span class="p">[</span><span class="n">contrast</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">contrast</span><span class="p">:</span>
-                <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_dict_c</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+            <span class="n">out_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_dict_c</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">contrast</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only 2009a and 2009c versions are available&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_list</span></div>
@@ -3600,7 +3703,7 @@ document.write(`
 <div class="viewcode-block" id="fetch_cenir_multib">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.fetch_cenir_multib">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">fetch_cenir_multib</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">with_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_cenir_multib</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">with_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch &#39;HCP-like&#39; data, collected at multiple b-values.</span>
 
 <span class="sd">    Parameters</span>
@@ -3679,7 +3782,7 @@ document.write(`
 <div class="viewcode-block" id="read_cenir_multib">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_cenir_multib">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">read_cenir_multib</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">bvals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_cenir_multib</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">bvals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read CENIR multi b-value data.</span>
 
 <span class="sd">    Parameters</span>
@@ -3758,7 +3861,7 @@ document.write(`
 <div class="viewcode-block" id="read_bundles_2_subjects">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_bundles_2_subjects">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">read_bundles_2_subjects</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_bundles_2_subjects</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span> <span class="n">subj_id</span><span class="o">=</span><span class="s2">&quot;subj_1&quot;</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;fa&quot;</span><span class="p">,),</span> <span class="n">bundles</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;af.left&quot;</span><span class="p">,</span> <span class="s2">&quot;cst.right&quot;</span><span class="p">,</span> <span class="s2">&quot;cc_1&quot;</span><span class="p">)</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Read images and streamlines from 2 subjects of the SNAIL dataset.</span>
@@ -3793,7 +3896,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dname</span> <span class="o">=</span> <span class="n">dipy_home</span> <span class="o">/</span> <span class="s2">&quot;exp_bundles_and_maps&quot;</span> <span class="o">/</span> <span class="s2">&quot;bundles_2_subjects&quot;</span>
 
-    <span class="kn">from</span> <span class="nn">dipy.tracking.streamline</span> <span class="kn">import</span> <span class="n">Streamlines</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Streamlines</span>
 
     <span class="n">res</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -3821,7 +3924,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_ivim">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_ivim">[docs]</a>
-<span class="k">def</span> <span class="nf">read_ivim</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_ivim</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load IVIM dataset.</span>
 
 <span class="sd">    Returns</span>
@@ -3842,7 +3945,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_cfin_dwi">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_cfin_dwi">[docs]</a>
-<span class="k">def</span> <span class="nf">read_cfin_dwi</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_cfin_dwi</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load CFIN multi b-value DWI data.</span>
 
 <span class="sd">    Returns</span>
@@ -3863,7 +3966,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_cfin_t1">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_cfin_t1">[docs]</a>
-<span class="k">def</span> <span class="nf">read_cfin_t1</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_cfin_t1</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load CFIN T1-weighted data.</span>
 
 <span class="sd">    Returns</span>
@@ -3880,7 +3983,7 @@ document.write(`
 
 <div class="viewcode-block" id="get_file_formats">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.get_file_formats">[docs]</a>
-<span class="k">def</span> <span class="nf">get_file_formats</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_file_formats</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get example bundle files and their reference anatomy image.</span>
 
@@ -3892,15 +3995,16 @@ document.write(`
 <span class="sd">        Path to the reference anatomical image.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ref_anat</span> <span class="o">=</span> <span class="n">dipy_home</span> <span class="o">/</span> <span class="s2">&quot;bundle_file_formats_example&quot;</span> <span class="o">/</span> <span class="s2">&quot;template0.nii.gz&quot;</span>
-    <span class="n">bundles_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">[</span>
-        <span class="s2">&quot;cc_m_sub.trk&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;laf_m_sub.tck&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;lpt_m_sub.fib&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;raf_m_sub.vtk&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;rpt_m_sub.dpy&quot;</span><span class="p">,</span>
-    <span class="p">]:</span>
-        <span class="n">bundles_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dipy_home</span> <span class="o">/</span> <span class="s2">&quot;bundle_file_formats_example&quot;</span> <span class="o">/</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="n">bundles_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">dipy_home</span> <span class="o">/</span> <span class="s2">&quot;bundle_file_formats_example&quot;</span> <span class="o">/</span> <span class="n">filename</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;cc_m_sub.trk&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;laf_m_sub.tck&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;lpt_m_sub.fib&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;raf_m_sub.vtk&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;rpt_m_sub.dpy&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">]</span>
 
     <span class="k">return</span> <span class="n">bundles_list</span><span class="p">,</span> <span class="n">ref_anat</span></div>
 
@@ -3909,7 +4013,7 @@ document.write(`
 <div class="viewcode-block" id="get_bundle_atlas_hcp842">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.get_bundle_atlas_hcp842">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_bundle_atlas_hcp842</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_bundle_atlas_hcp842</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get paths to the HCP842 bundle atlas files.</span>
 
@@ -3949,7 +4053,7 @@ document.write(`
 
 <div class="viewcode-block" id="get_two_hcp842_bundles">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.get_two_hcp842_bundles">[docs]</a>
-<span class="k">def</span> <span class="nf">get_two_hcp842_bundles</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_two_hcp842_bundles</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get paths to two example bundles from the HCP842 atlas.</span>
 
@@ -3972,9 +4076,63 @@ document.write(`
 
 
 
+<div class="viewcode-block" id="get_atlas_schaefer_2018">
+<a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.get_atlas_schaefer_2018">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_atlas_schaefer_2018</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">n_rois</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">yeo_networks</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">resolution_mm</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get paths to Schaefer 2018 parcellation atlas files.</span>
+
+<span class="sd">    Downloads the atlas if not already present locally.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n_rois : int, optional</span>
+<span class="sd">        Number of regions of interest. Must be one of 100, 200, 300, 400,</span>
+<span class="sd">        500, 600, 700, 800, 900, or 1000.</span>
+<span class="sd">    yeo_networks : {7, 17}, optional</span>
+<span class="sd">        Number of Yeo networks used for parcellation.</span>
+<span class="sd">    resolution_mm : {1, 2}, optional</span>
+<span class="sd">        Spatial resolution of the atlas image in mm.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    nifti_path : Path</span>
+<span class="sd">        Path to the NIfTI parcellation atlas file.</span>
+<span class="sd">    labels_path : Path</span>
+<span class="sd">        Path to the FreeSurfer LUT labels file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">valid_n_rois</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]</span>
+    <span class="n">valid_yeo_networks</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">17</span><span class="p">]</span>
+    <span class="n">valid_resolution_mm</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">n_rois</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_n_rois</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;n_rois must be one of </span><span class="si">{</span><span class="n">valid_n_rois</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">n_rois</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">yeo_networks</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_yeo_networks</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;yeo_networks must be one of </span><span class="si">{</span><span class="n">valid_yeo_networks</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">yeo_networks</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">resolution_mm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_resolution_mm</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;resolution_mm must be one of </span><span class="si">{</span><span class="n">valid_resolution_mm</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">resolution_mm</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">fetch_atlas_schaefer_2018</span><span class="p">()</span>
+
+    <span class="n">folder</span> <span class="o">=</span> <span class="n">dipy_home</span> <span class="o">/</span> <span class="s2">&quot;schaefer_2018&quot;</span>
+    <span class="n">nifti_path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">folder</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;Schaefer2018_</span><span class="si">{</span><span class="n">n_rois</span><span class="si">}</span><span class="s2">Parcels_</span><span class="si">{</span><span class="n">yeo_networks</span><span class="si">}</span><span class="s2">Networks_order_FSLMNI152&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">resolution_mm</span><span class="si">}</span><span class="s2">mm.nii.gz&quot;</span>
+    <span class="p">)</span>
+    <span class="n">labels_path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">folder</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;Schaefer2018_</span><span class="si">{</span><span class="n">n_rois</span><span class="si">}</span><span class="s2">Parcels_</span><span class="si">{</span><span class="n">yeo_networks</span><span class="si">}</span><span class="s2">Networks_order.lut&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">nifti_path</span><span class="p">,</span> <span class="n">labels_path</span></div>
+
+
+
 <div class="viewcode-block" id="get_target_tractogram_hcp">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.get_target_tractogram_hcp">[docs]</a>
-<span class="k">def</span> <span class="nf">get_target_tractogram_hcp</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_target_tractogram_hcp</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get path to example HCP tractogram.</span>
 
@@ -3991,7 +4149,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_qte_lte_pte">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_qte_lte_pte">[docs]</a>
-<span class="k">def</span> <span class="nf">read_qte_lte_pte</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_qte_lte_pte</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read q-space trajectory encoding data with linear and planar tensor</span>
 <span class="sd">    encoding.</span>
 
@@ -4017,7 +4175,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_DiB_70_lte_pte_ste">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_DiB_70_lte_pte_ste">[docs]</a>
-<span class="k">def</span> <span class="nf">read_DiB_70_lte_pte_ste</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_DiB_70_lte_pte_ste</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read q-space trajectory encoding data with 70 between linear, planar,</span>
 <span class="sd">    and spherical tensor encoding measurements.</span>
 
@@ -4055,7 +4213,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_DiB_217_lte_pte_ste">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_DiB_217_lte_pte_ste">[docs]</a>
-<span class="k">def</span> <span class="nf">read_DiB_217_lte_pte_ste</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_DiB_217_lte_pte_ste</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read q-space trajectory encoding data with 217 between linear,</span>
 <span class="sd">    planar, and spherical tensor encoding.</span>
 
@@ -4103,7 +4261,7 @@ document.write(`
 
 <div class="viewcode-block" id="extract_example_tracts">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.extract_example_tracts">[docs]</a>
-<span class="k">def</span> <span class="nf">extract_example_tracts</span><span class="p">(</span><span class="n">out_dir</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_example_tracts</span><span class="p">(</span><span class="n">out_dir</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract 5 &#39;AF_L&#39;,&#39;CST_R&#39; and &#39;CC_ForcepsMajor&#39; trk files in out_dir</span>
 <span class="sd">    folder.</span>
 
@@ -4123,7 +4281,7 @@ document.write(`
 
 <div class="viewcode-block" id="read_five_af_bundles">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.read_five_af_bundles">[docs]</a>
-<span class="k">def</span> <span class="nf">read_five_af_bundles</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_five_af_bundles</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load 5 small left arcuate fasciculus bundles.</span>
 
 <span class="sd">    Returns</span>
@@ -4151,7 +4309,7 @@ document.write(`
 <div class="viewcode-block" id="to_bids_description">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.to_bids_description">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">to_bids_description</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_bids_description</span><span class="p">(</span>
     <span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s2">&quot;dataset_description.json&quot;</span><span class="p">,</span> <span class="n">BIDSVersion</span><span class="o">=</span><span class="s2">&quot;1.4.0&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dumps a dict into a bids description at the given location&quot;&quot;&quot;</span>
@@ -4165,7 +4323,7 @@ document.write(`
 <div class="viewcode-block" id="fetch_hcp">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.fetch_hcp">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">fetch_hcp</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_hcp</span><span class="p">(</span>
     <span class="n">subjects</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">hcp_bucket</span><span class="o">=</span><span class="s2">&quot;hcp-openaccess&quot;</span><span class="p">,</span>
@@ -4223,7 +4381,7 @@ document.write(`
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
 <span class="sd">    .. footbibliography::</span>
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">has_boto3</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s2">&quot;&#39;fetch_hcp&#39; requires boto3 and it is&quot;</span>
@@ -4329,7 +4487,7 @@ document.write(`
 
 
 
-<span class="k">def</span> <span class="nf">_hbn_downloader</span><span class="p">(</span><span class="n">my_path</span><span class="p">,</span> <span class="n">derivative</span><span class="p">,</span> <span class="n">subjects</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_hbn_downloader</span><span class="p">(</span><span class="n">my_path</span><span class="p">,</span> <span class="n">derivative</span><span class="p">,</span> <span class="n">subjects</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
     <span class="n">base_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">my_path</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;HBN&quot;</span> <span class="o">/</span> <span class="s2">&quot;derivatives&quot;</span> <span class="o">/</span> <span class="n">derivative</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">base_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -4350,7 +4508,7 @@ document.write(`
         <span class="n">query</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_objects</span><span class="p">(</span>
             <span class="n">Bucket</span><span class="o">=</span><span class="s2">&quot;fcp-indi&quot;</span><span class="p">,</span>
             <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;data/Projects/HBN/BIDS_curated/derivatives/</span><span class="si">{</span><span class="n">derivative</span><span class="si">}</span><span class="s2">/sub-</span><span class="si">{</span><span class="n">subject</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span>
-        <span class="p">)</span>  <span class="c1"># noqa</span>
+        <span class="p">)</span>
         <span class="n">query_content</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">query_content</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find derivatives data for subject </span><span class="si">{</span><span class="n">subject</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -4403,7 +4561,7 @@ document.write(`
 
 <div class="viewcode-block" id="fetch_hbn">
 <a class="viewcode-back" href="../../../reference/dipy.data.html#dipy.data.fetcher.fetch_hbn">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_hbn</span><span class="p">(</span><span class="n">subjects</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_afq</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_hbn</span><span class="p">(</span><span class="n">subjects</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_afq</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetch preprocessed data from the Healthy Brain Network POD2 study.</span>
 
@@ -4436,12 +4594,12 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">has_boto3</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">botocore</span> <span class="kn">import</span> <span class="n">UNSIGNED</span>
-        <span class="kn">from</span> <span class="nn">botocore.client</span> <span class="kn">import</span> <span class="n">Config</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">botocore</span><span class="w"> </span><span class="kn">import</span> <span class="n">UNSIGNED</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">botocore.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">TripWire</span><span class="p">(</span>
             <span class="s2">&quot;The `fetch_hbn` function requires the boto3&quot;</span>
-            <span class="o">+</span> <span class="s2">&quot; library, but that is not installed.&quot;</span>
+            <span class="s2">&quot; library, but that is not installed.&quot;</span>
         <span class="p">)</span>
 
     <span class="c1"># Anonymous access:</span>

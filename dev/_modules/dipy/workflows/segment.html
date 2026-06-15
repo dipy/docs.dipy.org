@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.segment &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.workflows.segment &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,46 +883,47 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.workflows.segment</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">csv</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.io.stateful_tractogram</span> <span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <span class="n">StatefulTractogram</span>
-<span class="kn">from</span> <span class="nn">dipy.io.streamline</span> <span class="kn">import</span> <span class="n">load_tractogram</span><span class="p">,</span> <span class="n">save_tractogram</span>
-<span class="kn">from</span> <span class="nn">dipy.nn.synthseg</span> <span class="kn">import</span> <span class="n">SynthSeg</span>
-<span class="kn">from</span> <span class="nn">dipy.nn.torch.synthseg</span> <span class="kn">import</span> <span class="n">have_torch</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.bundles</span> <span class="kn">import</span> <span class="n">RecoBundles</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.clustering</span> <span class="kn">import</span> <span class="n">QuickBundles</span><span class="p">,</span> <span class="n">qbx_and_merge</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.fss</span> <span class="kn">import</span> <span class="n">FastStreamlineSearch</span><span class="p">,</span> <span class="n">nearest_from_matrix_col</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.mask</span> <span class="kn">import</span> <span class="n">median_otsu</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.tissue</span> <span class="kn">import</span> <span class="n">TissueClassifierHMRF</span><span class="p">,</span> <span class="n">dam_classifier</span>
-<span class="kn">from</span> <span class="nn">dipy.tracking</span> <span class="kn">import</span> <span class="n">Streamlines</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.deprecator</span> <span class="kn">import</span> <span class="n">deprecated_params</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.base</span> <span class="kn">import</span> <span class="n">format_key_value_table</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.utils</span> <span class="kn">import</span> <span class="n">handle_vol_idx</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.stateful_tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <span class="n">StatefulTractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_tractogram</span><span class="p">,</span> <span class="n">save_tractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.nn.synthseg</span><span class="w"> </span><span class="kn">import</span> <span class="n">SynthSeg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.nn.torch.synthseg</span><span class="w"> </span><span class="kn">import</span> <span class="n">have_torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.bundles</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecoBundles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.clustering</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuickBundles</span><span class="p">,</span> <span class="n">qbx_and_merge</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.fss</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastStreamlineSearch</span><span class="p">,</span> <span class="n">nearest_from_matrix_col</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">median_otsu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.tissue</span><span class="w"> </span><span class="kn">import</span> <span class="n">TissueClassifierHMRF</span><span class="p">,</span> <span class="n">dam_classifier</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">remove_holes_and_islands</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking</span><span class="w"> </span><span class="kn">import</span> <span class="n">Streamlines</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">format_key_value_table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">handle_vol_idx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span>
 
 
 <div class="viewcode-block" id="MedianOtsuFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.MedianOtsuFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">MedianOtsuFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MedianOtsuFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="MedianOtsuFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.MedianOtsuFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;medotsu&quot;</span></div>
 
 
 <div class="viewcode-block" id="MedianOtsuFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.MedianOtsuFlow.run">[docs]</a>
-    <span class="nd">@deprecated_params</span><span class="p">([</span><span class="s2">&quot;autocrop&quot;</span><span class="p">],</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.11.0&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;1.13.0&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="nd">@deprecated_params</span><span class="p">([</span><span class="s2">&quot;autocrop&quot;</span><span class="p">],</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.11&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;1.13&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1005,8 +1001,7 @@ document.write(`
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bvalues_files</span> <span class="ow">or</span> <span class="p">[])</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">io_it</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bvalues_files</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">io_it</span><span class="o">.</span><span class="n">inputs</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="s2">&quot;Number of b-values files must match the number of &quot;</span>
-                    <span class="s2">&quot;input volumes.&quot;</span>
+                    <span class="s2">&quot;Number of b-values files must match the number of input volumes.&quot;</span>
                 <span class="p">)</span>
                 <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
@@ -1052,17 +1047,17 @@ document.write(`
 
 <div class="viewcode-block" id="RecoBundlesFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.RecoBundlesFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">RecoBundlesFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecoBundlesFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="RecoBundlesFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.RecoBundlesFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;recobundles&quot;</span></div>
 
 
 <div class="viewcode-block" id="RecoBundlesFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.RecoBundlesFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">streamline_files</span><span class="p">,</span>
         <span class="n">model_bundle_files</span><span class="p">,</span>
@@ -1288,17 +1283,17 @@ document.write(`
 
 <div class="viewcode-block" id="LabelsBundlesFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.LabelsBundlesFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">LabelsBundlesFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LabelsBundlesFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="LabelsBundlesFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.LabelsBundlesFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;labelsbundles&quot;</span></div>
 
 
 <div class="viewcode-block" id="LabelsBundlesFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.LabelsBundlesFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">streamline_files</span><span class="p">,</span>
         <span class="n">labels_files</span><span class="p">,</span>
@@ -1350,17 +1345,17 @@ document.write(`
 
 <div class="viewcode-block" id="ClassifyTissueFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClassifyTissueFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ClassifyTissueFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClassifyTissueFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ClassifyTissueFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClassifyTissueFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;extracttissue&quot;</span></div>
 
 
 <div class="viewcode-block" id="ClassifyTissueFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClassifyTissueFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvals_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1475,8 +1470,7 @@ document.write(`
                 <span class="n">save_nifti</span><span class="p">(</span><span class="n">tissue_out_path</span><span class="p">,</span> <span class="n">segmentation_final</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
                 <span class="n">save_nifti</span><span class="p">(</span><span class="n">opve</span><span class="p">,</span> <span class="n">PVE</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
                 <span class="n">class_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;Background&quot;</span><span class="p">])</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nclass</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-                    <span class="n">class_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Tissue_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span>
+                <span class="n">class_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Tissue_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nclass</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">class_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">[</span>
                         <span class="s2">&quot;# Due to the nature of the HMRF algorithm&quot;</span><span class="p">,</span>
@@ -1534,17 +1528,17 @@ document.write(`
 
 <div class="viewcode-block" id="BrainMaskFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.BrainMaskFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">BrainMaskFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BrainMaskFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="BrainMaskFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.BrainMaskFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;brainmask&quot;</span></div>
 
 
 <div class="viewcode-block" id="BrainMaskFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.BrainMaskFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1604,7 +1598,7 @@ document.write(`
 <span class="sd">            &#39;median_otsu&#39; method.</span>
 <span class="sd">        finalize_mask : bool, optional</span>
 <span class="sd">            Whether to remove potential holes or islands. Useful for solving</span>
-<span class="sd">            minor errors. Used only for &#39;median_otsu&#39; method.</span>
+<span class="sd">            minor errors. Used for &#39;median_otsu&#39; and &#39;synthseg&#39; methods.</span>
 <span class="sd">        save_masked : bool, optional</span>
 <span class="sd">            Save the masked volume in addition to the mask.</span>
 <span class="sd">        use_cuda : bool, optional</span>
@@ -1641,8 +1635,7 @@ document.write(`
         <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;median_otsu&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">vol_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">bvalues_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">io_it</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;&#39;vol_idx&#39; parameter is ignored when &#39;bvalues_files&#39; is &quot;</span>
-                    <span class="s2">&quot;provided.&quot;</span>
+                    <span class="s2">&quot;&#39;vol_idx&#39; parameter is ignored when &#39;bvalues_files&#39; is provided.&quot;</span>
                 <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">bvalues_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bvalues_files</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1660,7 +1653,7 @@ document.write(`
 
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;evac&quot;</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading EVACPlus model...&quot;</span><span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">dipy.nn.evac</span> <span class="kn">import</span> <span class="n">EVACPlus</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.nn.evac</span><span class="w"> </span><span class="kn">import</span> <span class="n">EVACPlus</span>
 
             <span class="n">evac_model</span> <span class="o">=</span> <span class="n">EVACPlus</span><span class="p">(</span><span class="n">use_cuda</span><span class="o">=</span><span class="n">use_cuda</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;EVACPlus model loaded.&quot;</span><span class="p">)</span>
@@ -1722,6 +1715,8 @@ document.write(`
                     <span class="p">)</span>
                 <span class="n">vol</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">data</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">mask_volume</span> <span class="o">=</span> <span class="n">synthseg_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">finalize_mask</span><span class="p">:</span>
+                    <span class="n">mask_volume</span> <span class="o">=</span> <span class="n">remove_holes_and_islands</span><span class="p">(</span><span class="n">mask_volume</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
                 <span class="n">mask_for_apply</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">mask_volume</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">mask_volume</span>
                 <span class="p">)</span>
@@ -1744,17 +1739,17 @@ document.write(`
 
 <div class="viewcode-block" id="ClusterStreamlinesFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClusterStreamlinesFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ClusterStreamlinesFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClusterStreamlinesFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ClusterStreamlinesFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClusterStreamlinesFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;cluster&quot;</span></div>
 
 
 <div class="viewcode-block" id="ClusterStreamlinesFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.segment.ClusterStreamlinesFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">streamline_files</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>

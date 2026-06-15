@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.reconst &#8212; dipy 1.13.0.dev0+git20260315.be576d5 documentation</title>
+    <title>dipy.workflows.reconst &#8212; dipy 1.13.0.dev0+git20260615.299cbd1 documentation</title>
   
   
   
@@ -28,9 +28,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,17 +44,12 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=5b53ab8b"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=e81cd577"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-D610GKJZRC"></script>
-    <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-D610GKJZRC');
-            </script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -888,43 +883,43 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.workflows.reconst</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">ast</span> <span class="kn">import</span> <span class="n">literal_eval</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">literal_eval</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
-<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">dipy.core.gradients</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">gradient_table</span><span class="p">,</span>
     <span class="n">gradient_table_from_bvals_bvecs</span><span class="p">,</span>
     <span class="n">mask_non_weighted_bvals</span><span class="p">,</span>
     <span class="n">unique_bvals_tolerance</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.core.ndindex</span> <span class="kn">import</span> <span class="n">ndindex</span>
-<span class="kn">from</span> <span class="nn">dipy.core.sphere</span> <span class="kn">import</span> <span class="n">HemiSphere</span>
-<span class="kn">from</span> <span class="nn">dipy.data</span> <span class="kn">import</span> <span class="n">default_sphere</span><span class="p">,</span> <span class="n">get_sphere</span>
-<span class="kn">from</span> <span class="nn">dipy.direction.peaks</span> <span class="kn">import</span> <span class="n">peak_directions</span><span class="p">,</span> <span class="n">peaks_from_model</span>
-<span class="kn">from</span> <span class="nn">dipy.io.gradients</span> <span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
-<span class="kn">from</span> <span class="nn">dipy.io.image</span> <span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">load_nifti_data</span><span class="p">,</span> <span class="n">save_nifti</span>
-<span class="kn">from</span> <span class="nn">dipy.io.peaks</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.ndindex</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndindex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">HemiSphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span><span class="p">,</span> <span class="n">get_sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">peak_directions</span><span class="p">,</span> <span class="n">peaks_from_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">load_nifti_data</span><span class="p">,</span> <span class="n">save_nifti</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">load_pam</span><span class="p">,</span>
     <span class="n">niftis_to_pam</span><span class="p">,</span>
     <span class="n">pam_to_niftis</span><span class="p">,</span>
     <span class="n">save_pam</span><span class="p">,</span>
     <span class="n">tensor_to_pam</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.io.utils</span> <span class="kn">import</span> <span class="n">nifti1_symmat</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst</span> <span class="kn">import</span> <span class="n">mapmri</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.csdeconv</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">nifti1_symmat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst</span><span class="w"> </span><span class="kn">import</span> <span class="n">mapmri</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.csdeconv</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ConstrainedSDTModel</span><span class="p">,</span>
     <span class="n">ConstrainedSphericalDeconvModel</span><span class="p">,</span>
     <span class="n">auto_response_ssst</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dki</span> <span class="kn">import</span> <span class="n">DiffusionKurtosisModel</span><span class="p">,</span> <span class="n">split_dki_param</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dsi</span> <span class="kn">import</span> <span class="n">DiffusionSpectrumDeconvModel</span><span class="p">,</span> <span class="n">DiffusionSpectrumModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.dti</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dki</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffusionKurtosisModel</span><span class="p">,</span> <span class="n">split_dki_param</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dsi</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffusionSpectrumDeconvModel</span><span class="p">,</span> <span class="n">DiffusionSpectrumModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dti</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TensorModel</span><span class="p">,</span>
     <span class="n">axial_diffusivity</span><span class="p">,</span>
     <span class="n">color_fa</span><span class="p">,</span>
@@ -935,18 +930,18 @@ document.write(`
     <span class="n">mode</span> <span class="k">as</span> <span class="n">get_mode</span><span class="p">,</span>
     <span class="n">radial_diffusivity</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.forecast</span> <span class="kn">import</span> <span class="n">ForecastModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.fwdti</span> <span class="kn">import</span> <span class="n">FreeWaterTensorModel</span><span class="p">,</span> <span class="n">common_fit_methods</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.gqi</span> <span class="kn">import</span> <span class="n">GeneralizedQSamplingModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.ivim</span> <span class="kn">import</span> <span class="n">IvimModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.mcsd</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.forecast</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForecastModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.fwdti</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreeWaterTensorModel</span><span class="p">,</span> <span class="n">common_fit_methods</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.gqi</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeneralizedQSamplingModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.ivim</span><span class="w"> </span><span class="kn">import</span> <span class="n">IvimModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.mcsd</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">MultiShellDeconvModel</span><span class="p">,</span>
     <span class="n">multi_shell_fiber_response</span><span class="p">,</span>
     <span class="n">response_from_mask_msmt</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.rumba</span> <span class="kn">import</span> <span class="n">RumbaSDModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.sfm</span> <span class="kn">import</span> <span class="n">SparseFascicleModel</span>
-<span class="kn">from</span> <span class="nn">dipy.reconst.shm</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.rumba</span><span class="w"> </span><span class="kn">import</span> <span class="n">RumbaSDModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.sfm</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparseFascicleModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CsaOdfModel</span><span class="p">,</span>
     <span class="n">OpdtModel</span><span class="p">,</span>
     <span class="n">QballModel</span><span class="p">,</span>
@@ -955,26 +950,26 @@ document.write(`
     <span class="n">smooth_pinv</span><span class="p">,</span>
     <span class="n">sph_harm_lookup</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">dipy.segment.tissue</span> <span class="kn">import</span> <span class="n">TissueClassifierHMRF</span>
-<span class="kn">from</span> <span class="nn">dipy.testing.decorators</span> <span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.deprecator</span> <span class="kn">import</span> <span class="n">deprecated_params</span>
-<span class="kn">from</span> <span class="nn">dipy.utils.logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">dipy.workflows.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.tissue</span><span class="w"> </span><span class="kn">import</span> <span class="n">TissueClassifierHMRF</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span>
 
 
 <div class="viewcode-block" id="ReconstMAPMRIFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstMAPMRIFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstMAPMRIFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstMAPMRIFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstMAPMRIFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstMAPMRIFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;mapmri&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstMAPMRIFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstMAPMRIFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data_files</span><span class="p">,</span>
         <span class="n">bvals_files</span><span class="p">,</span>
@@ -1191,8 +1186,8 @@ document.write(`
                 <span class="n">sphere</span> <span class="o">=</span> <span class="n">get_sphere</span><span class="p">(</span><span class="n">sphere_name</span><span class="p">)</span>
 
             <span class="n">shape</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">peak_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
-            <span class="n">peak_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,)))</span>
+            <span class="n">peak_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">peak_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,))</span>
             <span class="n">peak_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
             <span class="n">peak_indices</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
@@ -1237,17 +1232,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstPowermapFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstPowermapFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstPowermapFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstPowermapFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstPowermapFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstPowermapFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;powermap&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstPowermapFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstPowermapFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -1403,17 +1398,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstDtiFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDtiFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstDtiFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstDtiFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstDtiFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDtiFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;dti&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstDtiFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDtiFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -1701,7 +1696,7 @@ document.write(`
                 <span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">get_fitted_tensor</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fitted_tensor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data</span><span class="p">,</span>
         <span class="n">mask</span><span class="p">,</span>
@@ -1727,17 +1722,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstDsiFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDsiFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstDsiFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstDsiFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstDsiFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDsiFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;dsi&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstDsiFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDsiFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -1933,17 +1928,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstCSDFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstCSDFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstCSDFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstCSDFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstCSDFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstCSDFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;csd&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstCSDFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstCSDFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -2322,18 +2317,18 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstQBallBaseFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstQBallBaseFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstQBallBaseFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstQBallBaseFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstQBallBaseFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstQBallBaseFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;qballbase&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstQBallBaseFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstQBallBaseFlow.run">[docs]</a>
     <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -2555,17 +2550,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstDkiFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDkiFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstDkiFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstDkiFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstDkiFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDkiFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;dki&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstDkiFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstDkiFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -2830,7 +2825,7 @@ document.write(`
                 <span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">get_fitted_tensor</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fitted_tensor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data</span><span class="p">,</span>
         <span class="n">mask</span><span class="p">,</span>
@@ -2863,17 +2858,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstIvimFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstIvimFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstIvimFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstIvimFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstIvimFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstIvimFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;ivim&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstIvimFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstIvimFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -2985,7 +2980,7 @@ document.write(`
 
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">get_fitted_ivim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fitted_ivim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Intra-Voxel Incoherent Motion Estimation...&quot;</span><span class="p">)</span>
         <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">)</span>
         <span class="c1"># If all b-values are smaller or equal to the b0 threshold, it is</span>
@@ -3009,18 +3004,18 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstRUMBAFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstRUMBAFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstRUMBAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstRUMBAFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstRUMBAFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstRUMBAFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;rumba&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstRUMBAFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstRUMBAFlow.run">[docs]</a>
     <span class="nd">@deprecated_params</span><span class="p">(</span><span class="s2">&quot;sh_order&quot;</span><span class="p">,</span> <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;sh_order_max&quot;</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -3279,17 +3274,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstSDTFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSDTFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstSDTFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstSDTFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstSDTFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSDTFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;sdt&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstSDTFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSDTFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -3515,17 +3510,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstSFMFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSFMFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstSFMFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstSFMFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstSFMFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSFMFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;sfm&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstSFMFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstSFMFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -3740,17 +3735,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstGQIFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstGQIFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstGQIFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstGQIFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstGQIFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstGQIFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;gqi&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstGQIFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstGQIFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -3952,17 +3947,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstForecastFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForecastFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstForecastFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstForecastFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstForecastFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForecastFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;forecast&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstForecastFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForecastFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -4174,17 +4169,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstFwdtiFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstFwdtiFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstFwdtiFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstFwdtiFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstFwdtiFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstFwdtiFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;fwdti&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstFwdtiFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstFwdtiFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -4459,17 +4454,17 @@ document.write(`
 
 <div class="viewcode-block" id="ReconstForceFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForceFlow">[docs]</a>
-<span class="k">class</span> <span class="nc">ReconstForceFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstForceFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
 <div class="viewcode-block" id="ReconstForceFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForceFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;force&quot;</span></div>
 
 
 <div class="viewcode-block" id="ReconstForceFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstForceFlow.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="p">,</span>
@@ -4509,6 +4504,8 @@ document.write(`
         <span class="n">out_entropy</span><span class="o">=</span><span class="s2">&quot;entropy.nii.gz&quot;</span><span class="p">,</span>
         <span class="n">out_predicted_signal</span><span class="o">=</span><span class="s2">&quot;predicted_signal.nii.gz&quot;</span><span class="p">,</span>
         <span class="n">out_peaks</span><span class="o">=</span><span class="s2">&quot;peaks.pam5&quot;</span><span class="p">,</span>
+        <span class="n">out_micro_uncertainty_dir</span><span class="o">=</span><span class="s2">&quot;microstructure_uncertainty&quot;</span><span class="p">,</span>
+        <span class="n">out_micro_ambiguity_dir</span><span class="o">=</span><span class="s2">&quot;microstructure_ambiguity&quot;</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Workflow for FORCE microstructure reconstruction.</span>
 
@@ -4604,14 +4601,24 @@ document.write(`
 <span class="sd">            Name of the predicted signal volume to be saved.</span>
 <span class="sd">        out_peaks : string, optional</span>
 <span class="sd">            Name of the peaks file to be saved (in .pam5 format).</span>
+<span class="sd">        out_micro_uncertainty_dir : string, optional</span>
+<span class="sd">            Name of the subdirectory for per-microstructure uncertainty maps</span>
+<span class="sd">            (weighted IQR of posterior density, normalized by prior range).</span>
+<span class="sd">            Maps saved: fa, md, rd, wm_fraction, gm_fraction, csf_fraction,</span>
+<span class="sd">            num_fibers, dispersion, nd, ufa, mk, ak, rk, kfa.</span>
+<span class="sd">        out_micro_ambiguity_dir : string, optional</span>
+<span class="sd">            Name of the subdirectory for per-microstructure ambiguity maps</span>
+<span class="sd">            (FWHM of posterior density, normalized by prior range).</span>
+<span class="sd">            Maps saved: fa, md, rd, wm_fraction, gm_fraction, csf_fraction,</span>
+<span class="sd">            num_fibers, dispersion, nd, ufa, mk, ak, rk, kfa.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
 <span class="sd">        .. footbibliography::</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">dipy.reconst.force</span> <span class="kn">import</span> <span class="n">FORCEModel</span>
-        <span class="kn">from</span> <span class="nn">dipy.utils.optpkg</span> <span class="kn">import</span> <span class="n">optional_package</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.force</span><span class="w"> </span><span class="kn">import</span> <span class="n">MICRO_PARAMS</span><span class="p">,</span> <span class="n">FORCEModel</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
         <span class="n">use_posterior</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">use_exact</span>
         <span class="n">save_metrics</span> <span class="o">=</span> <span class="n">save_metrics</span> <span class="ow">or</span> <span class="p">[]</span>
@@ -4651,6 +4658,8 @@ document.write(`
             <span class="n">oentropy</span><span class="p">,</span>
             <span class="n">opredicted_signal</span><span class="p">,</span>
             <span class="n">opeaks</span><span class="p">,</span>
+            <span class="n">omicro_unc_dir</span><span class="p">,</span>
+            <span class="n">omicro_amb_dir</span><span class="p">,</span>
         <span class="p">)</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing FORCE metrics for </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">)</span>
@@ -4693,8 +4702,8 @@ document.write(`
                 <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
                 <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">dipy.io.peaks</span> <span class="kn">import</span> <span class="n">save_pam</span>
-            <span class="kn">from</span> <span class="nn">dipy.reconst.force</span> <span class="kn">import</span> <span class="n">force_peaks</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_pam</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.force</span><span class="w"> </span><span class="kn">import</span> <span class="n">force_peaks</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracting peaks...&quot;</span><span class="p">)</span>
             <span class="n">res_peaks</span> <span class="o">=</span> <span class="n">force_peaks</span><span class="p">(</span><span class="n">force_fit</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
@@ -4757,6 +4766,45 @@ document.write(`
                     <span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="n">save_nifti</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">data_arr</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">affine</span><span class="p">)</span>
+
+            <span class="n">micro_unc_map</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">p</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">force_fit</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;uncertainty_</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">MICRO_PARAMS</span>
+            <span class="p">}</span>
+            <span class="n">micro_amb_map</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">p</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">force_fit</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ambiguity_</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">MICRO_PARAMS</span>
+            <span class="p">}</span>
+
+            <span class="n">unc_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">omicro_unc_dir</span><span class="p">)</span>
+            <span class="n">amb_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">omicro_amb_dir</span><span class="p">)</span>
+            <span class="n">unc_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">amb_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">MICRO_PARAMS</span><span class="p">:</span>
+                <span class="n">u_data</span> <span class="o">=</span> <span class="n">micro_unc_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">u_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="n">u_data</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span>
+                <span class="p">):</span>
+                    <span class="n">save_nifti</span><span class="p">(</span>
+                        <span class="nb">str</span><span class="p">(</span><span class="n">unc_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">.nii.gz&quot;</span><span class="p">),</span>
+                        <span class="n">u_data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                        <span class="n">affine</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="n">a_data</span> <span class="o">=</span> <span class="n">micro_amb_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">a_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="n">a_data</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span>
+                <span class="p">):</span>
+                    <span class="n">save_nifti</span><span class="p">(</span>
+                        <span class="nb">str</span><span class="p">(</span><span class="n">amb_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">.nii.gz&quot;</span><span class="p">),</span>
+                        <span class="n">a_data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                        <span class="n">affine</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Per-microstructure uncertainty maps saved to </span><span class="si">{</span><span class="n">unc_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Per-microstructure ambiguity maps saved to </span><span class="si">{</span><span class="n">amb_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FORCE metrics saved to </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 </div>
