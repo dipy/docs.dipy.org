@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.data.fetcher &#8212; dipy 1.13.0.dev0+git20260708.209464a documentation</title>
+    <title>dipy.data.fetcher &#8212; dipy 1.13.0.dev0+git20260708.cf54ab8 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=4fd2c0e5"></script>
+    <script src="../../../_static/documentation_options.js?v=2ed0b591"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -937,6 +937,10 @@ document.write(`
     <span class="s2">&quot;stacks.stanford.edu&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
+<span class="c1"># Github release mirror: release tag == local dataset folder name, asset name</span>
+<span class="c1"># == local filename, so this reproduces `~/.dipy/&lt;folder&gt;/&lt;file&gt;` 1:1.</span>
+<span class="n">GITHUB_MIRROR_BASE</span> <span class="o">=</span> <span class="s2">&quot;https://github.com/dipy/dipy_datatest/releases/download&quot;</span>
+
 <span class="n">boto3</span><span class="p">,</span> <span class="n">has_boto3</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;boto3&quot;</span><span class="p">)</span>
 
 <span class="n">HEADER_LIST</span> <span class="o">=</span> <span class="p">[</span>
@@ -1099,6 +1103,26 @@ document.write(`
     <span class="k">return</span> <span class="kc">None</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_github_mirror_url</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Github Release mirror URL derived from the local destination path.</span>
+
+<span class="sd">    Release tag == parent folder name; asset name == local filename, so a</span>
+<span class="sd">    release that mirrors `~/.dipy/&lt;folder&gt;/&lt;file&gt;` needs no per-file mapping.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fname : str or Path</span>
+<span class="sd">        The local destination path the file is being downloaded to.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Github release mirror URL for this file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GITHUB_MIRROR_BASE</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">fname</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">fname</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_file_data</span><span class="p">(</span>
     <span class="n">fname</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">use_headers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">stored_md5</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
@@ -1125,8 +1149,16 @@ document.write(`
 <span class="sd">        If download fails after all retry attempts.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Check if mirror is available for this URL</span>
+    <span class="c1"># Build the ordered list of URLs to cycle through on retries: the</span>
+    <span class="c1"># original source, the workshop.dipy.org mirror (if applicable), and the</span>
+    <span class="c1"># github release mirror (if a release exists for this file).</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">url</span><span class="p">]</span>
     <span class="n">mirror_url</span> <span class="o">=</span> <span class="n">_get_mirror_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mirror_url</span><span class="p">:</span>
+        <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mirror_url</span><span class="p">)</span>
+    <span class="n">github_url</span> <span class="o">=</span> <span class="n">_get_github_mirror_url</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">github_url</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+        <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">github_url</span><span class="p">)</span>
 
     <span class="n">is_figshare</span> <span class="o">=</span> <span class="s2">&quot;figshare.com&quot;</span> <span class="ow">in</span> <span class="n">url</span>
     <span class="n">is_zenodo</span> <span class="o">=</span> <span class="s2">&quot;zenodo.org&quot;</span> <span class="ow">in</span> <span class="n">url</span>
@@ -1139,16 +1171,12 @@ document.write(`
 
     <span class="n">last_exception</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_retries</span><span class="p">):</span>
-        <span class="c1"># Alternate between original URL and mirror on retries</span>
-        <span class="k">if</span> <span class="n">mirror_url</span> <span class="ow">and</span> <span class="n">attempt</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Use mirror on odd attempts, original on even attempts</span>
-            <span class="n">current_url</span> <span class="o">=</span> <span class="n">mirror_url</span> <span class="k">if</span> <span class="n">attempt</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">url</span>
-            <span class="k">if</span> <span class="n">current_url</span> <span class="o">==</span> <span class="n">mirror_url</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trying mirror server: </span><span class="si">{</span><span class="n">mirror_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
+        <span class="n">current_url</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">attempt</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">attempt</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">current_url</span> <span class="o">==</span> <span class="n">url</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrying original URL: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">current_url</span> <span class="o">=</span> <span class="n">url</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trying fallback source: </span><span class="si">{</span><span class="n">current_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">req</span> <span class="o">=</span> <span class="n">current_url</span>
         <span class="k">if</span> <span class="n">use_headers</span><span class="p">:</span>
