@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.imwarp &#8212; dipy 1.13.0.dev0+git20260721.4b21f1c documentation</title>
+    <title>dipy.align.imwarp &#8212; dipy 1.13.0.dev0+git20260721.1f98200 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=61e2873b"></script>
+    <script src="../../../_static/documentation_options.js?v=5807b9ba"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1771,12 +1771,18 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.compute_inversion_error">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.compute_inversion_error">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">compute_inversion_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_inversion_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Inversion error of the displacement fields</span>
 
 <span class="sd">        Estimates the inversion error of the displacement fields by computing</span>
 <span class="sd">        statistics of the residual vectors obtained after composing the forward</span>
 <span class="sd">        and backward displacement fields.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_threads : int or None, optional</span>
+<span class="sd">            Number of OpenMP threads to use for displacement-field composition.</span>
+<span class="sd">            If None, use DIPY&#39;s default OpenMP thread count.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1805,7 +1811,15 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">compose_f</span> <span class="o">=</span> <span class="n">vfu</span><span class="o">.</span><span class="n">compose_vector_fields_3d</span>
 
-        <span class="n">residual</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">compose_f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Dinv</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">residual</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">compose_f</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">Dinv</span><span class="p">,</span>
+            <span class="mf">1.0</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">residual</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span></div>
 
@@ -1842,7 +1856,7 @@ document.write(`
 
 <div class="viewcode-block" id="DiffeomorphicMap.warp_endomorphism">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imwarp.DiffeomorphicMap.warp_endomorphism">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">warp_endomorphism</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">warp_endomorphism</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Composition of this DiffeomorphicMap with a given endomorphism</span>
 
 <span class="sd">        Creates a new DiffeomorphicMap C with the same properties as self and</span>
@@ -1857,6 +1871,9 @@ document.write(`
 <span class="sd">        ----------</span>
 <span class="sd">        phi : DiffeomorphicMap object</span>
 <span class="sd">            the endomorphism to be warped by this diffeomorphic map</span>
+<span class="sd">        num_threads : int or None, optional</span>
+<span class="sd">            Number of OpenMP threads to use for displacement-field composition.</span>
+<span class="sd">            If None, use DIPY&#39;s default OpenMP thread count.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1889,11 +1906,24 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">compose_f</span> <span class="o">=</span> <span class="n">vfu</span><span class="o">.</span><span class="n">compose_vector_fields_3d</span>
 
-        <span class="n">forward</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">compose_f</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">premult_disp</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="p">(</span>
-            <span class="n">backward</span><span class="p">,</span>
-            <span class="n">stats</span><span class="p">,</span>
-        <span class="p">)</span> <span class="o">=</span> <span class="n">compose_f</span><span class="p">(</span><span class="n">d2_inv</span><span class="p">,</span> <span class="n">d1_inv</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">premult_disp</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">forward</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">compose_f</span><span class="p">(</span>
+            <span class="n">d1</span><span class="p">,</span>
+            <span class="n">d2</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">premult_disp</span><span class="p">,</span>
+            <span class="mf">1.0</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">backward</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">compose_f</span><span class="p">(</span>
+            <span class="n">d2_inv</span><span class="p">,</span>
+            <span class="n">d1_inv</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">premult_disp</span><span class="p">,</span>
+            <span class="mf">1.0</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="n">composition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shallow_copy</span><span class="p">()</span>
         <span class="n">composition</span><span class="o">.</span><span class="n">forward</span> <span class="o">=</span> <span class="n">forward</span>
@@ -2064,6 +2094,7 @@ document.write(`
         <span class="n">inv_iter</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
         <span class="n">inv_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
         <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Symmetric Diffeomorphic Registration (SyN) Algorithm</span>
 
@@ -2098,6 +2129,10 @@ document.write(`
 <span class="sd">            a function receiving a SymmetricDiffeomorphicRegistration object</span>
 <span class="sd">            to be called after each iteration (this optimizer will call this</span>
 <span class="sd">            function passing self as parameter)</span>
+<span class="sd">        num_threads : int or None, optional</span>
+<span class="sd">            Number of OpenMP threads used for displacement-field composition</span>
+<span class="sd">            and inversion. The effective number of threads is resolved when</span>
+<span class="sd">            each threaded operation is called.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">level_iters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2117,6 +2152,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">full_energy_profile</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbosity</span> <span class="o">=</span> <span class="n">VerbosityLevels</span><span class="o">.</span><span class="n">STATUS</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span> <span class="o">=</span> <span class="n">num_threads</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moving_ss</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">static_ss</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">static_direction</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2171,6 +2207,7 @@ document.write(`
             <span class="n">disp_world2grid</span><span class="p">,</span>
             <span class="n">time_scaling</span><span class="p">,</span>
             <span class="n">current_displacement</span><span class="p">,</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">current_displacement</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mean_norm</span><span class="p">)</span></div>
@@ -2570,6 +2607,7 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">inv_iter</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">inv_tol</span><span class="p">,</span>
                 <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">static_to_ref</span><span class="o">.</span><span class="n">backward</span><span class="p">,</span>
+                <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -2582,6 +2620,7 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">inv_iter</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">inv_tol</span><span class="p">,</span>
                 <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">moving_to_ref</span><span class="o">.</span><span class="n">backward</span><span class="p">,</span>
+                <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -2594,6 +2633,7 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">inv_iter</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">inv_tol</span><span class="p">,</span>
                 <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">static_to_ref</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span>
+                <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -2606,6 +2646,7 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">inv_iter</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">inv_tol</span><span class="p">,</span>
                 <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">moving_to_ref</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span>
+                <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -2698,14 +2739,18 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">RegistrationStages</span><span class="o">.</span><span class="n">SCALE_END</span><span class="p">)</span>
 
         <span class="c1"># Reporting mean and std in stats[1] and stats[2]</span>
-        <span class="n">residual</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_to_ref</span><span class="o">.</span><span class="n">compute_inversion_error</span><span class="p">()</span>
+        <span class="n">residual</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_to_ref</span><span class="o">.</span><span class="n">compute_inversion_error</span><span class="p">(</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbosity</span> <span class="o">&gt;=</span> <span class="n">VerbosityLevels</span><span class="o">.</span><span class="n">DIAGNOSE</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Static-Reference Residual error: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">0.6f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">0.6f</span><span class="si">}</span><span class="s2">)&quot;</span>
             <span class="p">)</span>
 
-        <span class="n">residual</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_to_ref</span><span class="o">.</span><span class="n">compute_inversion_error</span><span class="p">()</span>
+        <span class="n">residual</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_to_ref</span><span class="o">.</span><span class="n">compute_inversion_error</span><span class="p">(</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbosity</span> <span class="o">&gt;=</span> <span class="n">VerbosityLevels</span><span class="o">.</span><span class="n">DIAGNOSE</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -2714,11 +2759,13 @@ document.write(`
 
         <span class="c1"># Compose the two partial transformations</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">static_to_moving</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_to_ref</span><span class="o">.</span><span class="n">warp_endomorphism</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">static_to_ref</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">static_to_ref</span><span class="o">.</span><span class="n">inverse</span><span class="p">(),</span> <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span>
         <span class="p">)</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
 
         <span class="c1"># Report mean and std for the composed deformation field</span>
-        <span class="n">residual</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_to_moving</span><span class="o">.</span><span class="n">compute_inversion_error</span><span class="p">()</span>
+        <span class="n">residual</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_to_moving</span><span class="o">.</span><span class="n">compute_inversion_error</span><span class="p">(</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbosity</span> <span class="o">&gt;=</span> <span class="n">VerbosityLevels</span><span class="o">.</span><span class="n">DIAGNOSE</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final residual error: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">0.6f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">0.6f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
