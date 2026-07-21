@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>nn &#8212; dipy 1.13.0.dev0+git20260721.ab5d18f documentation</title>
+    <title>nn &#8212; dipy 1.13.0.dev0+git20260721.4b21f1c documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=35fd27fd"></script>
+    <script src="../_static/documentation_options.js?v=61e2873b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1183,10 +1183,13 @@ It remains licensed as the rest of SynthSeg
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.nn.utils.recover_img" title="dipy.nn.utils.recover_img"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recover_img</span></code></a>(image, params, *[, order])</p></td>
 <td><p>Function to recover image from transform_img</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#dipy.nn.utils.pad_crop" title="dipy.nn.utils.pad_crop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pad_crop</span></code></a>(image, target_shape)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.nn.utils.get_padded_shape" title="dipy.nn.utils.get_padded_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_padded_shape</span></code></a>(shape, multiple)</p></td>
+<td><p>Return the smallest shape greater than or equal to <code class="docutils literal notranslate"><span class="pre">shape</span></code> whose dimensions are divisible by <code class="docutils literal notranslate"><span class="pre">multiple</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.nn.utils.pad_crop" title="dipy.nn.utils.pad_crop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pad_crop</span></code></a>(image, target_shape)</p></td>
 <td><p>Function to figure out pad and crop range to fit the target shape with the image</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.nn.utils.inv_pad_crop" title="dipy.nn.utils.inv_pad_crop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inv_pad_crop</span></code></a>(image, crop_vs, pad_vs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.nn.utils.inv_pad_crop" title="dipy.nn.utils.inv_pad_crop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inv_pad_crop</span></code></a>(image, crop_vs, pad_vs)</p></td>
 <td><p>Function to figure out pad and crop range to fit the target shape with the image</p></td>
 </tr>
 </tbody>
@@ -5176,7 +5179,8 @@ If None, batch_size will be set to 1 if the provided image
 has a batch dimension.</p>
 </dd>
 <dt><strong>return_prob</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to return the probability map instead of a
-label map. Useful for testing.</p>
+label map. Probability maps remain in the 1 mm isotropic model
+space, padded to dimensions divisible by 32. Useful for testing.</p>
 </dd>
 </dl>
 </dd>
@@ -5359,6 +5363,33 @@ If recovering an int image, order 0 is recommended.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>recovered</strong><span class="classifier">np.ndarray</span></dt><dd><p>Recovered image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="get-padded-shape">
+<h3>get_padded_shape<a class="headerlink" href="#get-padded-shape" title="Link to this heading">#</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="dipy.nn.utils.get_padded_shape">
+<span class="sig-prename descclassname"><span class="pre">dipy.nn.utils.</span></span><span class="sig-name descname"><span class="pre">get_padded_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiple</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/nn/utils.html#get_padded_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.nn.utils.get_padded_shape" title="Link to this definition">#</a></dt>
+<dd><p>Return the smallest shape greater than or equal to <code class="docutils literal notranslate"><span class="pre">shape</span></code> whose
+dimensions are divisible by <code class="docutils literal notranslate"><span class="pre">multiple</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape</strong><span class="classifier">sequence of int</span></dt><dd><p>Input shape.</p>
+</dd>
+<dt><strong>multiple</strong><span class="classifier">int</span></dt><dd><p>Value that every output dimension must be divisible by.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>tuple of int</dt><dd><p>Smallest shape greater than or equal to <code class="docutils literal notranslate"><span class="pre">shape</span></code> for which every
+dimension is divisible by <code class="docutils literal notranslate"><span class="pre">multiple</span></code>.</p>
 </dd>
 </dl>
 </dd>
@@ -5759,6 +5790,10 @@ to fit the target shape with the image</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recover-img">recover_img</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.nn.utils.recover_img"><code class="docutils literal notranslate"><span class="pre">recover_img()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#get-padded-shape">get_padded_shape</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.nn.utils.get_padded_shape"><code class="docutils literal notranslate"><span class="pre">get_padded_shape()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pad-crop">pad_crop</a><ul class="nav section-nav flex-column">
