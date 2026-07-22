@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.force &#8212; dipy 1.13.0.dev0+git20260722.ea79062 documentation</title>
+    <title>dipy.reconst.force &#8212; dipy 1.13.0.dev0+git20260722.a8eaefe documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e630c82d"></script>
+    <script src="../../../_static/documentation_options.js?v=77a25ef1"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,7 +883,8 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.reconst.force</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -904,6 +905,10 @@ document.write(`
     <span class="n">save_force_simulations</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.multiproc</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_usable_cpu_affinity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+
+<span class="n">ray</span><span class="p">,</span> <span class="n">has_ray</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;ray&quot;</span><span class="p">)</span>
 
 <span class="c1"># Named constants</span>
 <span class="n">EPSILON</span> <span class="o">=</span> <span class="mf">1e-12</span>
@@ -2010,16 +2015,33 @@ document.write(`
             <span class="n">params_arrays</span><span class="p">[</span><span class="s2">&quot;ambiguity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span>
             <span class="n">params_arrays</span><span class="p">[</span><span class="s2">&quot;entropy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_vox</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-        <span class="c1"># Per-microstructure uncertainty and ambiguity from posterior density</span>
+        <span class="c1"># Per-microstructure uncertainty and ambiguity from posterior density.</span>
+        <span class="c1"># The FWHM-KDE ambiguity is the dominant serial cost; numpy releases the</span>
+        <span class="c1"># GIL on its large reductions, so fan the per-parameter loop over threads.</span>
         <span class="n">prior_ranges</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_prior_ranges&quot;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">MICRO_PARAMS</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">d</span> <span class="ow">and</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">prior_ranges</span><span class="p">:</span>
-                <span class="n">vals</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="n">neighbors</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-                <span class="n">u</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">compute_microstructure_uncertainty_ambiguity</span><span class="p">(</span>
-                    <span class="n">vals</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">prior_ranges</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
-                <span class="p">)</span>
-                <span class="n">params_arrays</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;uncertainty_</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span>
-                <span class="n">params_arrays</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;ambiguity_</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="n">todo</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">MICRO_PARAMS</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">d</span> <span class="ow">and</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prior_ranges</span><span class="p">]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_micro</span><span class="p">(</span><span class="n">param</span><span class="p">):</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="n">neighbors</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">param</span><span class="p">,</span> <span class="n">compute_microstructure_uncertainty_ambiguity</span><span class="p">(</span>
+                <span class="n">vals</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">prior_ranges</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="c1"># One thread inside a Ray worker: process-level parallelism already</span>
+        <span class="c1"># uses the cores, so threading here would oversubscribe.</span>
+        <span class="k">if</span> <span class="n">has_ray</span> <span class="ow">and</span> <span class="n">ray</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">():</span>
+            <span class="n">n_threads</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_threads</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">MICRO_PARAMS</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">get_usable_cpu_affinity</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="n">n_threads</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">todo</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">n_threads</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">todo</span><span class="p">)))</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">micro_results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_micro</span><span class="p">,</span> <span class="n">todo</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">micro_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">_micro</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">todo</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="ow">in</span> <span class="n">micro_results</span><span class="p">:</span>
+            <span class="n">params_arrays</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;uncertainty_</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span>
+            <span class="n">params_arrays</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;ambiguity_</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
 
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;_raw&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">params_arrays</span>
