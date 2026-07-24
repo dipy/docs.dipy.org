@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.reconst &#8212; dipy 1.13.0.dev0+git20260723.dd19713 documentation</title>
+    <title>dipy.workflows.reconst &#8212; dipy 1.13.0.dev0+git20260724.af8f2e2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=a95ba5d4"></script>
+    <script src="../../../_static/documentation_options.js?v=9c4f68f3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -4478,6 +4478,14 @@ document.write(`
         <span class="n">posterior_beta</span><span class="o">=</span><span class="mf">2000.0</span><span class="p">,</span>
         <span class="n">compute_odf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">num_simulations</span><span class="o">=</span><span class="mi">500000</span><span class="p">,</span>
+        <span class="n">wm_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">tortuosity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">odi_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_odi_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">wm_d_par_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">wm_d_perp_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gm_d_iso_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">csf_d</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">num_cpus</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">compute_kurtosis</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -4544,6 +4552,35 @@ document.write(`
 <span class="sd">            Compute posterior ODF maps.</span>
 <span class="sd">        num_simulations : int, optional</span>
 <span class="sd">            Number of simulated voxels for the simulation library.</span>
+<span class="sd">        wm_threshold : float, optional</span>
+<span class="sd">            Minimum white-matter signal fraction for a simulated voxel to be</span>
+<span class="sd">            assigned fiber-orientation labels when building the library.</span>
+<span class="sd">        tortuosity : bool, optional</span>
+<span class="sd">            Constrain the white-matter perpendicular diffusivity through the</span>
+<span class="sd">            tortuosity model instead of sampling ``wm_d_perp_range``</span>
+<span class="sd">            independently.</span>
+<span class="sd">        odi_range : variable float, optional</span>
+<span class="sd">            Two values ``min max`` giving the orientation-dispersion-index</span>
+<span class="sd">            prior range sampled when building the simulation library. If not</span>
+<span class="sd">            set, the FORCE default ``0.01 0.3`` is used.</span>
+<span class="sd">        num_odi_values : int, optional</span>
+<span class="sd">            Number of points in the ODI sampling grid. If not set, the grid is</span>
+<span class="sd">            autoscaled from ``odi_range`` so its sampling density matches the</span>
+<span class="sd">            default grid (10 points across ``0.01 0.3``).</span>
+<span class="sd">        wm_d_par_range : variable float, optional</span>
+<span class="sd">            Two values ``min max`` (in mm^2/s) for the white-matter parallel</span>
+<span class="sd">            (axial) diffusivity prior. If not set, defaults to</span>
+<span class="sd">            ``0.002 0.003``.</span>
+<span class="sd">        wm_d_perp_range : variable float, optional</span>
+<span class="sd">            Two values ``min max`` (in mm^2/s) for the white-matter</span>
+<span class="sd">            perpendicular (radial) diffusivity prior. Ignored when</span>
+<span class="sd">            ``tortuosity`` is set. If not set, defaults to ``0.0003 0.0015``.</span>
+<span class="sd">        gm_d_iso_range : variable float, optional</span>
+<span class="sd">            Two values ``min max`` (in mm^2/s) for the gray-matter isotropic</span>
+<span class="sd">            diffusivity prior. If not set, defaults to ``0.0007 0.0012``.</span>
+<span class="sd">        csf_d : float, optional</span>
+<span class="sd">            Fixed CSF isotropic diffusivity in mm^2/s. If not set, defaults to</span>
+<span class="sd">            ``0.003``.</span>
 <span class="sd">        num_cpus : int, optional</span>
 <span class="sd">            Number of CPU cores for simulation generation. Use -1 to use</span>
 <span class="sd">            all available cores.</span>
@@ -4618,10 +4655,49 @@ document.write(`
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.force</span><span class="w"> </span><span class="kn">import</span> <span class="n">MICRO_PARAMS</span><span class="p">,</span> <span class="n">FORCEModel</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.force</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_default_diffusivity_config</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
         <span class="n">use_posterior</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">use_exact</span>
         <span class="n">save_metrics</span> <span class="o">=</span> <span class="n">save_metrics</span> <span class="ow">or</span> <span class="p">[]</span>
+
+        <span class="c1"># Assemble the simulation-library prior overrides. Any range left</span>
+        <span class="c1"># unset falls back to the FORCE defaults (see</span>
+        <span class="c1"># ``get_default_diffusivity_config``), so the defaults are unchanged</span>
+        <span class="c1"># unless the user explicitly passes one of these options.</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_as_range</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; expects exactly two values (min max); &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; min (</span><span class="si">{</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) must not exceed max (</span><span class="si">{</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">).&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">values</span>
+
+        <span class="n">diffusivity_overrides</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;wm_d_par_range&quot;</span><span class="p">:</span> <span class="n">wm_d_par_range</span><span class="p">,</span>
+            <span class="s2">&quot;wm_d_perp_range&quot;</span><span class="p">:</span> <span class="n">wm_d_perp_range</span><span class="p">,</span>
+            <span class="s2">&quot;gm_d_iso_range&quot;</span><span class="p">:</span> <span class="n">gm_d_iso_range</span><span class="p">,</span>
+            <span class="s2">&quot;csf_d&quot;</span><span class="p">:</span> <span class="n">csf_d</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">diffusivity_overrides</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">diffusivity_config</span> <span class="o">=</span> <span class="n">get_default_diffusivity_config</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">diffusivity_overrides</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">diffusivity_config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;csf_d&quot;</span> <span class="k">else</span> <span class="n">_as_range</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">diffusivity_config</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">gen_range_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">odi_range</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gen_range_kwargs</span><span class="p">[</span><span class="s2">&quot;odi_range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_as_range</span><span class="p">(</span><span class="s2">&quot;odi_range&quot;</span><span class="p">,</span> <span class="n">odi_range</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;ray&quot;</span><span class="p">:</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">has_ray</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;ray&quot;</span><span class="p">)</span>
@@ -4691,7 +4767,12 @@ document.write(`
                 <span class="n">num_cpus</span><span class="o">=</span><span class="n">num_cpus</span><span class="p">,</span>
                 <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
                 <span class="n">compute_dki</span><span class="o">=</span><span class="n">compute_kurtosis</span><span class="p">,</span>
+                <span class="n">wm_threshold</span><span class="o">=</span><span class="n">wm_threshold</span><span class="p">,</span>
+                <span class="n">tortuosity</span><span class="o">=</span><span class="n">tortuosity</span><span class="p">,</span>
+                <span class="n">num_odi_values</span><span class="o">=</span><span class="n">num_odi_values</span><span class="p">,</span>
+                <span class="n">diffusivity_config</span><span class="o">=</span><span class="n">diffusivity_config</span><span class="p">,</span>
                 <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">gen_range_kwargs</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fitting FORCE model...&quot;</span><span class="p">)</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.force &#8212; dipy 1.13.0.dev0+git20260723.dd19713 documentation</title>
+    <title>dipy.reconst.force &#8212; dipy 1.13.0.dev0+git20260724.af8f2e2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=a95ba5d4"></script>
+    <script src="../../../_static/documentation_options.js?v=9c4f68f3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -898,10 +898,17 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReconstFit</span><span class="p">,</span> <span class="n">ReconstModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.multi_voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_voxel_fit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">sf_to_sh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims._force_core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DEFAULT_THREE_FIBER_MIN_ANGLE</span><span class="p">,</span>
+    <span class="n">DEFAULT_TWO_FIBER_MIN_ANGLE</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.force</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DEFAULT_NUM_ODI_VALUES</span><span class="p">,</span>
+    <span class="n">DEFAULT_ODI_RANGE</span><span class="p">,</span>
     <span class="n">generate_force_simulations</span><span class="p">,</span>
     <span class="n">get_default_diffusivity_config</span><span class="p">,</span>
     <span class="n">load_force_simulations</span><span class="p">,</span>
+    <span class="n">resolve_num_odi_values</span><span class="p">,</span>
     <span class="n">save_force_simulations</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
@@ -1059,7 +1066,50 @@ document.write(`
                 <span class="n">fcntl</span><span class="o">.</span><span class="n">flock</span><span class="p">(</span><span class="n">lock_fh</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">LOCK_UN</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_find_cached_simulation</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">diffusivity_config</span><span class="p">,</span> <span class="n">num_simulations</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_odi_grid_matches</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">odi_range</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check whether a registry *entry*&#39;s ODI grid matches the request.</span>
+
+<span class="sd">    Legacy entries written before the ODI grid was part of the cache key are</span>
+<span class="sd">    treated as having been generated with the historical defaults</span>
+<span class="sd">    (``DEFAULT_ODI_RANGE`` / ``DEFAULT_NUM_ODI_VALUES``), so existing caches</span>
+<span class="sd">    keep matching default-grid requests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">entry_range</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;odi_range&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">DEFAULT_ODI_RANGE</span><span class="p">))</span>
+    <span class="n">entry_num</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_odi_values&quot;</span><span class="p">,</span> <span class="n">DEFAULT_NUM_ODI_VALUES</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">entry_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">odi_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">entry_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">odi_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">entry_num</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_odi_values</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_min_angles_match</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">min_crossing_angles</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check whether a registry *entry*&#39;s crossing angles match the request.</span>
+
+<span class="sd">    Entries written before this became part of the cache key are read as</span>
+<span class="sd">    using the defaults.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">entry_angles</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;two_fiber_min_angle&quot;</span><span class="p">,</span> <span class="n">DEFAULT_TWO_FIBER_MIN_ANGLE</span><span class="p">),</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;three_fiber_min_angle&quot;</span><span class="p">,</span> <span class="n">DEFAULT_THREE_FIBER_MIN_ANGLE</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">entry_angles</span><span class="p">,</span> <span class="n">min_crossing_angles</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_find_cached_simulation</span><span class="p">(</span>
+    <span class="n">cache_dir</span><span class="p">,</span>
+    <span class="n">gtab</span><span class="p">,</span>
+    <span class="n">diffusivity_config</span><span class="p">,</span>
+    <span class="n">num_simulations</span><span class="p">,</span>
+    <span class="n">odi_range</span><span class="p">,</span>
+    <span class="n">num_odi_values</span><span class="p">,</span>
+    <span class="n">min_crossing_angles</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Search the registry for a simulation matching the given parameters.</span>
 
 <span class="sd">    Parameters</span>
@@ -1072,6 +1122,12 @@ document.write(`
 <span class="sd">        Diffusivity ranges used for generation.</span>
 <span class="sd">    num_simulations : int</span>
 <span class="sd">        Number of simulations requested.</span>
+<span class="sd">    odi_range : tuple</span>
+<span class="sd">        ``(min, max)`` orientation-dispersion-index range.</span>
+<span class="sd">    num_odi_values : int</span>
+<span class="sd">        Resolved number of ODI grid points.</span>
+<span class="sd">    min_crossing_angles : tuple</span>
+<span class="sd">        ``(two_fiber_min_angle, three_fiber_min_angle)`` in degrees.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1086,6 +1142,10 @@ document.write(`
             <span class="k">continue</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_diffusivity_matches</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;diffusivity_config&quot;</span><span class="p">],</span> <span class="n">diffusivity_config</span><span class="p">):</span>
             <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_odi_grid_matches</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">odi_range</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_min_angles_match</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">min_crossing_angles</span><span class="p">):</span>
+            <span class="k">continue</span>
         <span class="n">candidate</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="o">/</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
@@ -1093,7 +1153,14 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_register_cached_simulation</span><span class="p">(</span>
-    <span class="n">cache_dir</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">diffusivity_config</span><span class="p">,</span> <span class="n">num_simulations</span><span class="p">,</span> <span class="n">filename</span>
+    <span class="n">cache_dir</span><span class="p">,</span>
+    <span class="n">gtab</span><span class="p">,</span>
+    <span class="n">diffusivity_config</span><span class="p">,</span>
+    <span class="n">num_simulations</span><span class="p">,</span>
+    <span class="n">filename</span><span class="p">,</span>
+    <span class="n">odi_range</span><span class="p">,</span>
+    <span class="n">num_odi_values</span><span class="p">,</span>
+    <span class="n">min_crossing_angles</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a new entry to the cache registry.</span>
 
@@ -1109,6 +1176,12 @@ document.write(`
 <span class="sd">        Number of simulations.</span>
 <span class="sd">    filename : str</span>
 <span class="sd">        Filename of the saved ``.npz`` inside *cache_dir*.</span>
+<span class="sd">    odi_range : tuple</span>
+<span class="sd">        ``(min, max)`` orientation-dispersion-index range.</span>
+<span class="sd">    num_odi_values : int</span>
+<span class="sd">        Resolved number of ODI grid points.</span>
+<span class="sd">    min_crossing_angles : tuple</span>
+<span class="sd">        ``(two_fiber_min_angle, three_fiber_min_angle)`` in degrees.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Convert numpy types to plain Python for JSON serialisation</span>
@@ -1130,6 +1203,10 @@ document.write(`
         <span class="s2">&quot;bvecs&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
         <span class="s2">&quot;diffusivity_config&quot;</span><span class="p">:</span> <span class="n">config_json</span><span class="p">,</span>
         <span class="s2">&quot;num_simulations&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_simulations</span><span class="p">),</span>
+        <span class="s2">&quot;odi_range&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span>
+        <span class="s2">&quot;num_odi_values&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_odi_values</span><span class="p">),</span>
+        <span class="s2">&quot;two_fiber_min_angle&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_crossing_angles</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="s2">&quot;three_fiber_min_angle&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_crossing_angles</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
         <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
     <span class="p">}</span>
 
@@ -1632,7 +1709,10 @@ document.write(`
         <span class="n">num_cpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">wm_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
         <span class="n">tortuosity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">odi_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span>
+        <span class="n">odi_range</span><span class="o">=</span><span class="n">DEFAULT_ODI_RANGE</span><span class="p">,</span>
+        <span class="n">num_odi_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">two_fiber_min_angle</span><span class="o">=</span><span class="n">DEFAULT_TWO_FIBER_MIN_ANGLE</span><span class="p">,</span>
+        <span class="n">three_fiber_min_angle</span><span class="o">=</span><span class="n">DEFAULT_THREE_FIBER_MIN_ANGLE</span><span class="p">,</span>
         <span class="n">diffusivity_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">compute_dti</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">compute_dki</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1644,8 +1724,9 @@ document.write(`
 <span class="sd">        When ``output_path`` is ``None`` and ``use_cache`` is ``True``,</span>
 <span class="sd">        simulations are cached in ``~/.dipy/force_simulations/`` (or</span>
 <span class="sd">        ``$DIPY_HOME``). A registry file (``cache_registry.json``) keeps</span>
-<span class="sd">        track of the bvals, bvecs, diffusivity configuration and number of</span>
-<span class="sd">        simulations for each cached file. If a cached simulation that matches</span>
+<span class="sd">        track of the bvals, bvecs, diffusivity configuration, ODI grid,</span>
+<span class="sd">        minimum crossing angles and number of simulations for each cached</span>
+<span class="sd">        file. If a cached simulation that matches</span>
 <span class="sd">        the current gradient table (within tolerance) and diffusivity</span>
 <span class="sd">        configuration already exists, it is loaded from disk and generation</span>
 <span class="sd">        is skipped.</span>
@@ -1668,6 +1749,17 @@ document.write(`
 <span class="sd">            Use tortuosity constraint for perpendicular diffusivity.</span>
 <span class="sd">        odi_range : tuple, optional</span>
 <span class="sd">            (min, max) orientation dispersion index range.</span>
+<span class="sd">        num_odi_values : int or None, optional</span>
+<span class="sd">            Number of points in the ODI sampling grid. When ``None`` (default),</span>
+<span class="sd">            the grid is autoscaled from ``odi_range`` so its sampling density</span>
+<span class="sd">            matches the default grid.</span>
+<span class="sd">        two_fiber_min_angle : float, optional</span>
+<span class="sd">            Minimum crossing angle for two-fiber simulations, in degrees. The</span>
+<span class="sd">            library never contains crossings below this angle, so the fit</span>
+<span class="sd">            cannot report them either. Use ``0`` to allow any crossing.</span>
+<span class="sd">        three_fiber_min_angle : float, optional</span>
+<span class="sd">            Minimum pairwise crossing angle for three-fiber simulations, in</span>
+<span class="sd">            degrees.</span>
 <span class="sd">        diffusivity_config : dict, optional</span>
 <span class="sd">            Custom diffusivity ranges.</span>
 <span class="sd">        compute_dti : bool, optional</span>
@@ -1713,6 +1805,12 @@ document.write(`
             <span class="k">else</span> <span class="n">get_default_diffusivity_config</span><span class="p">()</span>
         <span class="p">)</span>
 
+        <span class="c1"># Resolve the ODI grid that will actually be used, so both the cache</span>
+        <span class="c1"># key and the generated library agree on it.</span>
+        <span class="n">resolved_odi_range</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">resolved_num_odi</span> <span class="o">=</span> <span class="n">resolve_num_odi_values</span><span class="p">(</span><span class="n">resolved_odi_range</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="p">)</span>
+        <span class="n">min_crossing_angles</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">two_fiber_min_angle</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">three_fiber_min_angle</span><span class="p">))</span>
+
         <span class="c1"># --- Cache logic when no explicit output_path is given ----------</span>
         <span class="k">if</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">use_cache</span><span class="p">:</span>
             <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">_get_force_cache_dir</span><span class="p">()</span>
@@ -1721,6 +1819,9 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">gtab</span><span class="p">,</span>
                 <span class="n">resolved_config</span><span class="p">,</span>
                 <span class="n">num_simulations</span><span class="p">,</span>
+                <span class="n">resolved_odi_range</span><span class="p">,</span>
+                <span class="n">resolved_num_odi</span><span class="p">,</span>
+                <span class="n">min_crossing_angles</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">cached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
@@ -1736,7 +1837,10 @@ document.write(`
             <span class="n">num_cpus</span><span class="o">=</span><span class="n">num_cpus</span><span class="p">,</span>
             <span class="n">wm_threshold</span><span class="o">=</span><span class="n">wm_threshold</span><span class="p">,</span>
             <span class="n">tortuosity</span><span class="o">=</span><span class="n">tortuosity</span><span class="p">,</span>
-            <span class="n">odi_range</span><span class="o">=</span><span class="n">odi_range</span><span class="p">,</span>
+            <span class="n">odi_range</span><span class="o">=</span><span class="n">resolved_odi_range</span><span class="p">,</span>
+            <span class="n">num_odi_values</span><span class="o">=</span><span class="n">resolved_num_odi</span><span class="p">,</span>
+            <span class="n">two_fiber_min_angle</span><span class="o">=</span><span class="n">two_fiber_min_angle</span><span class="p">,</span>
+            <span class="n">three_fiber_min_angle</span><span class="o">=</span><span class="n">three_fiber_min_angle</span><span class="p">,</span>
             <span class="n">diffusivity_config</span><span class="o">=</span><span class="n">diffusivity_config</span><span class="p">,</span>
             <span class="n">compute_dti</span><span class="o">=</span><span class="n">compute_dti</span><span class="p">,</span>
             <span class="n">compute_dki</span><span class="o">=</span><span class="n">compute_dki</span><span class="p">,</span>
@@ -1767,6 +1871,9 @@ document.write(`
                 <span class="n">resolved_config</span><span class="p">,</span>
                 <span class="n">num_simulations</span><span class="p">,</span>
                 <span class="n">filename</span><span class="p">,</span>
+                <span class="n">resolved_odi_range</span><span class="p">,</span>
+                <span class="n">resolved_num_odi</span><span class="p">,</span>
+                <span class="n">min_crossing_angles</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[FORCE] Cached simulations to </span><span class="si">{</span><span class="n">cache_dir</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

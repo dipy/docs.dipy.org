@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.sims.force &#8212; dipy 1.13.0.dev0+git20260723.dd19713 documentation</title>
+    <title>dipy.sims.force &#8212; dipy 1.13.0.dev0+git20260724.af8f2e2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=a95ba5d4"></script>
+    <script src="../../../_static/documentation_options.js?v=9c4f68f3"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -911,9 +911,52 @@ document.write(`
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.bingham</span><span class="w"> </span><span class="kn">import</span> <span class="n">_single_bingham_to_sf</span> <span class="k">as</span> <span class="n">bingham_to_sf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims._force_core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DEFAULT_THREE_FIBER_MIN_ANGLE</span><span class="p">,</span>
+    <span class="n">DEFAULT_TWO_FIBER_MIN_ANGLE</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">all_tensor_evecs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.multiproc</span><span class="w"> </span><span class="kn">import</span> <span class="n">determine_num_processes</span>
+
+<span class="c1"># Reference ODI sampling grid. The library samples orientation-dispersion</span>
+<span class="c1"># values from ``linspace(*odi_range, num_odi_values)``; these constants define</span>
+<span class="c1"># the default grid and its density, which ``resolve_num_odi_values`` uses to</span>
+<span class="c1"># autoscale the number of grid points to any custom ``odi_range``.</span>
+<span class="n">DEFAULT_ODI_RANGE</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+<span class="n">DEFAULT_NUM_ODI_VALUES</span> <span class="o">=</span> <span class="mi">10</span>
+
+
+<div class="viewcode-block" id="resolve_num_odi_values">
+<a class="viewcode-back" href="../../../reference/dipy.sims.html#dipy.sims.force.resolve_num_odi_values">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_num_odi_values</span><span class="p">(</span><span class="n">odi_range</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve the number of ODI grid points, autoscaling when unset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    odi_range : tuple</span>
+<span class="sd">        ``(min, max)`` orientation-dispersion-index range.</span>
+<span class="sd">    num_odi_values : int or None, optional</span>
+<span class="sd">        Explicit number of grid points. When ``None``, the grid is autoscaled</span>
+<span class="sd">        so its spacing matches the default grid</span>
+<span class="sd">        (``DEFAULT_NUM_ODI_VALUES`` points across ``DEFAULT_ODI_RANGE``),</span>
+<span class="sd">        keeping sampling density constant as ``odi_range`` widens or narrows.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    n : int</span>
+<span class="sd">        Number of ODI grid points (always &gt;= 2).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">num_odi_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_odi_values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;num_odi_values must be &gt;= 2; got </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">default_lo</span><span class="p">,</span> <span class="n">default_hi</span> <span class="o">=</span> <span class="n">DEFAULT_ODI_RANGE</span>
+    <span class="n">spacing</span> <span class="o">=</span> <span class="p">(</span><span class="n">default_hi</span> <span class="o">-</span> <span class="n">default_lo</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">DEFAULT_NUM_ODI_VALUES</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">/</span> <span class="n">spacing</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="dispersion_lut">
@@ -1043,6 +1086,7 @@ document.write(`
     <span class="n">tort</span><span class="p">,</span>
     <span class="n">memmap_info</span><span class="p">,</span>
     <span class="n">diffusivity_cfg</span><span class="p">,</span>
+    <span class="n">min_crossing_angles</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Worker function for parallel batch generation.</span>
 
@@ -1168,7 +1212,17 @@ document.write(`
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">i</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">create_mixed_signal</span><span class="p">(</span>
-            <span class="n">sphere</span><span class="p">,</span> <span class="n">evecs</span><span class="p">,</span> <span class="n">bingham</span><span class="p">,</span> <span class="n">odi</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">,</span> <span class="n">multi_tensor</span><span class="p">,</span> <span class="n">wm_thresh</span><span class="p">,</span> <span class="n">tort</span>
+            <span class="n">sphere</span><span class="p">,</span>
+            <span class="n">evecs</span><span class="p">,</span>
+            <span class="n">bingham</span><span class="p">,</span>
+            <span class="n">odi</span><span class="p">,</span>
+            <span class="n">bval</span><span class="p">,</span>
+            <span class="n">bvec</span><span class="p">,</span>
+            <span class="n">multi_tensor</span><span class="p">,</span>
+            <span class="n">wm_thresh</span><span class="p">,</span>
+            <span class="n">tort</span><span class="p">,</span>
+            <span class="n">min_crossing_angles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">min_crossing_angles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
         <span class="p">)</span>
         <span class="p">(</span>
             <span class="n">signals_mm</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
@@ -1277,8 +1331,10 @@ document.write(`
     <span class="n">batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
     <span class="n">wm_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
     <span class="n">tortuosity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">odi_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span>
-    <span class="n">num_odi_values</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">odi_range</span><span class="o">=</span><span class="n">DEFAULT_ODI_RANGE</span><span class="p">,</span>
+    <span class="n">num_odi_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">two_fiber_min_angle</span><span class="o">=</span><span class="n">DEFAULT_TWO_FIBER_MIN_ANGLE</span><span class="p">,</span>
+    <span class="n">three_fiber_min_angle</span><span class="o">=</span><span class="n">DEFAULT_THREE_FIBER_MIN_ANGLE</span><span class="p">,</span>
     <span class="n">diffusivity_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
     <span class="n">compute_dti</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1313,8 +1369,16 @@ document.write(`
 <span class="sd">        Use tortuosity constraint for perpendicular diffusivity.</span>
 <span class="sd">    odi_range : tuple, optional</span>
 <span class="sd">        (min, max) orientation dispersion index range.</span>
-<span class="sd">    num_odi_values : int, optional</span>
-<span class="sd">        Number of ODI values to sample.</span>
+<span class="sd">    num_odi_values : int or None, optional</span>
+<span class="sd">        Number of ODI values in the sampling grid. When ``None`` (default),</span>
+<span class="sd">        the grid is autoscaled from ``odi_range`` to keep the sampling density</span>
+<span class="sd">        constant (see :func:`resolve_num_odi_values`).</span>
+<span class="sd">    two_fiber_min_angle : float, optional</span>
+<span class="sd">        Minimum crossing angle for two-fiber simulations, in degrees. Crossings</span>
+<span class="sd">        below this angle are never simulated. Use ``0`` to allow any crossing.</span>
+<span class="sd">    three_fiber_min_angle : float, optional</span>
+<span class="sd">        Minimum pairwise crossing angle for three-fiber simulations, in</span>
+<span class="sd">        degrees.</span>
 <span class="sd">    diffusivity_config : dict, optional</span>
 <span class="sd">        Custom diffusivity ranges.</span>
 <span class="sd">    dtype : dtype, optional</span>
@@ -1356,6 +1420,14 @@ document.write(`
 
     <span class="n">set_diffusivity_ranges</span><span class="p">(</span><span class="o">**</span><span class="n">diffusivity_config</span><span class="p">)</span>
 
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">angle</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;two_fiber_min_angle&quot;</span><span class="p">,</span> <span class="n">two_fiber_min_angle</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;three_fiber_min_angle&quot;</span><span class="p">,</span> <span class="n">three_fiber_min_angle</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">angle</span> <span class="o">&lt;</span> <span class="mi">90</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be in [0, 90) degrees, got </span><span class="si">{</span><span class="n">angle</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">min_crossing_angles</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">two_fiber_min_angle</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">three_fiber_min_angle</span><span class="p">))</span>
+
     <span class="c1"># Setup sphere and ODI values</span>
     <span class="n">sphere</span> <span class="o">=</span> <span class="n">default_sphere</span>
     <span class="n">target_sphere</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
@@ -1370,9 +1442,15 @@ document.write(`
         <span class="p">[</span><span class="n">all_tensor_evecs</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">point</span><span class="p">))</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">target_sphere</span><span class="p">],</span>
         <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">num_odi_values</span> <span class="o">=</span> <span class="n">resolve_num_odi_values</span><span class="p">(</span><span class="n">odi_range</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="p">)</span>
     <span class="n">odi_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">odi_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num_odi_values</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;ODI sampling grid: </span><span class="si">{</span><span class="n">num_odi_values</span><span class="si">}</span><span class="s2"> values over &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">]&quot;</span>
+        <span class="p">)</span>
     <span class="n">dispersion_sf</span> <span class="o">=</span> <span class="n">dispersion_lut</span><span class="p">(</span><span class="n">target_sphere</span><span class="p">,</span> <span class="n">odi_list</span><span class="p">)</span>
 
     <span class="n">label_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span>
@@ -1515,6 +1593,7 @@ document.write(`
                 <span class="n">tortuosity</span><span class="p">,</span>
                 <span class="n">memmap_info</span><span class="p">,</span>
                 <span class="n">diffusivity_config</span><span class="p">,</span>
+                <span class="n">min_crossing_angles</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">batch_done</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
@@ -1538,6 +1617,7 @@ document.write(`
                         <span class="n">tortuosity</span><span class="p">,</span>
                         <span class="n">memmap_info</span><span class="p">,</span>
                         <span class="n">diffusivity_config</span><span class="p">,</span>
+                        <span class="n">min_crossing_angles</span><span class="p">,</span>
                     <span class="p">):</span> <span class="p">(</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">bs</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">bs</span> <span class="ow">in</span> <span class="n">batch_specs</span>
                 <span class="p">}</span>
@@ -1565,6 +1645,7 @@ document.write(`
                     <span class="n">tortuosity</span><span class="p">,</span>
                     <span class="n">memmap_info</span><span class="p">,</span>
                     <span class="n">diffusivity_config</span><span class="p">,</span>
+                    <span class="n">min_crossing_angles</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">batch_done</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1591,6 +1672,7 @@ document.write(`
                     <span class="n">tortuosity</span><span class="p">,</span>
                     <span class="n">memmap_info</span><span class="p">,</span>
                     <span class="n">diffusivity_config</span><span class="p">,</span>
+                    <span class="n">min_crossing_angles</span><span class="p">,</span>
                 <span class="p">):</span> <span class="p">(</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">bs</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">bs</span> <span class="ow">in</span> <span class="n">batch_specs</span>
             <span class="p">}</span>
