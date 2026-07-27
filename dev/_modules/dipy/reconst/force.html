@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.force &#8212; dipy 1.13.0.dev0+git20260727.90af8ba documentation</title>
+    <title>dipy.reconst.force &#8212; dipy 1.13.0.dev0+git20260727.3871ac2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=2541f2df"></script>
+    <script src="../../../_static/documentation_options.js?v=e8be2f03"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -893,7 +893,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">unique_bvals_tolerance</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">PeaksAndMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">PeaksAndMetrics</span><span class="p">,</span> <span class="n">_pam_from_attrs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst._force_search</span><span class="w"> </span><span class="kn">import</span> <span class="n">search_inner_product</span> <span class="k">as</span> <span class="n">_cython_search</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReconstFit</span><span class="p">,</span> <span class="n">ReconstModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.multi_voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_voxel_fit</span>
@@ -2602,19 +2602,23 @@ document.write(`
         <span class="p">):</span>
             <span class="n">v_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">odf</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">v_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">odf</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="n">v_max</span> <span class="o">&gt;</span> <span class="mf">1.0</span>
+            <span class="n">norm_mask</span> <span class="o">=</span> <span class="n">v_max</span> <span class="o">&gt;</span> <span class="mf">1.0</span>
             <span class="n">denom</span> <span class="o">=</span> <span class="p">(</span><span class="n">v_max</span> <span class="o">-</span> <span class="n">v_min</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-12</span>
             <span class="n">normalized_odf</span> <span class="o">=</span> <span class="p">(</span><span class="n">odf</span> <span class="o">-</span> <span class="n">v_min</span><span class="p">)</span> <span class="o">/</span> <span class="n">denom</span>
-            <span class="n">odf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">normalized_odf</span><span class="p">,</span> <span class="n">odf</span><span class="p">)</span>
+            <span class="n">odf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">norm_mask</span><span class="p">,</span> <span class="n">normalized_odf</span><span class="p">,</span> <span class="n">odf</span><span class="p">)</span>
             <span class="n">res_sh</span> <span class="o">=</span> <span class="n">sf_to_sh</span><span class="p">(</span><span class="n">odf</span><span class="p">,</span> <span class="n">default_sphere</span><span class="p">,</span> <span class="n">sh_order</span><span class="o">=</span><span class="n">sh_order</span><span class="p">)</span>
-    <span class="n">peaks</span> <span class="o">=</span> <span class="n">PeaksAndMetrics</span><span class="p">()</span>
-    <span class="n">peaks</span><span class="o">.</span><span class="n">peak_dirs</span> <span class="o">=</span> <span class="n">res_dirs</span>
-    <span class="n">peaks</span><span class="o">.</span><span class="n">peak_values</span> <span class="o">=</span> <span class="n">res_vals</span>
-    <span class="n">peaks</span><span class="o">.</span><span class="n">peak_indices</span> <span class="o">=</span> <span class="n">res_inds</span>
-    <span class="n">peaks</span><span class="o">.</span><span class="n">shm_coeff</span> <span class="o">=</span> <span class="n">res_sh</span>
-    <span class="n">peaks</span><span class="o">.</span><span class="n">sphere</span> <span class="o">=</span> <span class="n">default_sphere</span>
-
-    <span class="k">return</span> <span class="n">peaks</span></div>
+    <span class="k">return</span> <span class="n">_pam_from_attrs</span><span class="p">(</span>
+        <span class="n">PeaksAndMetrics</span><span class="p">,</span>
+        <span class="n">default_sphere</span><span class="p">,</span>
+        <span class="n">res_inds</span><span class="p">,</span>
+        <span class="n">res_vals</span><span class="p">,</span>
+        <span class="n">res_dirs</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="n">res_sh</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 
