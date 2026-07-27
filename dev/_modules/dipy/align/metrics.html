@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.metrics &#8212; dipy 1.13.0.dev0+git20260727.746eee7 documentation</title>
+    <title>dipy.align.metrics &#8212; dipy 1.13.0.dev0+git20260727.90af8ba documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=762e684d"></script>
+    <script src="../../../_static/documentation_options.js?v=2541f2df"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1164,13 +1164,11 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">precompute_factors</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">precompute_cc_factors_2d</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">compute_forward_step</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">compute_cc_forward_step_2d</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">compute_backward_step</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">compute_cc_backward_step_2d</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compute_step</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">compute_cc_step_2d</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">reorient_vector_field</span> <span class="o">=</span> <span class="n">vfu</span><span class="o">.</span><span class="n">reorient_vector_field_2d</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">precompute_factors</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">precompute_cc_factors_3d</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">compute_forward_step</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">compute_cc_forward_step_3d</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">compute_backward_step</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">compute_cc_backward_step_3d</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compute_step</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">compute_cc_step_3d</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">reorient_vector_field</span> <span class="o">=</span> <span class="n">vfu</span><span class="o">.</span><span class="n">reorient_vector_field_3d</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CC Metric not defined for dim. </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1255,8 +1253,8 @@ document.write(`
 <span class="sd">        Computes the update displacement field to be used for registration of</span>
 <span class="sd">        the moving image towards the static image</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">displacement</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_forward_step</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_static</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span>
+        <span class="n">displacement</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_step</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_static</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">forward_step</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
         <span class="n">displacement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">displacement</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
@@ -1274,8 +1272,8 @@ document.write(`
 <span class="sd">        Computes the update displacement field to be used for registration of</span>
 <span class="sd">        the static image towards the moving image</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">displacement</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_backward_step</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_moving</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span>
+        <span class="n">displacement</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_step</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_moving</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">forward_step</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span>
         <span class="n">displacement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">displacement</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
