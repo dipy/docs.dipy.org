@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>nn &#8212; dipy 1.13.0.dev0+git20260727.3871ac2 documentation</title>
+    <title>nn &#8212; dipy 1.13.0.dev0+git20260729.042a8c4 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=e8be2f03"></script>
+    <script src="../_static/documentation_options.js?v=0caeab94"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -5096,7 +5096,7 @@ due to the size of the output probability maps.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.nn.torch.synthseg.SynthSeg.load_model_weights" title="dipy.nn.torch.synthseg.SynthSeg.load_model_weights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_model_weights</span></code></a>(weights_path)</p></td>
 <td><p>Load the custom pre-training weights to use for the fitting.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#dipy.nn.torch.synthseg.SynthSeg.predict" title="dipy.nn.torch.synthseg.SynthSeg.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(T1, affine, *[, batch_size, return_prob])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.nn.torch.synthseg.SynthSeg.predict" title="dipy.nn.torch.synthseg.SynthSeg.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(T1, affine, *[, batch_size, ...])</p></td>
 <td><p>Wrapper function to facilitate prediction of larger dataset.</p></td>
 </tr>
 </tbody>
@@ -5159,7 +5159,7 @@ is mainly intended for the class function ‘predict’.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.nn.torch.synthseg.SynthSeg.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/nn/torch/synthseg.html#SynthSeg.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.nn.torch.synthseg.SynthSeg.predict" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalize_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/nn/torch/synthseg.html#SynthSeg.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.nn.torch.synthseg.SynthSeg.predict" title="Link to this definition">#</a></dt>
 <dd><p>Wrapper function to facilitate prediction of larger dataset.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -5179,8 +5179,10 @@ If None, batch_size will be set to 1 if the provided image
 has a batch dimension.</p>
 </dd>
 <dt><strong>return_prob</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to return the probability map instead of a
-label map. Probability maps remain in the 1 mm isotropic model
-space, padded to dimensions divisible by 32. Useful for testing.</p>
+label map. Useful for testing.</p>
+</dd>
+<dt><strong>finalize_mask</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to remove potential holes or islands.
+Useful for solving minor errors.</p>
 </dd>
 </dl>
 </dd>
@@ -5189,11 +5191,12 @@ space, padded to dimensions divisible by 32. Useful for testing.</p>
 <dt><strong>pred_output</strong><span class="classifier">np.ndarray (…) or (batch, …)</span></dt><dd><p>Predicted brain labels. If return_prob is True, it will be a
 probability map instead of a label map.</p>
 </dd>
-<dt><strong>label_dict</strong><span class="classifier">dict</span></dt><dd><p>Dictionary mapping label indices to anatomical structure names.
-Only if return_prob is False.</p>
+<dt><strong>label_dict</strong><span class="classifier">dict</span></dt><dd><p>Dictionary mapping label indices to anatomical structure names.</p>
 </dd>
-<dt><strong>mask</strong><span class="classifier">np.ndarray (…) or (batch, …)</span></dt><dd><p>Predicted brain mask.
-Only if return_prob is False.</p>
+<dt><strong>masks</strong><span class="classifier">np.ndarray (…) or (batch, …)</span></dt><dd><p>Predicted brain masks in the original image space. By default, each
+mask is generated as <code class="docutils literal notranslate"><span class="pre">predicted_labels</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">finalize_mask</span></code> is True, <code class="docutils literal notranslate"><span class="pre">remove_holes_and_islands</span></code> is
+additionally applied.</p>
 </dd>
 </dl>
 </dd>
