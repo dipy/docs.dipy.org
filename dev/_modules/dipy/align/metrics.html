@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.metrics &#8212; dipy 1.13.0.dev0+git20260729.042a8c4 documentation</title>
+    <title>dipy.align.metrics &#8212; dipy 1.13.0.dev0+git20260729.df63a47 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=0caeab94"></script>
+    <script src="../../../_static/documentation_options.js?v=81c2e298"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -894,6 +894,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">crosscorr</span> <span class="k">as</span> <span class="n">cc</span><span class="p">,</span>
     <span class="n">expectmax</span> <span class="k">as</span> <span class="n">em</span><span class="p">,</span>
+    <span class="n">parzenhist</span> <span class="k">as</span> <span class="n">ph</span><span class="p">,</span>
     <span class="n">sumsqdiff</span> <span class="k">as</span> <span class="n">ssd</span><span class="p">,</span>
     <span class="n">vector_fields</span> <span class="k">as</span> <span class="n">vfu</span><span class="p">,</span>
 <span class="p">)</span>
@@ -1129,6 +1130,162 @@ document.write(`
 <span class="sd">        image matches the current static image. Lower energy is typically</span>
 <span class="sd">        considered better (optimizer minimizes).</span>
 <span class="sd">        &quot;&quot;&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MIMetric">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.metrics.MIMetric">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MIMetric</span><span class="p">(</span><span class="n">SimilarityMetric</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Mutual Information Similarity metric.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim : int (either 2 or 3)</span>
+<span class="sd">            The dimension of the image domain.</span>
+<span class="sd">        nbins : int, optional</span>
+<span class="sd">            Number of bins to use for the joint intensity histogram.</span>
+<span class="sd">        smooth : float, optional</span>
+<span class="sd">            Standard deviation of the Gaussian smoothing kernel to apply to</span>
+<span class="sd">            update fields before they are returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">=</span> <span class="n">nbins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smooth</span> <span class="o">=</span> <span class="n">smooth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_histogram</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">ParzenJointHistogram</span><span class="p">(</span><span class="n">nbins</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backward_histogram</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">ParzenJointHistogram</span><span class="p">(</span><span class="n">nbins</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_displacement</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backward_displacement</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connect_functions</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Assign the methods to be called according to the image dimension</span>
+
+<span class="sd">        Assigns the appropriate functions to be called for vector field</span>
+<span class="sd">        reorientation according to the dimension of the input images.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reorient_vector_field</span> <span class="o">=</span> <span class="n">vfu</span><span class="o">.</span><span class="n">reorient_vector_field_2d</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reorient_vector_field</span> <span class="o">=</span> <span class="n">vfu</span><span class="o">.</span><span class="n">reorient_vector_field_3d</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MI Metric not defined for dim. </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MIMetric.initialize_iteration">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.metrics.MIMetric.initialize_iteration">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_iteration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Prepares the metric to compute one displacement field iteration.</span>
+
+<span class="sd">        Computes image gradients in physical coordinates and prepares the</span>
+<span class="sd">        histogram quantities needed to evaluate mutual information updates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_image</span><span class="o">.</span><span class="n">dtype</span>
+
+        <span class="c1"># Reuse displacement buffers across iterations. Reallocate when a new</span>
+        <span class="c1"># pyramid level changes their shape or when the input dtype changes.</span>
+        <span class="n">displacement_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_image</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward_displacement</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_displacement</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">displacement_shape</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_displacement</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">dtype</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward_displacement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">displacement_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backward_displacement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">displacement_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gradient_moving</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
+            <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">moving_image</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">grad</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moving_image</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_moving</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad</span>
+
+        <span class="c1"># Convert moving image&#39;s gradient field from voxel to physical space</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_spacing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_moving</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_spacing</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_direction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reorient_vector_field</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gradient_moving</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_direction</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gradient_static</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
+            <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">static_image</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">grad</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">static_image</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_static</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad</span>
+
+        <span class="c1"># Convert static image&#39;s gradient field from voxel to physical space</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_spacing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_static</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_spacing</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_direction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reorient_vector_field</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gradient_static</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_direction</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_histogram</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">static_image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_image</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backward_histogram</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moving_image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_image</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MIMetric.compute_forward">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.metrics.MIMetric.compute_forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Computes one step bringing the moving image towards the static.</span>
+
+<span class="sd">        Computes the update displacement field to be used for registration of</span>
+<span class="sd">        the moving image towards the static image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">displacement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_displacement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_histogram</span><span class="o">.</span><span class="n">compute_dense_mi_update</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">static_image</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">moving_image</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_moving</span><span class="p">,</span>
+            <span class="n">displacement</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">forward_histogram</span><span class="o">.</span><span class="n">metric_val</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
+            <span class="n">displacement</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span>
+                <span class="n">displacement</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">displacement</span></div>
+
+
+<div class="viewcode-block" id="MIMetric.compute_backward">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.metrics.MIMetric.compute_backward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Computes one step bringing the static image towards the moving.</span>
+
+<span class="sd">        Computes the update displacement field to be used for registration of</span>
+<span class="sd">        the static image towards the moving image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">displacement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backward_displacement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backward_histogram</span><span class="o">.</span><span class="n">compute_dense_mi_update</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">moving_image</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">static_image</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_static</span><span class="p">,</span>
+            <span class="n">displacement</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">backward_histogram</span><span class="o">.</span><span class="n">metric_val</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
+            <span class="n">displacement</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span>
+                <span class="n">displacement</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">displacement</span></div>
+
+
+<div class="viewcode-block" id="MIMetric.get_energy">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.metrics.MIMetric.get_energy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;The numerical value assigned by this metric to the current image pair</span>
+
+<span class="sd">        Returns the negative Mutual Information energy computed for the</span>
+<span class="sd">        current image pair.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span></div>
+
+
+<div class="viewcode-block" id="MIMetric.free_iteration">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.metrics.MIMetric.free_iteration">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">free_iteration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Frees resources that are not reused between iterations.&quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient_static</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient_moving</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_histogram</span><span class="o">.</span><span class="n">mi_weights</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backward_histogram</span><span class="o">.</span><span class="n">mi_weights</span> <span class="o">=</span> <span class="kc">None</span></div>
 </div>
 
 
