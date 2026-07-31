@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.imaffine &#8212; dipy 1.13.0.dev0+git20260729.df63a47 documentation</title>
+    <title>dipy.align.imaffine &#8212; dipy 1.13.0.dev0+git20260731.febf1de documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=81c2e298"></script>
+    <script src="../../../_static/documentation_options.js?v=6a0de64d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -909,6 +909,9 @@ document.write(`
 <span class="sd">    evaluated at the given parameters, and evaluate the value and</span>
 <span class="sd">    gradient of the histogram&#39;s mutual information.</span>
 
+<span class="sd">CrossCorrelationMetric: computes the value and gradient of the local normalized</span>
+<span class="sd">    cross-correlation metric the way `Optimizer` needs them.</span>
+
 <span class="sd">AffineRegistration: it runs the multi-resolution registration, putting</span>
 <span class="sd">    all the pieces together. It needs to create the scale space of the</span>
 <span class="sd">    images and run the multi-resolution registration by using the Metric</span>
@@ -928,7 +931,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy.linalg</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npl</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ndimage</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align</span><span class="w"> </span><span class="kn">import</span> <span class="n">vector_fields</span> <span class="k">as</span> <span class="n">vf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align</span><span class="w"> </span><span class="kn">import</span> <span class="n">crosscorr</span> <span class="k">as</span> <span class="n">cc</span><span class="p">,</span> <span class="n">vector_fields</span> <span class="k">as</span> <span class="n">vf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.imwarp</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScaleSpace</span><span class="p">,</span> <span class="n">get_direction_and_spacings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.parzenhist</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ParzenJointHistogram</span><span class="p">,</span>
@@ -1816,6 +1819,312 @@ document.write(`
         <span class="k">except</span> <span class="p">(</span><span class="n">AffineInversionError</span><span class="p">,</span> <span class="n">AffineInvalidValuesError</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span>
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CrossCorrelationMetric">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imaffine.CrossCorrelationMetric">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CrossCorrelationMetric</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Initialize an instance of the Cross Correlation metric.</span>
+
+<span class="sd">        This class implements the methods required by Optimizer to drive the</span>
+<span class="sd">        registration process.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        radius : int, optional</span>
+<span class="sd">            the radius of the square (2D) or cubic (3D) neighborhood used to</span>
+<span class="sd">            compute the local normalized cross-correlation.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The backend cross-correlation implementation returns the negative sum</span>
+<span class="sd">        of squared local normalized cross-correlations, so it can be directly</span>
+<span class="sd">        minimized by the optimizers used by :class:`AffineRegistration`.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">radius</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span> <span class="ow">or</span> <span class="n">radius</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radius must be a non-negative integer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Connect the dimension-specific cross-correlation functions.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">precompute_factors</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">precompute_cc_factors_2d</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compute_affine</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">compute_cc_affine_2d</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">precompute_factors</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">precompute_cc_factors_3d</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compute_affine</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">compute_cc_affine_3d</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cross-correlation is not defined for dimension </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="CrossCorrelationMetric.setup">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imaffine.CrossCorrelationMetric.setup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">transform</span><span class="p">,</span>
+        <span class="n">static</span><span class="p">,</span>
+        <span class="n">moving</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">static_grid2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">moving_grid2world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">starting_affine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">static_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">moving_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Prepare the metric to compute local cross-correlation and gradients.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        transform: instance of Transform</span>
+<span class="sd">            the transformation with respect to whose parameters the gradient</span>
+<span class="sd">            must be computed</span>
+<span class="sd">        static : array, shape (S, R, C) or (R, C)</span>
+<span class="sd">            static image</span>
+<span class="sd">        moving : array, shape (S&#39;, R&#39;, C&#39;) or (R&#39;, C&#39;)</span>
+<span class="sd">            moving image. The dimensions of the static (S, R, C) and moving</span>
+<span class="sd">            (S&#39;, R&#39;, C&#39;) images do not need to be the same.</span>
+<span class="sd">        static_grid2world : array (dim+1, dim+1), optional</span>
+<span class="sd">            the grid-to-space transform of the static image. The default is</span>
+<span class="sd">            None, implying the transform is the identity.</span>
+<span class="sd">        moving_grid2world : array (dim+1, dim+1)</span>
+<span class="sd">            the grid-to-space transform of the moving image. The default is</span>
+<span class="sd">            None, implying the spacing along all axes is 1.</span>
+<span class="sd">        starting_affine : array, shape (dim+1, dim+1), optional</span>
+<span class="sd">            the pre-aligning matrix (an affine transform) that roughly aligns</span>
+<span class="sd">            the moving image towards the static image. If None, no</span>
+<span class="sd">            pre-alignment is performed. If a pre-alignment matrix is available,</span>
+<span class="sd">            it is recommended to provide this matrix as `starting_affine`</span>
+<span class="sd">            instead of manually transforming the moving image to reduce</span>
+<span class="sd">            interpolation artifacts. The default is None, implying no</span>
+<span class="sd">            pre-alignment is performed.</span>
+<span class="sd">        static_mask : array, shape (S, R, C) or (R, C), optional</span>
+<span class="sd">            static image mask. Not currently supported by this metric.</span>
+<span class="sd">        moving_mask : array, shape (S&#39;, R&#39;, C&#39;) or (R&#39;, C&#39;), optional</span>
+<span class="sd">            moving image mask. Not currently supported by this metric.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">static_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">moving_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Masks are not currently supported by CrossCorrelationMetric&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">get_number_of_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">moving</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Static and moving images must have the same dimension&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connect_functions</span><span class="p">()</span>
+
+        <span class="n">min_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">min_size</span> <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Each static image dimension must be at least &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;2 * radius + 1 (</span><span class="si">{</span><span class="n">min_size</span><span class="si">}</span><span class="s2">); got shape </span><span class="si">{</span><span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">moving_grid2world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">moving_grid2world</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">static_grid2world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">static_grid2world</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">static</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">static</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moving</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">moving</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">static_grid2world</span> <span class="o">=</span> <span class="n">static_grid2world</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moving_grid2world</span> <span class="o">=</span> <span class="n">moving_grid2world</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moving_world2grid</span> <span class="o">=</span> <span class="n">npl</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">moving_grid2world</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moving_direction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_spacing</span> <span class="o">=</span> <span class="n">get_direction_and_spacings</span><span class="p">(</span>
+            <span class="n">moving_grid2world</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">starting_affine</span> <span class="o">=</span> <span class="n">starting_affine</span>
+
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">starting_affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">starting_affine</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">affine_map</span> <span class="o">=</span> <span class="n">AffineMap</span><span class="p">(</span>
+            <span class="n">P</span><span class="p">,</span>
+            <span class="n">domain_grid_shape</span><span class="o">=</span><span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">domain_grid2world</span><span class="o">=</span><span class="n">static_grid2world</span><span class="p">,</span>
+            <span class="n">codomain_grid_shape</span><span class="o">=</span><span class="n">moving</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">codomain_grid2world</span><span class="o">=</span><span class="n">moving_grid2world</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_factors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Update the local cross-correlation factors.</span>
+
+<span class="sd">        The current affine transform is given by `self.affine_map`, which</span>
+<span class="sd">        must be set before calling this method.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        factors : array, shape(S, R, C, 5) or (R, C, 5)</span>
+<span class="sd">            the local cross-correlation terms computed from the static image</span>
+<span class="sd">            and the moving image transformed towards the static image by the</span>
+<span class="sd">            current affine transform.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warped_moving</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine_map</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moving</span><span class="p">)</span>
+        <span class="n">warped_moving</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">warped_moving</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">precompute_factors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">static</span><span class="p">,</span> <span class="n">warped_moving</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">factors</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_cross_correlation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">update_gradient</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Update local cross-correlation and its affine gradient.</span>
+
+<span class="sd">        The cross-correlation is updated according to the static and</span>
+<span class="sd">        transformed images. The transformed image is precisely the moving image</span>
+<span class="sd">        after transforming it by the transform defined by the `params`</span>
+<span class="sd">        parameters.</span>
+
+<span class="sd">        The gradient of the metric is computed only if update_gradient is</span>
+<span class="sd">        True.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        params : array, shape (n,)</span>
+<span class="sd">            the parameter vector of the transform currently used by the metric</span>
+<span class="sd">            (the transform name is provided when self.setup is called), n is</span>
+<span class="sd">            the number of parameters of the transform</span>
+<span class="sd">        update_gradient : Boolean, optional</span>
+<span class="sd">            if True, the gradient of the metric will also be computed,</span>
+<span class="sd">            otherwise, only the metric value will be computed. The default is</span>
+<span class="sd">            True.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the matrix associated with the `params` parameter vector</span>
+        <span class="n">current_affine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">param_to_matrix</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="c1"># Get the static-to-prealigned matrix (only needed for the gradient)</span>
+        <span class="n">static2prealigned</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_grid2world</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">starting_affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">current_affine</span> <span class="o">=</span> <span class="n">current_affine</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">starting_affine</span><span class="p">)</span>
+            <span class="n">static2prealigned</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">starting_affine</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">static2prealigned</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">affine_map</span><span class="o">.</span><span class="n">set_affine</span><span class="p">(</span><span class="n">current_affine</span><span class="p">)</span>
+
+        <span class="c1"># Update the local CC factors with the current joint intensities</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_factors</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">update_gradient</span><span class="p">:</span>
+            <span class="c1"># Compute the gradient of moving img. at physical points</span>
+            <span class="c1"># associated with the &gt;&gt;static image&#39;s grid&lt;&lt; cells</span>
+            <span class="c1"># The image gradient must be eval. at current moved points</span>
+            <span class="n">grid_to_world</span> <span class="o">=</span> <span class="n">current_affine</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">static_grid2world</span><span class="p">)</span>
+            <span class="n">moving_gradient</span><span class="p">,</span> <span class="n">inside</span> <span class="o">=</span> <span class="n">vf</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">moving</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">moving_world2grid</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">moving_spacing</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                <span class="n">grid_to_world</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">moving_gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">moving_gradient</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+            <span class="c1"># The Jacobian must be evaluated at the pre-aligned points</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_affine</span><span class="p">(</span>
+                <span class="n">factors</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span>
+                <span class="n">moving_gradient</span><span class="p">,</span>
+                <span class="n">params</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span>
+                <span class="n">static2prealigned</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_affine</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CrossCorrelationMetric.distance">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imaffine.CrossCorrelationMetric.distance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Numeric value of the local cross-correlation energy.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        params : array, shape (n,)</span>
+<span class="sd">            the parameter vector of the transform currently used by the metric</span>
+<span class="sd">            (the transform name is provided when self.setup is called), n is</span>
+<span class="sd">            the number of parameters of the transform</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            the local cross-correlation energy of the input images after</span>
+<span class="sd">            transforming the moving image by the currently set transform</span>
+<span class="sd">            with `params` parameters. The returned value is already the</span>
+<span class="sd">            negative local cross-correlation energy and can be minimized</span>
+<span class="sd">            directly.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_cross_correlation</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">update_gradient</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">AffineInversionError</span><span class="p">,</span> <span class="n">AffineInvalidValuesError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span></div>
+
+
+<div class="viewcode-block" id="CrossCorrelationMetric.gradient">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imaffine.CrossCorrelationMetric.gradient">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Numeric value of the metric&#39;s gradient at the given parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        params : array, shape (n,)</span>
+<span class="sd">            the parameter vector of the transform currently used by the metric</span>
+<span class="sd">            (the transform name is provided when self.setup is called), n is</span>
+<span class="sd">            the number of parameters of the transform</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array, shape (n,)</span>
+<span class="sd">            the gradient of the local cross-correlation energy</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_cross_correlation</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">update_gradient</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">AffineInversionError</span><span class="p">,</span> <span class="n">AffineInvalidValuesError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="CrossCorrelationMetric.distance_and_gradient">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imaffine.CrossCorrelationMetric.distance_and_gradient">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance_and_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Numeric value of the metric and its gradient at given parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        params : array, shape (n,)</span>
+<span class="sd">            the parameter vector of the transform currently used by the metric</span>
+<span class="sd">            (the transform name is provided when self.setup is called), n is</span>
+<span class="sd">            the number of parameters of the transform</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            the local cross-correlation energy of the input images after</span>
+<span class="sd">            transforming the moving image by the currently set transform</span>
+<span class="sd">            with `params` parameters. The returned value is already the</span>
+<span class="sd">            negative local cross-correlation energy and can be minimized</span>
+<span class="sd">            directly.</span>
+<span class="sd">        array, shape (n,)</span>
+<span class="sd">            the gradient of the local cross-correlation energy</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_cross_correlation</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">update_gradient</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">AffineInversionError</span><span class="p">,</span> <span class="n">AffineInvalidValuesError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 </div>
 
 

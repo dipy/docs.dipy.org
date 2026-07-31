@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>align &#8212; dipy 1.13.0.dev0+git20260729.df63a47 documentation</title>
+    <title>align &#8212; dipy 1.13.0.dev0+git20260731.febf1de documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=81c2e298"></script>
+    <script src="../_static/documentation_options.js?v=6a0de64d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1037,6 +1037,8 @@ to compute the value and gradient of the joint intensity histogram
 evaluated at the given parameters, and evaluate the value and
 gradient of the histogram’s mutual information.</p>
 </dd>
+<dt>CrossCorrelationMetric: computes the value and gradient of the local normalized</dt><dd><p>cross-correlation metric the way <cite>Optimizer</cite> needs them.</p>
+</dd>
 <dt>AffineRegistration: it runs the multi-resolution registration, putting</dt><dd><p>all the pieces together. It needs to create the scale space of the
 images and run the multi-resolution registration by using the Metric
 and the Optimizer at each level of the Gaussian pyramid. At each
@@ -1073,16 +1075,19 @@ metric with the input images with different levels of smoothing.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.align.imaffine.MutualInformationMetric" title="dipy.align.imaffine.MutualInformationMetric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MutualInformationMetric</span></code></a>(*[, nbins, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.imaffine.AffineRegistration" title="dipy.align.imaffine.AffineRegistration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffineRegistration</span></code></a>(*[, metric, level_iters, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.imaffine.CrossCorrelationMetric" title="dipy.align.imaffine.CrossCorrelationMetric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CrossCorrelationMetric</span></code></a>(*[, radius])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#dipy.align.imaffine.transform_centers_of_mass" title="dipy.align.imaffine.transform_centers_of_mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_centers_of_mass</span></code></a>(static, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.align.imaffine.AffineRegistration" title="dipy.align.imaffine.AffineRegistration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffineRegistration</span></code></a>(*[, metric, level_iters, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.imaffine.transform_centers_of_mass" title="dipy.align.imaffine.transform_centers_of_mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_centers_of_mass</span></code></a>(static, ...)</p></td>
 <td><p>Transformation to align the center of mass of the input images.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.imaffine.transform_geometric_centers" title="dipy.align.imaffine.transform_geometric_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_geometric_centers</span></code></a>(static, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.align.imaffine.transform_geometric_centers" title="dipy.align.imaffine.transform_geometric_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_geometric_centers</span></code></a>(static, ...)</p></td>
 <td><p>Transformation to align the geometric center of the input images.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#dipy.align.imaffine.transform_origins" title="dipy.align.imaffine.transform_origins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_origins</span></code></a>(static, static_grid2world, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.imaffine.transform_origins" title="dipy.align.imaffine.transform_origins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_origins</span></code></a>(static, static_grid2world, ...)</p></td>
 <td><p>Transformation to align the origins of the input images.</p></td>
 </tr>
 </tbody>
@@ -1485,7 +1490,8 @@ rigid_isoscaling, rigid_scaling and affine.</p>
 <dt><strong>starting_affine: 4x4 array, optional</strong></dt><dd><p>Initial guess for the transformation between the spaces.
 Default: identity.</p>
 </dd>
-<dt><strong>metric</strong><span class="classifier">str, optional.</span></dt><dd><p>Currently only supports ‘MI’ for MutualInformationMetric.</p>
+<dt><strong>metric</strong><span class="classifier">str, optional.</span></dt><dd><p>The metric to optimize. Supported values are ‘MI’ for MutualInformationMetric
+and ‘CC’ for CrossCorrelationMetric.</p>
 </dd>
 <dt><strong>level_iters</strong><span class="classifier">sequence, optional</span></dt><dd><p>AffineRegistration key-word argument: the number of iterations at each
 scale of the scale space. <cite>level_iters[0]</cite> corresponds to the coarsest
@@ -1532,6 +1538,10 @@ None, then dense sampling is used. If <cite>sampling_proportion</cite> is a
 floating point value in (0,1] then sparse sampling is used,
 where <cite>sampling_proportion</cite> specifies the proportion of voxels to
 be used. The default is None (dense sampling).</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">int, optional</span></dt><dd><p>CrossCorrelationMetric key-word argument: radius of the square (2D)
+or cubic (3D) neighborhood used for local cross-correlation. The
+default is 4.</p>
 </dd>
 </dl>
 </dd>
@@ -2388,6 +2398,147 @@ are used to calculate the mutual information.</p>
 </dd>
 <dt><strong>moving_mask</strong><span class="classifier">array, shape (S’, R’, C’) or (R’, C’), optional</span></dt><dd><p>moving image mask that defines which pixels in the moving image
 are used to calculate the mutual information.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="crosscorrelationmetric">
+<h3><a class="reference internal" href="#dipy.align.imaffine.CrossCorrelationMetric" title="dipy.align.imaffine.CrossCorrelationMetric"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossCorrelationMetric</span></code></a><a class="headerlink" href="#crosscorrelationmetric" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="dipy.align.imaffine.CrossCorrelationMetric">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dipy.align.imaffine.</span></span><span class="sig-name descname"><span class="pre">CrossCorrelationMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/align/imaffine.html#CrossCorrelationMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.align.imaffine.CrossCorrelationMetric" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p class="rubric">Methods</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.imaffine.CrossCorrelationMetric.distance" title="dipy.align.imaffine.CrossCorrelationMetric.distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distance</span></code></a>(params)</p></td>
+<td><p>Numeric value of the local cross-correlation energy.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.align.imaffine.CrossCorrelationMetric.distance_and_gradient" title="dipy.align.imaffine.CrossCorrelationMetric.distance_and_gradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distance_and_gradient</span></code></a>(params)</p></td>
+<td><p>Numeric value of the metric and its gradient at given parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.imaffine.CrossCorrelationMetric.gradient" title="dipy.align.imaffine.CrossCorrelationMetric.gradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradient</span></code></a>(params)</p></td>
+<td><p>Numeric value of the metric's gradient at the given parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.align.imaffine.CrossCorrelationMetric.setup" title="dipy.align.imaffine.CrossCorrelationMetric.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>(transform, static, moving, *[, ...])</p></td>
+<td><p>Prepare the metric to compute local cross-correlation and gradients.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="dipy.align.imaffine.CrossCorrelationMetric.distance">
+<span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/align/imaffine.html#CrossCorrelationMetric.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.align.imaffine.CrossCorrelationMetric.distance" title="Link to this definition">#</a></dt>
+<dd><p>Numeric value of the local cross-correlation energy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>params</strong><span class="classifier">array, shape (n,)</span></dt><dd><p>the parameter vector of the transform currently used by the metric
+(the transform name is provided when self.setup is called), n is
+the number of parameters of the transform</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>the local cross-correlation energy of the input images after
+transforming the moving image by the currently set transform
+with <cite>params</cite> parameters. The returned value is already the
+negative local cross-correlation energy and can be minimized
+directly.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dipy.align.imaffine.CrossCorrelationMetric.distance_and_gradient">
+<span class="sig-name descname"><span class="pre">distance_and_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/align/imaffine.html#CrossCorrelationMetric.distance_and_gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.align.imaffine.CrossCorrelationMetric.distance_and_gradient" title="Link to this definition">#</a></dt>
+<dd><p>Numeric value of the metric and its gradient at given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>params</strong><span class="classifier">array, shape (n,)</span></dt><dd><p>the parameter vector of the transform currently used by the metric
+(the transform name is provided when self.setup is called), n is
+the number of parameters of the transform</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>the local cross-correlation energy of the input images after
+transforming the moving image by the currently set transform
+with <cite>params</cite> parameters. The returned value is already the
+negative local cross-correlation energy and can be minimized
+directly.</p>
+</dd>
+<dt>array, shape (n,)</dt><dd><p>the gradient of the local cross-correlation energy</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dipy.align.imaffine.CrossCorrelationMetric.gradient">
+<span class="sig-name descname"><span class="pre">gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/align/imaffine.html#CrossCorrelationMetric.gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.align.imaffine.CrossCorrelationMetric.gradient" title="Link to this definition">#</a></dt>
+<dd><p>Numeric value of the metric’s gradient at the given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>params</strong><span class="classifier">array, shape (n,)</span></dt><dd><p>the parameter vector of the transform currently used by the metric
+(the transform name is provided when self.setup is called), n is
+the number of parameters of the transform</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array, shape (n,)</dt><dd><p>the gradient of the local cross-correlation energy</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dipy.align.imaffine.CrossCorrelationMetric.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_grid2world</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_grid2world</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starting_affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/align/imaffine.html#CrossCorrelationMetric.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.align.imaffine.CrossCorrelationMetric.setup" title="Link to this definition">#</a></dt>
+<dd><p>Prepare the metric to compute local cross-correlation and gradients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>transform: instance of Transform</strong></dt><dd><p>the transformation with respect to whose parameters the gradient
+must be computed</p>
+</dd>
+<dt><strong>static</strong><span class="classifier">array, shape (S, R, C) or (R, C)</span></dt><dd><p>static image</p>
+</dd>
+<dt><strong>moving</strong><span class="classifier">array, shape (S’, R’, C’) or (R’, C’)</span></dt><dd><p>moving image. The dimensions of the static (S, R, C) and moving
+(S’, R’, C’) images do not need to be the same.</p>
+</dd>
+<dt><strong>static_grid2world</strong><span class="classifier">array (dim+1, dim+1), optional</span></dt><dd><p>the grid-to-space transform of the static image. The default is
+None, implying the transform is the identity.</p>
+</dd>
+<dt><strong>moving_grid2world</strong><span class="classifier">array (dim+1, dim+1)</span></dt><dd><p>the grid-to-space transform of the moving image. The default is
+None, implying the spacing along all axes is 1.</p>
+</dd>
+<dt><strong>starting_affine</strong><span class="classifier">array, shape (dim+1, dim+1), optional</span></dt><dd><p>the pre-aligning matrix (an affine transform) that roughly aligns
+the moving image towards the static image. If None, no
+pre-alignment is performed. If a pre-alignment matrix is available,
+it is recommended to provide this matrix as <cite>starting_affine</cite>
+instead of manually transforming the moving image to reduce
+interpolation artifacts. The default is None, implying no
+pre-alignment is performed.</p>
+</dd>
+<dt><strong>static_mask</strong><span class="classifier">array, shape (S, R, C) or (R, C), optional</span></dt><dd><p>static image mask. Not currently supported by this metric.</p>
+</dd>
+<dt><strong>moving_mask</strong><span class="classifier">array, shape (S’, R’, C’) or (R’, C’), optional</span></dt><dd><p>moving image mask. Not currently supported by this metric.</p>
 </dd>
 </dl>
 </dd>
@@ -5651,6 +5802,16 @@ length of the bundle</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.imaffine.MutualInformationMetric.distance_and_gradient"><code class="docutils literal notranslate"><span class="pre">MutualInformationMetric.distance_and_gradient()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.imaffine.MutualInformationMetric.gradient"><code class="docutils literal notranslate"><span class="pre">MutualInformationMetric.gradient()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.imaffine.MutualInformationMetric.setup"><code class="docutils literal notranslate"><span class="pre">MutualInformationMetric.setup()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crosscorrelationmetric"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossCorrelationMetric</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.imaffine.CrossCorrelationMetric"><code class="docutils literal notranslate"><span class="pre">CrossCorrelationMetric</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.imaffine.CrossCorrelationMetric.distance"><code class="docutils literal notranslate"><span class="pre">CrossCorrelationMetric.distance()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.imaffine.CrossCorrelationMetric.distance_and_gradient"><code class="docutils literal notranslate"><span class="pre">CrossCorrelationMetric.distance_and_gradient()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.imaffine.CrossCorrelationMetric.gradient"><code class="docutils literal notranslate"><span class="pre">CrossCorrelationMetric.gradient()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.imaffine.CrossCorrelationMetric.setup"><code class="docutils literal notranslate"><span class="pre">CrossCorrelationMetric.setup()</span></code></a></li>
 </ul>
 </li>
 </ul>

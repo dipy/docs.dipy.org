@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align._public &#8212; dipy 1.13.0.dev0+git20260729.df63a47 documentation</title>
+    <title>dipy.align._public &#8212; dipy 1.13.0.dev0+git20260731.febf1de documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=81c2e298"></script>
+    <script src="../../../_static/documentation_options.js?v=6a0de64d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -904,6 +904,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.imaffine</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AffineMap</span><span class="p">,</span>
     <span class="n">AffineRegistration</span><span class="p">,</span>
+    <span class="n">CrossCorrelationMetric</span><span class="p">,</span>
     <span class="n">MutualInformationMetric</span><span class="p">,</span>
     <span class="n">transform_centers_of_mass</span><span class="p">,</span>
 <span class="p">)</span>
@@ -949,7 +950,10 @@ document.write(`
 <span class="c1"># Global dicts for choosing metrics for registration:</span>
 <span class="n">syn_metric_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;CC&quot;</span><span class="p">:</span> <span class="n">CCMetric</span><span class="p">,</span> <span class="s2">&quot;EM&quot;</span><span class="p">:</span> <span class="n">EMMetric</span><span class="p">,</span> <span class="s2">&quot;SSD&quot;</span><span class="p">:</span> <span class="n">SSDMetric</span><span class="p">}</span>
 
-<span class="n">affine_metric_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;MI&quot;</span><span class="p">:</span> <span class="n">MutualInformationMetric</span><span class="p">}</span>
+<span class="n">affine_metric_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;CC&quot;</span><span class="p">:</span> <span class="n">CrossCorrelationMetric</span><span class="p">,</span>
+    <span class="s2">&quot;MI&quot;</span><span class="p">:</span> <span class="n">MutualInformationMetric</span><span class="p">,</span>
+<span class="p">}</span>
 
 
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
@@ -1358,7 +1362,8 @@ document.write(`
 <span class="sd">        Default: identity.</span>
 
 <span class="sd">    metric : str, optional.</span>
-<span class="sd">        Currently only supports &#39;MI&#39; for MutualInformationMetric.</span>
+<span class="sd">        The metric to optimize. Supported values are &#39;MI&#39; for MutualInformationMetric</span>
+<span class="sd">        and &#39;CC&#39; for CrossCorrelationMetric.</span>
 
 <span class="sd">    level_iters : sequence, optional</span>
 <span class="sd">        AffineRegistration key-word argument: the number of iterations at each</span>
@@ -1415,6 +1420,11 @@ document.write(`
 <span class="sd">        where `sampling_proportion` specifies the proportion of voxels to</span>
 <span class="sd">        be used. The default is None (dense sampling).</span>
 
+<span class="sd">    radius : int, optional</span>
+<span class="sd">        CrossCorrelationMetric key-word argument: radius of the square (2D)</span>
+<span class="sd">        or cubic (3D) neighborhood used for local cross-correlation. The</span>
+<span class="sd">        default is 4.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    resampled : array with moving data resampled to the static space</span>
@@ -1456,7 +1466,14 @@ document.write(`
     <span class="p">)</span>
 
     <span class="c1"># Define the Affine registration object we&#39;ll use with the chosen metric.</span>
-    <span class="c1"># For now, there is only one metric (mutual information)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;metric must be a string&quot;</span><span class="p">)</span>
+    <span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">affine_metric_dict</span><span class="p">:</span>
+        <span class="n">supported</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">affine_metric_dict</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unsupported affine metric </span><span class="si">{</span><span class="n">metric</span><span class="si">!r}</span><span class="s2">. Supported metrics are: </span><span class="si">{</span><span class="n">supported</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
     <span class="n">use_metric</span> <span class="o">=</span> <span class="n">affine_metric_dict</span><span class="p">[</span><span class="n">metric</span><span class="p">](</span><span class="o">**</span><span class="n">metric_kwargs</span><span class="p">)</span>
 
     <span class="n">affreg</span> <span class="o">=</span> <span class="n">AffineRegistration</span><span class="p">(</span>

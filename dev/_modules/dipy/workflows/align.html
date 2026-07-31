@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.align &#8212; dipy 1.13.0.dev0+git20260729.df63a47 documentation</title>
+    <title>dipy.workflows.align &#8212; dipy 1.13.0.dev0+git20260731.febf1de documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=81c2e298"></script>
+    <script src="../../../_static/documentation_options.js?v=6a0de64d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1334,6 +1334,7 @@ document.write(`
         <span class="n">nbins</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
         <span class="n">sampling_prop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;mi&quot;</span><span class="p">,</span>
+        <span class="n">radius</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="n">level_iters</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
         <span class="n">sigmas</span><span class="o">=</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
         <span class="n">factors</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
@@ -1359,12 +1360,17 @@ document.write(`
 <span class="sd">            ``&#39;rigid_scaling&#39;``: rigid body + scaling; ``&#39;affine&#39;``: full affine</span>
 <span class="sd">            including translation, rotation, shearing and scaling.</span>
 <span class="sd">        nbins : int, optional</span>
-<span class="sd">            Number of bins to discretize the joint and marginal PDF.</span>
+<span class="sd">            Number of bins to discretize the joint and marginal PDF</span>
+<span class="sd">            for the mutual information metric.</span>
 <span class="sd">        sampling_prop : int, optional</span>
-<span class="sd">            Number ([0-100]) of voxels for calculating the PDF. None implies all</span>
-<span class="sd">            voxels.</span>
+<span class="sd">            Number ([0-100]) of voxels for calculating the PDF for the</span>
+<span class="sd">            mutual information metric. None implies all voxels.</span>
 <span class="sd">        metric : string, optional</span>
-<span class="sd">            Similarity metric for gathering mutual information.</span>
+<span class="sd">            Similarity metric. Supported values are ``&#39;mi&#39;`` for mutual</span>
+<span class="sd">            information and ``&#39;cc&#39;`` for local cross-correlation.</span>
+<span class="sd">        radius : int, optional</span>
+<span class="sd">            Radius of the square (2D) or cubic (3D) neighborhood used by the</span>
+<span class="sd">            local cross-correlation metric.</span>
 <span class="sd">        level_iters : variable int, optional</span>
 <span class="sd">            The number of iterations at each scale of the scale space.</span>
 <span class="sd">            `level_iters[0]` corresponds to the coarsest scale,</span>
@@ -1410,8 +1416,21 @@ document.write(`
         <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
         <span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">metric</span> <span class="o">!=</span> <span class="s2">&quot;MI&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid similarity metric: Please provide avalid metric.&quot;</span><span class="p">)</span>
+        <span class="n">supported_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;CC&quot;</span><span class="p">,</span> <span class="s2">&quot;MI&quot;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_metrics</span><span class="p">:</span>
+            <span class="n">supported</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">supported_metrics</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unsupported affine metric </span><span class="si">{</span><span class="n">metric</span><span class="si">!r}</span><span class="s2">. Supported metrics are: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">supported</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">&quot;MI&quot;</span><span class="p">:</span>
+            <span class="n">metric_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;nbins&quot;</span><span class="p">:</span> <span class="n">nbins</span><span class="p">,</span>
+                <span class="s2">&quot;sampling_proportion&quot;</span><span class="p">:</span> <span class="n">sampling_prop</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">metric_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">radius</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">progressive</span><span class="p">:</span>
             <span class="n">pipeline_opt</span> <span class="o">=</span> <span class="p">{</span>
@@ -1477,8 +1496,7 @@ document.write(`
                     <span class="n">level_iters</span><span class="o">=</span><span class="n">level_iters</span><span class="p">,</span>
                     <span class="n">sigmas</span><span class="o">=</span><span class="n">sigmas</span><span class="p">,</span>
                     <span class="n">factors</span><span class="o">=</span><span class="n">factors</span><span class="p">,</span>
-                    <span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">,</span>
-                    <span class="n">sampling_proportion</span><span class="o">=</span><span class="n">sampling_prop</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">moved_image</span><span class="p">,</span> <span class="n">affine_matrix</span><span class="p">,</span> <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span> <span class="o">=</span> <span class="n">affine_registration</span><span class="p">(</span>
@@ -1493,8 +1511,7 @@ document.write(`
                     <span class="n">sigmas</span><span class="o">=</span><span class="n">sigmas</span><span class="p">,</span>
                     <span class="n">factors</span><span class="o">=</span><span class="n">factors</span><span class="p">,</span>
                     <span class="n">ret_metric</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                    <span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">,</span>
-                    <span class="n">sampling_proportion</span><span class="o">=</span><span class="n">sampling_prop</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
 
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
