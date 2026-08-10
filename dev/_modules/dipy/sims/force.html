@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.sims.force &#8212; dipy 1.13.0.dev0+git20260809.eaedf1c documentation</title>
+    <title>dipy.sims.force &#8212; dipy 1.13.0.dev0+git20260809.db7218a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=95219077"></script>
+    <script src="../../../_static/documentation_options.js?v=93b412f1"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -904,6 +904,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 
@@ -1069,7 +1070,7 @@ document.write(`
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_create_memmap</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a memory-mapped file.&quot;&quot;&quot;</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.mmap&quot;</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.mmap&quot;</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">),</span> <span class="n">path</span>
 
 
@@ -1353,7 +1354,7 @@ document.write(`
 <span class="sd">        Gradient table with b-values and b-vectors.</span>
 <span class="sd">    num_simulations : int, optional</span>
 <span class="sd">        Number of simulated voxels.</span>
-<span class="sd">    output_dir : str, optional</span>
+<span class="sd">    output_dir : str or Path, optional</span>
 <span class="sd">        Directory for output files. If None, uses a temporary directory.</span>
 <span class="sd">    num_cpus : int or None, optional</span>
 <span class="sd">        Number of CPU cores for parallel processing.</span>
@@ -1459,7 +1460,7 @@ document.write(`
     <span class="n">memmap_paths</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">create_mm</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
-        <span class="n">mm</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">_create_memmap</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="n">mm</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">_create_memmap</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">),</span> <span class="n">name</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
         <span class="n">memmap_paths</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span>
         <span class="k">return</span> <span class="n">mm</span>
 
@@ -1788,7 +1789,7 @@ document.write(`
 
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">memmap_paths</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
             <span class="k">pass</span>
