@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.nn.tf.cnn_1d_denoising &#8212; dipy 1.13.0.dev0+git20260811.0935239 documentation</title>
+    <title>dipy.nn.tf.cnn_1d_denoising &#8212; dipy 1.13.0.dev0+git20260819.f24b94c documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=e851391f"></script>
+    <script src="../../../../_static/documentation_options.js?v=9be73528"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,7 +883,7 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.nn.tf.cnn_1d_denoising</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Title : Denoising diffusion weighted imaging data using CNN</span>
 <span class="sd">===========================================================</span>
 
@@ -908,20 +908,20 @@ document.write(`
 <span class="sd">---------</span>
 
 <span class="sd">.. footbibliography::</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
-<span class="n">tf</span><span class="p">,</span> <span class="n">have_tf</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;tensorflow&quot;</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">&quot;2.18.0&quot;</span><span class="p">)</span>
+<span class="n">tf</span><span class="p">,</span> <span class="n">have_tf</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"tensorflow"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.18.0"</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">have_tf</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.initializers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Orthogonal</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.layers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Activation</span><span class="p">,</span> <span class="n">Conv1D</span><span class="p">,</span> <span class="n">Input</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
 
-<span class="n">sklearn</span><span class="p">,</span> <span class="n">have_sklearn</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;sklearn.model_selection&quot;</span><span class="p">)</span>
+<span class="n">sklearn</span><span class="p">,</span> <span class="n">have_sklearn</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"sklearn.model_selection"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Cnn1DDenoiser">
@@ -932,67 +932,67 @@ document.write(`
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">sig_length</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">optimizer</span><span class="o">=</span><span class="s2">&quot;adam&quot;</span><span class="p">,</span>
-        <span class="n">loss</span><span class="o">=</span><span class="s2">&quot;mean_squared_error&quot;</span><span class="p">,</span>
-        <span class="n">metrics</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;accuracy&quot;</span><span class="p">,),</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="s2">"adam"</span><span class="p">,</span>
+        <span class="n">loss</span><span class="o">=</span><span class="s2">"mean_squared_error"</span><span class="p">,</span>
+        <span class="n">metrics</span><span class="o">=</span><span class="p">(</span><span class="s2">"accuracy"</span><span class="p">,),</span>
         <span class="n">loss_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the CNN 1D denoiser with the given parameters.</span>
+<span class="w">        </span><span class="sd">"""Initialize the CNN 1D denoiser with the given parameters.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        sig_length : int</span>
 <span class="sd">            Length of the DWI signal.</span>
 <span class="sd">        optimizer : str, optional</span>
-<span class="sd">            Name of the optimization algorithm to use. Options: &#39;adam&#39;, &#39;sgd&#39;,</span>
-<span class="sd">            &#39;rmsprop&#39;, &#39;adagrad&#39;, &#39;adadelta&#39;.</span>
+<span class="sd">            Name of the optimization algorithm to use. Options: 'adam', 'sgd',</span>
+<span class="sd">            'rmsprop', 'adagrad', 'adadelta'.</span>
 <span class="sd">        loss : str, optional</span>
 <span class="sd">            Name of the loss function to use. Available options are</span>
-<span class="sd">            &#39;mean_squared_error&#39;, &#39;mean_absolute_error&#39;,</span>
-<span class="sd">            &#39;mean_absolute_percentage_error&#39;, &#39;mean_squared_logarithmic_error&#39;,</span>
-<span class="sd">            &#39;squared_hinge&#39;, &#39;hinge&#39;, &#39;categorical_hinge&#39;, &#39;logcosh&#39;,</span>
-<span class="sd">            &#39;categorical_crossentropy&#39;, &#39;sparse_categorical_crossentropy&#39;,</span>
-<span class="sd">            &#39;binary_crossentropy&#39;, &#39;kullback_leibler_divergence&#39;, &#39;poisson&#39;,</span>
-<span class="sd">            &#39;cosine_similarity&#39;.</span>
-<span class="sd">            Suggested to go with &#39;mean_squared_error&#39;.</span>
+<span class="sd">            'mean_squared_error', 'mean_absolute_error',</span>
+<span class="sd">            'mean_absolute_percentage_error', 'mean_squared_logarithmic_error',</span>
+<span class="sd">            'squared_hinge', 'hinge', 'categorical_hinge', 'logcosh',</span>
+<span class="sd">            'categorical_crossentropy', 'sparse_categorical_crossentropy',</span>
+<span class="sd">            'binary_crossentropy', 'kullback_leibler_divergence', 'poisson',</span>
+<span class="sd">            'cosine_similarity'.</span>
+<span class="sd">            Suggested to go with 'mean_squared_error'.</span>
 <span class="sd">        metrics : tuple of str or function, optional</span>
 <span class="sd">            List of metrics to be evaluated by the model during training and</span>
-<span class="sd">            testing. Available options are &#39;accuracy&#39;, &#39;binary_accuracy&#39;,</span>
-<span class="sd">            &#39;categorical_accuracy&#39;, &#39;top_k_categorical_accuracy&#39;,</span>
-<span class="sd">            &#39;sparse_categorical_accuracy&#39;, &#39;sparse_top_k_categorical_accuracy&#39;,</span>
+<span class="sd">            testing. Available options are 'accuracy', 'binary_accuracy',</span>
+<span class="sd">            'categorical_accuracy', 'top_k_categorical_accuracy',</span>
+<span class="sd">            'sparse_categorical_accuracy', 'sparse_top_k_categorical_accuracy',</span>
 <span class="sd">            and any custom function.</span>
 <span class="sd">        loss_weights : float or dict, optional</span>
 <span class="sd">            Scalar coefficients to weight the loss contributions of different</span>
 <span class="sd">            model outputs. Can be a single float value or a dictionary mapping</span>
 <span class="sd">            output names to scalar coefficients.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">have_tf</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;TensorFlow is not available. Please install TensorFlow 2+.&quot;</span>
+                <span class="s2">"TensorFlow is not available. Please install TensorFlow 2+."</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">have_sklearn</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;scikit-learn is not available. Please install scikit-learn.&quot;</span>
+                <span class="s2">"scikit-learn is not available. Please install scikit-learn."</span>
             <span class="p">)</span>
         <span class="n">input_layer</span> <span class="o">=</span> <span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">sig_length</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">Conv1D</span><span class="p">(</span>
             <span class="n">filters</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
             <span class="n">kernel_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
             <span class="n">kernel_initializer</span><span class="o">=</span><span class="n">Orthogonal</span><span class="p">(),</span>
-            <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Conv1&quot;</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="s2">"same"</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"Conv1"</span><span class="p">,</span>
         <span class="p">)(</span><span class="n">input_layer</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ReLU1&quot;</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">Activation</span><span class="p">(</span><span class="s2">"relu"</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"ReLU1"</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">max_pool_1d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">MaxPooling1D</span><span class="p">(</span>
-            <span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span>
+            <span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">"valid"</span>
         <span class="p">)</span>
         <span class="n">pool1</span> <span class="o">=</span> <span class="n">max_pool_1d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">Conv1D</span><span class="p">(</span><span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Conv2&quot;</span><span class="p">)(</span><span class="n">pool1</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ReLU2&quot;</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">Conv1D</span><span class="p">(</span><span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">"same"</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"Conv2"</span><span class="p">)(</span><span class="n">pool1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">Activation</span><span class="p">(</span><span class="s2">"relu"</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"ReLU2"</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">pool2</span> <span class="o">=</span> <span class="n">max_pool_1d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">pool2_flat</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Flatten</span><span class="p">()(</span><span class="n">pool2</span><span class="p">)</span>
-        <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">sig_length</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">)(</span><span class="n">pool2_flat</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">sig_length</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">"relu"</span><span class="p">)(</span><span class="n">pool2_flat</span><span class="p">)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">input_layer</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">logits</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
             <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="n">metrics</span><span class="p">,</span> <span class="n">loss_weights</span><span class="o">=</span><span class="n">loss_weights</span>
@@ -1002,8 +1002,8 @@ document.write(`
 <div class="viewcode-block" id="Cnn1DDenoiser.compile">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.tf.cnn_1d_denoising.Cnn1DDenoiser.compile">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s2">&quot;adam&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure the model for training.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s2">"adam"</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Configure the model for training.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1011,7 +1011,7 @@ document.write(`
 <span class="sd">            Name of optimizer or optimizer object.</span>
 <span class="sd">        loss : str or objective function, optional</span>
 <span class="sd">            Name of objective function or objective function itself.</span>
-<span class="sd">            If &#39;None&#39;, the model will be compiled without any loss function</span>
+<span class="sd">            If 'None', the model will be compiled without any loss function</span>
 <span class="sd">            and can only be used to predict output.</span>
 <span class="sd">        metrics : list of metrics, optional</span>
 <span class="sd">            List of metrics to be evaluated by the model during training</span>
@@ -1021,11 +1021,11 @@ document.write(`
 <span class="sd">            to weight the loss contributions of different model outputs.</span>
 <span class="sd">            The loss value that will be minimized by the model will then be</span>
 <span class="sd">            the weighted sum of all individual losses. If a list, it is</span>
-<span class="sd">            expected to have a 1:1 mapping to the model&#39;s outputs. If a dict,</span>
+<span class="sd">            expected to have a 1:1 mapping to the model's outputs. If a dict,</span>
 <span class="sd">            it is expected to map output names (strings) to scalar</span>
 <span class="sd">            coefficients.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
             <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="n">metrics</span><span class="p">,</span> <span class="n">loss_weights</span><span class="o">=</span><span class="n">loss_weights</span>
         <span class="p">)</span></div>
@@ -1034,7 +1034,7 @@ document.write(`
 <div class="viewcode-block" id="Cnn1DDenoiser.summary">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.tf.cnn_1d_denoising.Cnn1DDenoiser.summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the summary of the model.</span>
+<span class="w">        </span><span class="sd">"""Get the summary of the model.</span>
 
 <span class="sd">        The summary is textual and includes information about:</span>
 <span class="sd">        The layers and their order in the model.</span>
@@ -1044,7 +1044,7 @@ document.write(`
 <span class="sd">        -------</span>
 <span class="sd">        summary : NoneType</span>
 <span class="sd">            the summary of the model</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span></div>
 
 
@@ -1062,7 +1062,7 @@ document.write(`
         <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">stratify</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Split the input data into random train and test subsets.</span>
+<span class="w">        </span><span class="sd">"""Split the input data into random train and test subsets.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1096,7 +1096,7 @@ document.write(`
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Tuple of four numpy arrays: x_train, x_test, y_train, y_test.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">sz</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">sz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sz</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">sz</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
@@ -1135,7 +1135,7 @@ document.write(`
         <span class="n">validation_batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">validation_freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Train the model on train dataset.</span>
+<span class="w">        </span><span class="sd">"""Train the model on train dataset.</span>
 
 <span class="sd">        The fit method will train the model for a fixed number of epochs</span>
 <span class="sd">        (iterations) on a dataset. If given data is  4D it will convert</span>
@@ -1151,7 +1151,7 @@ document.write(`
 <span class="sd">            Number of samples per batch of computation.</span>
 <span class="sd">        epochs : int, optional</span>
 <span class="sd">            The number of epochs.</span>
-<span class="sd">        verbose : &#39;auto&#39;, 0, 1, or 2, optional</span>
+<span class="sd">        verbose : 'auto', 0, 1, or 2, optional</span>
 <span class="sd">            Verbosity mode. 0 = silent, 1 = progress bar, 2 = one line</span>
 <span class="sd">            per epoch.</span>
 <span class="sd">        callbacks : list of keras.callbacks.Callback instances, optional</span>
@@ -1192,7 +1192,7 @@ document.write(`
 <span class="sd">            A History object. Its History.history attribute is a record of</span>
 <span class="sd">            training loss values and metrics values at successive epochs.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">sz</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">sz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sz</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">sz</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
@@ -1231,7 +1231,7 @@ document.write(`
         <span class="n">callbacks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">return_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the model on a test dataset.</span>
+<span class="w">        </span><span class="sd">"""Evaluate the model on a test dataset.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1267,7 +1267,7 @@ document.write(`
 <span class="sd">            values on the test dataset. If `return_dict` is `True`, returns</span>
 <span class="sd">            a dictionary of metric names and their corresponding values.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">sz</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">sz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sz</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">sz</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
@@ -1289,7 +1289,7 @@ document.write(`
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.tf.cnn_1d_denoising.Cnn1DDenoiser.predict">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate predictions for input samples.</span>
+<span class="w">        </span><span class="sd">"""Generate predictions for input samples.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1318,7 +1318,7 @@ document.write(`
 <span class="sd">        ndarray</span>
 <span class="sd">            Numpy array of predictions.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">sz</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">sz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sz</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">sz</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
         <span class="n">predicted_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
@@ -1338,7 +1338,7 @@ document.write(`
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.tf.cnn_1d_denoising.Cnn1DDenoiser.save_weights">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">save_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the weights of the model to HDF5 file format.</span>
+<span class="w">        </span><span class="sd">"""Save the weights of the model to HDF5 file format.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1348,7 +1348,7 @@ document.write(`
 <span class="sd">            If `True`, overwrites the file if it already exists. If `False`,</span>
 <span class="sd">            raises an error if the file already exists.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span>
             <span class="n">filepath</span><span class="o">=</span><span class="n">filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">save_format</span><span class="o">=</span><span class="kc">None</span>
         <span class="p">)</span></div>
@@ -1357,14 +1357,14 @@ document.write(`
 <div class="viewcode-block" id="Cnn1DDenoiser.load_weights">
 <a class="viewcode-back" href="../../../../reference/dipy.nn.html#dipy.nn.tf.cnn_1d_denoising.Cnn1DDenoiser.load_weights">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the model weights from the specified file path.</span>
+<span class="w">        </span><span class="sd">"""Load the model weights from the specified file path.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        filepath : str</span>
 <span class="sd">            The file path from which to load the weights.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 </div>
 

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.sfm &#8212; dipy 1.13.0.dev0+git20260811.0935239 documentation</title>
+    <title>dipy.reconst.sfm &#8212; dipy 1.13.0.dev0+git20260819.f24b94c documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e851391f"></script>
+    <script src="../../../_static/documentation_options.js?v=9be73528"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,7 +883,7 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.reconst.sfm</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">The Sparse Fascicle Model.</span>
 
 <span class="sd">This is an implementation of the sparse fascicle model described in</span>
@@ -893,7 +893,7 @@ document.write(`
 <span class="sd">References</span>
 <span class="sd">----------</span>
 <span class="sd">.. footbibliography::</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
@@ -917,9 +917,9 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.multiproc</span><span class="w"> </span><span class="kn">import</span> <span class="n">determine_num_processes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
-<span class="n">joblib</span><span class="p">,</span> <span class="n">has_joblib</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;joblib&quot;</span><span class="p">)</span>
-<span class="n">sklearn</span><span class="p">,</span> <span class="n">has_sklearn</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;sklearn&quot;</span><span class="p">)</span>
-<span class="n">lm</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">&quot;sklearn.linear_model&quot;</span><span class="p">)</span>
+<span class="n">joblib</span><span class="p">,</span> <span class="n">has_joblib</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"joblib"</span><span class="p">)</span>
+<span class="n">sklearn</span><span class="p">,</span> <span class="n">has_sklearn</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"sklearn"</span><span class="p">)</span>
+<span class="n">lm</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"sklearn.linear_model"</span><span class="p">)</span>
 
 
 <span class="c1"># Isotropic signal models: these are models of the part of the signal that</span>
@@ -946,7 +946,7 @@ document.write(`
         <span class="n">s0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">to_fit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">data_no_b0</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
             <span class="n">to_fit</span><span class="p">[</span><span class="n">nzb0_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_no_b0</span><span class="p">[</span><span class="n">nzb0_idx</span><span class="p">]</span> <span class="o">/</span> <span class="n">s0</span><span class="p">[</span><span class="n">nzb0_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="n">to_fit</span><span class="p">[</span><span class="n">zb0_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">else</span><span class="p">:</span>
@@ -957,29 +957,29 @@ document.write(`
 <div class="viewcode-block" id="IsotropicModel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.IsotropicModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IsotropicModel</span><span class="p">(</span><span class="n">ReconstModel</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A base-class for the representation of isotropic signals.</span>
 
 <span class="sd">    The default behavior, suitable for single b-value data is to calculate the</span>
 <span class="sd">    mean in each voxel as an estimate of the signal that does not depend on</span>
 <span class="sd">    direction.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gtab</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize an IsotropicModel.</span>
+<span class="w">        </span><span class="sd">"""Initialize an IsotropicModel.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        gtab : a GradientTable class instance</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">ReconstModel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gtab</span><span class="p">)</span>
 
 <div class="viewcode-block" id="IsotropicModel.fit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.IsotropicModel.fit">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit an IsotropicModel.</span>
+<span class="w">        </span><span class="sd">"""Fit an IsotropicModel.</span>
 
 <span class="sd">        This boils down to finding the mean diffusion-weighted signal in each</span>
 <span class="sd">        voxel</span>
@@ -992,7 +992,7 @@ document.write(`
 <span class="sd">        -------</span>
 <span class="sd">        IsotropicFit class instance.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># This returns as a 2D thing:</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">_to_fit_iso</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gtab</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1009,13 +1009,13 @@ document.write(`
 <div class="viewcode-block" id="IsotropicFit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.IsotropicFit">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IsotropicFit</span><span class="p">(</span><span class="n">ReconstFit</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A fit object for representing the isotropic signal as the mean of the</span>
 <span class="sd">    diffusion-weighted signal.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize an IsotropicFit object.</span>
+<span class="w">        </span><span class="sd">"""Initialize an IsotropicFit object.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1027,7 +1027,7 @@ document.write(`
 <span class="sd">        n_vox : int</span>
 <span class="sd">            The number of voxels for which the fit was done.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
@@ -1036,7 +1036,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.IsotropicFit.predict">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict the isotropic signal.</span>
+<span class="w">        </span><span class="sd">"""Predict the isotropic signal.</span>
 
 <span class="sd">        Based on a gradient table. In this case, the (naive!) prediction will</span>
 <span class="sd">        be the mean of the diffusion-weighted signal in the voxels.</span>
@@ -1047,7 +1047,7 @@ document.write(`
 <span class="sd">            Defaults to use the gtab from the IsotropicModel from which this</span>
 <span class="sd">            fit was derived.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">gtab</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">gtab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gtab</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1063,16 +1063,16 @@ document.write(`
 <div class="viewcode-block" id="ExponentialIsotropicModel">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.ExponentialIsotropicModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExponentialIsotropicModel</span><span class="p">(</span><span class="n">IsotropicModel</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Representing the isotropic signal as a fit to an exponential decay function</span>
 <span class="sd">    with b-values</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="ExponentialIsotropicModel.fit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.ExponentialIsotropicModel.fit">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1086,7 +1086,7 @@ document.write(`
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        ExponentialIsotropicFit class instance.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">to_fit</span> <span class="o">=</span> <span class="n">_to_fit_iso</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gtab</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
         <span class="c1"># Fitting to the log-transformed relative data is much faster:</span>
         <span class="n">nz_idx</span> <span class="o">=</span> <span class="n">to_fit</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -1107,15 +1107,15 @@ document.write(`
 <div class="viewcode-block" id="ExponentialIsotropicFit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.ExponentialIsotropicFit">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExponentialIsotropicFit</span><span class="p">(</span><span class="n">IsotropicFit</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A fit to the ExponentialIsotropicModel object, based on data.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="ExponentialIsotropicFit.predict">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.ExponentialIsotropicFit.predict">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Predict the isotropic signal, based on a gradient table. In this case,</span>
 <span class="sd">        the prediction will be for an exponential decay with the mean</span>
 <span class="sd">        diffusivity derived from the data that was fit.</span>
@@ -1125,7 +1125,7 @@ document.write(`
 <span class="sd">        gtab : a GradientTable class instance, optional</span>
 <span class="sd">            Defaults to use the gtab from the IsotropicModel from which this</span>
 <span class="sd">            fit was derived.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">gtab</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">gtab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gtab</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1148,15 +1148,15 @@ document.write(`
 <div class="viewcode-block" id="sfm_design_matrix">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.sfm_design_matrix">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">sfm_design_matrix</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;signal&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sfm_design_matrix</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"signal"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Construct the SFM design matrix</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    gtab : GradientTable or Sphere</span>
-<span class="sd">        Sets the rows of the matrix, if the mode is &#39;signal&#39;, this should be a</span>
-<span class="sd">        GradientTable. If mode is &#39;odf&#39; this should be a Sphere.</span>
+<span class="sd">        Sets the rows of the matrix, if the mode is 'signal', this should be a</span>
+<span class="sd">        GradientTable. If mode is 'odf' this should be a Sphere.</span>
 
 <span class="sd">    sphere : Sphere</span>
 <span class="sd">        Sets the columns of the matrix</span>
@@ -1165,11 +1165,11 @@ document.write(`
 <span class="sd">        The eigenvalues of a tensor which will serve as a kernel</span>
 <span class="sd">        function.</span>
 
-<span class="sd">    mode : str {&#39;signal&#39; | &#39;odf&#39;}, optional</span>
-<span class="sd">        Choose the (default) &#39;signal&#39; for a design matrix containing predicted</span>
+<span class="sd">    mode : str {'signal' | 'odf'}, optional</span>
+<span class="sd">        Choose the (default) 'signal' for a design matrix containing predicted</span>
 <span class="sd">        signal in the measurements defined by the gradient table for putative</span>
 <span class="sd">        fascicles oriented along the vertices of the sphere. Otherwise, choose</span>
-<span class="sd">        &#39;odf&#39; for an odf convolution matrix, with values of the odf calculated</span>
+<span class="sd">        'odf' for an odf convolution matrix, with values of the odf calculated</span>
 <span class="sd">        from a tensor with the provided response eigenvalues, evaluated at the</span>
 <span class="sd">        b-vectors in the gradient table, for the tensors with principal</span>
 <span class="sd">        diffusion directions along the vertices of the sphere.</span>
@@ -1178,11 +1178,11 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    mat : ndarray</span>
 <span class="sd">        A design matrix that can be used for one of the following operations:</span>
-<span class="sd">        when the &#39;signal&#39; mode is used, each column contains the putative</span>
+<span class="sd">        when the 'signal' mode is used, each column contains the putative</span>
 <span class="sd">        signal in each of the bvectors of the `gtab` if a fascicle is oriented</span>
 <span class="sd">        in the direction encoded by the sphere vertex corresponding to this</span>
 <span class="sd">        column. This is used for deconvolution with a measured DWI signal. If</span>
-<span class="sd">        the &#39;odf&#39; mode is chosen, each column instead contains the values of</span>
+<span class="sd">        the 'odf' mode is chosen, each column instead contains the values of</span>
 <span class="sd">        the tensor ODF for a tensor with a principal diffusion direction</span>
 <span class="sd">        corresponding to this vertex. This is used to generate odfs from the</span>
 <span class="sd">        fits of the SFM for the purpose of tracking.</span>
@@ -1200,36 +1200,36 @@ document.write(`
 <span class="sd">    &gt;&gt;&gt; tensor_matrix = sfm_design_matrix(gtab, sphere,</span>
 <span class="sd">    ...                                   [0.0015, 0.0005, 0.0005])</span>
 
-<span class="sd">    A &#39;stick&#39; function :footcite:p`Behrens2007`:</span>
+<span class="sd">    A 'stick' function :footcite:p`Behrens2007`:</span>
 
 <span class="sd">    &gt;&gt;&gt; stick_matrix = sfm_design_matrix(gtab, sphere, [0.001, 0, 0])</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
 <span class="sd">    .. footbibliography::</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;signal&quot;</span><span class="p">:</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"signal"</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
             <span class="n">mat_gtab</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">gradient_table</span><span class="p">(</span>
                 <span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span><span class="p">[</span><span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">],</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">gtab</span><span class="o">.</span><span class="n">bvecs</span><span class="p">[</span><span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span>
             <span class="p">)</span>
         <span class="c1"># Preallocate:</span>
         <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">),</span> <span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;odf&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"odf"</span><span class="p">:</span>
         <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">gtab</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 
     <span class="c1"># Calculate column-wise:</span>
     <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">this_dir</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="p">):</span>
         <span class="c1"># Rotate the canonical tensor towards this vertex and calculate the</span>
         <span class="c1"># signal you would have gotten in the direction</span>
-        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;signal&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"signal"</span><span class="p">:</span>
             <span class="c1"># For regressors based on the single tensor, remove $e^{-bD}$</span>
             <span class="n">mat</span><span class="p">[:,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">sims</span><span class="o">.</span><span class="n">single_tensor</span><span class="p">(</span>
                 <span class="n">mat_gtab</span><span class="p">,</span> <span class="n">evals</span><span class="o">=</span><span class="n">response</span><span class="p">,</span> <span class="n">evecs</span><span class="o">=</span><span class="n">sims</span><span class="o">.</span><span class="n">all_tensor_evecs</span><span class="p">(</span><span class="n">this_dir</span><span class="p">)</span>
             <span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">mat_gtab</span><span class="o">.</span><span class="n">bvals</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
 
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;odf&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"odf"</span><span class="p">:</span>
             <span class="c1"># Stick function</span>
             <span class="k">if</span> <span class="n">response</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">response</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">mat</span><span class="p">[</span><span class="n">sphere</span><span class="o">.</span><span class="n">find_closest</span><span class="p">(</span><span class="n">sims</span><span class="o">.</span><span class="n">all_tensor_evecs</span><span class="p">(</span><span class="n">this_dir</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1251,13 +1251,13 @@ document.write(`
         <span class="o">*</span><span class="p">,</span>
         <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">response</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0015</span><span class="p">,</span> <span class="mf">0.0005</span><span class="p">,</span> <span class="mf">0.0005</span><span class="p">),</span>
-        <span class="n">solver</span><span class="o">=</span><span class="s2">&quot;ElasticNet&quot;</span><span class="p">,</span>
+        <span class="n">solver</span><span class="o">=</span><span class="s2">"ElasticNet"</span><span class="p">,</span>
         <span class="n">l1_ratio</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
         <span class="n">isotropic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize a Sparse Fascicle Model</span>
 
 <span class="sd">        Parameters</span>
@@ -1276,7 +1276,7 @@ document.write(`
 <span class="sd">        solver : string, or initialized linear model object.</span>
 <span class="sd">            This will determine the algorithm used to solve the set of linear</span>
 <span class="sd">            equations underlying this model. If it is a string it needs to be</span>
-<span class="sd">            one of the following: {&#39;ElasticNet&#39;, &#39;NNLS&#39;}. Otherwise, it can be</span>
+<span class="sd">            one of the following: {'ElasticNet', 'NNLS'}. Otherwise, it can be</span>
 <span class="sd">            an object that inherits from `dipy.optimize.SKLearnLinearSolver`</span>
 <span class="sd">            or an object with a similar interface from Scikit Learn:</span>
 <span class="sd">            `sklearn.linear_model.ElasticNet`, `sklearn.linear_model.Lasso` or</span>
@@ -1311,7 +1311,7 @@ document.write(`
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
 <span class="sd">        .. footbibliography::</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">ReconstModel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gtab</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sphere</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1322,7 +1322,7 @@ document.write(`
             <span class="n">isotropic</span> <span class="o">=</span> <span class="n">IsotropicModel</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">isotropic</span> <span class="o">=</span> <span class="n">isotropic</span>
-        <span class="k">if</span> <span class="n">solver</span> <span class="o">==</span> <span class="s2">&quot;ElasticNet&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">solver</span> <span class="o">==</span> <span class="s2">"ElasticNet"</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">ElasticNet</span><span class="p">(</span>
                 <span class="n">l1_ratio</span><span class="o">=</span><span class="n">l1_ratio</span><span class="p">,</span>
                 <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
@@ -1330,7 +1330,7 @@ document.write(`
                 <span class="n">warm_start</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">solver</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;NNLS&quot;</span><span class="p">,</span> <span class="s2">&quot;nnls&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">solver</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"NNLS"</span><span class="p">,</span> <span class="s2">"nnls"</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">NonNegativeLeastSquares</span><span class="p">()</span>
 
         <span class="k">elif</span> <span class="p">(</span>
@@ -1344,19 +1344,19 @@ document.write(`
             <span class="c1"># If sklearn is unavailable, we can fall back on nnls (but we also</span>
             <span class="c1"># warn the user that we are about to do that):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">has_sklearn</span><span class="p">:</span>
-                <span class="n">w</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">_msg</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Alternatively, you can use &#39;nnls&#39; method &quot;</span>
-                <span class="n">w</span> <span class="o">+=</span> <span class="s2">&quot;to fit the SparseFascicleModel&quot;</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">_msg</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Alternatively, you can use 'nnls' method "</span>
+                <span class="n">w</span> <span class="o">+=</span> <span class="s2">"to fit the SparseFascicleModel"</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">e_s</span> <span class="o">=</span> <span class="s2">&quot;The `solver` key-word argument needs to be: &quot;</span>
-            <span class="n">e_s</span> <span class="o">+=</span> <span class="s2">&quot;&#39;ElasticNet&#39;, &#39;NNLS&#39;, or a &quot;</span>
-            <span class="n">e_s</span> <span class="o">+=</span> <span class="s2">&quot;`dipy.optimize.SKLearnLinearSolver` object&quot;</span>
+            <span class="n">e_s</span> <span class="o">=</span> <span class="s2">"The `solver` key-word argument needs to be: "</span>
+            <span class="n">e_s</span> <span class="o">+=</span> <span class="s2">"'ElasticNet', 'NNLS', or a "</span>
+            <span class="n">e_s</span> <span class="o">+=</span> <span class="s2">"`dipy.optimize.SKLearnLinearSolver` object"</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">e_s</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SparseFascicleModel.design_matrix">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.SparseFascicleModel.design_matrix">[docs]</a>
     <span class="nd">@auto_attr</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">design_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The design matrix for a SFM.</span>
 
 <span class="sd">        Returns</span>
@@ -1364,8 +1364,8 @@ document.write(`
 <span class="sd">        ndarray</span>
 <span class="sd">            The design matrix, where each column is a rotated version of the</span>
 <span class="sd">            response function.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">sfm_design_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gtab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;signal&quot;</span><span class="p">)</span></div>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">sfm_design_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gtab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"signal"</span><span class="p">)</span></div>
 
 
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
@@ -1374,7 +1374,7 @@ document.write(`
         <span class="c1"># parameters at all-zeros, and avoid nasty sklearn errors:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">vox_data</span><span class="p">))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">vox_data</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)):</span>
             <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">parallel</span><span class="p">:</span>
                     <span class="n">coef</span> <span class="o">=</span> <span class="p">{</span>
@@ -1397,9 +1397,9 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.SparseFascicleModel.fit">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">parallel_backend</span><span class="o">=</span><span class="s2">&quot;multiprocessing&quot;</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">parallel_backend</span><span class="o">=</span><span class="s2">"multiprocessing"</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Fit the SparseFascicleModel object to data.</span>
 
 <span class="sd">        Parameters</span>
@@ -1424,23 +1424,23 @@ document.write(`
 <span class="sd">            Specify the parallelization backend implementation.</span>
 <span class="sd">            Supported backends are:</span>
 
-<span class="sd">            - &quot;loky&quot; used by default, can induce some</span>
+<span class="sd">            - "loky" used by default, can induce some</span>
 <span class="sd">              communication and memory overhead when exchanging input and</span>
 <span class="sd">              output data with the worker Python processes.</span>
-<span class="sd">            - &quot;multiprocessing&quot; previous process-based backend based on</span>
+<span class="sd">            - "multiprocessing" previous process-based backend based on</span>
 <span class="sd">              `multiprocessing.Pool`. Less robust than `loky`.</span>
-<span class="sd">            - &quot;threading&quot; is a very low-overhead backend but it suffers</span>
+<span class="sd">            - "threading" is a very low-overhead backend but it suffers</span>
 <span class="sd">              from the Python Global Interpreter Lock if the called function</span>
-<span class="sd">              relies a lot on Python objects. &quot;threading&quot; is mostly useful</span>
+<span class="sd">              relies a lot on Python objects. "threading" is mostly useful</span>
 <span class="sd">              when the execution bottleneck is a compiled extension that</span>
 <span class="sd">              explicitly releases the GIL (for instance a Cython loop wrapped</span>
-<span class="sd">              in a &quot;with nogil&quot; block or an expensive call to a library such</span>
+<span class="sd">              in a "with nogil" block or an expensive call to a library such</span>
 <span class="sd">              as NumPy).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        SparseFascicleFit object</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Flatten it to 2D either way:</span>
@@ -1448,7 +1448,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Check for valid shape of the mask</span>
             <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mask is not the same shape as data.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Mask is not the same shape as data."</span><span class="p">)</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
             <span class="n">data_in_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
@@ -1474,7 +1474,7 @@ document.write(`
 
         <span class="k">if</span> <span class="n">num_processes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">has_joblib</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">joblib</span><span class="o">.</span><span class="n">Parallel</span><span class="p">(</span>
-                <span class="n">n_jobs</span><span class="o">=</span><span class="n">num_processes</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">parallel_backend</span><span class="p">,</span> <span class="n">mmap_mode</span><span class="o">=</span><span class="s2">&quot;r+&quot;</span>
+                <span class="n">n_jobs</span><span class="o">=</span><span class="n">num_processes</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">parallel_backend</span><span class="p">,</span> <span class="n">mmap_mode</span><span class="o">=</span><span class="s2">"r+"</span>
             <span class="p">)</span> <span class="k">as</span> <span class="n">parallel</span><span class="p">:</span>
                 <span class="n">out</span> <span class="o">=</span> <span class="n">parallel</span><span class="p">(</span>
                     <span class="n">joblib</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fit_solver2voxels</span><span class="p">)(</span>
@@ -1526,7 +1526,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.SparseFascicleFit">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SparseFascicleFit</span><span class="p">(</span><span class="n">ReconstFit</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">S0</span><span class="p">,</span> <span class="n">iso</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize a SparseFascicleFit class instance</span>
 
 <span class="sd">        Parameters</span>
@@ -1543,7 +1543,7 @@ document.write(`
 <span class="sd">            A representation of the isotropic signal, together with parameters</span>
 <span class="sd">            of the isotropic signal in each voxel, that is capable of</span>
 <span class="sd">            deriving/predicting an isotropic signal, based on a gradient-table.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
@@ -1554,7 +1554,7 @@ document.write(`
 <div class="viewcode-block" id="SparseFascicleFit.odf">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.SparseFascicleFit.odf">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">odf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sphere</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The orientation distribution function of the SFM</span>
 
 <span class="sd">        Parameters</span>
@@ -1566,13 +1566,13 @@ document.write(`
 <span class="sd">        -------</span>
 <span class="sd">        odf :  ndarray of shape (x, y, z, sphere.vertices.shape[0])</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">odf_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cache_get</span><span class="p">(</span><span class="s2">&quot;odf_matrix&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sphere</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">odf_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cache_get</span><span class="p">(</span><span class="s2">"odf_matrix"</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sphere</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">odf_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">odf_matrix</span> <span class="o">=</span> <span class="n">sfm_design_matrix</span><span class="p">(</span>
-                <span class="n">sphere</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">response</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;odf&quot;</span>
+                <span class="n">sphere</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">response</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"odf"</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cache_set</span><span class="p">(</span><span class="s2">&quot;odf_matrix&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">odf_matrix</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cache_set</span><span class="p">(</span><span class="s2">"odf_matrix"</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">odf_matrix</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span>
             <span class="n">odf_matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
@@ -1583,7 +1583,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.sfm.SparseFascicleFit.predict">[docs]</a>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Predict the signal based on the SFM parameters</span>
 
 <span class="sd">        Parameters</span>
@@ -1604,13 +1604,13 @@ document.write(`
 <span class="sd">        -------</span>
 <span class="sd">        pred_sig : ndarray</span>
 <span class="sd">            The signal predicted in each voxel/direction</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">response</span>
         <span class="k">if</span> <span class="n">gtab</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">design_matrix</span>
             <span class="n">gtab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gtab</span>
-        <span class="c1"># The only thing we can&#39;t change at this point is the sphere we use</span>
+        <span class="c1"># The only thing we can't change at this point is the sphere we use</span>
         <span class="c1"># (which sets the width of our design matrix):</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_matrix</span> <span class="o">=</span> <span class="n">sfm_design_matrix</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sphere</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.denoise.bias_correction &#8212; dipy 1.13.0.dev0+git20260811.0935239 documentation</title>
+    <title>dipy.denoise.bias_correction &#8212; dipy 1.13.0.dev0+git20260819.f24b94c documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e851391f"></script>
+    <script src="../../../_static/documentation_options.js?v=9be73528"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,14 +883,14 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.denoise.bias_correction</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Bias field correction for diffusion MRI data.</span>
+<span></span><span class="sd">"""Bias field correction for diffusion MRI data.</span>
 
 <span class="sd">Provides classical regression-based bias field correction via Legendre</span>
 <span class="sd">polynomial regression and cubic B-spline regression.</span>
 
 <span class="sd">The bias field is estimated exclusively from the mean b0 volume in the</span>
 <span class="sd">log domain and applied uniformly to all DWI volumes.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">scipy_linalg</span><span class="p">,</span> <span class="n">ndimage</span><span class="p">,</span> <span class="n">sparse</span>
@@ -920,7 +920,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_mean_b0</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return mean b0 volume as float64.</span>
+<span class="w">    </span><span class="sd">"""Return mean b0 volume as float64.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -933,12 +933,12 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    mean_b0 : ndarray</span>
 <span class="sd">        3D mean b0 volume, dtype float64.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">extract_b0</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">extract_b0</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">"mean"</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_mask</span><span class="p">(</span><span class="n">mean_b0</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return binary brain mask, computing via median_otsu if not provided.</span>
+<span class="w">    </span><span class="sd">"""Return binary brain mask, computing via median_otsu if not provided.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -951,7 +951,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    mask : ndarray</span>
 <span class="sd">        3D boolean brain mask.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">median_otsu</span><span class="p">(</span><span class="n">mean_b0</span><span class="p">,</span> <span class="n">median_radius</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">numpass</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -960,7 +960,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_gradient_weights</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">log_b0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute gradient-based edge suppression weight map.</span>
+<span class="w">    </span><span class="sd">"""Compute gradient-based edge suppression weight map.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -973,7 +973,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    weights : ndarray</span>
 <span class="sd">        Float64 weight map, same shape as log_b0.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">log_b0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">_HAVE_VF_GRADIENT</span><span class="p">:</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
@@ -990,7 +990,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_coords</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize voxel coordinates to [-1, 1] along each axis.</span>
+<span class="w">    </span><span class="sd">"""Normalize voxel coordinates to [-1, 1] along each axis.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1003,7 +1003,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    coords_norm : ndarray</span>
 <span class="sd">        Normalized float64 coordinates, shape (N, 3).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">coords_norm</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -1014,7 +1014,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_legendre_basis</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">coords_flat</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build Legendre polynomial design matrix.</span>
+<span class="w">    </span><span class="sd">"""Build Legendre polynomial design matrix.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1027,7 +1027,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    X : ndarray</span>
 <span class="sd">        Design matrix, shape (N, K) where K is the number of terms.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.polynomial.legendre</span><span class="w"> </span><span class="kn">import</span> <span class="n">legval</span>
 
     <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span>
@@ -1056,7 +1056,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_weighted_ridge_solve</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">lambda_reg</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve weighted ridge regression min ||W^(1/2)(y - Xβ)||² + λ||β||².</span>
+<span class="w">    </span><span class="sd">"""Solve weighted ridge regression min ||W^(1/2)(y - Xβ)||² + λ||β||².</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1073,7 +1073,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    beta : ndarray</span>
 <span class="sd">        Coefficient vector, shape (K,).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">K</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">WX</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">X</span>
     <span class="n">A</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">WX</span> <span class="o">+</span> <span class="n">lambda_reg</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
@@ -1086,7 +1086,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_tukey_weights_py</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Tukey biweight weights (pure Python/NumPy).</span>
+<span class="w">    </span><span class="sd">"""Compute Tukey biweight weights (pure Python/NumPy).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1099,7 +1099,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    weights : ndarray</span>
 <span class="sd">        Tukey biweight weights in [0, 1], shape (N,).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">mad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residuals</span><span class="p">))</span> <span class="o">/</span> <span class="mf">0.6745</span>
     <span class="k">if</span> <span class="n">mad</span> <span class="o">&lt;</span> <span class="mf">1e-15</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">residuals</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
@@ -1109,7 +1109,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_tukey_weights</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mf">4.685</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Tukey biweight weights, using Cython backend if available.</span>
+<span class="w">    </span><span class="sd">"""Compute Tukey biweight weights, using Cython backend if available.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1122,7 +1122,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    weights : ndarray</span>
 <span class="sd">        Tukey biweight weights in [0, 1], shape (N,).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">_HAVE_CYTHON</span><span class="p">:</span>
         <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">residuals</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="n">compute_tukey_weights</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">residuals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
@@ -1142,7 +1142,7 @@ document.write(`
     <span class="n">gradient_weighting</span><span class="p">,</span>
     <span class="n">sigma_factor</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Coarse-to-fine polynomial bias field regression.</span>
+<span class="w">    </span><span class="sd">"""Coarse-to-fine polynomial bias field regression.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1169,7 +1169,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    log_bias : ndarray</span>
 <span class="sd">        Estimated log-domain bias field, same shape as log_b0.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">full_shape</span> <span class="o">=</span> <span class="n">log_b0</span><span class="o">.</span><span class="n">shape</span>
 
     <span class="k">if</span> <span class="n">gradient_weighting</span><span class="p">:</span>
@@ -1179,7 +1179,7 @@ document.write(`
         <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">full_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
         <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">full_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
         <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">full_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
-        <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">,</span>
+        <span class="n">indexing</span><span class="o">=</span><span class="s2">"ij"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">full_vox_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">ii</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">jj</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">kk</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
     <span class="n">full_coords_norm</span> <span class="o">=</span> <span class="n">_normalize_coords</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">full_shape</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">full_vox_coords</span><span class="p">)</span>
@@ -1224,7 +1224,7 @@ document.write(`
             <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">level_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
             <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">level_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
             <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">level_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
-            <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">,</span>
+            <span class="n">indexing</span><span class="o">=</span><span class="s2">"ij"</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">level_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
             <span class="p">[</span>
@@ -1279,7 +1279,7 @@ document.write(`
     <span class="n">gradient_weighting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">zero_background</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;DWI bias field correction via multi-resolution Legendre polynomial regression.</span>
+<span class="w">    </span><span class="sd">"""DWI bias field correction via multi-resolution Legendre polynomial regression.</span>
 
 <span class="sd">    Estimates the bias field from the mean b0 volume in log space using</span>
 <span class="sd">    coarse-to-fine Legendre polynomial regression, then applies the estimated</span>
@@ -1317,7 +1317,7 @@ document.write(`
 <span class="sd">        Bias-corrected 4D DWI data, same dtype as input.</span>
 <span class="sd">    bias_field : ndarray</span>
 <span class="sd">        Estimated 3D multiplicative bias field.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">orig_dtype</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span>
     <span class="n">mean_b0</span> <span class="o">=</span> <span class="n">_get_mean_b0</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="p">)</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">_get_mask</span><span class="p">(</span><span class="n">mean_b0</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
@@ -1345,7 +1345,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_build_bspline_design_matrix_py</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">log_b0_shape</span><span class="p">,</span> <span class="n">n_control</span><span class="p">,</span> <span class="n">mask_flat</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build sparse B-spline design matrix (pure Python fallback).</span>
+<span class="w">    </span><span class="sd">"""Build sparse B-spline design matrix (pure Python fallback).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1360,7 +1360,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    X : scipy.sparse.csr_matrix</span>
 <span class="sd">        Design matrix, shape (N_masked, K_ctrl_total).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">S</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">log_b0_shape</span>
     <span class="n">ns</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">nc</span> <span class="o">=</span> <span class="n">n_control</span>
     <span class="n">K</span> <span class="o">=</span> <span class="n">ns</span> <span class="o">*</span> <span class="n">nr</span> <span class="o">*</span> <span class="n">nc</span>
@@ -1379,10 +1379,10 @@ document.write(`
     <span class="n">tx</span> <span class="o">=</span> <span class="n">_vox_to_ctrl_arr</span><span class="p">(</span><span class="n">ix_all</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">nc</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_bspline_basis_batch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">n_ctrl</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vectorized cubic B-spline basis.</span>
+<span class="w">        </span><span class="sd">"""Vectorized cubic B-spline basis.</span>
 
 <span class="sd">        Returns (N,4) basis values and (N,4) control indices.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">n_ctrl</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-10</span><span class="p">)</span>
         <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
         <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n_ctrl</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
@@ -1439,7 +1439,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_build_bspline_design_matrix</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">log_b0_shape</span><span class="p">,</span> <span class="n">n_control</span><span class="p">,</span> <span class="n">mask_flat</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build sparse B-spline design matrix, using Cython backend if available.</span>
+<span class="w">    </span><span class="sd">"""Build sparse B-spline design matrix, using Cython backend if available.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1454,7 +1454,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    X : scipy.sparse.csr_matrix</span>
 <span class="sd">        Design matrix, shape (N_masked, K_ctrl_total).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">_HAVE_CYTHON</span><span class="p">:</span>
         <span class="n">S</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">log_b0_shape</span>
         <span class="n">ns</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">nc</span> <span class="o">=</span> <span class="n">n_control</span>
@@ -1508,7 +1508,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sparse_weighted_ridge_solve</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">X_sparse</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">lambda_reg</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve sparse weighted ridge regression.</span>
+<span class="w">    </span><span class="sd">"""Solve sparse weighted ridge regression.</span>
 
 <span class="sd">    The Gram matrix A = X^T W X is computed via chunked dense BLAS DGEMM,</span>
 <span class="sd">    which is substantially faster than scipy sparse×sparse multiplication</span>
@@ -1529,7 +1529,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    beta : ndarray</span>
 <span class="sd">        Coefficient vector, shape (K,).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">K</span> <span class="o">=</span> <span class="n">X_sparse</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">N</span> <span class="o">=</span> <span class="n">X_sparse</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -1561,14 +1561,14 @@ document.write(`
 
     <span class="n">A</span> <span class="o">+=</span> <span class="n">lambda_reg</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">beta</span> <span class="o">=</span> <span class="n">scipy_linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b_vec</span><span class="p">,</span> <span class="n">assume_a</span><span class="o">=</span><span class="s2">&quot;pos&quot;</span><span class="p">)</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">scipy_linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b_vec</span><span class="p">,</span> <span class="n">assume_a</span><span class="o">=</span><span class="s2">"pos"</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">scipy_linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
         <span class="n">beta</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b_vec</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">beta</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_refine_control_coeffs</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">n_ctrl_coarse</span><span class="p">,</span> <span class="n">n_ctrl_fine</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Trilinear interpolation of control grid coefficients.</span>
+<span class="w">    </span><span class="sd">"""Trilinear interpolation of control grid coefficients.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1583,7 +1583,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    fine_coeffs : ndarray</span>
 <span class="sd">        Flattened coefficients at fine resolution.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">coarse_grid</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_ctrl_coarse</span><span class="p">)</span>
     <span class="n">zoom_factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">f</span> <span class="o">/</span> <span class="n">c</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">n_ctrl_fine</span><span class="p">,</span> <span class="n">n_ctrl_coarse</span><span class="p">))</span>
     <span class="n">fine_grid</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="n">coarse_grid</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">zoom_factors</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -1599,7 +1599,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_eval_bspline_field</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">n_control</span><span class="p">,</span> <span class="n">out_shape</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate B-spline field at all voxel positions.</span>
+<span class="w">    </span><span class="sd">"""Evaluate B-spline field at all voxel positions.</span>
 
 <span class="sd">    Uses ``scipy.ndimage.map_coordinates`` with ``prefilter=False`` so that</span>
 <span class="sd">    ``coeffs`` are treated directly as B-spline weights (not as values to</span>
@@ -1619,7 +1619,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    field : ndarray</span>
 <span class="sd">        Evaluated field, shape out_shape.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">S</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">out_shape</span>
     <span class="n">ns</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">nc</span> <span class="o">=</span> <span class="n">n_control</span>
 
@@ -1629,11 +1629,11 @@ document.write(`
     <span class="n">iy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nr</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span> <span class="k">if</span> <span class="n">nr</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
     <span class="n">ix_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span> <span class="k">if</span> <span class="n">nc</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
 
-    <span class="n">II</span><span class="p">,</span> <span class="n">JJ</span><span class="p">,</span> <span class="n">KK</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">iz</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">ix_</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+    <span class="n">II</span><span class="p">,</span> <span class="n">JJ</span><span class="p">,</span> <span class="n">KK</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">iz</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">ix_</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">"ij"</span><span class="p">)</span>
     <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">II</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">JJ</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">KK</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
 
     <span class="n">field</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">map_coordinates</span><span class="p">(</span>
-        <span class="n">coeff_grid</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="n">prefilter</span><span class="o">=</span><span class="kc">False</span>
+        <span class="n">coeff_grid</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"nearest"</span><span class="p">,</span> <span class="n">prefilter</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">field</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">out_shape</span><span class="p">)</span>
 
@@ -1650,7 +1650,7 @@ document.write(`
     <span class="n">gradient_weighting</span><span class="p">,</span>
     <span class="n">sigma_factor</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Coarse-to-fine B-spline bias field regression.</span>
+<span class="w">    </span><span class="sd">"""Coarse-to-fine B-spline bias field regression.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1677,7 +1677,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    log_bias : ndarray</span>
 <span class="sd">        Estimated log-domain bias field, same shape as log_b0.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">full_shape</span> <span class="o">=</span> <span class="n">log_b0</span><span class="o">.</span><span class="n">shape</span>
 
     <span class="k">if</span> <span class="n">gradient_weighting</span><span class="p">:</span>
@@ -1776,7 +1776,7 @@ document.write(`
     <span class="n">robust</span><span class="p">,</span>
     <span class="n">gradient_weighting</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run poly and bspline fits, return the log-bias with lower CoV.</span>
+<span class="w">    </span><span class="sd">"""Run poly and bspline fits, return the log-bias with lower CoV.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1805,7 +1805,7 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    log_bias : ndarray</span>
 <span class="sd">        Log-domain bias field from the winning method.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">log_bias_poly</span> <span class="o">=</span> <span class="n">_polynomial_pyramid_fit</span><span class="p">(</span>
         <span class="n">log_b0</span><span class="o">=</span><span class="n">log_b0</span><span class="p">,</span>
         <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1828,7 +1828,7 @@ document.write(`
     <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cov</span><span class="p">(</span><span class="n">log_bf</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;CoV of mean b0 corrected by the given log bias field.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""CoV of mean b0 corrected by the given log bias field."""</span>
         <span class="n">corrected_b0</span> <span class="o">=</span> <span class="n">mean_b0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_bf</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_bf</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">vals</span> <span class="o">=</span> <span class="n">corrected_b0</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">vals</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span>
@@ -1838,14 +1838,14 @@ document.write(`
 
     <span class="k">if</span> <span class="n">cov_poly</span> <span class="o">&lt;=</span> <span class="n">cov_bspline</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">&quot;bias_field_correction auto: selected &#39;poly&#39; (CoV </span><span class="si">%.4f</span><span class="s2"> vs bspline </span><span class="si">%.4f</span><span class="s2">)&quot;</span><span class="p">,</span>
+            <span class="s2">"bias_field_correction auto: selected 'poly' (CoV </span><span class="si">%.4f</span><span class="s2"> vs bspline </span><span class="si">%.4f</span><span class="s2">)"</span><span class="p">,</span>
             <span class="n">cov_poly</span><span class="p">,</span>
             <span class="n">cov_bspline</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">log_bias_poly</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="s2">&quot;bias_field_correction auto: selected &#39;bspline&#39; (CoV </span><span class="si">%.4f</span><span class="s2"> vs poly </span><span class="si">%.4f</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="s2">"bias_field_correction auto: selected 'bspline' (CoV </span><span class="si">%.4f</span><span class="s2"> vs poly </span><span class="si">%.4f</span><span class="s2">)"</span><span class="p">,</span>
         <span class="n">cov_bspline</span><span class="p">,</span>
         <span class="n">cov_poly</span><span class="p">,</span>
     <span class="p">)</span>
@@ -1859,7 +1859,7 @@ document.write(`
     <span class="n">gtab</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;bspline&quot;</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">"bspline"</span><span class="p">,</span>
     <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
     <span class="n">n_control_points</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
     <span class="n">pyramid_levels</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
@@ -1870,7 +1870,7 @@ document.write(`
     <span class="n">return_bias_field</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">zero_background</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Top-level DWI bias field correction via regression.</span>
+<span class="w">    </span><span class="sd">"""Top-level DWI bias field correction via regression.</span>
 
 <span class="sd">    Estimates a smooth multiplicative bias field from the mean b0 volume</span>
 <span class="sd">    using polynomial or B-spline regression in log space, then applies the</span>
@@ -1887,16 +1887,16 @@ document.write(`
 <span class="sd">    method : str, optional</span>
 <span class="sd">        Bias correction method:</span>
 
-<span class="sd">        - ``&quot;poly&quot;``: Legendre polynomial regression — fast, low-parameter.</span>
-<span class="sd">        - ``&quot;bspline&quot;``: Cubic B-spline regression — more flexible.</span>
-<span class="sd">        - ``&quot;auto&quot;``: Run both methods and return the one with lower</span>
+<span class="sd">        - ``"poly"``: Legendre polynomial regression — fast, low-parameter.</span>
+<span class="sd">        - ``"bspline"``: Cubic B-spline regression — more flexible.</span>
+<span class="sd">        - ``"auto"``: Run both methods and return the one with lower</span>
 <span class="sd">          Coefficient of Variation within the brain mask. The chosen method</span>
 <span class="sd">          is logged at INFO level.</span>
 <span class="sd">    order : int, optional</span>
-<span class="sd">        Maximum Legendre polynomial degree (used only for method=&quot;poly&quot;).</span>
+<span class="sd">        Maximum Legendre polynomial degree (used only for method="poly").</span>
 <span class="sd">    n_control_points : tuple of int, optional</span>
 <span class="sd">        Control grid dimensions at finest level (used only for</span>
-<span class="sd">        method=&quot;bspline&quot;).</span>
+<span class="sd">        method="bspline").</span>
 <span class="sd">    pyramid_levels : tuple of int, optional</span>
 <span class="sd">        Downsampling factors for coarse-to-fine pyramid (descending order).</span>
 <span class="sd">    n_iter : int, optional</span>
@@ -1923,13 +1923,13 @@ document.write(`
 <span class="sd">    bias_field : ndarray</span>
 <span class="sd">        3D multiplicative bias field (only returned if</span>
 <span class="sd">        return_bias_field=True).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">orig_dtype</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span>
     <span class="n">mean_b0</span> <span class="o">=</span> <span class="n">_get_mean_b0</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="p">)</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">_get_mask</span><span class="p">(</span><span class="n">mean_b0</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
     <span class="n">log_b0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">mean_b0</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;poly&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"poly"</span><span class="p">:</span>
         <span class="n">log_bias</span> <span class="o">=</span> <span class="n">_polynomial_pyramid_fit</span><span class="p">(</span>
             <span class="n">log_b0</span><span class="o">=</span><span class="n">log_b0</span><span class="p">,</span>
             <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1940,7 +1940,7 @@ document.write(`
             <span class="n">robust</span><span class="o">=</span><span class="n">robust</span><span class="p">,</span>
             <span class="n">gradient_weighting</span><span class="o">=</span><span class="n">gradient_weighting</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;bspline&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"bspline"</span><span class="p">:</span>
         <span class="n">log_bias</span> <span class="o">=</span> <span class="n">_bspline_pyramid_fit</span><span class="p">(</span>
             <span class="n">log_b0</span><span class="o">=</span><span class="n">log_b0</span><span class="p">,</span>
             <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
@@ -1951,7 +1951,7 @@ document.write(`
             <span class="n">robust</span><span class="o">=</span><span class="n">robust</span><span class="p">,</span>
             <span class="n">gradient_weighting</span><span class="o">=</span><span class="n">gradient_weighting</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"auto"</span><span class="p">:</span>
         <span class="n">log_bias</span> <span class="o">=</span> <span class="n">_auto_select_fit</span><span class="p">(</span>
             <span class="n">log_b0</span><span class="o">=</span><span class="n">log_b0</span><span class="p">,</span>
             <span class="n">mean_b0</span><span class="o">=</span><span class="n">mean_b0</span><span class="p">,</span>
@@ -1965,7 +1965,7 @@ document.write(`
             <span class="n">gradient_weighting</span><span class="o">=</span><span class="n">gradient_weighting</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;method must be &#39;poly&#39;, &#39;bspline&#39;, or &#39;auto&#39;, got &#39;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"method must be 'poly', 'bspline', or 'auto', got '</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">zero_background</span><span class="p">:</span>
         <span class="n">log_bias</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>

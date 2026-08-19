@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.multi_voxel &#8212; dipy 1.13.0.dev0+git20260811.0935239 documentation</title>
+    <title>dipy.reconst.multi_voxel &#8212; dipy 1.13.0.dev0+git20260819.f24b94c documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e851391f"></script>
+    <script src="../../../_static/documentation_options.js?v=9be73528"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,7 +883,7 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.reconst.multi_voxel</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Tools to easily make multi voxel models&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""Tools to easily make multi voxel models"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
@@ -899,20 +899,20 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.multiproc</span><span class="w"> </span><span class="kn">import</span> <span class="n">determine_num_processes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.parallel</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_ray_chunk_size</span><span class="p">,</span> <span class="n">paramap</span>
 
-<span class="n">ORCHESTRATION_KWARGS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;engine&quot;</span><span class="p">,</span> <span class="s2">&quot;n_jobs&quot;</span><span class="p">,</span> <span class="s2">&quot;vox_per_chunk&quot;</span><span class="p">,</span> <span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="s2">&quot;inflight_cap&quot;</span><span class="p">)</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">ORCHESTRATION_KWARGS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"engine"</span><span class="p">,</span> <span class="s2">"n_jobs"</span><span class="p">,</span> <span class="s2">"vox_per_chunk"</span><span class="p">,</span> <span class="s2">"verbose"</span><span class="p">,</span> <span class="s2">"inflight_cap"</span><span class="p">)</span>
+<span class="sd">"""</span>
 <span class="sd">Keyword arguments that configure parallelization/orchestration for the ``multi_voxel_fit`` decorator</span>
 <span class="sd">and :func:`dipy.utils.parallel.paramap`.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_accepts_kwarg</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return True iff ``func`` declares ``name`` as an explicit parameter.</span>
+<span class="w">    </span><span class="sd">"""Return True iff ``func`` declares ``name`` as an explicit parameter.</span>
 
 <span class="sd">    A parameter absorbed only by ``**kwargs`` does not count, so a reserved</span>
 <span class="sd">    orchestration key is forwarded solely to fits that name it explicitly</span>
 <span class="sd">    (e.g. ``MCSD.fit(self, data, verbose=True, **kwargs)``).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">param</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
@@ -924,7 +924,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_assemble_results</span><span class="p">(</span><span class="n">params_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fit_class</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a flat array of fit objects from raw per-chunk parameter dicts.</span>
+<span class="w">    </span><span class="sd">"""Build a flat array of fit objects from raw per-chunk parameter dicts.</span>
 
 <span class="sd">    Generic assembly for any batched model that declares a ``_fit_class``</span>
 <span class="sd">    attribute.  Concatenates numpy arrays across chunks, then constructs</span>
@@ -943,7 +943,7 @@ document.write(`
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    fits : ndarray of object, shape (total_voxels,)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">merged</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
@@ -971,7 +971,7 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parallel_fit_worker</span><span class="p">(</span><span class="n">vox_data</span><span class="p">,</span> <span class="n">fit_func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Process a chunk of voxel data.</span>
+<span class="w">    </span><span class="sd">"""Process a chunk of voxel data.</span>
 
 <span class="sd">    When ``_batched`` is True the entire chunk is handed to *fit_func*</span>
 <span class="sd">    in a single batched call (the ``fit`` method handles the 2-D input</span>
@@ -990,26 +990,26 @@ document.write(`
 <span class="sd">    fit_func : callable</span>
 <span class="sd">        ``partial(single_voxel_fit, model)`` — used for both per-voxel</span>
 <span class="sd">        and batched (``_batched=True``) paths.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_prefix</span> <span class="o">=</span> <span class="s2">&quot;_sobj_&quot;</span>
+<span class="sd">    """</span>
+    <span class="n">_prefix</span> <span class="o">=</span> <span class="s2">"_sobj_"</span>
     <span class="n">shared_objs</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">k</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">_prefix</span><span class="p">)</span> <span class="p">:]:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">_prefix</span><span class="p">)</span>
     <span class="p">}</span>
     <span class="k">if</span> <span class="n">shared_objs</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">fit_func</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">fit_func</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fit_func</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;__self__&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fit_func</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="s2">"__self__"</span><span class="p">):</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">fit_func</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__self__</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;_parallel_fit_worker: could not locate model instance in &quot;</span>
-                <span class="s2">&quot;fit_func — shared objects were never applied.&quot;</span>
+                <span class="s2">"_parallel_fit_worker: could not locate model instance in "</span>
+                <span class="s2">"fit_func — shared objects were never applied."</span>
             <span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">shared_objs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
 
-    <span class="n">batched</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;_batched&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-    <span class="n">vox_weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">batched</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"_batched"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">vox_weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"weights"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">batched</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">vox_weights</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">fit_func</span><span class="p">(</span><span class="n">vox_data</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">vox_weights</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1017,7 +1017,7 @@ document.write(`
 
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">vox_weights</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span>
-            <span class="n">fit_func</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="nb">dict</span><span class="p">({</span><span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="n">weights</span><span class="p">},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span>
+            <span class="n">fit_func</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="nb">dict</span><span class="p">({</span><span class="s2">"weights"</span><span class="p">:</span> <span class="n">weights</span><span class="p">},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span>
             <span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">weights</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vox_data</span><span class="p">,</span> <span class="n">vox_weights</span><span class="p">)</span>
         <span class="p">]</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">fit_func</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">vox_data</span><span class="p">]</span>
@@ -1032,7 +1032,7 @@ document.write(`
     <span class="n">shared_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">chunk_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Method decorator to turn a single voxel model fit</span>
+<span class="w">    </span><span class="sd">"""Method decorator to turn a single voxel model fit</span>
 <span class="sd">    definition into a multi voxel model fit definition.</span>
 
 <span class="sd">    Supports two calling styles::</span>
@@ -1064,16 +1064,16 @@ document.write(`
 <span class="sd">    shared_obj : tuple of str, optional</span>
 <span class="sd">        Names of model attributes to place into the Ray object store once</span>
 <span class="sd">        and reuse across workers (avoids per-task serialization of large</span>
-<span class="sd">        arrays).  Example: ``(&quot;_penalty_array&quot;, &quot;_index&quot;, &quot;simulations&quot;)``.</span>
-<span class="sd">        Only active when ``engine=&quot;ray&quot;``.</span>
+<span class="sd">        arrays).  Example: ``("_penalty_array", "_index", "simulations")``.</span>
+<span class="sd">        Only active when ``engine="ray"``.</span>
 <span class="sd">    chunk_size : int or dict, optional</span>
 <span class="sd">        Number of voxels per chunk.  Accepts either a single ``int``</span>
 <span class="sd">        (applied to all engines) or a ``dict`` mapping engine names to</span>
-<span class="sd">        chunk sizes, e.g. ``{&quot;serial&quot;: 10_000, &quot;ray&quot;: 100_000}``.</span>
+<span class="sd">        chunk sizes, e.g. ``{"serial": 10_000, "ray": 100_000}``.</span>
 <span class="sd">        Overridden at call time by the ``vox_per_chunk`` keyword argument.</span>
 <span class="sd">        Defaults to 10 000 for the serial-batched path and</span>
 <span class="sd">        ``n_vox // n_jobs`` for parallel engines.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">single_voxel_fit</span><span class="p">):</span>
         <span class="n">_drop_kwargs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
@@ -1081,14 +1081,14 @@ document.write(`
         <span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">new_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Fit method for every voxel in data&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""Fit method for every voxel in data"""</span>
 
             <span class="n">dropped</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_drop_kwargs</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">dropped</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;multi_voxel_fit: </span><span class="si">%s</span><span class="s2"> consumed for parallelization/orchestration; &quot;</span>
-                    <span class="s2">&quot;not forwarded to the per-voxel fit (it does not declare these &quot;</span>
-                    <span class="s2">&quot;keyword arguments).&quot;</span><span class="p">,</span>
+                    <span class="s2">"multi_voxel_fit: </span><span class="si">%s</span><span class="s2"> consumed for parallelization/orchestration; "</span>
+                    <span class="s2">"not forwarded to the per-voxel fit (it does not declare these "</span>
+                    <span class="s2">"keyword arguments)."</span><span class="p">,</span>
                     <span class="n">dropped</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="n">fit_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_drop_kwargs</span><span class="p">}</span>
@@ -1109,10 +1109,10 @@ document.write(`
                 <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">bool</span><span class="p">)</span>
             <span class="c1"># Check the shape of the mask if mask is not None</span>
             <span class="k">elif</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;mask and data shape do not match&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"mask and data shape do not match"</span><span class="p">)</span>
 
             <span class="c1"># Get weights from kwargs if provided</span>
-            <span class="n">weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;weights&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"weights"</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"weights"</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="n">weights_is_array</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
 
             <span class="c1"># Fit data where mask is True</span>
@@ -1120,7 +1120,7 @@ document.write(`
             <span class="n">return_extra</span> <span class="o">=</span> <span class="kc">False</span>
 
             <span class="c1"># Default to serial execution:</span>
-            <span class="n">engine</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;engine&quot;</span><span class="p">,</span> <span class="s2">&quot;serial&quot;</span><span class="p">)</span>
+            <span class="n">engine</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"engine"</span><span class="p">,</span> <span class="s2">"serial"</span><span class="p">)</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">_shared_obj_nbytes</span><span class="p">():</span>
                 <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1128,16 +1128,16 @@ document.write(`
                     <span class="n">obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="k">continue</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;nbytes&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"nbytes"</span><span class="p">):</span>
                         <span class="n">total</span> <span class="o">+=</span> <span class="n">obj</span><span class="o">.</span><span class="n">nbytes</span>
                     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                         <span class="n">total</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">(</span>
-                            <span class="n">v</span><span class="o">.</span><span class="n">nbytes</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">&quot;nbytes&quot;</span><span class="p">)</span>
+                            <span class="n">v</span><span class="o">.</span><span class="n">nbytes</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"nbytes"</span><span class="p">)</span>
                         <span class="p">)</span>
                 <span class="k">return</span> <span class="n">total</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_chunk_size</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_vox</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-                <span class="n">explicit</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vox_per_chunk&quot;</span><span class="p">)</span>
+                <span class="n">explicit</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"vox_per_chunk"</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">explicit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">explicit</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="p">(</span>
@@ -1145,8 +1145,8 @@ document.write(`
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
                     <span class="k">else</span> <span class="p">(</span><span class="n">chunk_size</span> <span class="k">if</span> <span class="n">chunk_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default</span><span class="p">)</span>
                 <span class="p">)</span>
-                <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;ray&quot;</span> <span class="ow">and</span> <span class="n">n_jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="s2">"auto"</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">"ray"</span> <span class="ow">and</span> <span class="n">n_jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="k">return</span> <span class="n">auto_ray_chunk_size</span><span class="p">(</span>
                             <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
                             <span class="n">n_gradients</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
@@ -1156,9 +1156,9 @@ document.write(`
                     <span class="k">return</span> <span class="n">default</span>
                 <span class="k">return</span> <span class="n">val</span>
 
-            <span class="n">use_raw</span> <span class="o">=</span> <span class="n">batched</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_fit_class&quot;</span><span class="p">)</span>
+            <span class="n">use_raw</span> <span class="o">=</span> <span class="n">batched</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_fit_class"</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;serial&quot;</span> <span class="ow">and</span> <span class="n">batched</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">"serial"</span> <span class="ow">and</span> <span class="n">batched</span><span class="p">:</span>
                 <span class="c1"># Batched serial path — pass the whole chunk to fit() at once</span>
                 <span class="n">data_to_fit</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">)]</span>
                 <span class="n">vox_per_chunk</span> <span class="o">=</span> <span class="n">_resolve_chunk_size</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
@@ -1167,12 +1167,12 @@ document.write(`
                 <span class="n">bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span>
                     <span class="n">total</span><span class="o">=</span><span class="n">n_vox</span><span class="p">,</span>
                     <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                    <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                    <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"verbose"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
                 <span class="p">)</span>
-                <span class="n">bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Fitting (batched serial)&quot;</span><span class="p">)</span>
+                <span class="n">bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">"Fitting (batched serial)"</span><span class="p">)</span>
                 <span class="n">chunk_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fit_kwargs</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">use_raw</span><span class="p">:</span>
-                    <span class="n">chunk_kwargs</span><span class="p">[</span><span class="s2">&quot;_raw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">chunk_kwargs</span><span class="p">[</span><span class="s2">"_raw"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_vox</span><span class="p">,</span> <span class="n">vox_per_chunk</span><span class="p">):</span>
                     <span class="n">chunk</span> <span class="o">=</span> <span class="n">data_to_fit</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">start</span> <span class="o">+</span> <span class="n">vox_per_chunk</span><span class="p">]</span>
                     <span class="n">chunk_result</span> <span class="o">=</span> <span class="n">single_voxel_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="o">**</span><span class="n">chunk_kwargs</span><span class="p">)</span>
@@ -1186,21 +1186,21 @@ document.write(`
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">tmp_fit_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">all_chunk_results</span><span class="p">)</span>
                 <span class="n">fit_array</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tmp_fit_array</span>
-            <span class="k">elif</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;serial&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">"serial"</span><span class="p">:</span>
                 <span class="n">extra_list</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span>
                     <span class="n">total</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">),</span>
                     <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                    <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                    <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"verbose"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
                 <span class="p">)</span>
                 <span class="n">bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span>
-                    <span class="s2">&quot;Fitting reconstruction model using serial execution&quot;</span>
+                    <span class="s2">"Fitting reconstruction model using serial execution"</span>
                 <span class="p">)</span>
                 <span class="k">for</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="n">ndindex</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
                     <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="n">ijk</span><span class="p">]:</span>
                         <span class="n">voxel_kwargs</span> <span class="o">=</span> <span class="n">fit_kwargs</span>
                         <span class="k">if</span> <span class="n">weights_is_array</span><span class="p">:</span>
-                            <span class="n">voxel_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">fit_kwargs</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="n">ijk</span><span class="p">]}</span>
+                            <span class="n">voxel_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">fit_kwargs</span><span class="p">,</span> <span class="s2">"weights"</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="n">ijk</span><span class="p">]}</span>
 
                         <span class="n">svf</span> <span class="o">=</span> <span class="n">single_voxel_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">ijk</span><span class="p">],</span> <span class="o">**</span><span class="n">voxel_kwargs</span><span class="p">)</span>
 
@@ -1219,7 +1219,7 @@ document.write(`
                 <span class="n">data_to_fit</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">)]</span>
                 <span class="k">if</span> <span class="n">weights_is_array</span><span class="p">:</span>
                     <span class="n">weights_to_fit</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">)]</span>
-                <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;n_jobs&quot;</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"n_jobs"</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">n_jobs_eff</span> <span class="o">=</span> <span class="n">determine_num_processes</span><span class="p">(</span><span class="n">n_jobs</span> <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">n_vox</span> <span class="o">=</span> <span class="n">data_to_fit</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">vox_per_chunk</span> <span class="o">=</span> <span class="n">_resolve_chunk_size</span><span class="p">(</span>
@@ -1235,7 +1235,7 @@ document.write(`
                 <span class="c1"># Extract shared objects *before* creating the partial so</span>
                 <span class="c1"># that ``self`` is lightweight when serialised by Ray.</span>
                 <span class="n">shared_objects</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;ray&quot;</span> <span class="ow">and</span> <span class="n">shared_obj</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">"ray"</span> <span class="ow">and</span> <span class="n">shared_obj</span><span class="p">:</span>
                     <span class="n">shared_objects</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">shared_obj</span><span class="p">}</span>
                     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">shared_obj</span><span class="p">:</span>
                         <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -1248,25 +1248,25 @@ document.write(`
                     <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_to_fit</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">vox_per_chunk</span><span class="p">):</span>
                         <span class="n">kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fit_kwargs</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">batched</span><span class="p">:</span>
-                            <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;_batched&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="n">kw</span><span class="p">[</span><span class="s2">"_batched"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="k">if</span> <span class="n">use_raw</span><span class="p">:</span>
-                            <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;_raw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="n">kw</span><span class="p">[</span><span class="s2">"_raw"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="k">if</span> <span class="n">weights_is_array</span><span class="p">:</span>
-                            <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights_to_fit</span><span class="p">[</span><span class="n">ii</span> <span class="p">:</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">vox_per_chunk</span><span class="p">]</span>
+                            <span class="n">kw</span><span class="p">[</span><span class="s2">"weights"</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights_to_fit</span><span class="p">[</span><span class="n">ii</span> <span class="p">:</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">vox_per_chunk</span><span class="p">]</span>
                         <span class="n">kwargs_chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kw</span><span class="p">)</span>
 
                     <span class="n">parallel_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
                     <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="p">[</span>
-                        <span class="s2">&quot;n_jobs&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;vox_per_chunk&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;engine&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;verbose&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;inflight_cap&quot;</span><span class="p">,</span>
+                        <span class="s2">"n_jobs"</span><span class="p">,</span>
+                        <span class="s2">"vox_per_chunk"</span><span class="p">,</span>
+                        <span class="s2">"engine"</span><span class="p">,</span>
+                        <span class="s2">"verbose"</span><span class="p">,</span>
+                        <span class="s2">"inflight_cap"</span><span class="p">,</span>
                     <span class="p">]:</span>
                         <span class="k">if</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
                             <span class="n">parallel_kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">shared_objects</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">parallel_kwargs</span><span class="p">[</span><span class="s2">&quot;shared_objects&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shared_objects</span>
+                        <span class="n">parallel_kwargs</span><span class="p">[</span><span class="s2">"shared_objects"</span><span class="p">]</span> <span class="o">=</span> <span class="n">shared_objects</span>
 
                     <span class="n">mvf</span> <span class="o">=</span> <span class="n">paramap</span><span class="p">(</span>
                         <span class="n">_parallel_fit_worker</span><span class="p">,</span>
@@ -1336,8 +1336,8 @@ document.write(`
 <div class="viewcode-block" id="MultiVoxelFit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.MultiVoxelFit">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiVoxelFit</span><span class="p">(</span><span class="n">ReconstFit</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Holds an array of fits and allows access to their attributes and</span>
-<span class="sd">    methods&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Holds an array of fits and allows access to their attributes and</span>
+<span class="sd">    methods"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">fit_array</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
@@ -1365,11 +1365,11 @@ document.write(`
 <div class="viewcode-block" id="MultiVoxelFit.predict">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.MultiVoxelFit.predict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Predict for the multi-voxel object using each single-object&#39;s</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Predict for the multi-voxel object using each single-object's</span>
 <span class="sd">        prediction API, with S0 provided from an array.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">S0</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;S0&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="sd">        """</span>
+        <span class="n">S0</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"S0"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="n">ndindex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="n">ijk</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
 
@@ -1379,21 +1379,21 @@ document.write(`
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">S0</span>
 
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;S0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gimme_S0</span><span class="p">(</span><span class="n">S0</span><span class="p">,</span> <span class="n">ijk</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"S0"</span><span class="p">]</span> <span class="o">=</span> <span class="n">gimme_S0</span><span class="p">(</span><span class="n">S0</span><span class="p">,</span> <span class="n">ijk</span><span class="p">)</span>
         <span class="c1"># If we have a mask, we might have some Nones up front, skip those:</span>
         <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ijk</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="p">[</span><span class="n">ijk</span><span class="p">],</span> <span class="s2">&quot;predict&quot;</span><span class="p">):</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This model does not have prediction implemented yet&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="p">[</span><span class="n">ijk</span><span class="p">],</span> <span class="s2">"predict"</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"This model does not have prediction implemented yet"</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
         <span class="n">first_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">first_pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],))</span>
         <span class="n">result</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">=</span> <span class="n">first_pred</span>
         <span class="k">for</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;S0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gimme_S0</span><span class="p">(</span><span class="n">S0</span><span class="p">,</span> <span class="n">ijk</span><span class="p">)</span>
-            <span class="c1"># If it&#39;s masked, we predict a 0:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"S0"</span><span class="p">]</span> <span class="o">=</span> <span class="n">gimme_S0</span><span class="p">(</span><span class="n">S0</span><span class="p">,</span> <span class="n">ijk</span><span class="p">)</span>
+            <span class="c1"># If it's masked, we predict a 0:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_array</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">result</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">0</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1407,7 +1407,7 @@ document.write(`
 <div class="viewcode-block" id="CallableArray">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.CallableArray">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CallableArray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;An array which can be called like a function&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""An array which can be called like a function"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
