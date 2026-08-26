@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.surface &#8212; dipy 1.13.0.dev0+git20260825.78ea526 documentation</title>
+    <title>dipy.io.surface &#8212; dipy 1.13.0.dev0+git20260826.d470ed7 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e5617bde"></script>
+    <script src="../../../_static/documentation_options.js?v=0f5d8d12"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -884,8 +884,8 @@ document.write(`
                   
   <h1>Source code for dipy.io.surface</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
@@ -899,22 +899,98 @@ document.write(`
     <span class="n">get_reference_info</span><span class="p">,</span>
     <span class="n">split_filename_extension</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.vtk</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">get_polydata_triangles</span><span class="p">,</span>
-    <span class="n">get_polydata_vertices</span><span class="p">,</span>
-    <span class="n">load_polydata</span><span class="p">,</span>
-    <span class="n">save_polydata</span><span class="p">,</span>
-<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
-<span class="n">vtk</span><span class="p">,</span> <span class="n">have_vtk</span><span class="p">,</span> <span class="n">setup_module</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
-    <span class="s2">"vtk"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"9.0.0"</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="s2">"9.1.0"</span>
-<span class="p">)</span>
+<span class="n">px</span><span class="p">,</span> <span class="n">have_polyxios</span><span class="p">,</span> <span class="n">setup_module</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"polyxios"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"0.2.0"</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">have_vtk</span><span class="p">:</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">vtk</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">vtk.util.numpy_support</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ns</span>
+<span class="n">COLOR_ARRAY_NAME</span> <span class="o">=</span> <span class="s2">"colors"</span>
+
+
+<div class="viewcode-block" id="load_polydata">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.load_polydata">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_polydata</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Load a polydata from a supported format file.</span>
+
+<span class="sd">    Supported file formats are OBJ, VTK, VTP, PLY and STL.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_name : string or Path</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    output : polyxios.PolyData</span>
+
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">px</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="save_polydata">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.save_polydata">[docs]</a>
+<span class="nd">@warning_for_keywords</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_polydata</span><span class="p">(</span><span class="n">polydata</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">color_array_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Save a polydata to a supported format file.</span>
+
+<span class="sd">    Save formats can be OBJ, VTK, VTP, PLY and STL.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    polydata : polyxios.PolyData</span>
+<span class="sd">        The polydata object to be saved.</span>
+<span class="sd">    file_name : string or Path</span>
+<span class="sd">        The output filename (.obj, .vtk, .vtp, .ply and .stl)</span>
+<span class="sd">    binary : bool, optional</span>
+<span class="sd">        Save the file in binary format.</span>
+<span class="sd">    color_array_name : str, optional</span>
+<span class="sd">        Name of the vertex attribute holding the colors. It is written under</span>
+<span class="sd">        the name readers pick colors up from, so that it survives the</span>
+<span class="sd">        round-trip. Every other vertex attribute is written under its own.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">color_array_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">color_array_name</span> <span class="ow">in</span> <span class="n">polydata</span><span class="o">.</span><span class="n">vertex_attrs</span><span class="p">:</span>
+        <span class="n">vertex_attrs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">polydata</span><span class="o">.</span><span class="n">vertex_attrs</span><span class="p">)</span>
+        <span class="n">vertex_attrs</span><span class="p">[</span><span class="n">COLOR_ARRAY_NAME</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_attrs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">color_array_name</span><span class="p">)</span>
+        <span class="n">polydata</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">polydata</span><span class="p">,</span> <span class="n">vertex_attrs</span><span class="o">=</span><span class="n">vertex_attrs</span><span class="p">)</span>
+
+    <span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"binary"</span><span class="p">:</span> <span class="n">binary</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">".vtk"</span><span class="p">:</span>
+        <span class="n">opts</span><span class="p">[</span><span class="s2">"vtk_version"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"4.2"</span>
+
+    <span class="n">px</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">polydata</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">file_name</span><span class="p">),</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_polydata_vertices">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.get_polydata_vertices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_polydata_vertices</span><span class="p">(</span><span class="n">polydata</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the (n_vertices, 3) vertex coordinates of a polyxios PolyData."""</span>
+    <span class="k">return</span> <span class="n">polydata</span><span class="o">.</span><span class="n">vertices</span></div>
+
+
+
+<div class="viewcode-block" id="get_polydata_triangles">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.get_polydata_triangles">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_polydata_triangles</span><span class="p">(</span><span class="n">polydata</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the (n_triangles, 3) vertex indices of a polyxios PolyData.</span>
+
+<span class="sd">    A surface element that is not a triangle is triangulated: a quad splits</span>
+<span class="sd">    in two, a polygon is fanned.</span>
+<span class="sd">    """</span>
+    <span class="n">triangles</span> <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">faces</span>
+    <span class="k">if</span> <span class="n">triangles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">triangles</span></div>
+
+
+
+<div class="viewcode-block" id="get_polydata_vertex_attrs">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.surface.get_polydata_vertex_attrs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_polydata_vertex_attrs</span><span class="p">(</span><span class="n">polydata</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get every per-vertex array of a polyxios PolyData, keyed by name."""</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">polydata</span><span class="o">.</span><span class="n">vertex_attrs</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="load_surface">
@@ -972,20 +1048,20 @@ document.write(`
     <span class="n">vtk_ext</span> <span class="o">=</span> <span class="p">[</span><span class="s2">".vtk"</span><span class="p">,</span> <span class="s2">".vtp"</span><span class="p">,</span> <span class="s2">".obj"</span><span class="p">,</span> <span class="s2">".stl"</span><span class="p">,</span> <span class="s2">".ply"</span><span class="p">]</span>
     <span class="n">freesurfer_ext</span> <span class="o">=</span> <span class="p">[</span><span class="s2">".gii"</span><span class="p">,</span> <span class="s2">".gii.gz"</span><span class="p">,</span> <span class="s2">".pial"</span><span class="p">,</span> <span class="s2">".nofix"</span><span class="p">,</span> <span class="s2">".orig"</span><span class="p">,</span> <span class="s2">".smoothwm"</span><span class="p">,</span> <span class="s2">".T1"</span><span class="p">]</span>
 
-    <span class="n">name</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">split_filename_extension</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">split_filename_extension</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">freesurfer_ext</span> <span class="o">+</span> <span class="n">vtk_ext</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Input extension is not one of the supported format."</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Input extension is not one of the supported format."</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">if</span> <span class="n">to_space</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">Space</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"Space MUST be one of the </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">Space</span><span class="p">)</span><span class="si">}</span><span class="s2"> choices:"</span>
             <span class="sa">f</span><span class="s2">" </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">Space</span><span class="o">.</span><span class="n">__members__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">."</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">if</span> <span class="n">to_origin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">Origin</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"Origin MUST be one of the </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">Origin</span><span class="p">)</span><span class="si">}</span><span class="s2"> choices:"</span>
             <span class="sa">f</span><span class="s2">" </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">Origin</span><span class="o">.</span><span class="n">__members__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">."</span>
         <span class="p">)</span>
@@ -995,7 +1071,7 @@ document.write(`
         <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">".gii"</span><span class="p">,</span> <span class="s2">".gii.gz"</span><span class="p">]:</span>
             <span class="n">reference</span> <span class="o">=</span> <span class="n">fname</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="s1">'Reference must be provided, "same" is only available for GII file.'</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -1013,25 +1089,14 @@ document.write(`
         <span class="n">data</span> <span class="o">=</span> <span class="n">load_polydata</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
         <span class="n">vertices</span> <span class="o">=</span> <span class="n">get_polydata_vertices</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">faces</span> <span class="o">=</span> <span class="n">get_polydata_triangles</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">vertex_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span>
-        <span class="n">scalar_names</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">vertex_data</span><span class="o">.</span><span class="n">GetArrayName</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vertex_data</span><span class="o">.</span><span class="n">GetNumberOfArrays</span><span class="p">())</span>
-        <span class="p">]</span>
-        <span class="k">if</span> <span class="n">scalar_names</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">scalar_names</span><span class="p">:</span>
-                <span class="n">scalar</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">GetScalars</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">data_per_vertex</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"Scalar </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> already in data_per_vertex, overwriting"</span>
-                    <span class="p">)</span>
-                <span class="n">data_per_vertex</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ns</span><span class="o">.</span><span class="n">vtk_to_numpy</span><span class="p">(</span><span class="n">scalar</span><span class="p">)</span>
+        <span class="n">data_per_vertex</span> <span class="o">=</span> <span class="n">get_polydata_vertex_attrs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">load_pial</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">return_meta</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">data</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">apply_freesurfer_transform</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reference</span><span class="p">,</span> <span class="n">inv</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">from_space</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">from_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">"from_space and from_origin are ignored when loading pial files."</span>
             <span class="p">)</span>
         <span class="n">from_space</span> <span class="o">=</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span>
@@ -1054,7 +1119,7 @@ document.write(`
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">nib</span><span class="o">.</span><span class="n">filebasedimages</span><span class="o">.</span><span class="n">FileBasedHeader</span><span class="p">):</span>
         <span class="n">sfs</span><span class="o">.</span><span class="n">gii_header</span> <span class="o">=</span> <span class="n">metadata</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"Load </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sfs</span><span class="p">)</span><span class="si">}</span><span class="s2"> vertices in </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">timer</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="sa">f</span><span class="s2">" seconds."</span>
     <span class="p">)</span>
@@ -1104,7 +1169,8 @@ document.write(`
 <span class="sd">            NIFTI standard, default (center of the voxel)</span>
 <span class="sd">            TRACKVIS standard (corner of the voxel)</span>
 <span class="sd">    legacy_vtk_format : bool, optional</span>
-<span class="sd">        Whether to save the file in legacy VTK format or not.</span>
+<span class="sd">        Kept for backward compatibility and ignored: polyxios always writes</span>
+<span class="sd">        the classic VTK 4.2 layout, which every VTK reader takes.</span>
 <span class="sd">    bbox_valid_check : bool, optional</span>
 <span class="sd">        Verification for negative voxel coordinates or values above the</span>
 <span class="sd">        volume dimensions. Default is True, to enforce valid file.</span>
@@ -1140,9 +1206,9 @@ document.write(`
         <span class="n">sfs</span><span class="o">.</span><span class="n">to_space</span><span class="p">(</span><span class="n">to_space</span><span class="p">)</span>
         <span class="n">sfs</span><span class="o">.</span><span class="n">to_origin</span><span class="p">(</span><span class="n">to_origin</span><span class="p">)</span>
 
+        <span class="n">color_array_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">sfs</span><span class="o">.</span><span class="n">data_per_vertex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Check if rgb, colors, colors, etc. are available</span>
-            <span class="n">color_array_name</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"rgb"</span><span class="p">,</span> <span class="s2">"colors"</span><span class="p">,</span> <span class="s2">"color"</span><span class="p">]:</span>
                 <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">sfs</span><span class="o">.</span><span class="n">data_per_vertex</span><span class="p">:</span>
                     <span class="n">color_array_name</span> <span class="o">=</span> <span class="n">key</span>
@@ -1151,26 +1217,10 @@ document.write(`
                     <span class="n">color_array_name</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
                     <span class="k">break</span>
 
-        <span class="n">polydata</span> <span class="o">=</span> <span class="n">sfs</span><span class="o">.</span><span class="n">get_polydata</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">color_array_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">color_array</span> <span class="o">=</span> <span class="n">sfs</span><span class="o">.</span><span class="n">data_per_vertex</span><span class="p">[</span><span class="n">color_array_name</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color_array</span><span class="p">)</span> <span class="o">!=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">GetNumberOfPoints</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Array length does not match number of vertices."</span><span class="p">)</span>
-            <span class="n">vtk_array</span> <span class="o">=</span> <span class="n">ns</span><span class="o">.</span><span class="n">numpy_to_vtk</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">color_array</span><span class="p">),</span> <span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">array_type</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">VTK_UNSIGNED_CHAR</span>
-            <span class="p">)</span>
-            <span class="n">vtk_array</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="s2">"normal"</span> <span class="ow">in</span> <span class="n">color_array_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-                <span class="n">polydata</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">SetNormals</span><span class="p">(</span><span class="n">vtk_array</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">polydata</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">SetScalars</span><span class="p">(</span><span class="n">vtk_array</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                    <span class="n">polydata</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">AddArray</span><span class="p">(</span><span class="n">vtk_array</span><span class="p">)</span>
-
         <span class="n">save_polydata</span><span class="p">(</span>
-            <span class="n">polydata</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">legacy_vtk_format</span><span class="o">=</span><span class="n">legacy_vtk_format</span><span class="p">,</span> <span class="n">color_array_name</span><span class="o">=</span><span class="s2">"RGB"</span>
+            <span class="n">sfs</span><span class="o">.</span><span class="n">get_polydata</span><span class="p">(),</span>
+            <span class="n">fname</span><span class="p">,</span>
+            <span class="n">color_array_name</span><span class="o">=</span><span class="n">color_array_name</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">".gii"</span><span class="p">,</span> <span class="s2">".gii.gz"</span><span class="p">]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sfs</span><span class="p">,</span> <span class="s2">"gii_header"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ref_gii</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1210,7 +1260,7 @@ document.write(`
             <span class="n">metadata</span> <span class="o">=</span> <span class="n">sfs</span><span class="o">.</span><span class="n">fs_metadata</span>
 
         <span class="k">if</span> <span class="n">to_space</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">to_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">"to_space and to_origin are ignored when loading pial files."</span>
             <span class="p">)</span>
         <span class="n">sfs</span><span class="o">.</span><span class="n">to_space</span><span class="p">(</span><span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">)</span>
@@ -1220,7 +1270,7 @@ document.write(`
 
         <span class="n">save_pial</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">sfs</span><span class="o">.</span><span class="n">faces</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Output extension is not one of the supported format."</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Output extension is not one of the supported format."</span><span class="p">)</span>
 
     <span class="n">sfs</span><span class="o">.</span><span class="n">to_space</span><span class="p">(</span><span class="n">old_space</span><span class="p">)</span>
     <span class="n">sfs</span><span class="o">.</span><span class="n">to_origin</span><span class="p">(</span><span class="n">old_origin</span><span class="p">)</span></div>
@@ -1251,7 +1301,7 @@ document.write(`
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">freesurfer</span><span class="o">.</span><span class="n">read_geometry</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">read_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"No metadata found, please use a pial file with metadata."</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"No metadata found, please use a pial file with metadata."</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> provided does not have geometry data."</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
 

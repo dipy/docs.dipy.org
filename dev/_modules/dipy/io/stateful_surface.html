@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.stateful_surface &#8212; dipy 1.13.0.dev0+git20260825.78ea526 documentation</title>
+    <title>dipy.io.stateful_surface &#8212; dipy 1.13.0.dev0+git20260826.d470ed7 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e5617bde"></script>
+    <script src="../../../_static/documentation_options.js?v=0f5d8d12"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -898,10 +898,49 @@ document.write(`
     <span class="n">is_header_compatible</span><span class="p">,</span>
     <span class="n">is_reference_info_valid</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.vtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_to_polydata</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+
+<span class="n">px</span><span class="p">,</span> <span class="n">have_polyxios</span><span class="p">,</span> <span class="n">setup_module</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"polyxios"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"0.2.0"</span><span class="p">)</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"StatefulSurface"</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="convert_to_polydata">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.convert_to_polydata">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_to_polydata</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">triangles</span><span class="p">,</span> <span class="n">data_per_point</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert vertices and triangles to a polyxios PolyData.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vertices : numpy.ndarray</span>
+<span class="sd">        An array of shape (n_vertices, 3) containing the vertex coordinates.</span>
+<span class="sd">    triangles : numpy.ndarray</span>
+<span class="sd">        An array of shape (n_triangles, 3) containing the vertex indices</span>
+<span class="sd">        of the triangles.</span>
+<span class="sd">    data_per_point : dict, optional</span>
+<span class="sd">        A dictionary where keys are array names and values are numpy arrays</span>
+<span class="sd">        of shape (n_vertices, ...) representing data associated with each</span>
+<span class="sd">        vertex.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    polydata : polyxios.PolyData</span>
+<span class="sd">    """</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">triangles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">triangles</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+    <span class="n">vertex_attrs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">data_per_point</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">data_per_point</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Array length does not match number of points."</span><span class="p">)</span>
+            <span class="n">vertex_attrs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span>
+
+    <span class="n">element_groups</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"triangle"</span><span class="p">,</span> <span class="n">triangles</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))]</span> <span class="k">if</span> <span class="n">triangles</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="n">px</span><span class="o">.</span><span class="n">make_polydata</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">element_groups</span><span class="p">,</span> <span class="n">vertex_attrs</span><span class="o">=</span><span class="n">vertex_attrs</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">set_sfs_logger_level</span><span class="p">(</span><span class="n">log_level</span><span class="p">):</span>
@@ -1273,8 +1312,12 @@ document.write(`
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
 
+<div class="viewcode-block" id="StatefulSurface.get_polydata">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.stateful_surface.StatefulSurface.get_polydata">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_polydata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">convert_to_polydata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_faces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_per_vertex</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Build a polyxios PolyData from the surface."""</span>
+        <span class="k">return</span> <span class="n">convert_to_polydata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_faces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_per_vertex</span><span class="p">)</span></div>
+
 
     <span class="nd">@vertices</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.streamline &#8212; dipy 1.13.0.dev0+git20260825.78ea526 documentation</title>
+    <title>dipy.io.streamline &#8212; dipy 1.13.0.dev0+git20260826.d470ed7 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e5617bde"></script>
+    <script src="../../../_static/documentation_options.js?v=0f5d8d12"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -884,6 +884,7 @@ document.write(`
                   
   <h1>Source code for dipy.io.streamline</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
@@ -901,9 +902,164 @@ document.write(`
     <span class="n">is_header_compatible</span><span class="p">,</span>
     <span class="n">split_filename_extension</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.vtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_vtk_streamlines</span><span class="p">,</span> <span class="n">save_vtk_streamlines</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">transform_streamlines</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+
+<span class="n">px</span><span class="p">,</span> <span class="n">have_polyxios</span><span class="p">,</span> <span class="n">setup_module</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"polyxios"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"0.2.0"</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">have_polyxios</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">polyxios._element_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ELEMENT_TYPES</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_polyxios_format</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Name the codec for a suffix polyxios does not register, else None.</span>
+
+<span class="sd">    A ``.fib`` file is a legacy VTK file that tractography tools happen to</span>
+<span class="sd">    name differently. polyxios picks its codec from the extension and only</span>
+<span class="sd">    registers ``.vtk``, so that one has to be asked for by name.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="s2">".vtk"</span> <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">".fib"</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="convert_to_polydata_lines">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.streamline.convert_to_polydata_lines">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_to_polydata_lines</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert a list of lines to a polyxios PolyData.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lines : list</span>
+<span class="sd">        list of 2D arrays or ArraySequence, each of shape (n_points, 3).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    polydata : polyxios.PolyData</span>
+<span class="sd">        One ``poly_line`` element per input line, in the order given.</span>
+<span class="sd">    """</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">idx_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">31</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">idx_dtype</span><span class="p">)</span>
+    <span class="n">offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">px</span><span class="o">.</span><span class="n">PolyData</span><span class="p">(</span>
+        <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">,</span>
+        <span class="n">connectivity</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vertices</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">idx_dtype</span><span class="p">),</span>
+        <span class="n">offsets</span><span class="o">=</span><span class="n">offsets</span><span class="p">,</span>
+        <span class="n">element_types</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">),</span> <span class="n">ELEMENT_TYPES</span><span class="p">[</span><span class="s2">"poly_line"</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_polydata_lines">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.streamline.get_polydata_lines">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_polydata_lines</span><span class="p">(</span><span class="n">polydata</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the lines of a polyxios PolyData as a list of coordinate arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    polydata : polyxios.PolyData</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    lines : list of numpy.ndarray</span>
+<span class="sd">        One array of shape (n_points, 3) per line.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    A PolyData holding no line element falls back to its raw connectivity,</span>
+<span class="sd">    which is what keeps a tractogram saved as ``.vtp`` readable: the polyxios</span>
+<span class="sd">    VTP writer files every element under ``Polys``.</span>
+
+<span class="sd">    """</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">vertices</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">lines</span>
+    <span class="k">if</span> <span class="n">indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">offsets</span> <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">offsets</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">polydata</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">:</span> <span class="n">offsets</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">polydata</span><span class="o">.</span><span class="n">element_types</span><span class="p">))</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">vertices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="save_vtk_streamlines">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.streamline.save_vtk_streamlines">[docs]</a>
+<span class="nd">@warning_for_keywords</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_vtk_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">to_lps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Save streamlines as polydata to a supported format file.</span>
+
+<span class="sd">    File formats can be VTK, VTP and FIB.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    streamlines : list</span>
+<span class="sd">        list of 2D arrays or ArraySequence</span>
+<span class="sd">    filename : string or Path</span>
+<span class="sd">        output filename (.vtk, .vtp or .fib)</span>
+<span class="sd">    to_lps : bool</span>
+<span class="sd">        Default to True, will follow the vtk file convention for streamlines</span>
+<span class="sd">        Will be supported by MITKDiffusion and MI-Brain</span>
+<span class="sd">    binary : bool</span>
+<span class="sd">        save the file as binary</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">to_lps</span><span class="p">:</span>
+        <span class="n">to_lps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">to_lps</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">to_lps</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">streamlines</span> <span class="o">=</span> <span class="n">transform_streamlines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">to_lps</span><span class="p">)</span>
+
+    <span class="n">fmt</span> <span class="o">=</span> <span class="n">_polyxios_format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"binary"</span><span class="p">:</span> <span class="n">binary</span><span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">fmt</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="o">==</span> <span class="s2">".vtk"</span><span class="p">:</span>
+        <span class="n">opts</span><span class="p">[</span><span class="s2">"vtk_version"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"4.2"</span>
+
+    <span class="n">px</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">convert_to_polydata_lines</span><span class="p">(</span><span class="n">streamlines</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="load_vtk_streamlines">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.streamline.load_vtk_streamlines">[docs]</a>
+<span class="nd">@warning_for_keywords</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_vtk_streamlines</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">to_lps</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Load streamlines from polydata.</span>
+
+<span class="sd">    Load formats can be VTK, VTP and FIB.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : string or Path</span>
+<span class="sd">        input filename (.vtk, .vtp or .fib)</span>
+<span class="sd">    to_lps : bool</span>
+<span class="sd">        Default to True, will follow the vtk file convention for streamlines</span>
+<span class="sd">        Will be supported by MITK-Diffusion and MI-Brain</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    output :  list</span>
+<span class="sd">         list of 2D arrays</span>
+
+<span class="sd">    """</span>
+    <span class="n">polydata</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">fmt</span><span class="o">=</span><span class="n">_polyxios_format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">get_polydata_lines</span><span class="p">(</span><span class="n">polydata</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">to_lps</span><span class="p">:</span>
+        <span class="n">to_lps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">to_lps</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">to_lps</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">transform_streamlines</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">to_lps</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lines</span></div>
+
 
 
 <div class="viewcode-block" id="save_tractogram">
