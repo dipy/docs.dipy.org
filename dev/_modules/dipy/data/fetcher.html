@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.data.fetcher &#8212; dipy 1.13.0.dev0+git20260908.8d038af documentation</title>
+    <title>dipy.data.fetcher &#8212; dipy 1.13.0.dev0+git20260908.52d6c76 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=bf4e1342"></script>
+    <script src="../../../_static/documentation_options.js?v=4ad4cae9"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1404,8 +1404,8 @@ document.write(`
 <span class="sd">        A message to print to screen when fetching takes place. Default (None)</span>
 <span class="sd">        is to print nothing</span>
 <span class="sd">    unzip : bool, optional</span>
-<span class="sd">        Whether to unzip the file(s) after downloading them. Supports zip, gz,</span>
-<span class="sd">        and tar.gz files.</span>
+<span class="sd">        Whether to unzip the file(s) after downloading them. Supports zip,</span>
+<span class="sd">        tar.gz, and tar.bz2 files.</span>
 <span class="sd">    use_headers : bool, optional</span>
 <span class="sd">        Whether to use headers when downloading files.</span>
 
@@ -1436,16 +1436,14 @@ document.write(`
                 <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">suffix</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">".gz"</span><span class="p">,</span> <span class="s2">".bz2"</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">".tar"</span><span class="p">:</span>
-                        <span class="n">ar</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">f</span><span class="p">)</span>
-                        <span class="n">ar</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">folder</span><span class="p">)</span>
-                        <span class="n">ar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                        <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">f</span><span class="p">)</span> <span class="k">as</span> <span class="n">ar</span><span class="p">:</span>
+                            <span class="n">ar</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">folder</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="s2">"data"</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"File extension is not recognized"</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">p</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">".zip"</span><span class="p">:</span>
-                    <span class="n">z</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">f</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
-                    <span class="n">files</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">namelist</span><span class="p">()),)</span>
-                    <span class="n">z</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
-                    <span class="n">z</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">f</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">z</span><span class="p">:</span>
+                        <span class="n">files</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">namelist</span><span class="p">()),)</span>
+                        <span class="n">z</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"File extension is not recognized"</span><span class="p">)</span>
 
