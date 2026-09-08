@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API changes &#8212; dipy 1.13.0.dev0+git20260906.abebb59 documentation</title>
+    <title>API changes &#8212; dipy 1.13.0.dev0+git20260908.d3f8cd3 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="_static/documentation_options.js?v=7cda4fb0"></script>
+    <script src="_static/documentation_options.js?v=597e4fba"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/sg-tags.js?v=d80f6fa4"></script>
@@ -894,6 +894,51 @@ document.write(`
 <h1>API changes<a class="headerlink" href="#api-changes" title="Link to this heading">#</a></h1>
 <p>Here we provide information about functions or classes that have been removed,
 renamed or are deprecated (not recommended) during different release circles.</p>
+<section id="dipy-1-13-0-changes">
+<h2>DIPY 1.13.0 changes<a class="headerlink" href="#dipy-1-13-0-changes" title="Link to this heading">#</a></h2>
+<p><strong>General</strong></p>
+<ul>
+<li><p>Every parameter carrying a default value is now keyword-only (PEP 3102), and a
+pre-commit hook (<code class="docutils literal notranslate"><span class="pre">tools/check_pep3102.py</span></code>) keeps it that way. Calls that passed
+such an argument positionally keep working and warn until 2.0.0; pass the argument
+by name to silence the warning. <code class="docutils literal notranslate"><span class="pre">dipy/workflows/</span></code> is exempt: its <code class="docutils literal notranslate"><span class="pre">run</span></code>
+parameters are turned into a CLI by <code class="docutils literal notranslate"><span class="pre">IntrospectiveArgumentParser</span></code>, which needs
+them positional-or-keyword.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">warning_for_keywords</span></code> now lives in <code class="docutils literal notranslate"><span class="pre">dipy.utils.deprecator</span></code> rather than
+<code class="docutils literal notranslate"><span class="pre">dipy.testing.decorators</span></code>, so library code no longer imports from a testing
+module. <code class="docutils literal notranslate"><span class="pre">dipy.testing.decorators.warning_for_keywords</span></code> still resolves, but
+using it raises a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> and it is removed in 2.0.0:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>  <span class="c1"># deprecated</span>
+</pre></div>
+</div>
+<p>becomes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p><strong>Reconstruction</strong></p>
+<ul>
+<li><p>Models whose options moved after <code class="docutils literal notranslate"><span class="pre">*args</span></code> in 1.12.0 now report the old positional
+spelling instead of silently ignoring it. <code class="docutils literal notranslate"><span class="pre">TensorModel(gtab,</span> <span class="pre">&quot;OLS&quot;)</span></code> has selected
+no fit method since 1.12.0 – <code class="docutils literal notranslate"><span class="pre">&quot;OLS&quot;</span></code> lands in <code class="docutils literal notranslate"><span class="pre">*args</span></code> and <code class="docutils literal notranslate"><span class="pre">fit_method</span></code> keeps
+its default – and <code class="docutils literal notranslate"><span class="pre">*args</span></code> makes the two spellings impossible to tell apart, so
+the call cannot be repaired automatically. Pass the option by name:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TensorModel</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">fit_method</span><span class="o">=</span><span class="s2">"OLS"</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This covers <code class="docutils literal notranslate"><span class="pre">TensorModel</span></code>, <code class="docutils literal notranslate"><span class="pre">FreeWaterTensorModel</span></code>, <code class="docutils literal notranslate"><span class="pre">DiffusionKurtosisModel</span></code>,
+<code class="docutils literal notranslate"><span class="pre">KurtosisMicrostructureModel</span></code>, <code class="docutils literal notranslate"><span class="pre">CorrelationTensorModel</span></code>,
+<code class="docutils literal notranslate"><span class="pre">MeanDiffusionKurtosisModel</span></code> and the fit methods wrapped by <code class="docutils literal notranslate"><span class="pre">iter_fit_tensor</span></code>.</p>
+</li>
+</ul>
+<p><strong>Core</strong></p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">use_logging</span></code> parameter of <code class="docutils literal notranslate"><span class="pre">dipy.core.gradients.GradientTable.info</span></code> was
+removed. <code class="docutils literal notranslate"><span class="pre">info</span></code> is a property, so the parameter was never reachable and the
+summary was always printed to stdout; the behaviour is unchanged.</p></li>
+</ul>
+</section>
 <section id="dipy-1-12-0-changes">
 <h2>DIPY 1.12.0 changes<a class="headerlink" href="#dipy-1-12-0-changes" title="Link to this heading">#</a></h2>
 <p><strong>General</strong></p>
@@ -1460,6 +1505,7 @@ transform instead of a voxel sizes array. Please update all code using
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy-1-13-0-changes">DIPY 1.13.0 changes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy-1-12-0-changes">DIPY 1.12.0 changes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy-1-10-0-changes">DIPY 1.10.0 changes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy-1-9-0-changes">DIPY 1.9.0 changes</a></li>

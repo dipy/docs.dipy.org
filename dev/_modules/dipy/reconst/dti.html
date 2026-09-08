@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.dti &#8212; dipy 1.13.0.dev0+git20260906.abebb59 documentation</title>
+    <title>dipy.reconst.dti &#8212; dipy 1.13.0.dev0+git20260908.d3f8cd3 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=7cda4fb0"></script>
+    <script src="../../../_static/documentation_options.js?v=597e4fba"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -904,7 +904,7 @@ document.write(`
     <span class="n">weights_method_nlls_m_est</span><span class="p">,</span>
     <span class="n">weights_method_wls_m_est</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.testing.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.parallel</span><span class="w"> </span><span class="kn">import</span> <span class="n">paramap</span>
 
 <span class="n">MIN_POSITIVE_SIGNAL</span> <span class="o">=</span> <span class="mf">0.0001</span>
@@ -1636,6 +1636,7 @@ document.write(`
 <span class="k">class</span><span class="w"> </span><span class="nc">TensorModel</span><span class="p">(</span><span class="n">ReconstModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Diffusion Tensor"""</span>
 
+    <span class="nd">@warning_for_keywords</span><span class="p">(</span><span class="n">from_version</span><span class="o">=</span><span class="s2">"1.12.0"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">fit_method</span><span class="o">=</span><span class="s2">"WLS"</span><span class="p">,</span> <span class="n">return_S0_hat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""A Diffusion Tensor Model.</span>
 
@@ -2289,6 +2290,9 @@ document.write(`
 <span class="sd">        """</span>
 
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fit_tensor</span><span class="p">)</span>
+        <span class="c1"># Innermost: functools.wraps swaps in fit_tensor's signature, which has</span>
+        <span class="c1"># no keyword-only parameter, making the decorator above it a no-op.</span>
+        <span class="nd">@warning_for_keywords</span><span class="p">(</span><span class="n">from_version</span><span class="o">=</span><span class="s2">"1.12.0"</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">wrapped_fit_tensor</span><span class="p">(</span>
             <span class="n">design_matrix</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">return_S0_hat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">):</span>
@@ -2627,7 +2631,8 @@ document.write(`
 <span class="k">class</span><span class="w"> </span><span class="nc">_NllsHelper</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">"""Class with member functions to return nlls error and derivative."""</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">err_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">design_matrix</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># scipy.optimize.leastsq calls this with args=(design_matrix, data, weights)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">err_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">design_matrix</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pep3102: ignore</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">"""</span>
 <span class="sd">        Error function for the non-linear least-squares fit of the tensor.</span>
 
@@ -2670,7 +2675,10 @@ document.write(`
                     <span class="bp">self</span><span class="o">.</span><span class="n">sqrt_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrt_w</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
                 <span class="k">return</span> <span class="n">ans</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">jacobian_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">design_matrix</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># scipy.optimize.leastsq calls this with args=(design_matrix, data, weights)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">jacobian_func</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">design_matrix</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>  <span class="c1"># pep3102: ignore</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">"""The Jacobian is the first derivative of the error function.</span>
 
 <span class="sd">        Parameters</span>

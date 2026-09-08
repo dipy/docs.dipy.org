@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.sims.force &#8212; dipy 1.13.0.dev0+git20260906.abebb59 documentation</title>
+    <title>dipy.sims.force &#8212; dipy 1.13.0.dev0+git20260908.d3f8cd3 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=7cda4fb0"></script>
+    <script src="../../../_static/documentation_options.js?v=597e4fba"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -917,6 +917,7 @@ document.write(`
     <span class="n">DEFAULT_TWO_FIBER_MIN_ANGLE</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.sims.voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">all_tensor_evecs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.multiproc</span><span class="w"> </span><span class="kn">import</span> <span class="n">determine_num_processes</span>
 
@@ -930,7 +931,8 @@ document.write(`
 
 <div class="viewcode-block" id="resolve_num_odi_values">
 <a class="viewcode-back" href="../../../reference/dipy.sims.html#dipy.sims.force.resolve_num_odi_values">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">resolve_num_odi_values</span><span class="p">(</span><span class="n">odi_range</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="nd">@warning_for_keywords</span><span class="p">(</span><span class="n">from_version</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_num_odi_values</span><span class="p">(</span><span class="n">odi_range</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Resolve the number of ODI grid points, autoscaling when unset.</span>
 
 <span class="sd">    Parameters</span>
@@ -1042,13 +1044,15 @@ document.write(`
 
 <div class="viewcode-block" id="init_worker">
 <a class="viewcode-back" href="../../../reference/dipy.sims.html#dipy.sims.force.init_worker">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">init_worker</span><span class="p">(</span><span class="n">base_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="nd">@warning_for_keywords</span><span class="p">(</span><span class="n">from_version</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_worker</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">base_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Initialize a ProcessPoolExecutor worker with a unique RNG state.</span>
 
 <span class="sd">    With ``base_seed=None``, seed = PID + high-resolution time so every</span>
-<span class="sd">    worker has a different stream. With ``initargs=(base_seed,)`` for</span>
-<span class="sd">    reproducibility, seed = base_seed + PID so workers differ but the run</span>
-<span class="sd">    is reproducible for a fixed worker count.</span>
+<span class="sd">    worker has a different stream. With an explicit ``base_seed`` -- passed</span>
+<span class="sd">    through ``initializer=partial(init_worker, base_seed=...)``, since the</span>
+<span class="sd">    parameter is keyword-only -- seed = base_seed + PID, so workers differ</span>
+<span class="sd">    but the run is reproducible for a fixed worker count.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1443,7 +1447,7 @@ document.write(`
         <span class="p">[</span><span class="n">all_tensor_evecs</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">point</span><span class="p">))</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">target_sphere</span><span class="p">],</span>
         <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">num_odi_values</span> <span class="o">=</span> <span class="n">resolve_num_odi_values</span><span class="p">(</span><span class="n">odi_range</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="p">)</span>
+    <span class="n">num_odi_values</span> <span class="o">=</span> <span class="n">resolve_num_odi_values</span><span class="p">(</span><span class="n">odi_range</span><span class="p">,</span> <span class="n">num_odi_values</span><span class="o">=</span><span class="n">num_odi_values</span><span class="p">)</span>
     <span class="n">odi_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">odi_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">odi_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num_odi_values</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
     <span class="p">)</span>

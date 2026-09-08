@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.multi_voxel &#8212; dipy 1.13.0.dev0+git20260906.abebb59 documentation</title>
+    <title>dipy.reconst.multi_voxel &#8212; dipy 1.13.0.dev0+git20260908.d3f8cd3 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=7cda4fb0"></script>
+    <script src="../../../_static/documentation_options.js?v=597e4fba"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -905,13 +905,30 @@ document.write(`
 <span class="sd">and :func:`dipy.utils.parallel.paramap`.</span>
 <span class="sd">"""</span>
 
+<span class="n">_PARAMAP_KWARGS</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+    <span class="n">name</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ORCHESTRATION_KWARGS</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">paramap</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+<span class="p">)</span>
+<span class="sd">"""</span>
+<span class="sd">The subset of :data:`ORCHESTRATION_KWARGS` that :func:`dipy.utils.parallel.paramap`</span>
+<span class="sd">actually declares, resolved once at import. Private: ``doc/tools/apigen.py``</span>
+<span class="sd">documents any public module-level name bound to a call as a function, and then</span>
+<span class="sd">Sphinx fails the build asking a tuple for its signature.</span>
+
+<span class="sd">``vox_per_chunk`` is *not* one of them: ``multi_voxel_fit`` consumes it itself to</span>
+<span class="sd">size the chunks it hands to ``paramap``. Forwarding it anyway would land it in</span>
+<span class="sd">``paramap``'s ``**kwargs``, which the joblib and dask engines pass verbatim to</span>
+<span class="sd">``joblib.Parallel`` and ``dask.compute`` -- both of which reject it.</span>
+<span class="sd">"""</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_accepts_kwarg</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Return True iff ``func`` declares ``name`` as an explicit parameter.</span>
 
 <span class="sd">    A parameter absorbed only by ``**kwargs`` does not count, so a reserved</span>
 <span class="sd">    orchestration key is forwarded solely to fits that name it explicitly</span>
-<span class="sd">    (e.g. ``MCSD.fit(self, data, verbose=True, **kwargs)``).</span>
+<span class="sd">    (e.g. ``MCSD.fit(self, data, *, verbose=True, **kwargs)``).</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">param</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -1025,7 +1042,7 @@ document.write(`
 
 <div class="viewcode-block" id="multi_voxel_fit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.csdeconv.multi_voxel_fit">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">multi_voxel_fit</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">multi_voxel_fit</span><span class="p">(</span>  <span class="c1"># pep3102: ignore</span>
     <span class="n">_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">batched</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1255,16 +1272,9 @@ document.write(`
                             <span class="n">kw</span><span class="p">[</span><span class="s2">"weights"</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights_to_fit</span><span class="p">[</span><span class="n">ii</span> <span class="p">:</span> <span class="n">ii</span> <span class="o">+</span> <span class="n">vox_per_chunk</span><span class="p">]</span>
                         <span class="n">kwargs_chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kw</span><span class="p">)</span>
 
-                    <span class="n">parallel_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-                    <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="p">[</span>
-                        <span class="s2">"n_jobs"</span><span class="p">,</span>
-                        <span class="s2">"vox_per_chunk"</span><span class="p">,</span>
-                        <span class="s2">"engine"</span><span class="p">,</span>
-                        <span class="s2">"verbose"</span><span class="p">,</span>
-                        <span class="s2">"inflight_cap"</span><span class="p">,</span>
-                    <span class="p">]:</span>
-                        <span class="k">if</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                            <span class="n">parallel_kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span>
+                    <span class="n">parallel_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="n">kk</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">_PARAMAP_KWARGS</span> <span class="k">if</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">kwargs</span>
+                    <span class="p">}</span>
                     <span class="k">if</span> <span class="n">shared_objects</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">parallel_kwargs</span><span class="p">[</span><span class="s2">"shared_objects"</span><span class="p">]</span> <span class="o">=</span> <span class="n">shared_objects</span>
 
