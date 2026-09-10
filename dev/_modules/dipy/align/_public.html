@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align._public &#8212; dipy 1.13.0.dev0+git20260910.589caf6 documentation</title>
+    <title>dipy.align._public &#8212; dipy 1.13.0.dev0+git20260910.27abe12 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=b95cbc39"></script>
+    <script src="../../../_static/documentation_options.js?v=892b2eec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -909,7 +909,7 @@ document.write(`
     <span class="n">transform_centers_of_mass</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.imwarp</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffeomorphicMap</span><span class="p">,</span> <span class="n">SymmetricDiffeomorphicRegistration</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CCMetric</span><span class="p">,</span> <span class="n">EMMetric</span><span class="p">,</span> <span class="n">SSDMetric</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CCMetric</span><span class="p">,</span> <span class="n">EMMetric</span><span class="p">,</span> <span class="n">MIMetric</span><span class="p">,</span> <span class="n">SSDMetric</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamlinear</span><span class="w"> </span><span class="kn">import</span> <span class="n">StreamlineLinearRegistration</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AffineTransform3D</span><span class="p">,</span>
@@ -948,7 +948,7 @@ document.write(`
 <span class="p">]</span>
 
 <span class="c1"># Global dicts for choosing metrics for registration:</span>
-<span class="n">syn_metric_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"CC"</span><span class="p">:</span> <span class="n">CCMetric</span><span class="p">,</span> <span class="s2">"EM"</span><span class="p">:</span> <span class="n">EMMetric</span><span class="p">,</span> <span class="s2">"SSD"</span><span class="p">:</span> <span class="n">SSDMetric</span><span class="p">}</span>
+<span class="n">syn_metric_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"CC"</span><span class="p">:</span> <span class="n">CCMetric</span><span class="p">,</span> <span class="s2">"EM"</span><span class="p">:</span> <span class="n">EMMetric</span><span class="p">,</span> <span class="s2">"MI"</span><span class="p">:</span> <span class="n">MIMetric</span><span class="p">,</span> <span class="s2">"SSD"</span><span class="p">:</span> <span class="n">SSDMetric</span><span class="p">}</span>
 
 <span class="n">affine_metric_dict</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"CC"</span><span class="p">:</span> <span class="n">CrossCorrelationMetric</span><span class="p">,</span>
@@ -1012,7 +1012,7 @@ document.write(`
 <span class="sd">        that is stored in the `data` input. Default: use the affine stored</span>
 <span class="sd">        in `data`.</span>
 <span class="sd">    metric : string, optional</span>
-<span class="sd">        The metric to be optimized. One of `CC`, `EM`, `SSD`,</span>
+<span class="sd">        The metric to be optimized. One of `CC`, `EM`, `MI`, `SSD`</span>
 <span class="sd">        Default: 'CC' =&gt; CCMetric.</span>
 <span class="sd">    dim: int (either 2 or 3), optional</span>
 <span class="sd">       The dimensions of the image domain. Default: 3</span>
@@ -1611,6 +1611,8 @@ document.write(`
     <span class="n">static_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">level_iters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">optimizer_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">"MI"</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Register a series to a reference image.</span>
 
@@ -1646,6 +1648,13 @@ document.write(`
 <span class="sd">    optimizer_options : dict, optional</span>
 <span class="sd">        Options to be passed to the optimizer. See `scipy.optimize.minimize`</span>
 <span class="sd">        documentation for details.</span>
+
+<span class="sd">    metric : string, optional</span>
+<span class="sd">        The metric to be optimized. One of `CC`, `MI`.</span>
+
+<span class="sd">    metric_kwargs : dict, optional</span>
+<span class="sd">        Metric initialization arguments forwarded to ``affine_registration``:</span>
+<span class="sd">        ``nbins`` and ``sampling_proportion`` for MI, or ``radius`` for CC.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1691,6 +1700,8 @@ document.write(`
                 <span class="n">static_mask</span><span class="o">=</span><span class="n">static_mask</span><span class="p">,</span>
                 <span class="n">level_iters</span><span class="o">=</span><span class="n">level_iters</span><span class="p">,</span>
                 <span class="n">optimizer_options</span><span class="o">=</span><span class="n">optimizer_options</span><span class="p">,</span>
+                <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">xformed</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformed</span>
             <span class="n">affines</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg_affine</span>
@@ -1712,6 +1723,8 @@ document.write(`
     <span class="n">static_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">level_iters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">optimizer_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">"MI"</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Register a DWI series to the mean of the B0 images in that series.</span>
 
@@ -1742,7 +1755,8 @@ document.write(`
 
 <span class="sd">    static_mask : array, shape (S, R, C) or (R, C), optional</span>
 <span class="sd">        static image mask that defines which pixels in the static image</span>
-<span class="sd">        are used to calculate the mutual information.</span>
+<span class="sd">        are used to calculate the mutual information. Not supported when</span>
+<span class="sd">        ``metric="CC"``.</span>
 
 <span class="sd">    level_iters : list of int, optional</span>
 <span class="sd">        The number of iterations at each level of the Gaussian pyramid.</span>
@@ -1752,6 +1766,14 @@ document.write(`
 <span class="sd">    optimizer_options : dict, optional</span>
 <span class="sd">        Options to be passed to the optimizer. See `scipy.optimize.minimize`</span>
 <span class="sd">        documentation for details.</span>
+
+<span class="sd">    metric : string, optional</span>
+<span class="sd">        The metric to be optimized. One of `CC`, `MI`.</span>
+<span class="sd">        CC does not support ``static_mask``.</span>
+
+<span class="sd">    metric_kwargs : dict, optional</span>
+<span class="sd">        Metric initialization arguments forwarded to ``affine_registration``:</span>
+<span class="sd">        ``nbins`` and ``sampling_proportion`` for MI, or ``radius`` for CC.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1788,6 +1810,8 @@ document.write(`
             <span class="n">static_mask</span><span class="o">=</span><span class="n">static_mask</span><span class="p">,</span>
             <span class="n">level_iters</span><span class="o">=</span><span class="n">level_iters</span><span class="p">,</span>
             <span class="n">optimizer_options</span><span class="o">=</span><span class="n">optimizer_options</span><span class="p">,</span>
+            <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">ref_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">trans_b0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1807,6 +1831,8 @@ document.write(`
         <span class="n">static_mask</span><span class="o">=</span><span class="n">static_mask</span><span class="p">,</span>
         <span class="n">level_iters</span><span class="o">=</span><span class="n">level_iters</span><span class="p">,</span>
         <span class="n">optimizer_options</span><span class="o">=</span><span class="n">optimizer_options</span><span class="p">,</span>
+        <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># Cut out the part pertaining to that first volume:</span>
     <span class="n">affines</span> <span class="o">=</span> <span class="n">affines</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>

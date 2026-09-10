@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.align &#8212; dipy 1.13.0.dev0+git20260910.589caf6 documentation</title>
+    <title>dipy.workflows.align &#8212; dipy 1.13.0.dev0+git20260910.27abe12 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=b95cbc39"></script>
+    <script src="../../../_static/documentation_options.js?v=892b2eec"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -892,7 +892,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align</span><span class="w"> </span><span class="kn">import</span> <span class="n">affine_registration</span><span class="p">,</span> <span class="n">motion_correction</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.imaffine</span><span class="w"> </span><span class="kn">import</span> <span class="n">AffineMap</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.imwarp</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffeomorphicMap</span><span class="p">,</span> <span class="n">SymmetricDiffeomorphicRegistration</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CCMetric</span><span class="p">,</span> <span class="n">EMMetric</span><span class="p">,</span> <span class="n">SSDMetric</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CCMetric</span><span class="p">,</span> <span class="n">EMMetric</span><span class="p">,</span> <span class="n">MIMetric</span><span class="p">,</span> <span class="n">SSDMetric</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.reslice</span><span class="w"> </span><span class="kn">import</span> <span class="n">reslice</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamlinear</span><span class="w"> </span><span class="kn">import</span> <span class="n">slr_with_qbx</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamwarp</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundlewarp</span>
@@ -1362,9 +1362,10 @@ document.write(`
 <span class="sd">        nbins : int, optional</span>
 <span class="sd">            Number of bins to discretize the joint and marginal PDF</span>
 <span class="sd">            for the mutual information metric.</span>
-<span class="sd">        sampling_prop : int, optional</span>
-<span class="sd">            Number ([0-100]) of voxels for calculating the PDF for the</span>
-<span class="sd">            mutual information metric. None implies all voxels.</span>
+<span class="sd">        sampling_prop : float, optional</span>
+<span class="sd">            Proportion of voxels used to calculate the PDF for the mutual</span>
+<span class="sd">            information metric. Must be in the interval (0, 1]. None uses all</span>
+<span class="sd">            voxels.</span>
 <span class="sd">        metric : string, optional</span>
 <span class="sd">            Similarity metric. Supported values are ``'mi'`` for mutual</span>
 <span class="sd">            information and ``'cc'`` for local cross-correlation.</span>
@@ -1675,6 +1676,7 @@ document.write(`
         <span class="n">mopt_q_levels</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
         <span class="n">mopt_double_gradient</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">mopt_step_type</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+        <span class="n">mopt_nbins</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
         <span class="n">step_length</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
         <span class="n">ss_sigma_factor</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
         <span class="n">opt_tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
@@ -1701,7 +1703,7 @@ document.write(`
 <span class="sd">        metric : string, optional</span>
 <span class="sd">            The metric to be used.</span>
 <span class="sd">            metric available: cc (Cross Correlation), ssd (Sum Squared</span>
-<span class="sd">            Difference), em (Expectation-Maximization).</span>
+<span class="sd">            Difference), em (Expectation-Maximization), mi (Mutual Information).</span>
 <span class="sd">        mopt_sigma_diff : float, optional</span>
 <span class="sd">            Metric option applied on Cross correlation (CC).</span>
 <span class="sd">            The standard deviation of the Gaussian smoothing kernel to be</span>
@@ -1711,10 +1713,11 @@ document.write(`
 <span class="sd">            the radius of the squared (cubic) neighborhood at each voxel to</span>
 <span class="sd">            be considered to compute the cross correlation.</span>
 <span class="sd">        mopt_smooth : float, optional</span>
-<span class="sd">            Metric option applied on Sum Squared Difference (SSD) and</span>
-<span class="sd">            Expectation Maximization (EM). Smoothness parameter, the</span>
-<span class="sd">            larger the value the smoother the deformation field.</span>
-<span class="sd">            (default 1.0 for EM, 4.0 for SSD)</span>
+<span class="sd">            Smoothness parameter for Sum Squared Difference (SSD),</span>
+<span class="sd">            Expectation Maximization (EM), and Mutual Information (MI).</span>
+<span class="sd">            Controls deformation-field smoothness for SSD and EM, and the</span>
+<span class="sd">            Gaussian standard deviation for update-field smoothing for MI.</span>
+<span class="sd">            Larger values produce smoother fields.</span>
 <span class="sd">        mopt_inner_iter : int, optional</span>
 <span class="sd">            Metric option applied on Sum Squared Difference (SSD) and</span>
 <span class="sd">            Expectation Maximization (EM). This is number of iterations to be</span>
@@ -1738,6 +1741,8 @@ document.write(`
 <span class="sd">            (not used if Demons Step is selected). Possible value:</span>
 <span class="sd">            ('gauss_newton', 'demons'). default: 'gauss_newton' for EM,</span>
 <span class="sd">            'demons' for SSD.</span>
+<span class="sd">        mopt_nbins : int, optional</span>
+<span class="sd">            Number of histogram bins for Mutual Information (MI).</span>
 <span class="sd">        step_length : float, optional</span>
 <span class="sd">            the length of the maximum displacement vector of the update</span>
 <span class="sd">            displacement field at each iteration.</span>
@@ -1767,10 +1772,10 @@ document.write(`
 <span class="sd">        """</span>
         <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
         <span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"ssd"</span><span class="p">,</span> <span class="s2">"cc"</span><span class="p">,</span> <span class="s2">"em"</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"ssd"</span><span class="p">,</span> <span class="s2">"cc"</span><span class="p">,</span> <span class="s2">"em"</span><span class="p">,</span> <span class="s2">"mi"</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">"Invalid similarity metric: Please"</span>
-                <span class="s2">" provide a valid metric like 'ssd', 'cc', 'em'"</span>
+                <span class="s2">" provide a valid metric like 'ssd', 'cc', 'em', 'mi'"</span>
             <span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Starting Diffeomorphic Registration"</span><span class="p">)</span>
@@ -1788,6 +1793,7 @@ document.write(`
                 <span class="s2">"mopt_inner_iter"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
                 <span class="s2">"mopt_step_type"</span><span class="p">:</span> <span class="s2">"gauss_newton"</span><span class="p">,</span>
             <span class="p">},</span>
+            <span class="s2">"mi"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"mopt_smooth"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
         <span class="p">}</span>
 
         <span class="n">mopt_smooth</span> <span class="o">=</span> <span class="p">(</span>
@@ -1797,15 +1803,15 @@ document.write(`
         <span class="p">)</span>
         <span class="n">mopt_inner_iter</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">mopt_inner_iter</span>
-            <span class="k">if</span> <span class="n">mopt_inner_iter</span> <span class="ow">or</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"cc"</span>
+            <span class="k">if</span> <span class="n">mopt_inner_iter</span> <span class="ow">or</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"cc"</span><span class="p">,</span> <span class="s2">"mi"</span><span class="p">]</span>
             <span class="k">else</span> <span class="n">init_param</span><span class="p">[</span><span class="n">metric</span><span class="p">][</span><span class="s2">"mopt_inner_iter"</span><span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="c1"># If using the 'cc' metric, force the `mopt_step_type` parameter to an</span>
-        <span class="c1"># empty value since the 'cc' metric does not use it; for the rest of</span>
-        <span class="c1"># the metrics, the `step_type` parameter will be initialized to their</span>
-        <span class="c1"># corresponding default values in `init_param`.</span>
-        <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"cc"</span><span class="p">:</span>
+        <span class="c1"># If using the 'cc' or 'mi' metric, force the `mopt_step_type`</span>
+        <span class="c1"># parameter to an empty value since neither metric uses it; for the</span>
+        <span class="c1"># rest of the metrics, `step_type` will be initialized to its</span>
+        <span class="c1"># corresponding default value in `init_param`.</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"cc"</span><span class="p">,</span> <span class="s2">"mi"</span><span class="p">]:</span>
             <span class="n">mopt_step_type</span> <span class="o">=</span> <span class="s2">""</span>
 
         <span class="k">for</span> <span class="p">(</span>
@@ -1853,6 +1859,7 @@ document.write(`
                     <span class="n">q_levels</span><span class="o">=</span><span class="n">mopt_q_levels</span><span class="p">,</span>
                     <span class="n">double_gradient</span><span class="o">=</span><span class="n">mopt_double_gradient</span><span class="p">,</span>
                 <span class="p">),</span>
+                <span class="s2">"mi"</span><span class="p">:</span> <span class="n">MIMetric</span><span class="p">(</span><span class="n">static_image</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="n">mopt_nbins</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="n">mopt_smooth</span><span class="p">),</span>
             <span class="p">}</span>
 
             <span class="n">current_metric</span> <span class="o">=</span> <span class="n">l_metric</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
@@ -1911,6 +1918,10 @@ document.write(`
         <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
         <span class="n">bvecs_tol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
         <span class="n">level_iters</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+        <span class="n">metric</span><span class="o">=</span><span class="s2">"mi"</span><span class="p">,</span>
+        <span class="n">nbins</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">sampling_prop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">radius</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_moved</span><span class="o">=</span><span class="s2">"moved.nii.gz"</span><span class="p">,</span>
         <span class="n">out_affine</span><span class="o">=</span><span class="s2">"affine.txt"</span><span class="p">,</span>
@@ -1934,6 +1945,18 @@ document.write(`
 <span class="sd">            b-vectors are unit vectors</span>
 <span class="sd">        level_iters : variable int, optional</span>
 <span class="sd">            The number of iterations at each level of the Gaussian pyramid.</span>
+<span class="sd">        metric : string, optional</span>
+<span class="sd">            Similarity metric. Supported values are ``'mi'`` for mutual</span>
+<span class="sd">            information and ``'cc'`` for local cross-correlation.</span>
+<span class="sd">        nbins : int, optional</span>
+<span class="sd">            Number of bins to discretize the joint and marginal PDF</span>
+<span class="sd">            for the mutual information metric.</span>
+<span class="sd">        sampling_prop : float, optional</span>
+<span class="sd">            Proportion of voxels used to calculate the PDF for the mutual</span>
+<span class="sd">            information metric. Must be in the interval (0, 1]. None uses all</span>
+<span class="sd">            voxels.</span>
+<span class="sd">        radius : int, optional</span>
+<span class="sd">            Neighborhood radius for local cross-correlation.</span>
 <span class="sd">        out_dir : string or Path, optional</span>
 <span class="sd">            Directory to save the transformed image and the affine matrix.</span>
 <span class="sd">        out_moved : string, optional</span>
@@ -1949,6 +1972,14 @@ document.write(`
                 <span class="s2">"setting level_iters=[10000, 1000, 100]."</span>
             <span class="p">)</span>
 
+        <span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"MI"</span><span class="p">,</span> <span class="s2">"CC"</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported affine metric </span><span class="si">{</span><span class="n">metric</span><span class="si">!r}</span><span class="s2">. Use MI or CC."</span><span class="p">)</span>
+        <span class="n">metric_kwargs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">{</span><span class="s2">"nbins"</span><span class="p">:</span> <span class="n">nbins</span><span class="p">,</span> <span class="s2">"sampling_proportion"</span><span class="p">:</span> <span class="n">sampling_prop</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"MI"</span>
+            <span class="k">else</span> <span class="p">{</span><span class="s2">"radius"</span><span class="p">:</span> <span class="n">radius</span><span class="p">}</span>
+        <span class="p">)</span>
         <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">dwi</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">,</span> <span class="n">omoved</span><span class="p">,</span> <span class="n">oafffine</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
@@ -1972,7 +2003,12 @@ document.write(`
             <span class="p">)</span>
 
             <span class="n">reg_img</span><span class="p">,</span> <span class="n">reg_affines</span> <span class="o">=</span> <span class="n">motion_correction</span><span class="p">(</span>
-                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="o">=</span><span class="n">gtab</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span> <span class="n">level_iters</span><span class="o">=</span><span class="n">level_iters</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">gtab</span><span class="o">=</span><span class="n">gtab</span><span class="p">,</span>
+                <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span>
+                <span class="n">level_iters</span><span class="o">=</span><span class="n">level_iters</span><span class="p">,</span>
+                <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="c1"># Saving the corrected image file</span>
