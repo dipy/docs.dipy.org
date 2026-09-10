@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.horizon.tab.cluster &#8212; dipy 1.13.0.dev0+git20260908.52d6c76 documentation</title>
+    <title>dipy.viz.skyline.render.surface &#8212; dipy 1.13.0.dev0+git20260910.8849796 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=4ad4cae9"></script>
+    <script src="../../../../../_static/documentation_options.js?v=3a10f1ea"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -56,7 +56,7 @@
                 gtag('js', new Date());
                 gtag('config', 'G-D610GKJZRC');
             </script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/viz/horizon/tab/cluster';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/viz/skyline/render/surface';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
@@ -865,7 +865,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">dipy.viz.hor...</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.viz.sky...</li>
   </ul>
 </nav>
 </div>
@@ -882,219 +882,262 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for dipy.viz.horizon.tab.cluster</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+  <h1>Source code for dipy.viz.skyline.render.surface</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Mesh surfaces (FreeSurfer/GIFTI) with Phong or basic materials."""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.horizon.tab</span><span class="w"> </span><span class="kn">import</span> <span class="n">HorizonTab</span><span class="p">,</span> <span class="n">build_slider</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">color_picker</span><span class="p">,</span> <span class="n">colors_equal</span><span class="p">,</span> <span class="n">thin_slider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.renderer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualization</span>
+
+<span class="n">fury_trip_msg</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"Skyline requires Fury version 2.0.0 or higher."</span>
+    <span class="s2">" Please upgrade Fury by `pip install -U fury --pre` to use Skyline."</span>
+<span class="p">)</span>
+<span class="n">fury</span><span class="p">,</span> <span class="n">has_fury_v2</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
+    <span class="s2">"fury"</span><span class="p">,</span>
+    <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span>
+    <span class="n">trip_msg</span><span class="o">=</span><span class="n">fury_trip_msg</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="n">has_fury_v2</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">surface</span>
+
+<span class="n">imgui_bundle</span><span class="p">,</span> <span class="n">has_imgui</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
+    <span class="s2">"imgui_bundle"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"1.92.600"</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="s2">"1.92.801"</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="n">has_imgui</span><span class="p">:</span>
+    <span class="n">imgui</span> <span class="o">=</span> <span class="n">imgui_bundle</span><span class="o">.</span><span class="n">imgui</span>
 
 
-<div class="viewcode-block" id="ClustersTab">
-<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.horizon.tab.cluster.ClustersTab">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">ClustersTab</span><span class="p">(</span><span class="n">HorizonTab</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clusters_visualizer</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Initialize Interaction tab for cluster visualization.</span>
+<div class="viewcode-block" id="create_surface_visualization">
+<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.surface.create_surface_visualization">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_surface_visualization</span><span class="p">(</span>
+    <span class="nb">input</span><span class="p">,</span>
+    <span class="n">idx</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">opacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">texture</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">material</span><span class="o">=</span><span class="s2">"phong"</span><span class="p">,</span>
+    <span class="n">render_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Create surface visualization from input</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        clusters_visualizer : ClusterVisualizer</span>
-<span class="sd">        threshold : float</span>
-<span class="sd">        """</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input : tuple</span>
+<span class="sd">        Tuple of the (vertices, faces, filename) or (vertices, faces)</span>
+<span class="sd">    idx : int</span>
+<span class="sd">        Index of the surface for naming purposes if filename is not provided.</span>
+<span class="sd">    color : tuple, optional</span>
+<span class="sd">        Color of the surface rendering.</span>
+<span class="sd">    opacity : int, optional</span>
+<span class="sd">        Opacity of the surface rendering.</span>
+<span class="sd">    texture : ndarray, optional</span>
+<span class="sd">        Texture to use for surface.</span>
+<span class="sd">    material : str, optional</span>
+<span class="sd">        Material type for surface.</span>
+<span class="sd">    render_callback : callable, optional</span>
+<span class="sd">        Callback function to be called after rendering.</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span> <span class="o">=</span> <span class="n">clusters_visualizer</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">"Clusters"</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tab_id</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span><span class="o">.</span><span class="n">sizes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span> <span class="o">=</span> <span class="n">build_slider</span><span class="p">(</span>
-            <span class="n">initial_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
-            <span class="n">min_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">sizes</span><span class="p">),</span>
-            <span class="n">max_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="mi">98</span><span class="p">),</span>
-            <span class="n">text_template</span><span class="o">=</span><span class="s2">"</span><span class="si">{value:.0f}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="n">label</span><span class="o">=</span><span class="s2">"Size"</span><span class="p">,</span>
-            <span class="n">on_change</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_change_size</span><span class="p">,</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Surface</span>
+<span class="sd">        The created Surface object.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"Input must be a tuple containing (vertices, faces, filename) or "</span>
+            <span class="s2">"(vertices, faces) for surface visualization."</span>
         <span class="p">)</span>
 
-        <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span><span class="o">.</span><span class="n">lengths</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span> <span class="o">=</span> <span class="n">build_slider</span><span class="p">(</span>
-            <span class="n">initial_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
-            <span class="n">min_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">),</span>
-            <span class="n">max_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="mi">98</span><span class="p">),</span>
-            <span class="n">text_template</span><span class="o">=</span><span class="s2">"</span><span class="si">{value:.0f}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="n">label</span><span class="o">=</span><span class="s2">"Length"</span><span class="p">,</span>
-            <span class="n">on_change</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_change_length</span><span class="p">,</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span> <span class="o">=</span> <span class="nb">input</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Surface_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span>
+
+    <span class="k">return</span> <span class="n">Surface</span><span class="p">(</span>
+        <span class="n">filename</span><span class="p">,</span>
+        <span class="n">vertices</span><span class="p">,</span>
+        <span class="n">faces</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+        <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">,</span>
+        <span class="n">texture</span><span class="o">=</span><span class="n">texture</span><span class="p">,</span>
+        <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span>
+        <span class="n">render_callback</span><span class="o">=</span><span class="n">render_callback</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Surface">
+<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.surface.Surface">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Surface</span><span class="p">(</span><span class="n">Visualization</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Represent ``Surface`` in Skyline.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Display name used in the Skyline UI.</span>
+<span class="sd">    vertices : ndarray</span>
+<span class="sd">        Value for ``vertices``.</span>
+<span class="sd">    faces : ndarray</span>
+<span class="sd">        Value for ``faces``.</span>
+<span class="sd">    affine : ndarray, optional</span>
+<span class="sd">        Voxel-to-world affine used to position slices in world coordinates.</span>
+<span class="sd">    color : tuple(float, float, float), optional</span>
+<span class="sd">        Value for ``color``.</span>
+<span class="sd">    opacity : int, optional</span>
+<span class="sd">        Slice opacity in percent, expected in ``[0, 100]``.</span>
+<span class="sd">    texture : ndarray, optional</span>
+<span class="sd">        Value for ``texture``.</span>
+<span class="sd">    material : str, optional</span>
+<span class="sd">        Value for ``material``.</span>
+<span class="sd">    render_callback : callable, optional</span>
+<span class="sd">        Callback used to request a render/update.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">vertices</span><span class="p">,</span>
+        <span class="n">faces</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">affine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">opacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">texture</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">material</span><span class="o">=</span><span class="s2">"phong"</span><span class="p">,</span>
+        <span class="n">render_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Represent ``Surface`` in Skyline.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Display name used in the Skyline UI.</span>
+<span class="sd">        vertices : ndarray</span>
+<span class="sd">            Value for ``vertices``.</span>
+<span class="sd">        faces : ndarray</span>
+<span class="sd">            Value for ``faces``.</span>
+<span class="sd">        affine : ndarray, optional</span>
+<span class="sd">            Voxel-to-world affine used to position slices in world coordinates.</span>
+<span class="sd">        color : tuple(float, float, float), optional</span>
+<span class="sd">            Value for ``color``.</span>
+<span class="sd">        opacity : int, optional</span>
+<span class="sd">            Slice opacity in percent, expected in ``[0, 100]``.</span>
+<span class="sd">        texture : ndarray, optional</span>
+<span class="sd">            Value for ``texture``.</span>
+<span class="sd">        material : str, optional</span>
+<span class="sd">            Value for ``material``.</span>
+<span class="sd">        render_callback : callable, optional</span>
+<span class="sd">            Callback used to request a render/update.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span> <span class="o">=</span> <span class="n">vertices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">faces</span> <span class="o">=</span> <span class="n">faces</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_popup_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"surface_color_picker_popup##</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="n">opacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">texture</span> <span class="o">=</span> <span class="n">texture</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_surface_actor</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">render_callback</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_surface_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle  create surface actor for ``Surface``."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_actor</span> <span class="o">=</span> <span class="n">surface</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">faces</span><span class="p">,</span>
+            <span class="n">material</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="p">,</span>
+            <span class="n">colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">opacity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opacity</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">alpha_mode</span> <span class="o">=</span> <span class="s2">"blend"</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_surface_actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">depth_write</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_slider_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_slider</span> <span class="o">=</span> <span class="n">build_slider</span><span class="p">(</span>
-            <span class="n">initial_value</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
-            <span class="n">min_value</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-            <span class="n">max_value</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
-            <span class="n">text_template</span><span class="o">=</span><span class="s2">"</span><span class="si">{value:.0f}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="n">label</span><span class="o">=</span><span class="s2">"Threshold"</span><span class="p">,</span>
-            <span class="n">on_handle_released</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_change_threshold</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_register_elements</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider_label</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider_label</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_slider_label</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_slider</span><span class="p">,</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_change_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slider</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Change the length threshold for visibility.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opacity</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle  set opacity for ``Surface``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        slider : LineSlider2D</span>
-<span class="sd">            FURY object for slider.</span>
+<span class="sd">        opacity : int, optional</span>
+<span class="sd">            Slice opacity in percent, expected in ``[0, 100]``.</span>
 <span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">selected_value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">slider</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_clusters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="n">opacity</span> <span class="o">/</span> <span class="mf">100.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">depth_write</span> <span class="o">=</span> <span class="n">opacity</span> <span class="o">&gt;=</span> <span class="mi">100</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_change_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slider</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Change the size threshold for visibility.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        slider : LineSlider2D</span>
-<span class="sd">            FURY object for slider.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">selected_value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">slider</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_clusters</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_change_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_istyle</span><span class="p">,</span> <span class="n">_obj</span><span class="p">,</span> <span class="n">slider</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Re-cluster the tractograms according to the new threshold set. It</span>
-<span class="sd">        will also update the size and length slider for corresponding</span>
-<span class="sd">        threshold.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        _istyle : vtkInteractor</span>
-<span class="sd">            Should not be used.</span>
-<span class="sd">        _obj : vtkObject</span>
-<span class="sd">            Should not be used.</span>
-<span class="sd">        slider : LineSlider2D</span>
-<span class="sd">            FURY object for slider.</span>
-<span class="sd">        """</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">slider</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_slider</span><span class="o">.</span><span class="n">selected_value</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span><span class="o">.</span><span class="n">recluster_tractograms</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
-            <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span><span class="o">.</span><span class="n">sizes</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">selected_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
-
-            <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span><span class="o">.</span><span class="n">lengths</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">selected_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_update_clusters</span><span class="p">()</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">min_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">max_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="mi">98</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">selected_value</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">min_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">max_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="mi">98</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">selected_value</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_slider</span><span class="o">.</span><span class="n">selected_value</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_update_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Updates the clusters according to set size and length."""</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_actors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">length_validation</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">[</span><span class="s2">"length"</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">selected_value</span>
-
-            <span class="n">size_validation</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">[</span><span class="s2">"size"</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">selected_value</span>
-
-            <span class="k">if</span> <span class="n">length_validation</span> <span class="ow">or</span> <span class="n">size_validation</span><span class="p">:</span>
-                <span class="n">cluster</span><span class="p">[</span><span class="s2">"actor"</span><span class="p">]</span><span class="o">.</span><span class="n">SetVisibility</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">GetVisibility</span><span class="p">():</span>
-                    <span class="n">k</span><span class="o">.</span><span class="n">SetVisibility</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">cluster</span><span class="p">[</span><span class="s2">"actor"</span><span class="p">]</span><span class="o">.</span><span class="n">SetVisibility</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-
-<div class="viewcode-block" id="ClustersTab.build">
-<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.horizon.tab.cluster.ClustersTab.build">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Position the elements in the tab.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        tab_id : int</span>
-<span class="sd">            Id of the tab.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tab_id</span> <span class="o">=</span> <span class="n">tab_id</span>
-
-        <span class="n">x_pos</span> <span class="o">=</span> <span class="mf">0.02</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider_label</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider_label</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_slider_label</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="mf">0.38</span><span class="p">)</span>
-
-        <span class="n">x_pos</span> <span class="o">=</span> <span class="mf">0.12</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_size_slider</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_length_slider</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_slider</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="mf">0.38</span><span class="p">)</span></div>
-
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Title of the tab.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_populate_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle  populate info for ``Surface``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
+<span class="sd">        object</span>
+<span class="sd">            Returned value.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"No. of vertices: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">No. of faces: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">faces</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="n">info</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">cluster_actors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Cluster actors of the tractograms.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle actor for ``Surface``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            various properties of clusters.</span>
+<span class="sd">        object</span>
+<span class="sd">            Returned value.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span><span class="o">.</span><span class="n">cluster_actors</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_surface_actor</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">centroid_actors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Centroid actors of the tractograms.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            various properties of centroids.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span><span class="o">.</span><span class="n">centroid_actors</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">actors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""All the actors in the visualizer.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">        """</span>
-        <span class="n">actors</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">actors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-            <span class="n">cluster_actor</span><span class="p">[</span><span class="s2">"actor"</span><span class="p">]</span> <span class="k">for</span> <span class="n">cluster_actor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_actors</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+<div class="viewcode-block" id="Surface.render_widgets">
+<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.surface.Surface.render_widgets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle render widgets for ``Surface``."""</span>
+        <span class="n">changed</span><span class="p">,</span> <span class="n">new</span> <span class="o">=</span> <span class="n">thin_slider</span><span class="p">(</span>
+            <span class="s2">"Opacity"</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="mi">100</span><span class="p">,</span>
+            <span class="n">value_type</span><span class="o">=</span><span class="s2">"int"</span><span class="p">,</span>
+            <span class="n">text_format</span><span class="o">=</span><span class="s2">".0f"</span><span class="p">,</span>
+            <span class="n">value_unit</span><span class="o">=</span><span class="s2">"%"</span><span class="p">,</span>
+            <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">actors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-            <span class="n">centroid_actor</span><span class="p">[</span><span class="s2">"actor"</span><span class="p">]</span> <span class="k">for</span> <span class="n">centroid_actor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroid_actors</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">actors</span></div>
+        <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="n">new</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_opacity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span><span class="p">)</span>
 
+        <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="n">selected_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span>
+        <span class="n">changed</span><span class="p">,</span> <span class="n">new_color</span><span class="p">,</span> <span class="n">is_open</span> <span class="o">=</span> <span class="n">color_picker</span><span class="p">(</span>
+            <span class="n">selected_color</span><span class="o">=</span><span class="n">selected_color</span><span class="p">,</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="s2">"Pick Surface color"</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">popup_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_popup_id</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_open</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span>
+        <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="o">=</span> <span class="n">new_color</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_open</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">colors_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_surface_actor</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span> <span class="o">=</span> <span class="n">is_open</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">has_fury_v2</span><span class="p">:</span>
+    <span class="n">create_surface_visualization</span> <span class="o">=</span> <span class="n">Surface</span> <span class="o">=</span> <span class="n">fury</span>
 </pre></div>
 
                 </article>

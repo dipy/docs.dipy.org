@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.reconst &#8212; dipy 1.13.0.dev0+git20260908.52d6c76 documentation</title>
+    <title>dipy.workflows.reconst &#8212; dipy 1.13.0.dev0+git20260910.8849796 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=4ad4cae9"></script>
+    <script src="../../../_static/documentation_options.js?v=3a10f1ea"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -947,6 +947,7 @@ document.write(`
     <span class="n">QballModel</span><span class="p">,</span>
     <span class="n">anisotropic_power</span><span class="p">,</span>
     <span class="n">normalize_data</span><span class="p">,</span>
+    <span class="n">order_from_ncoef</span><span class="p">,</span>
     <span class="n">smooth_pinv</span><span class="p">,</span>
     <span class="n">sph_harm_lookup</span><span class="p">,</span>
 <span class="p">)</span>
@@ -2133,11 +2134,29 @@ document.write(`
 
             <span class="n">n_params</span> <span class="o">=</span> <span class="p">((</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sh_order_max</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
             <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n_params</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"You need at least </span><span class="si">{</span><span class="n">n_params</span><span class="si">}</span><span class="s2"> unique DWI volumes to "</span>
-                    <span class="sa">f</span><span class="s2">"compute fiber odfs. You currently have: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-                    <span class="s2">" DWI volumes."</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"sh_order_max=</span><span class="si">{</span><span class="n">sh_order_max</span><span class="si">}</span><span class="s2"> requires at least "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">n_params</span><span class="p">)</span><span class="si">}</span><span class="s2"> DWI volumes, but only "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> are available. Searching for the best "</span>
+                    <span class="s2">"sh_order_max that can be used with the current data..."</span>
                 <span class="p">)</span>
+                <span class="n">best_order</span> <span class="o">=</span> <span class="n">order_from_ncoef</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">best_order</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">best_order</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">while</span> <span class="p">(</span>
+                    <span class="n">best_order</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+                    <span class="ow">and</span> <span class="p">((</span><span class="n">best_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">best_order</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="n">best_order</span> <span class="o">-=</span> <span class="mi">2</span>
+                <span class="k">if</span> <span class="n">best_order</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"Not enough DWI volumes (</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">) to compute "</span>
+                        <span class="s2">"fiber ODFs. A minimum of 6 unique DWI volumes "</span>
+                        <span class="s2">"(sh_order_max=2) is required."</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">sh_order_max</span> <span class="o">=</span> <span class="n">best_order</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sh_order_max automatically set to </span><span class="si">{</span><span class="n">sh_order_max</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 
             <span class="n">model_args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"gtab"</span><span class="p">:</span> <span class="n">gtab</span><span class="p">,</span> <span class="s2">"sh_order_max"</span><span class="p">:</span> <span class="n">sh_order_max</span><span class="p">}</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">use_msmt</span><span class="p">:</span>
@@ -4510,7 +4529,7 @@ document.write(`
         <span class="n">out_kfa</span><span class="o">=</span><span class="s2">"kfa.nii.gz"</span><span class="p">,</span>
         <span class="n">out_entropy</span><span class="o">=</span><span class="s2">"entropy.nii.gz"</span><span class="p">,</span>
         <span class="n">out_predicted_signal</span><span class="o">=</span><span class="s2">"predicted_signal.nii.gz"</span><span class="p">,</span>
-        <span class="n">out_peaks</span><span class="o">=</span><span class="s2">"peaks.pam5"</span><span class="p">,</span>
+        <span class="n">out_pam</span><span class="o">=</span><span class="s2">"peaks.pam5"</span><span class="p">,</span>
         <span class="n">out_micro_uncertainty_dir</span><span class="o">=</span><span class="s2">"microstructure_uncertainty"</span><span class="p">,</span>
         <span class="n">out_micro_ambiguity_dir</span><span class="o">=</span><span class="s2">"microstructure_ambiguity"</span><span class="p">,</span>
     <span class="p">):</span>
@@ -4635,7 +4654,7 @@ document.write(`
 <span class="sd">            Name of the entropy volume to be saved (requires use_posterior).</span>
 <span class="sd">        out_predicted_signal : string, optional</span>
 <span class="sd">            Name of the predicted signal volume to be saved.</span>
-<span class="sd">        out_peaks : string, optional</span>
+<span class="sd">        out_pam : string, optional</span>
 <span class="sd">            Name of the peaks file to be saved (in .pam5 format).</span>
 <span class="sd">        out_micro_uncertainty_dir : string, optional</span>
 <span class="sd">            Name of the subdirectory for per-microstructure uncertainty maps</span>

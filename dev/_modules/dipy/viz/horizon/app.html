@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.horizon.app &#8212; dipy 1.13.0.dev0+git20260908.52d6c76 documentation</title>
+    <title>dipy.viz.horizon.app &#8212; dipy 1.13.0.dev0+git20260910.8849796 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=4ad4cae9"></script>
+    <script src="../../../../_static/documentation_options.js?v=3a10f1ea"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,75 +883,31 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.viz.horizon.app</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">packaging.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">Version</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">horizon_version</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.stateful_tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <span class="n">StatefulTractogram</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_tractogram</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Streamlines</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecate_with_version</span><span class="p">,</span> <span class="n">warning_for_keywords</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.gmem</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalHorizon</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.horizon.tab</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ClustersTab</span><span class="p">,</span>
-    <span class="n">PeaksTab</span><span class="p">,</span>
-    <span class="n">ROIsTab</span><span class="p">,</span>
-    <span class="n">SlicesTab</span><span class="p">,</span>
-    <span class="n">SurfaceTab</span><span class="p">,</span>
-    <span class="n">TabManager</span><span class="p">,</span>
-    <span class="n">build_label</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.horizon.util</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">check_img_dtype</span><span class="p">,</span>
-    <span class="n">check_img_shapes</span><span class="p">,</span>
-    <span class="n">check_peak_size</span><span class="p">,</span>
-    <span class="n">unpack_data</span><span class="p">,</span>
-    <span class="n">unpack_surface</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.horizon.visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ClustersVisualizer</span><span class="p">,</span>
-    <span class="n">PeaksVisualizer</span><span class="p">,</span>
-    <span class="n">SlicesVisualizer</span><span class="p">,</span>
-    <span class="n">SurfaceVisualizer</span><span class="p">,</span>
-<span class="p">)</span>
 
-<span class="n">fury</span><span class="p">,</span> <span class="n">has_fury</span><span class="p">,</span> <span class="n">setup_module</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
-    <span class="s2">"fury"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"0.10.0"</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="s2">"1.0.0"</span>
+<span class="n">fury_pckg_msg</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"Skyline requires FURY version 2.0.0 or higher. "</span>
+    <span class="s2">"Please install or upgrade FURY using pip install -U fury --pre."</span>
 <span class="p">)</span>
-
+<span class="n">fury</span><span class="p">,</span> <span class="n">has_fury</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
+    <span class="s2">"fury"</span><span class="p">,</span> <span class="n">trip_msg</span><span class="o">=</span><span class="n">fury_pckg_msg</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.0.0"</span>
+<span class="p">)</span>
 <span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">fury</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">fury_version</span><span class="p">,</span> <span class="n">actor</span><span class="p">,</span> <span class="n">ui</span><span class="p">,</span> <span class="n">window</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.colormap</span><span class="w"> </span><span class="kn">import</span> <span class="n">distinguishable_colormap</span>
-
-
-<span class="c1"># TODO: Re-enable &gt;&gt; right click: see menu</span>
-<span class="n">HELP_MESSAGE</span> <span class="o">=</span> <span class="s2">"""</span>
-<span class="s2">&gt;&gt; left click: select centroid</span>
-<span class="s2">&gt;&gt; e: expand centroids</span>
-<span class="s2">&gt;&gt; r: collapse all clusters</span>
-<span class="s2">&gt;&gt; h: hide unselected centroids</span>
-<span class="s2">&gt;&gt; i: invert selection</span>
-<span class="s2">&gt;&gt; a: select all centroids</span>
-<span class="s2">&gt;&gt; s: save in file</span>
-<span class="s2">&gt;&gt; y: new window</span>
-<span class="s2">&gt;&gt; o: hide/show this panel</span>
-<span class="s2">"""</span>
-
-<span class="n">SHORTCUT_MESSAGE</span> <span class="o">=</span> <span class="s2">"""</span>
-<span class="s2">&gt;&gt; shift + drag: move</span>
-<span class="s2">&gt;&gt; ctrl/cmd + drag: rotate</span>
-<span class="s2">&gt;&gt; ctrl/cmd + r: reset</span>
-<span class="s2">&gt;&gt; o: hide/show this panel</span>
-<span class="s2">"""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.app</span><span class="w"> </span><span class="kn">import</span> <span class="n">skyline</span>
 
 
 <div class="viewcode-block" id="Horizon">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.horizon.app.Horizon">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Horizon</span><span class="p">:</span>
+    <span class="nd">@deprecate_with_version</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="s2">"Horizon is deprecated and will be removed in future releases. "</span>
+            <span class="s2">"Please use Skyline instead."</span>
+        <span class="p">),</span>
+        <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span>
+        <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1062,609 +1018,58 @@ document.write(`
 <span class="sd">        ----------</span>
 <span class="sd">        .. footbibliography::</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_fury</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">"Horizon requires FURY. Please install it with pip install fury"</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">Version</span><span class="p">(</span><span class="n">fury_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">Version</span><span class="p">(</span><span class="s2">"0.10.0"</span><span class="p">):</span>
-            <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">"Horizon requires FURY version 0.10.0 or higher."</span>
-                <span class="s2">" Please upgrade FURY with pip install -U fury."</span>
-            <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span> <span class="o">=</span> <span class="n">cluster</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rgb</span> <span class="o">=</span> <span class="n">rgb</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_thr</span> <span class="o">=</span> <span class="n">cluster_thr</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">random_colors</span> <span class="o">=</span> <span class="n">random_colors</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">length_lt</span> <span class="o">=</span> <span class="n">length_lt</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">length_gt</span> <span class="o">=</span> <span class="n">length_gt</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clusters_lt</span> <span class="o">=</span> <span class="n">clusters_lt</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clusters_gt</span> <span class="o">=</span> <span class="n">clusters_gt</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">world_coords</span> <span class="o">=</span> <span class="n">world_coords</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">interactive</span> <span class="o">=</span> <span class="n">interactive</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">prng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">27</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tractograms</span> <span class="o">=</span> <span class="n">tractograms</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">out_png</span> <span class="o">=</span> <span class="n">out_png</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="n">images</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pams</span> <span class="o">=</span> <span class="n">pams</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_surfaces</span> <span class="o">=</span> <span class="n">surfaces</span> <span class="ow">or</span> <span class="p">[]</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">cea</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># holds centroid actors</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cla</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># holds cluster actors</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">recorded_events</span> <span class="o">=</span> <span class="n">recorded_events</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">return_showm</span> <span class="o">=</span> <span class="n">return_showm</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bg_color</span> <span class="o">=</span> <span class="n">bg_color</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">order_transparent</span> <span class="o">=</span> <span class="n">order_transparent</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">buan</span> <span class="o">=</span> <span class="n">buan</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">buan_colors</span> <span class="o">=</span> <span class="n">buan_colors</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__roi_images</span> <span class="o">=</span> <span class="n">roi_images</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__roi_colors</span> <span class="o">=</span> <span class="n">roi_colors</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_colors</span> <span class="o">=</span> <span class="n">surface_colors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visualizations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram_help</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">color_gen</span> <span class="o">=</span> <span class="n">distinguishable_colormap</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"visualizer_type"</span><span class="p">:</span> <span class="s2">"stealth"</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">interactive</span> <span class="k">else</span> <span class="s2">"standalone"</span><span class="p">,</span>
+            <span class="s2">"images"</span><span class="p">:</span> <span class="n">images</span><span class="p">,</span>
+            <span class="s2">"tractograms"</span><span class="p">:</span> <span class="n">tractograms</span><span class="p">,</span>
+            <span class="s2">"pams"</span><span class="p">:</span> <span class="n">pams</span><span class="p">,</span>
+            <span class="s2">"surfaces"</span><span class="p">:</span> <span class="n">surfaces</span><span class="p">,</span>
+            <span class="s2">"cluster"</span><span class="p">:</span> <span class="n">cluster</span><span class="p">,</span>
+            <span class="s2">"rgb"</span><span class="p">:</span> <span class="n">rgb</span><span class="p">,</span>
+            <span class="s2">"bg_color"</span><span class="p">:</span> <span class="n">bg_color</span><span class="p">,</span>
+            <span class="s2">"cluster_thr"</span><span class="p">:</span> <span class="n">cluster_thr</span><span class="p">,</span>
+            <span class="s2">"cluster_length_thr"</span><span class="p">:</span> <span class="n">length_gt</span><span class="p">,</span>
+            <span class="s2">"cluster_size_thr"</span><span class="p">:</span> <span class="n">clusters_gt</span><span class="p">,</span>
+            <span class="s2">"out_stealth_png"</span><span class="p">:</span> <span class="n">out_png</span><span class="p">,</span>
+            <span class="s2">"interactive"</span><span class="p">:</span> <span class="n">interactive</span><span class="p">,</span>
+        <span class="p">}</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_colors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_colors</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">random_colors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"tracts"</span><span class="p">,</span> <span class="s2">"rois"</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">random_colors</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__tab_mgr</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">__help_visible</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_shortcut_help_visible</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="c1"># TODO: Move to another class/module</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__hide_centroids</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__select_all</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_win_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-    <span class="c1"># TODO: Move to another class/module</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">__expand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">centroid_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">centroid_actors</span>
-        <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">lengths</span>
-        <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">sizes</span>
-        <span class="n">min_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
-        <span class="n">min_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">cent</span> <span class="ow">in</span> <span class="n">centroid_actors</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"expanded"</span><span class="p">]:</span>
-                    <span class="n">len_</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"length"</span><span class="p">]</span>
-                    <span class="n">sz_</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"size"</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">len_</span> <span class="o">&gt;=</span> <span class="n">min_length</span> <span class="ow">and</span> <span class="n">sz_</span> <span class="o">&gt;=</span> <span class="n">min_size</span><span class="p">:</span>
-                        <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"actor"</span><span class="p">]</span><span class="o">.</span><span class="n">VisibilityOn</span><span class="p">()</span>
-                        <span class="n">cent</span><span class="o">.</span><span class="n">VisibilityOff</span><span class="p">()</span>
-                        <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"expanded"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-    <span class="c1"># TODO: Move to another class/module</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">__hide</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">centroid_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">centroid_actors</span>
-        <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">lengths</span>
-        <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">sizes</span>
-        <span class="n">min_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
-        <span class="n">min_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">cent</span> <span class="ow">in</span> <span class="n">centroid_actors</span><span class="p">:</span>
-            <span class="n">valid_length</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"length"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_length</span>
-            <span class="n">valid_size</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"size"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_size</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hide_centroids</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">valid_length</span> <span class="ow">or</span> <span class="n">valid_size</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="n">cent</span><span class="o">.</span><span class="n">VisibilityOff</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">valid_length</span> <span class="ow">and</span> <span class="n">valid_size</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="n">cent</span><span class="o">.</span><span class="n">VisibilityOn</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__hide_centroids</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hide_centroids</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-    <span class="c1"># TODO: Move to another class/module</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">__invert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">centroid_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">centroid_actors</span>
-        <span class="n">cluster_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">cluster_actors</span>
-        <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">lengths</span>
-        <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">sizes</span>
-        <span class="n">min_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
-        <span class="n">min_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">cent</span> <span class="ow">in</span> <span class="n">centroid_actors</span><span class="p">:</span>
-            <span class="n">valid_length</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"length"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_length</span>
-            <span class="n">valid_size</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"size"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_size</span>
-            <span class="k">if</span> <span class="n">valid_length</span> <span class="ow">and</span> <span class="n">valid_size</span><span class="p">:</span>
-                <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span>
-                    <span class="s2">"selected"</span>
-                <span class="p">]</span>
-                <span class="n">clus</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"actor"</span><span class="p">]</span>
-                <span class="n">cluster_actors</span><span class="p">[</span><span class="n">clus</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">__key_press_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetKeySym</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"R"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetControlKey</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">reset_camera_tight</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"o"</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shortcut_help_visible</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">shortcut_panel</span><span class="o">.</span><span class="n">actors</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_shortcut_help_visible</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">shortcut_panel</span><span class="o">.</span><span class="n">actors</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_shortcut_help_visible</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-        <span class="c1"># TODO: Move to another class/module</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">:</span>
-            <span class="c1"># retract help panel</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"o"</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">):</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__help_visible</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">help_panel</span><span class="o">.</span><span class="n">actors</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__help_visible</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">help_panel</span><span class="o">.</span><span class="n">actors</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__help_visible</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__show_all</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"e"</span><span class="p">,</span> <span class="s2">"E"</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__expand</span><span class="p">()</span>
-            <span class="c1"># hide on/off unselected centroids</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"h"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__hide</span><span class="p">()</span>
-            <span class="c1"># invert selection</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"i"</span><span class="p">,</span> <span class="s2">"I"</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__invert</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"R"</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__reset</span><span class="p">()</span>
-            <span class="c1"># save current result</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"s"</span><span class="p">,</span> <span class="s2">"S"</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__save</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="s2">"Y"</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__new_window</span><span class="p">()</span>
-
-    <span class="c1"># TODO: Move to another class/module</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">__new_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">cluster_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">cluster_actors</span>
-        <span class="n">tractogram_clusters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">tractogram_clusters</span>
-        <span class="n">active_streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">bundle</span> <span class="ow">in</span> <span class="n">cluster_actors</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">bundle</span><span class="o">.</span><span class="n">GetVisibility</span><span class="p">():</span>
-                <span class="n">t</span> <span class="o">=</span> <span class="n">cluster_actors</span><span class="p">[</span><span class="n">bundle</span><span class="p">][</span><span class="s2">"tractogram"</span><span class="p">]</span>
-                <span class="n">c</span> <span class="o">=</span> <span class="n">cluster_actors</span><span class="p">[</span><span class="n">bundle</span><span class="p">][</span><span class="s2">"cluster"</span><span class="p">]</span>
-                <span class="n">indices</span> <span class="o">=</span> <span class="n">tractogram_clusters</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="n">c</span><span class="p">]</span>
-                <span class="n">active_streamlines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Streamlines</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
-
-        <span class="c1"># Using the header of the first of the tractograms</span>
-        <span class="n">active_sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span>
-            <span class="n">active_streamlines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tractograms</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">skyline_window</span> <span class="o">=</span> <span class="n">skyline</span><span class="p">(</span>
+            <span class="n">visualizer_type</span><span class="o">=</span><span class="s2">"stealth"</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"interactive"</span><span class="p">]</span>
+            <span class="k">else</span> <span class="s2">"standalone"</span><span class="p">,</span>
+            <span class="n">images</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"images"</span><span class="p">],</span>
+            <span class="n">tractograms</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"tractograms"</span><span class="p">],</span>
+            <span class="n">peaks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"pams"</span><span class="p">],</span>
+            <span class="n">surfaces</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"surfaces"</span><span class="p">],</span>
+            <span class="n">is_cluster</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"cluster"</span><span class="p">],</span>
+            <span class="n">rgb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"rgb"</span><span class="p">],</span>
+            <span class="n">bg_color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"bg_color"</span><span class="p">],</span>
+            <span class="n">cluster_thr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"cluster_thr"</span><span class="p">],</span>
+            <span class="n">cluster_length_thr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"cluster_length_thr"</span><span class="p">],</span>
+            <span class="n">cluster_size_thr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"cluster_size_thr"</span><span class="p">],</span>
+            <span class="n">out_stealth_png</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizon_data</span><span class="p">[</span><span class="s2">"out_stealth_png"</span><span class="p">],</span>
         <span class="p">)</span>
-        <span class="n">hz2</span> <span class="o">=</span> <span class="n">Horizon</span><span class="p">(</span>
-            <span class="n">tractograms</span><span class="o">=</span><span class="p">[</span><span class="n">active_sft</span><span class="p">],</span>
-            <span class="n">images</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">,</span>
-            <span class="n">cluster</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">cluster_thr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_thr</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
-            <span class="n">random_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">random_colors</span><span class="p">,</span>
-            <span class="n">length_lt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-            <span class="n">length_gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="n">clusters_lt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-            <span class="n">clusters_gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="n">world_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">ren2</span> <span class="o">=</span> <span class="n">hz2</span><span class="o">.</span><span class="n">build_scene</span><span class="p">()</span>
-        <span class="n">hz2</span><span class="o">.</span><span class="n">build_show</span><span class="p">(</span><span class="n">ren2</span><span class="p">)</span>
-
-    <span class="c1"># TODO: Move to another class/module</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">__reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">centroid_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">centroid_actors</span>
-        <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">lengths</span>
-        <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">sizes</span>
-        <span class="n">min_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
-        <span class="n">min_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">cent</span> <span class="ow">in</span> <span class="n">centroid_actors</span><span class="p">:</span>
-            <span class="n">valid_length</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"length"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_length</span>
-            <span class="n">valid_size</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"size"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_size</span>
-            <span class="k">if</span> <span class="n">valid_length</span> <span class="ow">and</span> <span class="n">valid_size</span><span class="p">:</span>
-                <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"actor"</span><span class="p">]</span><span class="o">.</span><span class="n">VisibilityOff</span><span class="p">()</span>
-                <span class="n">cent</span><span class="o">.</span><span class="n">VisibilityOn</span><span class="p">()</span>
-                <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"expanded"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-    <span class="c1"># TODO: Move to another class/module</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">__save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">cluster_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">cluster_actors</span>
-        <span class="n">tractogram_clusters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">tractogram_clusters</span>
-        <span class="n">saving_streamlines</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">bundle</span> <span class="ow">in</span> <span class="n">cluster_actors</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">bundle</span><span class="o">.</span><span class="n">GetVisibility</span><span class="p">():</span>
-                <span class="n">t</span> <span class="o">=</span> <span class="n">cluster_actors</span><span class="p">[</span><span class="n">bundle</span><span class="p">][</span><span class="s2">"tractogram"</span><span class="p">]</span>
-                <span class="n">c</span> <span class="o">=</span> <span class="n">cluster_actors</span><span class="p">[</span><span class="n">bundle</span><span class="p">][</span><span class="s2">"cluster"</span><span class="p">]</span>
-                <span class="n">indices</span> <span class="o">=</span> <span class="n">tractogram_clusters</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="n">c</span><span class="p">]</span>
-                <span class="n">saving_streamlines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Streamlines</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Saving result in tmp.trx"</span><span class="p">)</span>
-
-        <span class="c1"># Using the header of the first of the tractograms</span>
-        <span class="n">sft_new</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span>
-            <span class="n">saving_streamlines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tractograms</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span>
-        <span class="p">)</span>
-        <span class="n">save_tractogram</span><span class="p">(</span><span class="n">sft_new</span><span class="p">,</span> <span class="s2">"tmp.trx"</span><span class="p">,</span> <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Saved!"</span><span class="p">)</span>
-
-    <span class="c1"># TODO: Move to another class/module</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">__show_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">centroid_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">centroid_actors</span>
-        <span class="n">cluster_actors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">cluster_actors</span>
-        <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">lengths</span>
-        <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">sizes</span>
-        <span class="n">min_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
-        <span class="n">min_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__select_all</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">cent</span> <span class="ow">in</span> <span class="n">centroid_actors</span><span class="p">:</span>
-                <span class="n">valid_length</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"length"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_length</span>
-                <span class="n">valid_size</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"size"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_size</span>
-                <span class="k">if</span> <span class="n">valid_length</span> <span class="ow">and</span> <span class="n">valid_size</span><span class="p">:</span>
-                    <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="n">clus</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"actor"</span><span class="p">]</span>
-                    <span class="n">cluster_actors</span><span class="p">[</span><span class="n">clus</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__select_all</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">cent</span> <span class="ow">in</span> <span class="n">centroid_actors</span><span class="p">:</span>
-                <span class="n">valid_length</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"length"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_length</span>
-                <span class="n">valid_size</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"size"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_size</span>
-                <span class="k">if</span> <span class="n">valid_length</span> <span class="ow">and</span> <span class="n">valid_size</span><span class="p">:</span>
-                    <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-                    <span class="n">clus</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"actor"</span><span class="p">]</span>
-                    <span class="n">cluster_actors</span><span class="p">[</span><span class="n">clus</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="n">centroid_actors</span><span class="p">[</span><span class="n">cent</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__select_all</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">__win_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">_event</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_win_size</span> <span class="o">!=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetSize</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_win_size</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__tab_mgr</span><span class="o">.</span><span class="n">reposition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_win_size</span><span class="p">)</span>
-            <span class="n">panel_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shortcut_panel</span><span class="o">.</span><span class="n">_get_size</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">shortcut_panel</span><span class="o">.</span><span class="n">_set_position</span><span class="p">(</span>
-                <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_win_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">panel_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">5</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">:</span>
-                <span class="n">panel_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">help_panel</span><span class="o">.</span><span class="n">_get_size</span><span class="p">()</span>
-                <span class="n">new_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_win_size</span><span class="p">)</span> <span class="o">-</span> <span class="n">panel_size</span> <span class="o">-</span> <span class="mi">5</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">help_panel</span><span class="o">.</span><span class="n">_set_position</span><span class="p">(</span><span class="n">new_pos</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">build_scene</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span> <span class="o">=</span> <span class="n">GlobalHorizon</span><span class="p">()</span>
-        <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">()</span>
-        <span class="n">scene</span><span class="o">.</span><span class="n">background</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bg_color</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">scene</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_show_force_render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_element</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Callback function for lower level elements to force render.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_update_actors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actors</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Update actors in the scene. It essentially brings them forward in</span>
-<span class="sd">        the stack.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        actors : list</span>
-<span class="sd">            list of FURY actors.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="o">*</span><span class="n">actors</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">actors</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">build_show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span> <span class="o">=</span> <span class="n">scene</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_win_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
-
-        <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Horizon </span><span class="si">{</span><span class="n">horizon_version</span><span class="si">}</span><span class="s2">"</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">ShowManager</span><span class="p">(</span>
-            <span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
-            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-            <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1920</span><span class="p">,</span> <span class="mi">1080</span><span class="p">),</span>
-            <span class="n">reset_camera</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">order_transparent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">order_transparent</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tractograms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span> <span class="o">=</span> <span class="n">ClustersVisualizer</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tractograms</span>
-                <span class="p">)</span>
-
-            <span class="n">color_ind</span> <span class="o">=</span> <span class="mi">0</span>
-
-            <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">sft</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tractograms</span><span class="p">):</span>
-                <span class="n">streamlines</span> <span class="o">=</span> <span class="n">sft</span><span class="o">.</span><span class="n">streamlines</span>
-
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">streamlines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">warn</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"Tractogram </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> is empty and will be skipped."</span><span class="p">,</span>
-                        <span class="ne">UserWarning</span><span class="p">,</span>
-                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                    <span class="p">)</span>
-                    <span class="k">continue</span>
-
-                <span class="k">if</span> <span class="s2">"tracts"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_colors</span><span class="p">:</span>
-                    <span class="n">colors</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color_gen</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">colors</span> <span class="o">=</span> <span class="kc">None</span>
-
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">world_coords</span><span class="p">:</span>
-                    <span class="c1"># TODO: Get affine from a StatefulTractogram</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">"Currently native coordinates are not supported for "</span>
-                        <span class="s2">"streamlines."</span>
-                    <span class="p">)</span>
-
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="o">.</span><span class="n">add_cluster_actors</span><span class="p">(</span>
-                        <span class="n">t</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_thr</span><span class="p">,</span> <span class="n">colors</span>
-                    <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">buan</span><span class="p">:</span>
-                        <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buan_colors</span><span class="p">[</span><span class="n">color_ind</span><span class="p">]</span>
-
-                    <span class="n">streamline_actor</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
-                    <span class="n">streamline_actor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetEdgeVisibility</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-                    <span class="n">streamline_actor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetRenderLinesAsTubes</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-                    <span class="n">streamline_actor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetLineWidth</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
-                    <span class="n">streamline_actor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetOpacity</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-                    <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">streamline_actor</span><span class="p">)</span>
-
-                <span class="n">color_ind</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">:</span>
-                <span class="c1"># Information panel</span>
-                <span class="c1"># It will be changed once all the elements wrapped in horizon</span>
-                <span class="c1"># elements.</span>
-                <span class="n">text_block</span> <span class="o">=</span> <span class="n">build_label</span><span class="p">(</span><span class="n">HELP_MESSAGE</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
-
-                <span class="bp">self</span><span class="o">.</span><span class="n">help_panel</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">Panel2D</span><span class="p">(</span>
-                    <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
-                    <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">1615</span><span class="p">,</span> <span class="mi">875</span><span class="p">),</span>
-                    <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
-                    <span class="n">opacity</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-                    <span class="n">align</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span>
-                <span class="p">)</span>
-
-                <span class="bp">self</span><span class="o">.</span><span class="n">help_panel</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span><span class="n">text_block</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">))</span>
-                <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">help_panel</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="n">ClustersTab</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clusters_visualizer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_thr</span><span class="p">)</span>
-                <span class="p">)</span>
-
-        <span class="n">text_block</span> <span class="o">=</span> <span class="n">build_label</span><span class="p">(</span><span class="n">SHORTCUT_MESSAGE</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">shortcut_panel</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">Panel2D</span><span class="p">(</span>
-            <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">260</span><span class="p">,</span> <span class="mi">115</span><span class="p">),</span>
-            <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">960</span><span class="p">),</span>
-            <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
-            <span class="n">opacity</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-            <span class="n">align</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shortcut_panel</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span><span class="n">text_block</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">))</span>
-        <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shortcut_panel</span><span class="p">)</span>
-        <span class="n">sync_slices</span> <span class="o">=</span> <span class="n">sync_vol</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="n">check_img_dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__roi_images</span><span class="p">:</span>
-                <span class="n">roi_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__roi_colors</span>
-            <span class="n">roi_actors</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">img_count</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">sync_slices</span><span class="p">,</span> <span class="n">sync_vol</span> <span class="o">=</span> <span class="n">check_img_shapes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">:</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Image </span><span class="si">{</span><span class="n">img_count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span>
-                <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">unpack_data</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">return_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">vox2ras</span> <span class="o">=</span> <span class="n">affine</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__roi_images</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="s2">"rois"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_colors</span><span class="p">:</span>
-                        <span class="n">roi_color</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color_gen</span><span class="p">)</span>
-                    <span class="n">roi_actor</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">contour_from_roi</span><span class="p">(</span>
-                        <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">roi_color</span>
-                    <span class="p">)</span>
-                    <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">roi_actor</span><span class="p">)</span>
-                    <span class="n">roi_actors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">roi_actor</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">slices_viz</span> <span class="o">=</span> <span class="n">SlicesVisualizer</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">iren</span><span class="p">,</span>
-                        <span class="n">scene</span><span class="p">,</span>
-                        <span class="n">data</span><span class="p">,</span>
-                        <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span>
-                        <span class="n">world_coords</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">world_coords</span><span class="p">,</span>
-                        <span class="n">rgb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rgb</span><span class="p">,</span>
-                        <span class="n">fname</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span>
-                    <span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                        <span class="n">SlicesTab</span><span class="p">(</span>
-                            <span class="n">slices_viz</span><span class="p">,</span>
-                            <span class="n">title</span><span class="p">,</span>
-                            <span class="n">fname</span><span class="p">,</span>
-                            <span class="n">force_render</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_show_force_render</span><span class="p">,</span>
-                        <span class="p">)</span>
-                    <span class="p">)</span>
-                    <span class="n">img_count</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">roi_actors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ROIsTab</span><span class="p">(</span><span class="n">roi_actors</span><span class="p">))</span>
-
-        <span class="n">sync_peaks</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pams</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">f_pam</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pams</span><span class="p">):</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Peaks </span><span class="si">{</span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span>
-                <span class="n">pam</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">unpack_data</span><span class="p">(</span><span class="n">f_pam</span><span class="p">,</span> <span class="n">return_size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-                <span class="n">peak_viz</span> <span class="o">=</span> <span class="n">PeaksVisualizer</span><span class="p">(</span>
-                    <span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_dirs</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">affine</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">world_coords</span><span class="p">,</span> <span class="n">fname</span>
-                <span class="p">)</span>
-                <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">peak_viz</span><span class="o">.</span><span class="n">actors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PeaksTab</span><span class="p">(</span><span class="n">peak_viz</span><span class="o">.</span><span class="n">actors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">title</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">pams</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">:</span>
-                <span class="n">sync_peaks</span> <span class="o">=</span> <span class="n">check_peak_size</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">pams</span><span class="p">,</span>
-                    <span class="n">ref_img_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span>
-                    <span class="n">sync_imgs</span><span class="o">=</span><span class="n">sync_slices</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">sync_peaks</span> <span class="o">=</span> <span class="n">check_peak_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pams</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_surfaces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">surface</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_surfaces</span><span class="p">):</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">unpack_surface</span><span class="p">(</span><span class="n">surface</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-                    <span class="k">continue</span>
-                <span class="n">color</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color_gen</span><span class="p">)</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Surface </span><span class="si">{</span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span>
-                <span class="n">surf_viz</span> <span class="o">=</span> <span class="n">SurfaceVisualizer</span><span class="p">((</span><span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">),</span> <span class="n">scene</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
-                <span class="n">surf_tab</span> <span class="o">=</span> <span class="n">SurfaceTab</span><span class="p">(</span><span class="n">surf_viz</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">surf_tab</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__tab_mgr</span> <span class="o">=</span> <span class="n">TabManager</span><span class="p">(</span>
-                <span class="n">tabs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="p">,</span>
-                <span class="n">win_size</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">GetSize</span><span class="p">(),</span>
-                <span class="n">on_tab_changed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_actors</span><span class="p">,</span>
-                <span class="n">add_to_scene</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">add</span><span class="p">,</span>
-                <span class="n">remove_from_scene</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">rm</span><span class="p">,</span>
-                <span class="n">sync_slices</span><span class="o">=</span><span class="n">sync_slices</span><span class="p">,</span>
-                <span class="n">sync_volumes</span><span class="o">=</span><span class="n">sync_vol</span><span class="p">,</span>
-                <span class="n">sync_peaks</span><span class="o">=</span><span class="n">sync_peaks</span><span class="p">,</span>
-            <span class="p">)</span>
-
-            <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tab_mgr</span><span class="o">.</span><span class="n">tab_ui</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__tab_mgr</span><span class="o">.</span><span class="n">handle_text_overflows</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__tabs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">on_tab_selected</span><span class="p">()</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
-
-        <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="sa">r</span><span class="s2">"un\hide centroids"</span><span class="p">,</span>
-            <span class="s2">"invert selection"</span><span class="p">,</span>
-            <span class="sa">r</span><span class="s2">"un\select all"</span><span class="p">,</span>
-            <span class="s2">"expand clusters"</span><span class="p">,</span>
-            <span class="s2">"collapse clusters"</span><span class="p">,</span>
-            <span class="s2">"save streamlines"</span><span class="p">,</span>
-            <span class="s2">"recluster"</span><span class="p">,</span>
-        <span class="p">]</span>
-        <span class="n">listbox</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">ListBox2D</span><span class="p">(</span>
-            <span class="n">values</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
-            <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span>
-            <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">270</span><span class="p">),</span>
-            <span class="n">multiselection</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">font_size</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">display_element</span><span class="p">():</span>
-            <span class="n">action</span> <span class="o">=</span> <span class="n">listbox</span><span class="o">.</span><span class="n">selected</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="sa">r</span><span class="s2">"un\hide centroids"</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__hide</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"invert selection"</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__invert</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="sa">r</span><span class="s2">"un\select all"</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__show_all</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"expand clusters"</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__expand</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"collapse clusters"</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__reset</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"save streamlines"</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__save</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"recluster"</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__new_window</span><span class="p">()</span>
-
-        <span class="n">listbox</span><span class="o">.</span><span class="n">on_change</span> <span class="o">=</span> <span class="n">display_element</span>
-        <span class="n">listbox</span><span class="o">.</span><span class="n">panel</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="mf">0.2</span>
-        <span class="n">listbox</span><span class="o">.</span><span class="n">set_visibility</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">listbox</span><span class="p">)</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">left_click_centroid_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cea</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cea</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cea</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="s2">"cluster_actor"</span><span class="p">]][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cea</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span>
-                <span class="s2">"selected"</span>
-            <span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">right_click_centroid_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">lactor</span> <span class="ow">in</span> <span class="n">listbox</span><span class="o">.</span><span class="n">_get_actors</span><span class="p">():</span>
-                <span class="n">lactor</span><span class="o">.</span><span class="n">SetVisibility</span><span class="p">(</span><span class="ow">not</span> <span class="n">lactor</span><span class="o">.</span><span class="n">GetVisibility</span><span class="p">())</span>
-
-            <span class="n">listbox</span><span class="o">.</span><span class="n">scroll_bar</span><span class="o">.</span><span class="n">set_visibility</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">left_click_cluster_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="s2">"centroid_actor"</span><span class="p">]</span><span class="o">.</span><span class="n">VisibilityOn</span><span class="p">()</span>
-                <span class="n">ca</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="s2">"centroid_actor"</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">cea</span><span class="p">[</span><span class="n">ca</span><span class="p">][</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="n">obj</span><span class="o">.</span><span class="n">VisibilityOff</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">cea</span><span class="p">[</span><span class="n">ca</span><span class="p">][</span><span class="s2">"expanded"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">right_click_cluster_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Cluster Area Selected"</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">:</span>
-            <span class="n">cl</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="s2">"LeftButtonPressEvent"</span><span class="p">,</span> <span class="n">left_click_cluster_callback</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-            <span class="n">cl</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="s2">"RightButtonPressEvent"</span><span class="p">,</span> <span class="n">right_click_cluster_callback</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">[</span><span class="n">cl</span><span class="p">][</span><span class="s2">"centroid_actor"</span><span class="p">]</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span>
-                <span class="s2">"LeftButtonPressEvent"</span><span class="p">,</span> <span class="n">left_click_centroid_callback</span><span class="p">,</span> <span class="mf">1.0</span>
-            <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">[</span><span class="n">cl</span><span class="p">][</span><span class="s2">"centroid_actor"</span><span class="p">]</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span>
-                <span class="s2">"RightButtonPressEvent"</span><span class="p">,</span> <span class="n">right_click_centroid_callback</span><span class="p">,</span> <span class="mf">1.0</span>
-            <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">window_timer_cnt</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">timer_callback</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">window_timer_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="c1"># TODO possibly add automatic rotation option</span>
-            <span class="c1"># self.show_m.scene.azimuth(0.01 * self.mem.window_timer_cnt)</span>
-            <span class="c1"># self.show_m.render()</span>
-
-        <span class="n">scene</span><span class="o">.</span><span class="n">reset_camera</span><span class="p">()</span>
-        <span class="n">scene</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
-        <span class="n">scene</span><span class="o">.</span><span class="n">reset_clipping_range</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">add_window_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__win_callback</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">add_timer_callback</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="n">timer_callback</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">iren</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="s2">"KeyPressEvent"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__key_press_events</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_showm</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">recorded_events</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># set to True if event recorded file needs updating</span>
-                <span class="n">recording</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="n">recording_filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recorded_events</span>
-
-                <span class="k">if</span> <span class="n">recording</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">record_events_to_file</span><span class="p">(</span><span class="n">recording_filename</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span><span class="o">.</span><span class="n">play_events_from_file</span><span class="p">(</span><span class="n">recording_filename</span><span class="p">)</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">window</span><span class="o">.</span><span class="n">record</span><span class="p">(</span>
-                <span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span> <span class="n">out_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">out_png</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="mi">900</span><span class="p">),</span> <span class="n">reset_camera</span><span class="o">=</span><span class="kc">False</span>
-            <span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span> <span class="o">=</span> <span class="n">skyline_window</span><span class="o">.</span><span class="n">window</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_m</span></div>
 
 
 
 <div class="viewcode-block" id="horizon">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.horizon.app.horizon">[docs]</a>
+<span class="nd">@deprecate_with_version</span><span class="p">(</span>
+    <span class="p">(</span>
+        <span class="s2">"Horizon is deprecated and will be removed in future releases. "</span>
+        <span class="s2">"Please use Skyline instead."</span>
+    <span class="p">),</span>
+    <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span>
+    <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">horizon</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1692,7 +1097,8 @@ document.write(`
     <span class="n">recorded_events</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">return_showm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Interactive medical visualization - Invert the Horizon!</span>
+<span class="w">    </span><span class="sd">"""Horizon is deprecated and will be removed with future releases.</span>
+<span class="sd">    Please use Skyline.</span>
 
 <span class="sd">    See :footcite:p:`Garyfallidis2019` for further details about Horizon.</span>
 
@@ -1760,6 +1166,7 @@ document.write(`
 <span class="sd">        Return ShowManager object. Used only at Python level. Can be used</span>
 <span class="sd">        for extending Horizon's capabilities externally and for testing</span>
 <span class="sd">        purposes.</span>
+<span class="sd">        This is ignored in Skyline.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -1792,11 +1199,7 @@ document.write(`
         <span class="n">roi_colors</span><span class="o">=</span><span class="n">roi_colors</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">scene</span> <span class="o">=</span> <span class="n">hz</span><span class="o">.</span><span class="n">build_scene</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="n">return_showm</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">hz</span><span class="o">.</span><span class="n">build_show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
-    <span class="n">hz</span><span class="o">.</span><span class="n">build_show</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">hz</span><span class="o">.</span><span class="n">build_show</span><span class="p">()</span></div>
 
 </pre></div>
 

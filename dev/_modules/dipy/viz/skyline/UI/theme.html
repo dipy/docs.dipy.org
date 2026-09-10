@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.horizon.tab.surface &#8212; dipy 1.13.0.dev0+git20260908.52d6c76 documentation</title>
+    <title>dipy.viz.skyline.UI.theme &#8212; dipy 1.13.0.dev0+git20260910.8849796 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=4ad4cae9"></script>
+    <script src="../../../../../_static/documentation_options.js?v=3a10f1ea"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -56,7 +56,7 @@
                 gtag('js', new Date());
                 gtag('config', 'G-D610GKJZRC');
             </script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/viz/horizon/tab/surface';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/viz/skyline/UI/theme';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
@@ -865,7 +865,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">dipy.viz.hor...</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.viz.sky...</li>
   </ul>
 </nav>
 </div>
@@ -882,122 +882,148 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for dipy.viz.horizon.tab.surface</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+  <h1>Source code for dipy.viz.skyline.UI.theme</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Theme utilities for Skyline UI components."""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.horizon.tab</span><span class="w"> </span><span class="kn">import</span> <span class="n">HorizonTab</span><span class="p">,</span> <span class="n">build_checkbox</span><span class="p">,</span> <span class="n">build_label</span><span class="p">,</span> <span class="n">build_slider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlretrieve</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
-<div class="viewcode-block" id="SurfaceTab">
-<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.horizon.tab.surface.SurfaceTab">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceTab</span><span class="p">(</span><span class="n">HorizonTab</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visualizer</span><span class="p">,</span> <span class="n">tab_name</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Surface Tab.</span>
+<span class="n">fury</span><span class="p">,</span> <span class="n">has_fury</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"fury"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">Image</span> <span class="o">=</span> <span class="n">fury</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        visualizer : SurfaceVisualizer</span>
-<span class="sd">        id : int</span>
-<span class="sd">        """</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span> <span class="o">=</span> <span class="n">visualizer</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tab_id</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">DIPY_DATA_MIRROR</span> <span class="o">=</span> <span class="s2">"https://github.com/dipy/dipy_data/raw/refs/heads/master"</span>
+<span class="n">SKYLINE_HOME</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span> <span class="o">/</span> <span class="s2">".dipy-skyline"</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">tab_name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_name</span> <span class="ow">or</span> <span class="n">tab_name</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">SKYLINE_HOME</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">SKYLINE_HOME</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_actor_toggle</span> <span class="o">=</span> <span class="n">build_checkbox</span><span class="p">(</span>
-            <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">""</span><span class="p">],</span> <span class="n">checked_labels</span><span class="o">=</span><span class="p">[</span><span class="s2">""</span><span class="p">],</span> <span class="n">on_change</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_toggle_actors</span>
-        <span class="p">)</span>
+<span class="n">ASSETS</span> <span class="o">=</span> <span class="n">SKYLINE_HOME</span> <span class="o">/</span> <span class="s2">"assets"</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">ASSETS</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">ASSETS</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity</span> <span class="o">=</span> <span class="n">build_slider</span><span class="p">(</span>
-            <span class="n">initial_value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-            <span class="n">max_value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-            <span class="n">text_template</span><span class="o">=</span><span class="s2">"</span><span class="si">{ratio:.0%}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="n">on_change</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_change_opacity</span><span class="p">,</span>
-            <span class="n">label</span><span class="o">=</span><span class="s2">"Opacity"</span><span class="p">,</span>
-        <span class="p">)</span>
+<span class="n">FONTS</span> <span class="o">=</span> <span class="n">ASSETS</span> <span class="o">/</span> <span class="s2">"fonts"</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">FONTS</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">FONTS</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_label</span> <span class="o">=</span> <span class="n">build_label</span><span class="p">(</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">"Filename"</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_name_label</span> <span class="o">=</span> <span class="n">build_label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_name</span><span class="p">)</span>
+<span class="n">IMAGES</span> <span class="o">=</span> <span class="n">ASSETS</span> <span class="o">/</span> <span class="s2">"images"</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">IMAGES</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">IMAGES</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_register_elements</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_actor_toggle</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity_label</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_file_label</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_file_name_label</span><span class="p">,</span>
-        <span class="p">)</span>
+<span class="n">LOGO</span> <span class="o">=</span> <span class="n">IMAGES</span> <span class="o">/</span> <span class="s2">"dipy-logo.png"</span>
+<span class="n">LOGO_SMALL</span> <span class="o">=</span> <span class="n">IMAGES</span> <span class="o">/</span> <span class="s2">"dipy-logo-small.png"</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">LOGO</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Downloading Skyline UI logo..."</span><span class="p">)</span>
+    <span class="n">urlretrieve</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">DIPY_DATA_MIRROR</span><span class="si">}</span><span class="s2">/dipy-skyline/assets/images/dipy-logo.png"</span><span class="p">,</span> <span class="n">LOGO</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_change_opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slider</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Change opacity value according to slider changed.</span>
+<span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">LOGO</span><span class="p">)</span> <span class="k">as</span> <span class="n">img</span><span class="p">:</span>
+        <span class="n">logo_img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGBA"</span><span class="p">)</span>
+        <span class="n">logo_img</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="n">logo_img</span> <span class="o">=</span> <span class="n">logo_img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        slider : LineSlider2D</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity</span><span class="o">.</span><span class="n">selected_value</span> <span class="o">=</span> <span class="n">slider</span><span class="o">.</span><span class="n">value</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_opacities</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">logo_img</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">48</span><span class="p">):</span>
+        <span class="n">logo_img</span> <span class="o">=</span> <span class="n">logo_img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">48</span><span class="p">,</span> <span class="mi">48</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
+        <span class="n">logo_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">LOGO</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_update_opacities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Update opacities of visible actors based on selected values."""</span>
-        <span class="k">for</span> <span class="n">actor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">actors</span><span class="p">:</span>
-            <span class="n">actor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetOpacity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity</span><span class="o">.</span><span class="n">selected_value</span><span class="p">)</span>
+    <span class="n">logo_small_ok</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">LOGO_SMALL</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">LOGO_SMALL</span><span class="p">)</span> <span class="k">as</span> <span class="n">img_small_existing</span><span class="p">:</span>
+            <span class="n">logo_small_ok</span> <span class="o">=</span> <span class="n">img_small_existing</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_toggle_actors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkbox</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Toggle the opacity of the surface actor and slider.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        checkbox : CheckBox2D</span>
-<span class="sd">            FURY checkbox UI element.</span>
-<span class="sd">        """</span>
-        <span class="k">if</span> <span class="s2">""</span> <span class="ow">in</span> <span class="n">checkbox</span><span class="o">.</span><span class="n">checked_labels</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hide</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
-
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_toggle_actors</span><span class="p">(</span><span class="n">checkbox</span><span class="p">)</span>
-
-<div class="viewcode-block" id="SurfaceTab.build">
-<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.horizon.tab.surface.SurfaceTab.build">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Build all the elements under the tab.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        tab_id : int</span>
-<span class="sd">            Id of the tab.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tab_id</span> <span class="o">=</span> <span class="n">tab_id</span>
-
-        <span class="n">y_pos</span> <span class="o">=</span> <span class="mf">0.85</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_actor_toggle</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity_label</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_opacity</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.10</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">)</span>
-
-        <span class="n">y_pos</span> <span class="o">=</span> <span class="mf">0.65</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_label</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_name_label</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.13</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">)</span></div>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">logo_small_ok</span><span class="p">:</span>
+        <span class="n">img_small</span> <span class="o">=</span> <span class="n">logo_img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
+        <span class="n">img_small</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">LOGO_SMALL</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Name of the tab.</span>
+<span class="n">FONT</span> <span class="o">=</span> <span class="n">FONTS</span> <span class="o">/</span> <span class="s2">"Inter_18pt-Regular.ttf"</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">FONT</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Downloading Skyline UI font..."</span><span class="p">)</span>
+    <span class="n">urlretrieve</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">DIPY_DATA_MIRROR</span><span class="si">}</span><span class="s2">/dipy-skyline/assets/fonts/Inter_18pt-Regular.ttf"</span><span class="p">,</span> <span class="n">FONT</span>
+    <span class="p">)</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+<span class="n">FONT_AWESOME</span> <span class="o">=</span> <span class="n">FONTS</span> <span class="o">/</span> <span class="s2">"fontawesome-webfont.ttf"</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">FONT_AWESOME</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Downloading Font Awesome Icons for Skyline UI..."</span><span class="p">)</span>
+    <span class="n">urlretrieve</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">DIPY_DATA_MIRROR</span><span class="si">}</span><span class="s2">/dipy-skyline/assets/fonts/fontawesome-webfont.ttf"</span><span class="p">,</span>
+        <span class="n">FONT_AWESOME</span><span class="p">,</span>
+    <span class="p">)</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">actors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Actors controlled by this tab."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer</span><span class="o">.</span><span class="n">actors</span></div>
 
+<div class="viewcode-block" id="hex_to_rgba">
+<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.UI.theme.hex_to_rgba">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">hex_to_rgba</span><span class="p">(</span><span class="n">hex_color</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert hex colors to rgba</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hex_color : str</span>
+<span class="sd">        Hexcode for the color.</span>
+<span class="sd">    alpha : float, optional</span>
+<span class="sd">        Transparency of the color.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        RGBA color tuple.</span>
+<span class="sd">    """</span>
+
+    <span class="n">hex_color</span> <span class="o">=</span> <span class="n">hex_color</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hex_color</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hex_color</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hex_color</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span></div>
+
+
+
+<span class="n">THEME</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"background"</span><span class="p">:</span> <span class="n">hex_to_rgba</span><span class="p">(</span><span class="s2">"#191919"</span><span class="p">),</span>
+    <span class="s2">"primary"</span><span class="p">:</span> <span class="n">hex_to_rgba</span><span class="p">(</span><span class="s2">"#EE942E"</span><span class="p">),</span>
+    <span class="s2">"secondary"</span><span class="p">:</span> <span class="n">hex_to_rgba</span><span class="p">(</span><span class="s2">"#FFFFFF"</span><span class="p">),</span>
+    <span class="s2">"text"</span><span class="p">:</span> <span class="n">hex_to_rgba</span><span class="p">(</span><span class="s2">"#838383"</span><span class="p">),</span>
+    <span class="s2">"text_highlight"</span><span class="p">:</span> <span class="n">hex_to_rgba</span><span class="p">(</span><span class="s2">"#EE942E"</span><span class="p">),</span>
+    <span class="s2">"shadow"</span><span class="p">:</span> <span class="n">hex_to_rgba</span><span class="p">(</span><span class="s2">"#838383"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.12</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="n">SLIDER_THEME</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"track_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"secondary"</span><span class="p">],</span>
+    <span class="s2">"track_bg"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"background"</span><span class="p">],</span>
+    <span class="s2">"thumb_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"primary"</span><span class="p">],</span>
+    <span class="s2">"track_covered_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"primary"</span><span class="p">],</span>
+    <span class="s2">"label_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text"</span><span class="p">],</span>
+    <span class="s2">"value_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text_highlight"</span><span class="p">],</span>
+    <span class="s2">"shadow_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"shadow"</span><span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">WINDOW_THEME</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"title_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text"</span><span class="p">],</span>
+    <span class="s2">"title_active_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text_highlight"</span><span class="p">],</span>
+    <span class="s2">"background_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"background"</span><span class="p">],</span>
+    <span class="s2">"collapse_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"secondary"</span><span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">SWITCH_THEME</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"background_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"background"</span><span class="p">],</span>
+    <span class="s2">"active_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text"</span><span class="p">],</span>
+    <span class="s2">"inactive_text_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text"</span><span class="p">],</span>
+    <span class="s2">"active_text_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"secondary"</span><span class="p">],</span>
+    <span class="s2">"border_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text"</span><span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">DROPDOWN_THEME</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"background_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"background"</span><span class="p">],</span>
+    <span class="s2">"border_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text_highlight"</span><span class="p">],</span>
+    <span class="s2">"hover_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text_highlight"</span><span class="p">],</span>
+    <span class="s2">"selected_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"secondary"</span><span class="p">],</span>
+    <span class="s2">"arrow_color"</span><span class="p">:</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"text_highlight"</span><span class="p">],</span>
+<span class="p">}</span>
 </pre></div>
 
                 </article>

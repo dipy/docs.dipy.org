@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.horizon.tab.roi &#8212; dipy 1.13.0.dev0+git20260908.52d6c76 documentation</title>
+    <title>dipy.viz.skyline.render.roi &#8212; dipy 1.13.0.dev0+git20260910.8849796 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=4ad4cae9"></script>
+    <script src="../../../../../_static/documentation_options.js?v=3a10f1ea"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -56,7 +56,7 @@
                 gtag('js', new Date());
                 gtag('config', 'G-D610GKJZRC');
             </script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/viz/horizon/tab/roi';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/viz/skyline/render/roi';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
@@ -865,7 +865,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">dipy.viz.hor...</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.viz.sky...</li>
   </ul>
 </nav>
 </div>
@@ -882,111 +882,251 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for dipy.viz.horizon.tab.roi</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.horizon.tab</span><span class="w"> </span><span class="kn">import</span> <span class="n">HorizonTab</span><span class="p">,</span> <span class="n">build_checkbox</span><span class="p">,</span> <span class="n">build_slider</span>
+  <h1>Source code for dipy.viz.skyline.render.roi</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Binary ROI masks meshed as translucent contours."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">color_picker</span><span class="p">,</span> <span class="n">colors_equal</span><span class="p">,</span> <span class="n">thin_slider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.renderer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualization</span>
+
+<span class="n">fury_trip_msg</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"Skyline requires Fury version 2.0.0 or higher."</span>
+    <span class="s2">" Please upgrade Fury by `pip install -U fury --pre` to use Skyline."</span>
+<span class="p">)</span>
+<span class="n">fury</span><span class="p">,</span> <span class="n">has_fury_v2</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
+    <span class="s2">"fury"</span><span class="p">,</span>
+    <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span>
+    <span class="n">trip_msg</span><span class="o">=</span><span class="n">fury_trip_msg</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="n">has_fury_v2</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">contour_from_roi</span><span class="p">,</span> <span class="n">set_group_opacity</span>
+
+<span class="n">imgui_bundle</span><span class="p">,</span> <span class="n">has_imgui</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
+    <span class="s2">"imgui_bundle"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"1.92.600"</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="s2">"1.92.801"</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="n">has_imgui</span><span class="p">:</span>
+    <span class="n">imgui</span> <span class="o">=</span> <span class="n">imgui_bundle</span><span class="o">.</span><span class="n">imgui</span>
 
 
-<div class="viewcode-block" id="ROIsTab">
-<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.horizon.tab.roi.ROIsTab">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">ROIsTab</span><span class="p">(</span><span class="n">HorizonTab</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contour_actors</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Initialize interaction tab for ROIs visualization.</span>
+<div class="viewcode-block" id="create_roi_visualization">
+<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.roi.create_roi_visualization">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_roi_visualization</span><span class="p">(</span>
+    <span class="nb">input</span><span class="p">,</span>
+    <span class="n">idx</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">opacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">render_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Create ROI visualization from input</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        contour_actors : list</span>
-<span class="sd">            list of vtkActor.</span>
-<span class="sd">        """</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input : tuple</span>
+<span class="sd">        Tuple of the (roi, affine, filename) or (roi, affine)</span>
+<span class="sd">    idx : int</span>
+<span class="sd">        Index of the ROI for naming purposes if filename is not provided.</span>
+<span class="sd">    opacity : int, optional</span>
+<span class="sd">        Opacity of the ROI rendering.</span>
+<span class="sd">    color : tuple, optional</span>
+<span class="sd">        Color of the ROI rendering.</span>
+<span class="sd">    render_callback : callable, optional</span>
+<span class="sd">        Callback function to be called after rendering.</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_actors</span> <span class="o">=</span> <span class="n">contour_actors</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">"ROIs"</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tab_id</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_actor_toggle</span> <span class="o">=</span> <span class="n">build_checkbox</span><span class="p">(</span>
-            <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">""</span><span class="p">],</span> <span class="n">checked_labels</span><span class="o">=</span><span class="p">[</span><span class="s2">""</span><span class="p">],</span> <span class="n">on_change</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_toggle_actors</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ROI3D</span>
+<span class="sd">        The created ROI3D object.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"Input must be a tuple containing (roi, affine, filename) or "</span>
+            <span class="s2">"(roi, affine) for ROI visualization."</span>
         <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider</span> <span class="o">=</span> <span class="n">build_slider</span><span class="p">(</span>
-            <span class="n">initial_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">max_value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-            <span class="n">text_template</span><span class="o">=</span><span class="s2">"</span><span class="si">{ratio:.0%}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="n">on_change</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_change_opacity</span><span class="p">,</span>
-            <span class="n">label</span><span class="o">=</span><span class="s2">"Opacity"</span><span class="p">,</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">roi</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="nb">input</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"ROI_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">roi</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span>
+
+    <span class="k">return</span> <span class="n">ROI3D</span><span class="p">(</span>
+        <span class="n">filename</span><span class="p">,</span>
+        <span class="n">roi</span><span class="p">,</span>
+        <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+        <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">,</span>
+        <span class="n">render_callback</span><span class="o">=</span><span class="n">render_callback</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ROI3D">
+<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.roi.ROI3D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ROI3D</span><span class="p">(</span><span class="n">Visualization</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Represent ``ROI3D`` in Skyline.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Display name used in the Skyline UI.</span>
+<span class="sd">    roi : ndarray</span>
+<span class="sd">        ROI mask array used to build a contour surface.</span>
+<span class="sd">    affine : ndarray, optional</span>
+<span class="sd">        Voxel-to-world affine used to position slices in world coordinates.</span>
+<span class="sd">    opacity : int, optional</span>
+<span class="sd">        Slice opacity in percent, expected in ``[0, 100]``.</span>
+<span class="sd">    color : tuple(float, float, float), optional</span>
+<span class="sd">        Value for ``color``.</span>
+<span class="sd">    render_callback : callable, optional</span>
+<span class="sd">        Callback used to request a render/update.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">roi</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">affine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">opacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">render_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Represent ``ROI3D`` in Skyline.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Display name used in the Skyline UI.</span>
+<span class="sd">        roi : ndarray</span>
+<span class="sd">            ROI mask array used to build a contour surface.</span>
+<span class="sd">        affine : ndarray, optional</span>
+<span class="sd">            Voxel-to-world affine used to position slices in world coordinates.</span>
+<span class="sd">        opacity : int, optional</span>
+<span class="sd">            Slice opacity in percent, expected in ``[0, 100]``.</span>
+<span class="sd">        color : tuple(float, float, float), optional</span>
+<span class="sd">            Value for ``color``.</span>
+<span class="sd">        render_callback : callable, optional</span>
+<span class="sd">            Callback used to request a render/update.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roi</span> <span class="o">=</span> <span class="n">roi</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"ROI data cannot be None for ROI visualization."</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">roi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"ROI data must be a numpy array for ROI visualization."</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">"Input has 4 dims, taking the first volume for ROI visualization."</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">roi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="n">opacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_popup_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"roi_color_picker_popup##</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_roi_actor</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">render_callback</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_roi_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle  create roi actor for ``ROI3D``."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_roi_surface</span> <span class="o">=</span> <span class="n">contour_from_roi</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">roi</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opacity</span> <span class="o">/</span> <span class="mf">100.0</span>
         <span class="p">)</span>
+        <span class="k">for</span> <span class="n">actor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roi_surface</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">alpha_mode</span> <span class="o">=</span> <span class="s2">"blend"</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">depth_write</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_register_elements</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_actor_toggle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_change_opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slider</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Change opacity of all ROIs.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        slider : LineSlider2D</span>
-<span class="sd">        """</span>
-        <span class="n">opacity</span> <span class="o">=</span> <span class="n">slider</span><span class="o">.</span><span class="n">value</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider</span><span class="o">.</span><span class="n">selected_value</span> <span class="o">=</span> <span class="n">slider</span><span class="o">.</span><span class="n">value</span>
-        <span class="k">for</span> <span class="n">contour</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actors</span><span class="p">:</span>
-            <span class="n">contour</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetOpacity</span><span class="p">(</span><span class="n">opacity</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_toggle_actors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkbox</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Toggle the opacity of the ROIs actor and slider.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opacity</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle  set opacity for ``ROI3D``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        checkbox : CheckBox2D</span>
-<span class="sd">            FURY checkbox UI element.</span>
+<span class="sd">        opacity : int, optional</span>
+<span class="sd">            Slice opacity in percent, expected in ``[0, 100]``.</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="s2">""</span> <span class="ow">in</span> <span class="n">checkbox</span><span class="o">.</span><span class="n">checked_labels</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hide</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+        <span class="n">set_group_opacity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_roi_surface</span><span class="p">,</span> <span class="n">opacity</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">actor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roi_surface</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">depth_write</span> <span class="o">=</span> <span class="n">opacity</span> <span class="o">&gt;=</span> <span class="mi">100</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_toggle_actors</span><span class="p">(</span><span class="n">checkbox</span><span class="p">)</span>
-
-<div class="viewcode-block" id="ROIsTab.build">
-<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.horizon.tab.roi.ROIsTab.build">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Position the elements in the tab.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        tab_id : int</span>
-<span class="sd">            Identifier for the tab. Index of the tab in TabUI.</span>
-<span class="sd">        """</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tab_id</span> <span class="o">=</span> <span class="n">tab_id</span>
-
-        <span class="n">y_pos</span> <span class="o">=</span> <span class="mf">0.85</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_actor_toggle</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider_label</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_opacity_slider</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.12</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">)</span></div>
-
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Title of the tab.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_populate_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle  populate info for ``ROI3D``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
+<span class="sd">            The information of the ROI visualization.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"ROI shape: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="se">\n</span><span class="s2">ROI dtype: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+        <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"Total voxels in ROI: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">roi</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">affine_str</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">separator</span><span class="o">=</span><span class="s2">" "</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">""</span>
+            <span class="p">)</span>
+            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"Affine:</span><span class="se">\n</span><span class="si">{</span><span class="n">affine_str</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="n">info</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">actors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Actors controlled by tab.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle actor for ``ROI3D``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
+<span class="sd">        Contour</span>
+<span class="sd">            The actor of the ROI visualization.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actors</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roi_surface</span>
 
+<div class="viewcode-block" id="ROI3D.render_widgets">
+<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.roi.ROI3D.render_widgets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Handle render widgets for ``ROI3D``."""</span>
+        <span class="n">changed</span><span class="p">,</span> <span class="n">new</span> <span class="o">=</span> <span class="n">thin_slider</span><span class="p">(</span>
+            <span class="s2">"Opacity"</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="mi">100</span><span class="p">,</span>
+            <span class="n">value_type</span><span class="o">=</span><span class="s2">"int"</span><span class="p">,</span>
+            <span class="n">text_format</span><span class="o">=</span><span class="s2">".0f"</span><span class="p">,</span>
+            <span class="n">value_unit</span><span class="o">=</span><span class="s2">"%"</span><span class="p">,</span>
+            <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="n">new</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_opacity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opacity</span><span class="p">)</span>
+
+        <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="n">selected_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span>
+        <span class="n">changed</span><span class="p">,</span> <span class="n">new_color</span><span class="p">,</span> <span class="n">is_open</span> <span class="o">=</span> <span class="n">color_picker</span><span class="p">(</span>
+            <span class="n">selected_color</span><span class="o">=</span><span class="n">selected_color</span><span class="p">,</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="s2">"Pick ROI color"</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">popup_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_popup_id</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_open</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span>
+        <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="o">=</span> <span class="n">new_color</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_open</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">colors_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_roi_actor</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_draft_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_picker_open</span> <span class="o">=</span> <span class="n">is_open</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">has_fury_v2</span><span class="p">:</span>
+    <span class="n">create_roi_visualization</span> <span class="o">=</span> <span class="n">ROI3D</span> <span class="o">=</span> <span class="n">fury</span>
 </pre></div>
 
                 </article>
