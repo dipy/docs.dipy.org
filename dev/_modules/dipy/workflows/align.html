@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.align &#8212; dipy 1.13.0.dev0+git20260910.27abe12 documentation</title>
+    <title>dipy.workflows.align &#8212; dipy 1.13.0.dev0+git20260911.f9e38a6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=892b2eec"></script>
+    <script src="../../../_static/documentation_options.js?v=ddeffe00"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -896,7 +896,11 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.reslice</span><span class="w"> </span><span class="kn">import</span> <span class="n">reslice</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamlinear</span><span class="w"> </span><span class="kn">import</span> <span class="n">slr_with_qbx</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamwarp</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundlewarp</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">gradient_table</span><span class="p">,</span> <span class="n">mask_non_weighted_bvals</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">gradient_table</span><span class="p">,</span>
+    <span class="n">mask_non_weighted_bvals</span><span class="p">,</span>
+    <span class="n">reorient_bvecs</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span><span class="p">,</span> <span class="n">save_qa_metric</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.stateful_tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">StatefulTractogram</span>
@@ -1925,6 +1929,7 @@ document.write(`
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_moved</span><span class="o">=</span><span class="s2">"moved.nii.gz"</span><span class="p">,</span>
         <span class="n">out_affine</span><span class="o">=</span><span class="s2">"affine.txt"</span><span class="p">,</span>
+        <span class="n">out_bvecs</span><span class="o">=</span><span class="s2">"moved.bvec"</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
@@ -1963,6 +1968,8 @@ document.write(`
 <span class="sd">            Name for the saved transformed image.</span>
 <span class="sd">        out_affine : string, optional</span>
 <span class="sd">            Name for the saved affine matrix.</span>
+<span class="sd">        out_bvecs : string, optional</span>
+<span class="sd">            Name for the saved reoriented b-vectors.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">level_iters</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">100</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -1982,7 +1989,7 @@ document.write(`
         <span class="p">)</span>
         <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
 
-        <span class="k">for</span> <span class="n">dwi</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">,</span> <span class="n">omoved</span><span class="p">,</span> <span class="n">oafffine</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">dwi</span><span class="p">,</span> <span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">,</span> <span class="n">omoved</span><span class="p">,</span> <span class="n">oafffine</span><span class="p">,</span> <span class="n">obvecs</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
             <span class="c1"># Load the data from the input files and store into objects.</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">)</span>
@@ -2011,6 +2018,10 @@ document.write(`
                 <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">,</span>
             <span class="p">)</span>
 
+            <span class="n">reoriented_gtab</span> <span class="o">=</span> <span class="n">reorient_bvecs</span><span class="p">(</span>
+                <span class="n">gtab</span><span class="p">,</span> <span class="n">reg_affines</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">bvecs_tol</span>
+            <span class="p">)</span>
+
             <span class="c1"># Saving the corrected image file</span>
             <span class="n">save_nifti</span><span class="p">(</span><span class="n">omoved</span><span class="p">,</span> <span class="n">reg_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(),</span> <span class="n">affine</span><span class="p">)</span>
             <span class="c1"># Write the affine matrix array to disk</span>
@@ -2018,7 +2029,9 @@ document.write(`
                 <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">"# Array shape: </span><span class="si">{</span><span class="n">reg_affines</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">affine_slice</span> <span class="ow">in</span> <span class="n">reg_affines</span><span class="p">:</span>
                     <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">affine_slice</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">"</span><span class="si">%-7.2f</span><span class="s2">"</span><span class="p">)</span>
-                    <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"# New slice</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span></div>
+                    <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"# New slice</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">obvecs</span><span class="p">,</span> <span class="n">reoriented_gtab</span><span class="o">.</span><span class="n">bvecs</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">"</span><span class="si">%.8f</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Reoriented b-vectors saved as </span><span class="si">{</span><span class="n">obvecs</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 </div>
 
 
