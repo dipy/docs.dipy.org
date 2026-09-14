@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.qti &#8212; dipy 1.13.0.dev0+git20260911.f9e38a6 documentation</title>
+    <title>dipy.reconst.qti &#8212; dipy 1.13.0.dev0+git20260914.937be63 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=ddeffe00"></script>
+    <script src="../../../_static/documentation_options.js?v=18ee4194"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -891,7 +891,7 @@ document.write(`
 <span class="sd">.. footbibliography::</span>
 <span class="sd">"""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">catch_warnings</span><span class="p">,</span> <span class="n">filterwarnings</span><span class="p">,</span> <span class="n">warn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -1655,29 +1655,23 @@ document.write(`
         <span class="n">vox_W</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span>
         <span class="n">vox_log_data</span> <span class="o">=</span> <span class="n">log_data</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span>
         <span class="n">y</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">vox_W</span> <span class="o">*</span> <span class="n">vox_log_data</span>
-        <span class="n">A_val</span> <span class="o">=</span> <span class="n">vox_W</span> <span class="o">*</span> <span class="n">X</span>
-        <span class="n">A</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">A_val</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">vox_W</span> <span class="o">*</span> <span class="n">X</span>
 
-        <span class="c1"># Suppress SCS CSC warning only for small matrices</span>
-        <span class="k">with</span> <span class="n">catch_warnings</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">A_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">:</span>
-                <span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">"Converting A to a CSC"</span><span class="p">)</span>
-
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cvxpy_solver</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Constrained optimization failed, attempting unconstrained"</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">" optimization."</span>
+            <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cvxpy_solver</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">unconstrained</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cvxpy_solver</span><span class="p">)</span>
                 <span class="n">m</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Constrained optimization failed, attempting unconstrained"</span>
-                <span class="n">msg</span> <span class="o">+=</span> <span class="s2">" optimization."</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Unconstrained optimization failed,"</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s2">" returning zero array."</span>
                 <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">unconstrained</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cvxpy_solver</span><span class="p">)</span>
-                    <span class="n">m</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Unconstrained optimization failed,"</span>
-                    <span class="n">msg</span> <span class="o">+=</span> <span class="s2">" returning zero array."</span>
-                    <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-                    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
         <span class="n">params_masked</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">T</span>
 
