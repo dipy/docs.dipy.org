@@ -52,12 +52,13 @@ General Options
         See :footcite:p:`Kanakaraj2024` for more details.
       - 'poly': Legendre polynomial regression bias correction.
       - 'bspline': Cubic B-spline regression bias correction.
-      - 'auto': Run both poly and bspline, return the one with
-        lower Coefficient of Variation within the brain mask.
+      - 'auto': Deprecated since 1.13.0, removed in 2.0.0. Run both
+        poly and bspline, return the one with lower Coefficient of
+        Variation within the brain mask.
   
   'n4' method is recommended for T1-weighted images. 'poly' and 'bspline'
   methods are recommended for diffusion-weighted images.
-  (default: auto)
+  (default: bspline)
 
 * ``--threshold``
 
@@ -110,11 +111,44 @@ General Options
   Apply gradient-based edge suppression (poly/bspline methods).
   (default: True)
 
+* ``--smoothness``
+
+  Bending energy penalty on the B-spline control lattice, relative
+  to the data term. 0 disables it (bspline method).
+  (default: 10.0)
+
+* ``--sharpen``
+
+  Iterate the regression inside the N4 histogram-sharpening loop
+  so tissue contrast is not absorbed into the field. If False, a
+  single direct regression of the log b0 is used (poly/bspline
+  methods).
+  (default: True)
+
+* ``--max_iter``
+
+  Maximum number of sharpening iterations (poly/bspline methods).
+  (default: 50)
+
+* ``--convergence_threshold``
+
+  Sharpening stops when the coefficient of variation of the field
+  update inside the mask falls below this value (poly/bspline
+  methods).
+  (default: 0.001)
+
+* ``--shrink_factor``
+
+  Downsampling factor used during the sharpening iterations
+  (poly/bspline methods).
+  (default: 2)
+
 * ``--zero_background``
 
-  If True, set the saved bias field to 1.0 outside the brain mask,
-  suppressing extrapolation artifacts in the background
-  (poly/bspline methods).
+  If True, set the bias field to 1.0 outside the brain mask so
+  background voxels are left untouched. If False, the in-mask
+  field is extrapolated to the background and the whole volume is
+  corrected (poly/bspline methods).
   (default: False)
 
 Output Options

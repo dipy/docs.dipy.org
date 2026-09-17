@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.nn &#8212; dipy 1.13.0.dev0+git20260917.9b78c5c documentation</title>
+    <title>dipy.workflows.nn &#8212; dipy 1.13.0.dev0+git20260917.c6ce547 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=6cb6b201"></script>
+    <script src="../../../_static/documentation_options.js?v=fa9f1bba"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -992,7 +992,7 @@ document.write(`
         <span class="n">bval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">bvec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">method</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">"bspline"</span><span class="p">,</span>
         <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
         <span class="n">use_cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1003,6 +1003,11 @@ document.write(`
         <span class="n">lambda_reg</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
         <span class="n">robust</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">gradient_weighting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">smoothness</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+        <span class="n">sharpen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">convergence_threshold</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+        <span class="n">shrink_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="n">zero_background</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_corrected</span><span class="o">=</span><span class="s2">"biasfield_corrected.nii.gz"</span><span class="p">,</span>
@@ -1028,8 +1033,9 @@ document.write(`
 <span class="sd">                  See :footcite:p:`Kanakaraj2024` for more details.</span>
 <span class="sd">                - 'poly': Legendre polynomial regression bias correction.</span>
 <span class="sd">                - 'bspline': Cubic B-spline regression bias correction.</span>
-<span class="sd">                - 'auto': Run both poly and bspline, return the one with</span>
-<span class="sd">                  lower Coefficient of Variation within the brain mask.</span>
+<span class="sd">                - 'auto': Deprecated since 1.13.0, removed in 2.0.0. Run both</span>
+<span class="sd">                  poly and bspline, return the one with lower Coefficient of</span>
+<span class="sd">                  Variation within the brain mask.</span>
 
 <span class="sd">            'n4' method is recommended for T1-weighted images. 'poly' and 'bspline'</span>
 <span class="sd">            methods are recommended for diffusion-weighted images.</span>
@@ -1054,10 +1060,28 @@ document.write(`
 <span class="sd">            Apply Tukey biweight robust reweighting (poly/bspline methods).</span>
 <span class="sd">        gradient_weighting : bool, optional</span>
 <span class="sd">            Apply gradient-based edge suppression (poly/bspline methods).</span>
-<span class="sd">        zero_background : bool, optional</span>
-<span class="sd">            If True, set the saved bias field to 1.0 outside the brain mask,</span>
-<span class="sd">            suppressing extrapolation artifacts in the background</span>
+<span class="sd">        smoothness : float, optional</span>
+<span class="sd">            Bending energy penalty on the B-spline control lattice, relative</span>
+<span class="sd">            to the data term. 0 disables it (bspline method).</span>
+<span class="sd">        sharpen : bool, optional</span>
+<span class="sd">            Iterate the regression inside the N4 histogram-sharpening loop</span>
+<span class="sd">            so tissue contrast is not absorbed into the field. If False, a</span>
+<span class="sd">            single direct regression of the log b0 is used (poly/bspline</span>
+<span class="sd">            methods).</span>
+<span class="sd">        max_iter : int, optional</span>
+<span class="sd">            Maximum number of sharpening iterations (poly/bspline methods).</span>
+<span class="sd">        convergence_threshold : float, optional</span>
+<span class="sd">            Sharpening stops when the coefficient of variation of the field</span>
+<span class="sd">            update inside the mask falls below this value (poly/bspline</span>
+<span class="sd">            methods).</span>
+<span class="sd">        shrink_factor : int, optional</span>
+<span class="sd">            Downsampling factor used during the sharpening iterations</span>
 <span class="sd">            (poly/bspline methods).</span>
+<span class="sd">        zero_background : bool, optional</span>
+<span class="sd">            If True, set the bias field to 1.0 outside the brain mask so</span>
+<span class="sd">            background voxels are left untouched. If False, the in-mask</span>
+<span class="sd">            field is extrapolated to the background and the whole volume is</span>
+<span class="sd">            corrected (poly/bspline methods).</span>
 <span class="sd">        out_dir : string or Path, optional</span>
 <span class="sd">            Output directory.</span>
 <span class="sd">        out_corrected : string, optional</span>
@@ -1125,6 +1149,11 @@ document.write(`
                     <span class="n">lambda_reg</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">lambda_reg</span><span class="p">),</span>
                     <span class="n">robust</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">robust</span><span class="p">),</span>
                     <span class="n">gradient_weighting</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">gradient_weighting</span><span class="p">),</span>
+                    <span class="n">smoothness</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">smoothness</span><span class="p">),</span>
+                    <span class="n">sharpen</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">sharpen</span><span class="p">),</span>
+                    <span class="n">max_iter</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">max_iter</span><span class="p">),</span>
+                    <span class="n">convergence_threshold</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">convergence_threshold</span><span class="p">),</span>
+                    <span class="n">shrink_factor</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">shrink_factor</span><span class="p">),</span>
                     <span class="n">return_bias_field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="n">zero_background</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">zero_background</span><span class="p">),</span>
                 <span class="p">)</span>

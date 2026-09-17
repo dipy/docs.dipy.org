@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>denoise &#8212; dipy 1.13.0.dev0+git20260917.9b78c5c documentation</title>
+    <title>denoise &#8212; dipy 1.13.0.dev0+git20260917.c6ce547 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=6cb6b201"></script>
+    <script src="../_static/documentation_options.js?v=fa9f1bba"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -939,7 +939,10 @@ MP-PCA, and local PCA for dMRI volumes.</p>
 <p>Provides classical regression-based bias field correction via Legendre
 polynomial regression and cubic B-spline regression.</p>
 <p>The bias field is estimated exclusively from the mean b0 volume in the
-log domain and applied uniformly to all DWI volumes.</p>
+log domain and applied uniformly to all DWI volumes. By default the
+regression is wrapped in the iterative histogram-sharpening scheme of N4
+<a class="footnote-reference brackets" href="#footcite-tustison2010" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, which separates tissue contrast from the slowly
+varying field.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.denoise.bias_correction.polynomial_bias_field_dwi" title="dipy.denoise.bias_correction.polynomial_bias_field_dwi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">polynomial_bias_field_dwi</span></code></a>(data, gtab, *[, ...])</p></td>
@@ -1052,7 +1055,7 @@ image. Returns the resulting combined image.</p>
 <dt><strong>fimao</strong><span class="classifier">3D double array,</span></dt><dd><p>filtered image with optimized non-local means using a small block
 (suggested:5x5), which corresponds to a “low resolution” filter.</p>
 </dd>
-<dt><strong>sigma</strong><span class="classifier">the estimated standard deviation of the Gaussian random variables</span></dt><dd><p>that explain the rician noise. Note: In <a class="footnote-reference brackets" href="#footcite-coupe2012" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> the
+<dt><strong>sigma</strong><span class="classifier">the estimated standard deviation of the Gaussian random variables</span></dt><dd><p>that explain the rician noise. Note: In <a class="footnote-reference brackets" href="#footcite-coupe2012" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> the
 rician noise was simulated as sqrt((f+x)^2 + (y)^2) where f is
 the pixel value and x and y are independent realizations of a
 random variable with Normal distribution, with mean=0 and
@@ -1069,11 +1072,16 @@ the input</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div class="docutils container" id="id2">
+<div class="docutils container" id="id3">
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="footcite-coupe2012" role="doc-footnote">
+<aside class="footnote brackets" id="footcite-tustison2010" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id20">2</a>)</span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id4">2</a>)</span>
+<p>Nicholas J. Tustison, Brian B. Avants, Philip A. Cook, Yuanjie Zheng, Alexander Egan, Paul A. Yushkevich, and James C. Gee. N4ITK: Improved N3 Bias Correction. <em>IEEE Transactions on Medical Imaging</em>, 29(6):1310–1320, 2010. <a class="reference external" href="https://doi.org/10.1109/TMI.2010.2046908">doi:10.1109/TMI.2010.2046908</a>.</p>
+</aside>
+<aside class="footnote brackets" id="footcite-coupe2012" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id22">2</a>)</span>
 <p>Pierrick Coupé, José V. Manjón, Montserrat Robles, and Louis D. Collins. Adaptive Multiresolution Non-Local Means Filter for 3D MR Image Denoising. <em>IET Image Processing</em>, 6(5):558–568, July 2012. URL: <a class="reference external" href="https://doi.org/10.1049/iet-ipr.2011.0161">https://doi.org/10.1049/iet-ipr.2011.0161</a>, <a class="reference external" href="https://doi.org/10.1049/iet-ipr.2011.0161">doi:10.1049/iet-ipr.2011.0161</a>.</p>
 </aside>
 </aside>
@@ -1085,11 +1093,12 @@ the input</p>
 <h3>polynomial_bias_field_dwi<a class="headerlink" href="#polynomial-bias-field-dwi" title="Link to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="dipy.denoise.bias_correction.polynomial_bias_field_dwi">
-<span class="sig-prename descclassname"><span class="pre">dipy.denoise.bias_correction.</span></span><span class="sig-name descname"><span class="pre">polynomial_bias_field_dwi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtab</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pyramid_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(4,</span> <span class="pre">2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">robust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient_weighting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/bias_correction.html#polynomial_bias_field_dwi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.bias_correction.polynomial_bias_field_dwi" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dipy.denoise.bias_correction.</span></span><span class="sig-name descname"><span class="pre">polynomial_bias_field_dwi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtab</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pyramid_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(4,</span> <span class="pre">2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">robust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient_weighting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sharpen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convergence_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/bias_correction.html#polynomial_bias_field_dwi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.bias_correction.polynomial_bias_field_dwi" title="Link to this definition">#</a></dt>
 <dd><p>DWI bias field correction via multi-resolution Legendre polynomial regression.</p>
 <p>Estimates the bias field from the mean b0 volume in log space using
 coarse-to-fine Legendre polynomial regression, then applies the estimated
-field to all DWI volumes.</p>
+field to all DWI volumes. See <a class="reference internal" href="#dipy.denoise.bias_correction.bias_field_correction" title="dipy.denoise.bias_correction.bias_field_correction"><code class="xref py py-func docutils literal notranslate"><span class="pre">bias_field_correction()</span></code></a> for the
+meaning of the parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1103,18 +1112,34 @@ field to all DWI volumes.</p>
 </dd>
 <dt><strong>pyramid_levels</strong><span class="classifier">tuple of int, optional</span></dt><dd><p>Downsampling factors for coarse-to-fine pyramid (descending order).</p>
 </dd>
-<dt><strong>n_iter</strong><span class="classifier">int, optional</span></dt><dd><p>Reweighting iterations per pyramid level.</p>
+<dt><strong>n_iter</strong><span class="classifier">int, optional</span></dt><dd><p>Reweighting iterations per pyramid level. Only used when
+<code class="docutils literal notranslate"><span class="pre">sharpen=False</span></code>; the sharpening loop solves each level once per
+iteration.</p>
 </dd>
 <dt><strong>lambda_reg</strong><span class="classifier">float, optional</span></dt><dd><p>Ridge regularization strength.</p>
 </dd>
-<dt><strong>robust</strong><span class="classifier">bool, optional</span></dt><dd><p>Apply Tukey biweight robust reweighting.</p>
+<dt><strong>robust</strong><span class="classifier">bool, optional</span></dt><dd><p>Apply Tukey biweight robust reweighting. Only used when
+<code class="docutils literal notranslate"><span class="pre">sharpen=False</span></code>; inside the sharpening loop the histogram model
+already accounts for tissue outliers and reweighting the small
+residuals degrades the fit.</p>
 </dd>
 <dt><strong>gradient_weighting</strong><span class="classifier">bool, optional</span></dt><dd><p>Apply gradient-based edge suppression.</p>
 </dd>
+<dt><strong>sharpen</strong><span class="classifier">bool, optional</span></dt><dd><p>Iterate the regression inside the N4 histogram-sharpening loop.</p>
+</dd>
+<dt><strong>max_iter</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum number of sharpening iterations.</p>
+</dd>
+<dt><strong>convergence_threshold</strong><span class="classifier">float, optional</span></dt><dd><p>Sharpening stops when the coefficient of variation of the field
+update inside the mask falls below this value.</p>
+</dd>
+<dt><strong>shrink_factor</strong><span class="classifier">int, optional</span></dt><dd><p>Downsampling factor used during the sharpening iterations.</p>
+</dd>
 <dt><strong>zero_background</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, set the bias field to 1.0 (no correction) outside the brain
-mask. If False, the raw extrapolated field values are preserved in
-the returned bias_field array. Has no effect on the corrected DWI
-data (background voxels are always zeroed by the brain mask).</p>
+mask, leaving background voxels untouched. If False, the field
+estimated inside the mask is extrapolated to the background (nearest
+in-mask value, smoothed) so the whole volume is corrected with a
+continuous field. The mask only restricts the regression; no voxel
+is ever zeroed in the corrected data.</p>
 </dd>
 </dl>
 </dd>
@@ -1127,6 +1152,7 @@ data (background voxels are always zeroed by the brain mask).</p>
 </dl>
 </dd>
 </dl>
+<p class="rubric">References</p>
 </dd></dl>
 
 </section>
@@ -1134,11 +1160,18 @@ data (background voxels are always zeroed by the brain mask).</p>
 <h3>bias_field_correction<a class="headerlink" href="#bias-field-correction" title="Link to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="dipy.denoise.bias_correction.bias_field_correction">
-<span class="sig-prename descclassname"><span class="pre">dipy.denoise.bias_correction.</span></span><span class="sig-name descname"><span class="pre">bias_field_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtab</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bspline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_control_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">8,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pyramid_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(4,</span> <span class="pre">2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">robust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient_weighting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_bias_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/bias_correction.html#bias_field_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.bias_correction.bias_field_correction" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dipy.denoise.bias_correction.</span></span><span class="sig-name descname"><span class="pre">bias_field_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtab</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bspline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_control_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">8,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pyramid_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(4,</span> <span class="pre">2,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">robust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient_weighting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sharpen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convergence_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_bias_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/bias_correction.html#bias_field_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.bias_correction.bias_field_correction" title="Link to this definition">#</a></dt>
 <dd><p>Top-level DWI bias field correction via regression.</p>
 <p>Estimates a smooth multiplicative bias field from the mean b0 volume
 using polynomial or B-spline regression in log space, then applies the
 correction uniformly to all DWI volumes.</p>
+<p>A direct regression of the log b0 cannot tell tissue contrast from the
+bias field: white matter is darker than cortex on a b0 image, so the
+fit tilts the field toward the periphery. With <code class="docutils literal notranslate"><span class="pre">sharpen=True</span></code> the
+regression is wrapped in the iterative histogram-sharpening scheme of N4
+<a class="footnote-reference brackets" href="#footcite-tustison2010" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. At each iteration the log intensities are
+pulled toward their tissue-class mean and only the residual is smoothed,
+so the field converges to the slowly varying component alone.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1152,9 +1185,10 @@ correction uniformly to all DWI volumes.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;poly&quot;</span></code>: Legendre polynomial regression — fast, low-parameter.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;bspline&quot;</span></code>: Cubic B-spline regression — more flexible.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>: Run both methods and return the one with lower
-Coefficient of Variation within the brain mask. The chosen method
-is logged at INFO level.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>: Deprecated since 1.13.0, removed in 2.0.0. Runs
+both methods and returns the one with lower Coefficient of
+Variation within the brain mask. The CoV rewards fields that
+flatten tissue contrast, so the choice is not meaningful.</p></li>
 </ul>
 </dd>
 <dt><strong>order</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum Legendre polynomial degree (used only for method=”poly”).</p>
@@ -1164,21 +1198,44 @@ method=”bspline”).</p>
 </dd>
 <dt><strong>pyramid_levels</strong><span class="classifier">tuple of int, optional</span></dt><dd><p>Downsampling factors for coarse-to-fine pyramid (descending order).</p>
 </dd>
-<dt><strong>n_iter</strong><span class="classifier">int, optional</span></dt><dd><p>Reweighting iterations per pyramid level.</p>
+<dt><strong>n_iter</strong><span class="classifier">int, optional</span></dt><dd><p>Reweighting iterations per pyramid level. Only used when
+<code class="docutils literal notranslate"><span class="pre">sharpen=False</span></code>; the sharpening loop solves each level once per
+iteration.</p>
 </dd>
 <dt><strong>lambda_reg</strong><span class="classifier">float, optional</span></dt><dd><p>Ridge regularization strength.</p>
 </dd>
-<dt><strong>robust</strong><span class="classifier">bool, optional</span></dt><dd><p>Apply Tukey biweight robust reweighting at each level.</p>
+<dt><strong>robust</strong><span class="classifier">bool, optional</span></dt><dd><p>Apply Tukey biweight robust reweighting at each level. Only used
+when <code class="docutils literal notranslate"><span class="pre">sharpen=False</span></code>; inside the sharpening loop the histogram
+model already accounts for tissue outliers and reweighting the
+small residuals degrades the fit.</p>
 </dd>
 <dt><strong>gradient_weighting</strong><span class="classifier">bool, optional</span></dt><dd><p>Weight regression by edge-suppression map derived from the
 image gradient.</p>
 </dd>
+<dt><strong>smoothness</strong><span class="classifier">float, optional</span></dt><dd><p>Bending energy penalty on the B-spline control lattice, relative to
+the data term (used only for method=”bspline”). 0 disables it.</p>
+</dd>
+<dt><strong>sharpen</strong><span class="classifier">bool, optional</span></dt><dd><p>Iterate the regression inside the N4 histogram-sharpening loop.
+If False, a single direct regression of the log b0 is used.</p>
+</dd>
+<dt><strong>max_iter</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum number of sharpening iterations.</p>
+</dd>
+<dt><strong>convergence_threshold</strong><span class="classifier">float, optional</span></dt><dd><p>Sharpening stops when the coefficient of variation of the field
+update inside the mask falls below this value.</p>
+</dd>
+<dt><strong>shrink_factor</strong><span class="classifier">int, optional</span></dt><dd><p>Decimation factor applied to the b0 during the sharpening
+iterations. The final field is interpolated back to full
+resolution. Full resolution is used when the decimated mask would
+hold fewer than 1000 voxels.</p>
+</dd>
 <dt><strong>return_bias_field</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, return the bias field alongside the corrected data.</p>
 </dd>
 <dt><strong>zero_background</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, set the bias field to 1.0 (no correction) outside the brain
-mask. If False, the raw extrapolated field values are preserved in
-the returned bias_field array. Has no effect on the corrected DWI
-data (background voxels are always zeroed by the brain mask).</p>
+mask, leaving background voxels untouched. If False, the field
+estimated inside the mask is extrapolated to the background (nearest
+in-mask value, smoothed) so the whole volume is corrected with a
+continuous field. The mask only restricts the regression; no voxel
+is ever zeroed in the corrected data.</p>
 </dd>
 </dl>
 </dd>
@@ -1192,6 +1249,7 @@ return_bias_field=True).</p>
 </dl>
 </dd>
 </dl>
+<p class="rubric">References</p>
 </dd></dl>
 
 </section>
@@ -1201,7 +1259,7 @@ return_bias_field=True).</p>
 <dt class="sig sig-object py" id="dipy.denoise.gibbs.gibbs_removal">
 <span class="sig-prename descclassname"><span class="pre">dipy.denoise.gibbs.</span></span><span class="sig-name descname"><span class="pre">gibbs_removal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/gibbs.html#gibbs_removal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.gibbs.gibbs_removal" title="Link to this definition">#</a></dt>
 <dd><p>Suppresses Gibbs ringing artefacts of images volumes.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-kellner2016" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#footcite-netohenriques2018" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> for
+<p>See <a class="footnote-reference brackets" href="#footcite-kellner2016" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#footcite-netohenriques2018" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> for
 further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1234,14 +1292,14 @@ images.</p>
 <p>For 4D matrix last element should always correspond to the number of
 diffusion gradient directions.</p>
 <p class="rubric">References</p>
-<div class="docutils container" id="id5">
+<div class="docutils container" id="id7">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-kellner2016" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">3</a><span class="fn-bracket">]</span></span>
 <p>Elias Kellner, Bibek Dhital, Valerij G. Kiselev, and Marco Reisert. Gibbs-ringing artifact removal based on local subvoxel-shifts. <em>Magnetic Resonance in Medicine</em>, 76(5):1574–1581, 2016. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.26054">https://doi.org/10.1002/mrm.26054</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.26054">doi:10.1002/mrm.26054</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-netohenriques2018" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">3</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">4</a><span class="fn-bracket">]</span></span>
 <p>Rafael Neto Henriques. <em>Advanced Methods for Diffusion MRI Data Analysis and their Application to the Healthy Ageing Brain</em>. PhD thesis, Cambridge University, Cambridge, United Kingdom, 2018. URL: <a class="reference external" href="https://doi.org/10.17863/CAM.29356">https://doi.org/10.17863/CAM.29356</a>, <a class="reference external" href="https://doi.org/10.17863/CAM.29356">doi:10.17863/CAM.29356</a>.</p>
 </aside>
 </aside>
@@ -1391,7 +1449,7 @@ arrays are supported.</p>
 </dd>
 <dt><strong>sigma</strong><span class="classifier">float or 3D array, optional</span></dt><dd><p>Standard deviation of the noise estimated from the data. If no sigma
 is given, this will be estimated based on random matrix theory
-<a class="footnote-reference brackets" href="#footcite-veraart2016b" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>, <a class="footnote-reference brackets" href="#footcite-veraart2016c" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#footcite-veraart2016b" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>, <a class="footnote-reference brackets" href="#footcite-veraart2016c" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
 </dd>
 <dt><strong>mask</strong><span class="classifier">3D boolean array, optional</span></dt><dd><p>A mask with voxels that are true inside the brain and false outside of
 it. The function denoises within the true part and returns zeros
@@ -1410,7 +1468,7 @@ are smaller than:</p>
 <div class="math notranslate nohighlight">
 \[\tau = (\tau_{factor} \sigma)^2\]</div>
 <p><span class="math notranslate nohighlight">\(\tau_{factor}\)</span> can be set to a predefined values (e.g. <span class="math notranslate nohighlight">\(\tau_{factor} =
-2.3\)</span> <a class="footnote-reference brackets" href="#footcite-manjon2013" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>), or automatically calculated using random
+2.3\)</span> <a class="footnote-reference brackets" href="#footcite-manjon2013" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>), or automatically calculated using random
 matrix theory (in case that <span class="math notranslate nohighlight">\(\tau_{factor}\)</span> is set to None).</p>
 </dd>
 <dt><strong>return_sigma</strong><span class="classifier">bool, optional</span></dt><dd><p>If true, the Standard deviation of the noise will be returned.</p>
@@ -1433,21 +1491,21 @@ without clipping.</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div class="docutils container" id="id9">
+<div class="docutils container" id="id11">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-veraart2016b" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id6">1</a>,<a role="doc-backlink" href="#id17">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id8">1</a>,<a role="doc-backlink" href="#id19">2</a>)</span>
 <p>Jelle Veraart, Els Fieremans, and Dmitry S. Novikov. Diffusion MRI noise mapping using random matrix theory. <em>Magnetic Resonance in Medicine</em>, 76(5):1582–1593, November 2016. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.26059">https://doi.org/10.1002/mrm.26059</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.26059">doi:10.1002/mrm.26059</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-veraart2016c" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id7">1</a>,<a role="doc-backlink" href="#id12">2</a>,<a role="doc-backlink" href="#id14">3</a>,<a role="doc-backlink" href="#id16">4</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id9">1</a>,<a role="doc-backlink" href="#id14">2</a>,<a role="doc-backlink" href="#id16">3</a>,<a role="doc-backlink" href="#id18">4</a>)</span>
 <p>Jelle Veraart, Dmitry S. Novikov, Daan Christiaens, Benjamin Ades-aron, Jan Sijbers, and Els Fieremans. Denoising of diffusion MRI using random matrix theory. <em>NeuroImage</em>, 142:394–406, November 2016. URL: <a class="reference external" href="https://doi.org/10.1016/j.neuroimage.2016.08.016">https://doi.org/10.1016/j.neuroimage.2016.08.016</a>, <a class="reference external" href="https://doi.org/10.1016/j.neuroimage.2016.08.016">doi:10.1016/j.neuroimage.2016.08.016</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-manjon2013" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id8">1</a>,<a role="doc-backlink" href="#id10">2</a>,<a role="doc-backlink" href="#id11">3</a>,<a role="doc-backlink" href="#id13">4</a>,<a role="doc-backlink" href="#id15">5</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id10">1</a>,<a role="doc-backlink" href="#id12">2</a>,<a role="doc-backlink" href="#id13">3</a>,<a role="doc-backlink" href="#id15">4</a>,<a role="doc-backlink" href="#id17">5</a>)</span>
 <p>José V. Manjón, Pierrick Coupé, Luis Concha, Antonio Buades, D. Louis Collins, and Montserrat Robles. Diffusion Weighted Image Denoising Using Overcomplete Local PCA. <em>PLOS ONE</em>, 8(9):e73021, 2013. URL: <a class="reference external" href="https://doi.org/10.1371/journal.pone.0073021">https://doi.org/10.1371/journal.pone.0073021</a>, <a class="reference external" href="https://doi.org/10.1371/journal.pone.0073021">doi:10.1371/journal.pone.0073021</a>.</p>
 </aside>
 </aside>
@@ -1461,7 +1519,7 @@ without clipping.</p>
 <dt class="sig sig-object py" id="dipy.denoise.localpca.localpca">
 <span class="sig-prename descclassname"><span class="pre">dipy.denoise.localpca.</span></span><span class="sig-name descname"><span class="pre">localpca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_radius_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pca_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eig'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correct_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppress_warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/localpca.html#localpca"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.localpca.localpca" title="Link to this definition">#</a></dt>
 <dd><p>Performs local PCA denoising.</p>
-<p>The method follows the algorithm in Manjón <em>et al.</em><a class="footnote-reference brackets" href="#footcite-manjon2013" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
+<p>The method follows the algorithm in Manjón <em>et al.</em><a class="footnote-reference brackets" href="#footcite-manjon2013" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -1470,7 +1528,7 @@ are the diffusion gradient directions. Both real and complex-valued
 arrays are supported.</p>
 </dd>
 <dt><strong>sigma</strong><span class="classifier">float or 3D array, optional</span></dt><dd><p>Standard deviation of the noise estimated from the data. If not given,
-calculate using method in Manjón <em>et al.</em><a class="footnote-reference brackets" href="#footcite-manjon2013" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
+calculate using method in Manjón <em>et al.</em><a class="footnote-reference brackets" href="#footcite-manjon2013" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>.</p>
 </dd>
 <dt><strong>mask</strong><span class="classifier">3D boolean array, optional</span></dt><dd><p>A mask with voxels that are true inside the brain and false outside of
 it. The function denoises within the true part and returns zeros
@@ -1499,14 +1557,14 @@ are smaller than:</p>
 <p>tau_{factor} can be change to adjust the relationship between the
 noise standard deviation and the threshold tau. If tau_{factor} is
 set to None, it will be automatically calculated using the
-Marcenko-Pastur distribution <a class="footnote-reference brackets" href="#footcite-veraart2016c" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>. Default: 2.3
-according to Manjón <em>et al.</em><a class="footnote-reference brackets" href="#footcite-manjon2013" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
+Marcenko-Pastur distribution <a class="footnote-reference brackets" href="#footcite-veraart2016c" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>. Default: 2.3
+according to Manjón <em>et al.</em><a class="footnote-reference brackets" href="#footcite-manjon2013" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>.</p>
 </dd>
 <dt><strong>return_sigma</strong><span class="classifier">bool, optional</span></dt><dd><p>If true, a noise standard deviation estimate based on the
-Marcenko-Pastur distribution is returned <a class="footnote-reference brackets" href="#footcite-veraart2016c" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>.</p>
+Marcenko-Pastur distribution is returned <a class="footnote-reference brackets" href="#footcite-veraart2016c" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
 </dd>
 <dt><strong>correct_bias</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to correct for bias due to Rician noise. This is an
-implementation of equation 8 in <a class="footnote-reference brackets" href="#footcite-manjon2013" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>.</p>
+implementation of equation 8 in <a class="footnote-reference brackets" href="#footcite-manjon2013" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>.</p>
 </dd>
 <dt><strong>out_dtype</strong><span class="classifier">str or dtype, optional</span></dt><dd><p>The dtype for the output array. Default: output has the same dtype as
 the input.</p>
@@ -1536,7 +1594,7 @@ without clipping.</p>
 <span class="sig-prename descclassname"><span class="pre">dipy.denoise.localpca.</span></span><span class="sig-name descname"><span class="pre">mppca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pca_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eig'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppress_warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/localpca.html#mppca"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.localpca.mppca" title="Link to this definition">#</a></dt>
 <dd><p>Performs PCA-based denoising using the Marcenko-Pastur
 distribution.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-veraart2016c" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-veraart2016c" id="id18" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1557,7 +1615,7 @@ method is ‘eig’ which is faster. However, occasionally ‘svd’ might be
 more accurate.</p>
 </dd>
 <dt><strong>return_sigma</strong><span class="classifier">bool, optional</span></dt><dd><p>If true, a noise standard deviation estimate based on the
-Marcenko-Pastur distribution is returned <a class="footnote-reference brackets" href="#footcite-veraart2016b" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.</p>
+Marcenko-Pastur distribution is returned <a class="footnote-reference brackets" href="#footcite-veraart2016b" id="id19" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>.</p>
 </dd>
 <dt><strong>out_dtype</strong><span class="classifier">str or dtype, optional</span></dt><dd><p>The dtype for the output array. Default: output has the same dtype as
 the input.</p>
@@ -1592,8 +1650,8 @@ without clipping.</p>
 the classic approach and an improved blockwise algorithm. The blockwise method
 offers better coordinate handling, memory efficiency, and performance through
 advanced parallelization and statistical pre-filtering.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-descoteaux2008a" id="id18" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> for further details about the classic method.
-See <a class="footnote-reference brackets" href="#footcite-coupe2008" id="id19" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#footcite-coupe2012" id="id20" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> for further details
+<p>See <a class="footnote-reference brackets" href="#footcite-descoteaux2008a" id="id20" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> for further details about the classic method.
+See <a class="footnote-reference brackets" href="#footcite-coupe2008" id="id21" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#footcite-coupe2012" id="id22" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> for further details
 about the blockwise method.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1657,15 +1715,15 @@ quality may require different parameters between methods:
 <p>For 4D inputs with <code class="docutils literal notranslate"><span class="pre">method='blockwise'</span></code>, a 3D <code class="docutils literal notranslate"><span class="pre">sigma</span></code> map is accepted
 and passed through for blockwise processing.</p>
 <p class="rubric">References</p>
-<div class="docutils container" id="id21">
+<div class="docutils container" id="id23">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-descoteaux2008a" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id18">7</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id20">8</a><span class="fn-bracket">]</span></span>
 <p>Maxime Descoteaux, Nicolas Wiest-Daesslé, Sylvain Prima, Christian Barillot, and Rachid Deriche. Impact of Rician adapted Non-Local Means filtering on HARDI. In Dimitris Metaxas, Leon Axel, Gabor Fichtinger, and Gábor Székely, editors, <em>Medical Image Computing and Computer-Assisted Intervention (MICCAI)</em>, volume 11, 122–130. Berlin, Heidelberg, 2008. Springer Berlin Heidelberg. <a class="reference external" href="https://doi.org/10.1007/978-3-540-85990-1_15">doi:10.1007/978-3-540-85990-1_15</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-coupe2008" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id19">1</a>,<a role="doc-backlink" href="#id28">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id21">1</a>,<a role="doc-backlink" href="#id30">2</a>)</span>
 <p>Pierrick Coupé, Pierre Yger, Sylvain Prima, Pierre Hellier, Charles Kervrann, and Christian Barillot. An Optimized Blockwise Nonlocal Means Denoising Filter for 3-D Magnetic Resonance Images. <em>IEEE Transactions on Medical Imaging</em>, 27(4):425–441, 2008. URL: <a class="reference external" href="https://doi.org/10.1109/TMI.2008.2008967">https://doi.org/10.1109/TMI.2008.2008967</a>, <a class="reference external" href="https://doi.org/10.1109/TMI.2007.906087">doi:10.1109/TMI.2007.906087</a>.</p>
 </aside>
 </aside>
@@ -1705,7 +1763,7 @@ and passed through for blockwise processing.</p>
 <dt class="sig sig-object py" id="dipy.denoise.noise_estimate.piesno">
 <span class="sig-prename descclassname"><span class="pre">dipy.denoise.noise_estimate.</span></span><span class="sig-name descname"><span class="pre">piesno</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itermax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/noise_estimate.html#piesno"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.noise_estimate.piesno" title="Link to this definition">#</a></dt>
 <dd><p>Probabilistic Identification and Estimation of Noise (PIESNO).</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-koay2009a" id="id22" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#footcite-koay2009b" id="id23" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a> for further details
+<p>See <a class="footnote-reference brackets" href="#footcite-koay2009a" id="id24" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#footcite-koay2009b" id="id25" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a> for further details
 about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1752,14 +1810,14 @@ T1/T2.</p>
 the paper. Use it to get a slice by slice estimation of the noise, as in
 spinal cord imaging for example.</p>
 <p class="rubric">References</p>
-<div class="docutils container" id="id24">
+<div class="docutils container" id="id26">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-koay2009a" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id22">9</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id24">10</a><span class="fn-bracket">]</span></span>
 <p>Cheng Guan Koay, Evren Özarslan, and Peter J. Basser. A signal transformational framework for breaking the noise floor and its applications in MRI. <em>Journal of Magnetic Resonance</em>, 197(2):108–119, April 2009. URL: <a class="reference external" href="https://doi.org/10.1016/j.jmr.2008.11.015">https://doi.org/10.1016/j.jmr.2008.11.015</a>, <a class="reference external" href="https://doi.org/10.1016/j.jmr.2008.11.015">doi:10.1016/j.jmr.2008.11.015</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-koay2009b" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id23">10</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id25">11</a><span class="fn-bracket">]</span></span>
 <p>Cheng Guan Koay, Evren Özarslan, and Carlo Pierpaoli. Probabilistic Identification and Estimation of Noise (PIESNO): A self-consistent approach and its applications in MRI. <em>Journal of Magnetic Resonance</em>, 199(1):94–103, July 2009. URL: <a class="reference external" href="https://doi.org/10.1016/j.jmr.2009.03.005">https://doi.org/10.1016/j.jmr.2009.03.005</a>, <a class="reference external" href="https://doi.org/10.1016/j.jmr.2009.03.005">doi:10.1016/j.jmr.2009.03.005</a>.</p>
 </aside>
 </aside>
@@ -1785,7 +1843,7 @@ voxels are used. Useful if the background is masked by the scanner.</p>
 reconstruction (Philips scanners) or the number of coils for a GRAPPA
 reconstruction (Siemens and GE). Use 0 to disable the correction factor,
 as for example if the noise is Gaussian distributed. See
-<a class="footnote-reference brackets" href="#footcite-koay2006a" id="id25" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a> for more information.</p>
+<a class="footnote-reference brackets" href="#footcite-koay2006a" id="id27" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a> for more information.</p>
 </dd>
 </dl>
 </dd>
@@ -1800,18 +1858,18 @@ as for example if the noise is Gaussian distributed. See
 <p>This function is the same as manually taking the standard deviation of the
 background and gives one value for the whole 3D array.
 It also includes the coil-dependent correction factor from
-Koay and Basser<a class="footnote-reference brackets" href="#footcite-koay2006a" id="id26" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a> (see equation 18 in <a class="footnote-reference brackets" href="#footcite-koay2006a" id="id27" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a>) with
-theta = 0. Since this function was introduced in <a class="footnote-reference brackets" href="#footcite-coupe2008" id="id28" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> for
+Koay and Basser<a class="footnote-reference brackets" href="#footcite-koay2006a" id="id28" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a> (see equation 18 in <a class="footnote-reference brackets" href="#footcite-koay2006a" id="id29" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a>) with
+theta = 0. Since this function was introduced in <a class="footnote-reference brackets" href="#footcite-coupe2008" id="id30" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> for
 T1 imaging, it is expected to perform ok on diffusion MRI data, but might
 oversmooth some regions and leave others un-denoised for spatially varying
 noise profiles. Consider using <a class="reference internal" href="#dipy.denoise.noise_estimate.piesno" title="dipy.denoise.noise_estimate.piesno"><code class="xref py py-func docutils literal notranslate"><span class="pre">piesno()</span></code></a> to estimate sigma instead if
 visual inaccuracies are apparent in the denoised result.</p>
 <p class="rubric">References</p>
-<div class="docutils container" id="id29">
+<div class="docutils container" id="id31">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-koay2006a" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id25">1</a>,<a role="doc-backlink" href="#id26">2</a>,<a role="doc-backlink" href="#id27">3</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id27">1</a>,<a role="doc-backlink" href="#id28">2</a>,<a role="doc-backlink" href="#id29">3</a>)</span>
 <p>Cheng Guan Koay and Peter J. Basser. Analytically exact correction scheme for signal extraction from noisy magnitude MR signals. <em>Journal of Magnetic Resonance</em>, 179(2):317–322, April 2006. URL: <a class="reference external" href="https://doi.org/10.1016/j.jmr.2006.01.016">https://doi.org/10.1016/j.jmr.2006.01.016</a>, <a class="reference external" href="https://doi.org/10.1016/j.jmr.2006.01.016">doi:10.1016/j.jmr.2006.01.016</a>.</p>
 </aside>
 </aside>
@@ -1880,8 +1938,8 @@ visual inaccuracies are apparent in the denoised result.</p>
 <dt class="sig sig-object py" id="dipy.denoise.patch2self.patch2self">
 <span class="sig-prename descclassname"><span class="pre">dipy.denoise.patch2self.</span></span><span class="sig-name descname"><span class="pre">patch2self</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bvals</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ols'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b0_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b0_denoising</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_negative_vals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/denoise/patch2self.html#patch2self"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.denoise.patch2self.patch2self" title="Link to this definition">#</a></dt>
 <dd><p>Patch2Self Denoiser.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-fadnavis2020" id="id30" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a> for further details about the method.
-See <a class="footnote-reference brackets" href="#footcite-fadnavis2024" id="id31" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> for further details about the new method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-fadnavis2020" id="id32" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> for further details about the method.
+See <a class="footnote-reference brackets" href="#footcite-fadnavis2024" id="id33" role="doc-noteref"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></a> for further details about the new method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1938,14 +1996,14 @@ clipped to non-negative values.</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div class="docutils container" id="id32">
+<div class="docutils container" id="id34">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-fadnavis2020" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id30">12</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id32">13</a><span class="fn-bracket">]</span></span>
 <p>Shreyas Fadnavis, Joshua Batson, and Eleftherios Garyfallidis. Patch2Self: Denoising Diffusion MRI with Self-Supervised Learning. In Hugo Larochelle, Marc’Aurelio Ranzato, Raia Hadsell, Maria-Florina Balcan, and Hsuan-Tien Lin, editors, <em>Advances in Neural Information Processing Systems</em>, volume 33, 16293–16303. Curran Associates, Inc., 2020. URL: <a class="reference external" href="https://proceedings.neurips.cc/paper_files/paper/2020/file/bc047286b224b7bfa73d4cb02de1238d-Paper.pdf">https://proceedings.neurips.cc/paper_files/paper/2020/file/bc047286b224b7bfa73d4cb02de1238d-Paper.pdf</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-fadnavis2024" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id31">13</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id33">14</a><span class="fn-bracket">]</span></span>
 <p>Shreyas Fadnavis, Agniva Chowdhury, Joshua Batson, Petros Drineas, and Eleftherios Garyfallidis. Patch2Self2: Self-supervised Denoising on Coresets via Matrix Sketching. In <em>Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition</em>, volume, 27641–27651. 2024. URL: <a class="reference external" href="https://openaccess.thecvf.com/content/CVPR2024/papers/Fadnavis_Patch2Self2_Self-supervised_Denoising_on_Coresets_via_Matrix_Sketching_CVPR_2024_paper.pdf">https://openaccess.thecvf.com/content/CVPR2024/papers/Fadnavis_Patch2Self2_Self-supervised_Denoising_on_Coresets_via_Matrix_Sketching_CVPR_2024_paper.pdf</a>.</p>
 </aside>
 </aside>
