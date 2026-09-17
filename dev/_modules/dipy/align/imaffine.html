@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.imaffine &#8212; dipy 1.13.0.dev0+git20260915.8074db5 documentation</title>
+    <title>dipy.align.imaffine &#8212; dipy 1.13.0.dev0+git20260917.de9a36f documentation</title>
   
   
   
@@ -30,7 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/dipy.css?v=cedb193d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=fd6457a4" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=c83e6b79" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=0fa9ae5a"></script>
+    <script src="../../../_static/documentation_options.js?v=a1eb24dd"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1416,7 +1416,7 @@ document.write(`
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imaffine.MutualInformationMetric">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MutualInformationMetric</span><span class="p">:</span>
     <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">sampling_proportion</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">sampling_proportion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">"""Initialize an instance of the Mutual Information metric.</span>
 
 <span class="sd">        This class implements the methods required by Optimizer to drive the</span>
@@ -1436,6 +1436,10 @@ document.write(`
 <span class="sd">            then sparse sampling is used, where `sampling_proportion`</span>
 <span class="sd">            specifies the proportion of voxels to be used. The default is</span>
 <span class="sd">            None.</span>
+<span class="sd">        num_threads : int or None, optional</span>
+<span class="sd">            Number of OpenMP threads to use for dense image gradient</span>
+<span class="sd">            computation. If None, use DIPY's default thread count. Ignored</span>
+<span class="sd">            when sparse sampling is used.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -1450,6 +1454,7 @@ document.write(`
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">histogram</span> <span class="o">=</span> <span class="n">ParzenJointHistogram</span><span class="p">(</span><span class="n">nbins</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sampling_proportion</span> <span class="o">=</span> <span class="n">sampling_proportion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span> <span class="o">=</span> <span class="n">num_threads</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1707,6 +1712,7 @@ document.write(`
                     <span class="bp">self</span><span class="o">.</span><span class="n">moving_spacing</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
                     <span class="n">grid_to_world</span><span class="p">,</span>
+                    <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="c1"># The Jacobian must be evaluated at the pre-aligned points</span>
                 <span class="n">H</span><span class="o">.</span><span class="n">update_gradient_dense</span><span class="p">(</span>
@@ -1826,7 +1832,7 @@ document.write(`
 <div class="viewcode-block" id="CrossCorrelationMetric">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imaffine.CrossCorrelationMetric">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CrossCorrelationMetric</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">"""Initialize an instance of the Cross Correlation metric.</span>
 
 <span class="sd">        This class implements the methods required by Optimizer to drive the</span>
@@ -1837,6 +1843,9 @@ document.write(`
 <span class="sd">        radius : int, optional</span>
 <span class="sd">            the radius of the square (2D) or cubic (3D) neighborhood used to</span>
 <span class="sd">            compute the local normalized cross-correlation.</span>
+<span class="sd">        num_threads : int or None, optional</span>
+<span class="sd">            Number of OpenMP threads to use for dense image gradient</span>
+<span class="sd">            computation. If None, use DIPY's default thread count.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -1848,6 +1857,7 @@ document.write(`
         <span class="k">if</span> <span class="n">radius</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span> <span class="ow">or</span> <span class="n">radius</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"radius must be a non-negative integer"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span> <span class="o">=</span> <span class="n">num_threads</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -2026,6 +2036,7 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">moving_spacing</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
                 <span class="n">grid_to_world</span><span class="p">,</span>
+                <span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">moving_gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">moving_gradient</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 
