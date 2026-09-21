@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.base &#8212; dipy 1.13.0.dev0+git20260921.abc24f1 documentation</title>
+    <title>dipy.workflows.base &#8212; dipy 1.13.0.dev0+git20260921.43e9297 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=58e7027f"></script>
+    <script src="../../../_static/documentation_options.js?v=90804faf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1203,11 +1203,17 @@ document.write(`
             <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"help"</span><span class="p">:</span> <span class="n">help_msg</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="n">dtype</span><span class="p">,</span> <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store"</span><span class="p">}</span>
 
             <span class="k">if</span> <span class="n">is_optional</span><span class="p">:</span>
+                <span class="n">default_idx</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="p">(</span><span class="n">len_args</span> <span class="o">-</span> <span class="n">len_defaults</span><span class="p">)</span>
+                <span class="n">default_val</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="n">default_idx</span><span class="p">]</span>
                 <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"metavar"</span><span class="p">]</span> <span class="o">=</span> <span class="n">dtype</span><span class="o">.</span><span class="vm">__name__</span>
-                <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="nb">bool</span> <span class="ow">and</span> <span class="n">default_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">BooleanOptionalAction</span>
+                    <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">del</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span>
+                    <span class="k">del</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"metavar"</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
                     <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"store_true"</span>
-                    <span class="n">default_</span> <span class="o">=</span> <span class="p">{</span><span class="n">arg</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="o">**</span><span class="n">default_</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">arg</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
                     <span class="k">del</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span>
                     <span class="k">del</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"metavar"</span><span class="p">]</span>
             <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1227,7 +1233,10 @@ document.write(`
             <span class="k">if</span> <span class="s2">"out_"</span> <span class="ow">in</span> <span class="n">arg</span><span class="p">:</span>
                 <span class="n">output_args</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"store_true"</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="s2">"store_true"</span><span class="p">,</span>
+                    <span class="n">argparse</span><span class="o">.</span><span class="n">BooleanOptionalAction</span><span class="p">,</span>
+                <span class="p">):</span>
                     <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">none_or_dtype</span><span class="p">(</span><span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">])</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
 
@@ -1296,15 +1305,18 @@ document.write(`
                     <span class="s2">"metavar"</span><span class="p">:</span> <span class="n">dtype</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
                 <span class="p">}</span>
 
-                <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
-                    <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"store_true"</span>
-                    <span class="n">default_</span> <span class="o">=</span> <span class="p">{</span><span class="n">arg_name</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="o">**</span><span class="n">default_</span><span class="p">)</span>
+                <span class="n">default_idx</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="p">(</span><span class="n">len_args</span> <span class="o">-</span> <span class="n">len_defaults</span><span class="p">)</span>
+                <span class="n">default_val</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="n">default_idx</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="nb">bool</span> <span class="ow">and</span> <span class="n">default_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">BooleanOptionalAction</span>
+                    <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="k">del</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span>
                     <span class="k">del</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"metavar"</span><span class="p">]</span>
                 <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
-                    <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span>
-                    <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"choices"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+                    <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"store_true"</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">arg_name</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+                    <span class="k">del</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span>
+                    <span class="k">del</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"metavar"</span><span class="p">]</span>
 
                 <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">:</span>
                     <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span>
@@ -1312,7 +1324,10 @@ document.write(`
                 <span class="k">if</span> <span class="n">isnarg</span><span class="p">:</span>
                     <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"nargs"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"*"</span>
 
-                <span class="k">if</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"store_true"</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="s2">"store_true"</span><span class="p">,</span>
+                    <span class="n">argparse</span><span class="o">.</span><span class="n">BooleanOptionalAction</span><span class="p">,</span>
+                <span class="p">):</span>
                     <span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">none_or_dtype</span><span class="p">(</span><span class="n">_kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">])</span>
                 <span class="n">flow_args</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
 

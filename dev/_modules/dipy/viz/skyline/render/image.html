@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.image &#8212; dipy 1.13.0.dev0+git20260921.abc24f1 documentation</title>
+    <title>dipy.viz.skyline.render.image &#8212; dipy 1.13.0.dev0+git20260921.43e9297 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=58e7027f"></script>
+    <script src="../../../../../_static/documentation_options.js?v=90804faf"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -887,6 +887,8 @@ document.write(`
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_rgb_dtype</span><span class="p">,</span> <span class="n">is_rgb_compatible_data</span><span class="p">,</span> <span class="n">unpack_rgb_array</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.elements</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">dropdown</span><span class="p">,</span>
@@ -939,7 +941,7 @@ document.write(`
     <span class="n">interpolation</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
     <span class="n">render_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">opacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">rgb</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">rgb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">value_percentiles</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">98</span><span class="p">),</span>
     <span class="n">colormap</span><span class="o">=</span><span class="s2">"Gray"</span><span class="p">,</span>
     <span class="n">sync_callabck</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -958,8 +960,10 @@ document.write(`
 <span class="sd">        Callback function to be called after rendering.</span>
 <span class="sd">    opacity : int, optional</span>
 <span class="sd">        Opacity of the volume rendering.</span>
-<span class="sd">    rgb : bool, optional</span>
-<span class="sd">        Whether the image is RGB</span>
+<span class="sd">    rgb : bool or None, optional</span>
+<span class="sd">        ``None``: auto-detect from structured NIfTI ``DT_RGB24``</span>
+<span class="sd">        dtype; show toggle for other 4D volumes with 3 or 4 channels.</span>
+<span class="sd">        ``True``: force RGB mode.  ``False``: never treat as RGB.</span>
 <span class="sd">    value_percentiles : tuple, optional</span>
 <span class="sd">        Percentiles for intensity value range. For example, (2, 98) will set the</span>
 <span class="sd">        intensity range to be between the 2nd and 98th percentiles of the image</span>
@@ -978,8 +982,7 @@ document.write(`
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If the input is not a tuple of length 2 or 3, or if rgb=True and the last</span>
-<span class="sd">        dimension of the volume is not 3 or 4.</span>
+<span class="sd">        If the input is not a tuple of length 2 or 3.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -1027,9 +1030,11 @@ document.write(`
 <span class="sd">        Callback used to request a render/update.</span>
 <span class="sd">    opacity : int</span>
 <span class="sd">        Slice opacity in percent, expected in ``[0, 100]``.</span>
-<span class="sd">    rgb : bool</span>
-<span class="sd">        Interpret a 4D volume as RGB/RGBA channels when True.</span>
-<span class="sd">        Colormap and directional-volume controls are ignored in this mode.</span>
+<span class="sd">    rgb : bool or None</span>
+<span class="sd">        ``None``: auto-detect from structured NIfTI ``DT_RGB24`` dtype;</span>
+<span class="sd">        show toggle for other 4D volumes with 3 or 4 channels.</span>
+<span class="sd">        ``True``: force RGB mode.  ``False``: never treat as RGB.</span>
+<span class="sd">        Colormap and directional-volume controls are ignored when RGB.</span>
 <span class="sd">    value_percentiles : tuple</span>
 <span class="sd">        Low/high percentiles used to compute scalar intensity limits.</span>
 <span class="sd">    colormap : str</span>
@@ -1047,7 +1052,7 @@ document.write(`
         <span class="n">interpolation</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
         <span class="n">render_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">opacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-        <span class="n">rgb</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">rgb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">value_percentiles</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">98</span><span class="p">),</span>
         <span class="n">colormap</span><span class="o">=</span><span class="s2">"Gray"</span><span class="p">,</span>
         <span class="n">sync_callabck</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1068,9 +1073,10 @@ document.write(`
 <span class="sd">            Callback used to request a render/update.</span>
 <span class="sd">        opacity : int, optional</span>
 <span class="sd">            Slice opacity in percent, expected in ``[0, 100]``.</span>
-<span class="sd">        rgb : bool, optional</span>
-<span class="sd">            Interpret a 4D volume as RGB/RGBA channels when True.</span>
-<span class="sd">            Colormap and directional-volume controls are ignored in this mode.</span>
+<span class="sd">        rgb : bool or None, optional</span>
+<span class="sd">            ``None``: auto-detect from structured NIfTI ``DT_RGB24``</span>
+<span class="sd">            dtype; show toggle for other 4D volumes with 3 or 4 channels.</span>
+<span class="sd">            ``True``: force RGB mode.  ``False``: never treat as RGB.</span>
 <span class="sd">        value_percentiles : tuple(float, float), optional</span>
 <span class="sd">            Low/high percentiles used to compute scalar intensity limits.</span>
 <span class="sd">        colormap : str, optional</span>
@@ -1080,16 +1086,18 @@ document.write(`
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span> <span class="o">=</span> <span class="n">volume</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rgb_user</span> <span class="o">=</span> <span class="n">rgb</span>
+        <span class="k">if</span> <span class="n">rgb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rgb</span> <span class="o">=</span> <span class="n">has_rgb_dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span> <span class="o">=</span> <span class="n">unpack_rgb_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rgb_capable</span> <span class="o">=</span> <span class="n">is_rgb_compatible_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="n">rgb</span>
-            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span>
-            <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">)</span>
-        <span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">"When specifying rgb=True, the last dimension of the volume "</span>
-                <span class="s2">"must be 3 (RGB) or 4 (RGBA)."</span>
+        <span class="k">if</span> <span class="n">rgb</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgb_capable</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">"RGB mode requires a 4D volume whose last dimension "</span>
+                <span class="s2">"is 3 (RGB) or 4 (RGBA). Falling back to rgb=False."</span>
             <span class="p">)</span>
+            <span class="n">rgb</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rgb</span> <span class="o">=</span> <span class="n">rgb</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_has_directions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">rgb</span>
@@ -1377,7 +1385,7 @@ document.write(`
         <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_synchronize</span> <span class="o">=</span> <span class="n">new</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgb_capable</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgb_user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
             <span class="n">imgui</span><span class="o">.</span><span class="n">same_line</span><span class="p">()</span>
             <span class="n">changed</span><span class="p">,</span> <span class="n">new</span> <span class="o">=</span> <span class="n">toggle_button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rgb</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"RGB"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>

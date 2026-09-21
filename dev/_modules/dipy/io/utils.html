@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.utils &#8212; dipy 1.13.0.dev0+git20260921.abc24f1 documentation</title>
+    <title>dipy.io.utils &#8212; dipy 1.13.0.dev0+git20260921.43e9297 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=58e7027f"></script>
+    <script src="../../../_static/documentation_options.js?v=90804faf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -991,6 +991,108 @@ document.write(`
 
 
 
+<span class="n">_RGB_FIELD_NAMES</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({(</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">)})</span>
+
+
+<div class="viewcode-block" id="has_rgb_dtype">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.utils.has_rgb_dtype">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">has_rgb_dtype</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Check whether an array has a structured NIfTI ``DT_RGB24`` dtype.</span>
+
+<span class="sd">    Returns ``True`` when *data* has a structured numpy dtype whose field</span>
+<span class="sd">    names are exactly ``('R', 'G', 'B')`` or ``('R', 'G', 'B', 'A')``,</span>
+<span class="sd">    as created by nibabel when loading a NIfTI file with datatype code</span>
+<span class="sd">    128 (``DT_RGB24``) or 2304 (``DT_RGBA32``).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        Array to inspect.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        ``True`` when *data* carries a structured RGB/RGBA dtype.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_RGB_FIELD_NAMES</span></div>
+
+
+
+<div class="viewcode-block" id="is_rgb_compatible_data">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.utils.is_rgb_compatible_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_rgb_compatible_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Check whether a plain numeric array has RGB-compatible shape and values.</span>
+
+<span class="sd">    Returns ``True`` when *data* has ``ndim == 4``, the last dimension is</span>
+<span class="sd">    3 or 4, the array is non-empty, and values fall within a range</span>
+<span class="sd">    consistent with color channels:</span>
+
+<span class="sd">    - **uint8**: always compatible (no DWI scanner uses uint8).</span>
+<span class="sd">    - **Other integer** (e.g. int16): all values in [0, 255].</span>
+<span class="sd">    - **Float**: all values in [0, 1] with no NaN.</span>
+
+<span class="sd">    Structured-dtype arrays (e.g. NIfTI ``DT_RGB24``) are not checked</span>
+<span class="sd">    here; use `has_rgb_dtype` for those.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        Array to inspect.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        ``True`` when *data* has RGB-compatible shape and values.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"u"</span><span class="p">,</span> <span class="s2">"i"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="mi">255</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"f"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="mf">1.0</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="unpack_rgb_array">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.utils.unpack_rgb_array">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unpack_rgb_array</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert a structured RGB/RGBA array to a plain numeric array.</span>
+
+<span class="sd">    Nibabel represents RGB/RGBA NIfTI images with datatype code 128</span>
+<span class="sd">    (``DT_RGB24``) as structured arrays, e.g.</span>
+<span class="sd">    ``dtype=[('R','u1'),('G','u1'),('B','u1')]`` with shape</span>
+<span class="sd">    ``(X, Y, Z)``.  NumPy ufuncs do not support structured dtypes, so this</span>
+<span class="sd">    converts to a plain ``(X, Y, Z, N)`` array where *N* is the number of</span>
+<span class="sd">    channels.</span>
+
+<span class="sd">    Only arrays whose field names are exactly ``('R', 'G', 'B')`` or</span>
+<span class="sd">    ``('R', 'G', 'B', 'A')`` are unpacked.  Other structured dtypes are</span>
+<span class="sd">    returned unchanged.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        Array that may have a structured RGB/RGBA dtype.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Regular numeric array when input was structured RGB/RGBA;</span>
+<span class="sd">        otherwise the input unchanged.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">has_rgb_dtype</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
 <div class="viewcode-block" id="decfa">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.utils.decfa">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
@@ -1016,6 +1118,12 @@ document.write(`
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
+<span class="sd">    The output uses NIfTI datatype code 128 (``DT_RGB24``), stored as a</span>
+<span class="sd">    structured dtype with fields ``('R', 'G', 'B')``.  The intent code is</span>
+<span class="sd">    set to 1001 (``NIFTI_INTENT_ESTIMATE``) with name ``"Color FA"``.</span>
+<span class="sd">    Nibabel reconstructs the structured dtype from the datatype code on</span>
+<span class="sd">    load; the intent code is informational metadata only.</span>
+
 <span class="sd">    For a description of this format, see:</span>
 
 <span class="sd">    https://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/datatype.html</span>
