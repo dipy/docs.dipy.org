@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>viz &#8212; dipy 1.13.0.dev0+git20260921.3602fb3 documentation</title>
+    <title>viz &#8212; dipy 1.13.0.dev0+git20260921.abc24f1 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=5eea7723"></script>
+    <script src="../_static/documentation_options.js?v=58e7027f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1450,11 +1450,18 @@ tractograms must load before any matching reference image is available.</p>
 </section>
 <section id="module-dipy.viz.skyline.render.sh_billboard">
 <span id="module-viz-skyline-render-sh-billboard"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">viz.skyline.render.sh_billboard</span></code><a class="headerlink" href="#module-dipy.viz.skyline.render.sh_billboard" title="Link to this heading">#</a></h2>
-<p>GPU billboard pipeline for dense spherical-harmonic glyphs in Skyline.</p>
+<p>GPU billboard pipeline for spherical-harmonic ODF glyphs.</p>
+<p>Each ODF glyph is a camera-facing quad; the fragment shader ray-marches
+it to find where the view ray meets the SH surface r(omega) =
+sum(c_lm * Y_lm(omega)).  Because evaluating that sum per pixel is
+expensive, <a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.bake_hermite_lut" title="dipy.viz.skyline.render.sh_billboard.bake_hermite_lut"><code class="xref py py-func docutils literal notranslate"><span class="pre">bake_hermite_lut()</span></code></a> pre-bakes it into a cube-map Hermite
+LUT that the shader samples instead, falling back to direct evaluation
+when no LUT is baked.  See individual function/class docstrings for
+details (LUT layout and chunking, shader bindings, etc.).</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial" title="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code></a>(*[, active_slice_x, ...])</p></td>
-<td><p>Represent <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code> in Skyline.</p></td>
+<td><p>Material with world-space slice positions and integer visibility flags.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.Billboard" title="dipy.viz.skyline.render.sh_billboard.Billboard"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Billboard</span></code></a>([geometry, material])</p></td>
 <td><p>Base mesh class for instanced glyph billboards (Fury <code class="docutils literal notranslate"><span class="pre">Mesh</span></code> subclass).</p></td>
@@ -1463,10 +1470,10 @@ tractograms must load before any matching reference image is available.</p>
 <td><p>Multi-glyph SH billboard with LUT baking and per-glyph coefficient buffers.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader" title="dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code></a>(wobject)</p></td>
-<td><p>Represent <code class="docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code> in Skyline.</p></td>
+<td><p>pygfx shader: template variables and bindings for the ODF billboard pipeline.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.enable_octahedral_lut" title="dipy.viz.skyline.render.sh_billboard.enable_octahedral_lut"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enable_octahedral_lut</span></code></a>(actor, *[, lut_res, ...])</p></td>
-<td><p>Bake radius or Hermite LUT chunks on <code class="docutils literal notranslate"><span class="pre">actor</span></code> if GPU memory allows.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.bake_hermite_lut" title="dipy.viz.skyline.render.sh_billboard.bake_hermite_lut"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bake_hermite_lut</span></code></a>(actor, *[, lut_res, ...])</p></td>
+<td><p>Bake a cube-mapped Hermite LUT on <code class="docutils literal notranslate"><span class="pre">actor</span></code> if GPU memory allows.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced" title="dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sph_glyph_billboard_sliced</span></code></a>(coeffs, centers, ...)</p></td>
 <td><p>Create a <em>sliced</em> billboard SH glyph actor.</p></td>
@@ -1477,14 +1484,21 @@ tractograms must load before any matching reference image is available.</p>
 </section>
 <section id="module-dipy.viz.skyline.render.sh_slicer">
 <span id="module-viz-skyline-render-sh-slicer"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">viz.skyline.render.sh_slicer</span></code><a class="headerlink" href="#module-dipy.viz.skyline.render.sh_slicer" title="Link to this heading">#</a></h2>
-<p>SH Glyph Slicer for Skyline.</p>
+<p>SH glyph slicer for Skyline – the entry point for ODF visualization.</p>
+<p>Builds a GPU-accelerated 3-D visualization of orientation distribution
+functions (ODFs) from a 4-D array of spherical-harmonic coefficients and a
+voxel-to-world affine.  <code class="docutils literal notranslate"><span class="pre">create_shm_visualization</span></code> unpacks the input
+tuple into a <a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHGlyph3D</span></code></a>, which owns a <a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer" title="dipy.viz.skyline.render.sh_slicer.SHSlicer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHSlicer</span></code></a> that builds
+the billboard actor (<a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced" title="dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced"><code class="xref py py-func docutils literal notranslate"><span class="pre">sph_glyph_billboard_sliced()</span></code></a>)
+and drives its per-axis slice uniforms.  See individual class/method
+docstrings for coordinate-space and slicing details.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer" title="dipy.viz.skyline.render.sh_slicer.SHSlicer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHSlicer</span></code></a>(coeffs_4d, *[, voxel_sizes, scale, ...])</p></td>
-<td><p>Represent <code class="docutils literal notranslate"><span class="pre">SHSlicer</span></code> in Skyline.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer" title="dipy.viz.skyline.render.sh_slicer.SHSlicer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHSlicer</span></code></a>(coeffs_4d, *[, scale, l_max, ...])</p></td>
+<td><p>Build and drive the single billboard actor backing an ODF visualization.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHGlyph3D</span></code></a>(name, coeffs, *[, affine, ...])</p></td>
-<td><p>Represent <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code> in Skyline.</p></td>
+<td><p>High-level ODF visualization: UI widgets, sync, and slice state.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.create_shm_visualization" title="dipy.viz.skyline.render.sh_slicer.create_shm_visualization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_shm_visualization</span></code></a>(input, idx, *[, ...])</p></td>
 <td><p>Create SH glyph visualization from input.</p></td>
@@ -5905,36 +5919,15 @@ specified visualizer type.</p>
 <h3><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial" title="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code></a><a class="headerlink" href="#slicedsphglyphmaterial" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_billboard.</span></span><span class="sig-name descname"><span class="pre">SlicedSphGlyphMaterial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_slice_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_slice_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_slice_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#SlicedSphGlyphMaterial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_billboard.</span></span><span class="sig-name descname"><span class="pre">SlicedSphGlyphMaterial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_slice_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_slice_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_slice_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#SlicedSphGlyphMaterial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">SphGlyphMaterial</span></code></p>
-<p>Represent <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code> in Skyline.</p>
+<p>Material with world-space slice positions and integer visibility flags.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>active_slice_x</strong><span class="classifier">float, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">active</span> <span class="pre">slice</span> <span class="pre">x</span></code>.</p>
-</dd>
-<dt><strong>active_slice_y</strong><span class="classifier">float, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">active</span> <span class="pre">slice</span> <span class="pre">y</span></code>.</p>
-</dd>
-<dt><strong>active_slice_z</strong><span class="classifier">float, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">active</span> <span class="pre">slice</span> <span class="pre">z</span></code>.</p>
-</dd>
-<dt><strong>vis_x</strong><span class="classifier">int, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">vis</span> <span class="pre">x</span></code>.</p>
-</dd>
-<dt><strong>vis_y</strong><span class="classifier">int, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">vis</span> <span class="pre">y</span></code>.</p>
-</dd>
-<dt><strong>vis_z</strong><span class="classifier">int, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">vis</span> <span class="pre">z</span></code>.</p>
-</dd>
-<dt><strong>**kwargs</strong><span class="classifier">dict</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">kwargs</span></code>.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Attributes<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_x" title="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">active_slice_x</span></code></a></dt><dd><p>Handle active slice x for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-</dd>
-<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_y" title="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">active_slice_y</span></code></a></dt><dd><p>Handle active slice y for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-</dd>
-<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_z" title="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_z"><code class="xref py py-obj docutils literal notranslate"><span class="pre">active_slice_z</span></code></a></dt><dd><p>Handle active slice z for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-</dd>
+<dt><strong>active_slice_x</strong></dt><dd></dd>
+<dt><strong>active_slice_y</strong></dt><dd></dd>
+<dt><strong>active_slice_z</strong></dt><dd></dd>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">alpha_compare</span></code></dt><dd><p>The way to compare the alpha value.</p>
 </dd>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">alpha_config</span></code></dt><dd><p>Dict that defines how the the resulting colors are combined with the target color texture.</p>
@@ -6020,12 +6013,9 @@ specified visualizer type.</p>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">uniform_buffer</span></code></dt><dd><p>The uniform buffer object for this material.</p>
 </dd>
 <dt><strong>vertex_colors</strong></dt><dd></dd>
-<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_x" title="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vis_x</span></code></a></dt><dd><p>Handle vis x for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-</dd>
-<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_y" title="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vis_y</span></code></a></dt><dd><p>Handle vis y for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-</dd>
-<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_z" title="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_z"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vis_z</span></code></a></dt><dd><p>Handle vis z for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-</dd>
+<dt><strong>vis_x</strong></dt><dd></dd>
+<dt><strong>vis_y</strong></dt><dd></dd>
+<dt><strong>vis_z</strong></dt><dd></dd>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">wireframe</span></code></dt><dd><p>Render geometry as a wireframe.</p>
 </dd>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">wireframe_thickness</span></code></dt><dd><p>The thickness of the lines when rendering as a wireframe.</p>
@@ -6033,90 +6023,6 @@ specified visualizer type.</p>
 </dl>
 </dd>
 </dl>
-<dl class="py property">
-<dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_x">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">active_slice_x</span></span><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_x" title="Link to this definition">#</a></dt>
-<dd><p>Handle active slice x for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>float</dt><dd><p>The value of the active slice x.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_y">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">active_slice_y</span></span><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_y" title="Link to this definition">#</a></dt>
-<dd><p>Handle active slice y for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>float</dt><dd><p>The value of the active slice y.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_z">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">active_slice_z</span></span><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_z" title="Link to this definition">#</a></dt>
-<dd><p>Handle active slice z for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>float</dt><dd><p>The value of the active slice z.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_x">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">vis_x</span></span><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_x" title="Link to this definition">#</a></dt>
-<dd><p>Handle vis x for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>int</dt><dd><p>The value of the vis x.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_y">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">vis_y</span></span><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_y" title="Link to this definition">#</a></dt>
-<dd><p>Handle vis y for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>int</dt><dd><p>Returned value.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_z">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">vis_z</span></span><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_z" title="Link to this definition">#</a></dt>
-<dd><p>Handle vis z for <code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>int</dt><dd><p>The value of the vis z.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 </section>
@@ -6254,7 +6160,7 @@ specified visualizer type.</p>
 </dd>
 <dt><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#id" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">id</span></code></a></dt><dd><p>An integer id smaller than 2**31 (read-only).</p>
 </dd>
-<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SphGlyphBillboard.l_max" title="dipy.viz.skyline.render.sh_billboard.SphGlyphBillboard.l_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">l_max</span></code></a></dt><dd><p>Handle l max for <code class="docutils literal notranslate"><span class="pre">SphGlyphBillboard</span></code>.</p>
+<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SphGlyphBillboard.l_max" title="dipy.viz.skyline.render.sh_billboard.SphGlyphBillboard.l_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">l_max</span></code></a></dt><dd><p>int: Maximum SH order currently shaded (-1 if never set).</p>
 </dd>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">material</span></code></dt><dd><p>The object’s material, the data that defines the appearance of this object.</p>
 </dd>
@@ -6354,15 +6260,7 @@ specified visualizer type.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.SphGlyphBillboard.l_max">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">l_max</span></span><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.SphGlyphBillboard.l_max" title="Link to this definition">#</a></dt>
-<dd><p>Handle l max for <code class="docutils literal notranslate"><span class="pre">SphGlyphBillboard</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>int</dt><dd><p>The value of the l max.</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<dd><p>int: Maximum SH order currently shaded (-1 if never set).</p>
 </dd></dl>
 
 </dd></dl>
@@ -6374,7 +6272,11 @@ specified visualizer type.</p>
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_billboard.</span></span><span class="sig-name descname"><span class="pre">BillboardSphGlyphShader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wobject</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#BillboardSphGlyphShader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MeshShader</span></code></p>
-<p>Represent <code class="docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code> in Skyline.</p>
+<p>pygfx shader: template variables and bindings for the ODF billboard pipeline.</p>
+<p>Reads flags/dimensions off <code class="docutils literal notranslate"><span class="pre">wobject</span></code> (the <a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.SphGlyphBillboard" title="dipy.viz.skyline.render.sh_billboard.SphGlyphBillboard"><code class="xref py py-class docutils literal notranslate"><span class="pre">SphGlyphBillboard</span></code></a>
+actor) at construction time and exposes them as WGSL template variables
+(<code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">n_coeffs</span> <span class="pre">}}</span></code>, <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">use_hermite_lut</span> <span class="pre">}}</span></code>, etc.) consumed by
+<code class="docutils literal notranslate"><span class="pre">sh_billboard.wgsl</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -6408,19 +6310,19 @@ specified visualizer type.</p>
 <td><p>Generate the final WGSL.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_bindings" title="dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_bindings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_bindings</span></code></a>(wobject, shared[, scene])</p></td>
-<td><p>Handle get bindings for <code class="docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code>.</p></td>
+<td><p>Wire the SH-coefficient and Hermite-LUT storage buffers.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_bindings_info</span></code>(wobject, shared, scene)</p></td>
 <td><p>Subclasses must return a dict describing the buffers and textures used by this shader.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_code" title="dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_code"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_code</span></code></a>()</p></td>
-<td><p>Handle get code for <code class="docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code>.</p></td>
+<td><p>Return the (still-templated) WGSL source for this shader.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pipeline_info</span></code>(wobject, shared)</p></td>
 <td><p>Subclasses must return a dict describing pipeline details.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_render_info" title="dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_render_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_render_info</span></code></a>(wobject, shared)</p></td>
-<td><p>Handle get render info for <code class="docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code>.</p></td>
+<td><p>Instance/vertex counts pygfx needs to issue the draw call.</p></td>
 </tr>
 </tbody>
 </table>
@@ -6428,21 +6330,17 @@ specified visualizer type.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_bindings">
 <span class="sig-name descname"><span class="pre">get_bindings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wobject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#BillboardSphGlyphShader.get_bindings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_bindings" title="Link to this definition">#</a></dt>
-<dd><p>Handle get bindings for <code class="docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code>.</p>
+<dd><p>Wire the SH-coefficient and Hermite-LUT storage buffers.</p>
+<p>Group 2 binding 0 is the flat SH coefficient buffer; group 3
+bindings 0-7 are the (up to 8) Hermite LUT chunk buffers, padded
+out with a shared dummy <code class="docutils literal notranslate"><span class="pre">vec4&lt;f32&gt;</span></code> buffer when <code class="docutils literal notranslate"><span class="pre">wobject</span></code>
+has fewer chunks than that (or hasn’t baked a LUT at all), since
+WGSL bindings must all be declared even when unused.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>wobject</strong><span class="classifier">SphGlyphBillboard</span></dt><dd><p>Billboard object rendered by this shader.</p>
-</dd>
-<dt><strong>shared</strong><span class="classifier">dict</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">shared</span></code>.</p>
-</dd>
-<dt><strong>scene</strong><span class="classifier">Scene, optional</span></dt><dd><p>Active rendering scene passed by the renderer.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>dict</dt><dd><p>The bindings of the billboard shader.</p>
+<dt>dict</dt><dd><p>Bindings dict with groups 2 and 3 populated, merged onto
+whatever the base <code class="docutils literal notranslate"><span class="pre">MeshShader</span></code> already provided.</p>
 </dd>
 </dl>
 </dd>
@@ -6452,33 +6350,20 @@ specified visualizer type.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_code">
 <span class="sig-name descname"><span class="pre">get_code</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#BillboardSphGlyphShader.get_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_code" title="Link to this definition">#</a></dt>
-<dd><p>Handle get code for <code class="docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>str</dt><dd><p>The code of the billboard shader.</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<dd><p>Return the (still-templated) WGSL source for this shader.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_render_info">
 <span class="sig-name descname"><span class="pre">get_render_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wobject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#BillboardSphGlyphShader.get_render_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_render_info" title="Link to this definition">#</a></dt>
-<dd><p>Handle get render info for <code class="docutils literal notranslate"><span class="pre">BillboardSphGlyphShader</span></code>.</p>
+<dd><p>Instance/vertex counts pygfx needs to issue the draw call.</p>
+<p>Falls back to computing them from the geometry’s vertex buffer
+when the base <code class="docutils literal notranslate"><span class="pre">MeshShader</span></code> doesn’t already provide indices
+(e.g. before the geometry has been fully wired up).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>wobject</strong><span class="classifier">SphGlyphBillboard</span></dt><dd><p>Billboard object rendered by this shader.</p>
-</dd>
-<dt><strong>shared</strong><span class="classifier">dict</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">shared</span></code>.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>dict</dt><dd><p>The render info of the billboard shader.</p>
+<dt>dict</dt><dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;indices&quot;:</span> <span class="pre">(vertex_count,</span> <span class="pre">instance_count,</span> <span class="pre">0,</span> <span class="pre">0)}</span></code>.</p>
 </dd>
 </dl>
 </dd>
@@ -6488,26 +6373,22 @@ specified visualizer type.</p>
 </dd></dl>
 
 </section>
-<section id="enable-octahedral-lut">
-<h3>enable_octahedral_lut<a class="headerlink" href="#enable-octahedral-lut" title="Link to this heading">#</a></h3>
+<section id="bake-hermite-lut">
+<h3>bake_hermite_lut<a class="headerlink" href="#bake-hermite-lut" title="Link to this heading">#</a></h3>
 <dl class="py function">
-<dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.enable_octahedral_lut">
-<span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_billboard.</span></span><span class="sig-name descname"><span class="pre">enable_octahedral_lut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hermite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_rebake</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'octahedral'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_float16</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#enable_octahedral_lut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.enable_octahedral_lut" title="Link to this definition">#</a></dt>
-<dd><p>Bake radius or Hermite LUT chunks on <code class="docutils literal notranslate"><span class="pre">actor</span></code> if GPU memory allows.</p>
+<dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.bake_hermite_lut">
+<span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_billboard.</span></span><span class="sig-name descname"><span class="pre">bake_hermite_lut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_rebake</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_float16</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#bake_hermite_lut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.bake_hermite_lut" title="Link to this definition">#</a></dt>
+<dd><p>Bake a cube-mapped Hermite LUT on <code class="docutils literal notranslate"><span class="pre">actor</span></code> if GPU memory allows.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>actor</strong><span class="classifier">SphGlyphBillboard</span></dt><dd><p>Target billboard with populated <code class="docutils literal notranslate"><span class="pre">billboard_count</span></code> and coefficients.</p>
 </dd>
-<dt><strong>lut_res</strong><span class="classifier">int, optional</span></dt><dd><p>Base cube-map or octahedral resolution per face/hemisphere.</p>
-</dd>
-<dt><strong>use_hermite</strong><span class="classifier">bool, optional</span></dt><dd><p>Allocate paired position/normal Hermite LUT texels.</p>
+<dt><strong>lut_res</strong><span class="classifier">int, optional</span></dt><dd><p>Cube-map resolution per face edge.</p>
 </dd>
 <dt><strong>force_rebake</strong><span class="classifier">bool, optional</span></dt><dd><p>Recompute even when flags indicate the LUT is ready.</p>
 </dd>
-<dt><strong>mapping_mode</strong><span class="classifier">str, optional</span></dt><dd><p>One of <code class="docutils literal notranslate"><span class="pre">&quot;cube&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;dual_hemi&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;dual_paraboloid&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;fibonacci&quot;</span></code>.</p>
-</dd>
-<dt><strong>use_float16</strong><span class="classifier">bool, optional</span></dt><dd><p>Store Hermite LUTs with reduced precision when supported.</p>
+<dt><strong>use_float16</strong><span class="classifier">bool, optional</span></dt><dd><p>Store the Hermite LUT with reduced precision when supported.</p>
 </dd>
 </dl>
 </dd>
@@ -6519,7 +6400,7 @@ specified visualizer type.</p>
 <h3>sph_glyph_billboard_sliced<a class="headerlink" href="#sph-glyph-billboard-sliced" title="Link to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced">
-<span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_billboard.</span></span><span class="sig-name descname"><span class="pre">sph_glyph_billboard_sliced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_coords</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shininess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_picking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hermite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cube'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#sph_glyph_billboard_sliced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_billboard.</span></span><span class="sig-name descname"><span class="pre">sph_glyph_billboard_sliced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_coords</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shininess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_picking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_billboard.html#sph_glyph_billboard_sliced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced" title="Link to this definition">#</a></dt>
 <dd><p>Create a <em>sliced</em> billboard SH glyph actor.</p>
 <p>Every valid voxel lives in one single actor.  Three uniforms
 (<code class="docutils literal notranslate"><span class="pre">active_slice_x/y/z</span></code>) select which slices are visible;
@@ -6551,15 +6432,11 @@ GPU buffer limits.</p>
 </dd>
 <dt><strong>lut_res</strong><span class="classifier">int, optional</span></dt><dd><p>Cube-map LUT resolution per face edge.</p>
 </dd>
-<dt><strong>use_hermite</strong><span class="classifier">bool, optional</span></dt><dd><p>Use Hermite interpolation LUT.</p>
-</dd>
-<dt><strong>mapping_mode</strong><span class="classifier">str, optional</span></dt><dd><p>LUT mapping mode.</p>
-</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>SphGlyphBillboard</dt><dd><p>Configured billboard with slice index buffer and baked LUTs.</p>
+<dt>SphGlyphBillboard</dt><dd><p>Configured billboard with baked Hermite LUTs.</p>
 </dd>
 </dl>
 </dd>
@@ -6571,31 +6448,34 @@ GPU buffer limits.</p>
 <h3><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer" title="dipy.viz.skyline.render.sh_slicer.SHSlicer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHSlicer</span></code></a><a class="headerlink" href="#shslicer" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHSlicer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_slicer.</span></span><span class="sig-name descname"><span class="pre">SHSlicer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coeffs_4d</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0,</span> <span class="pre">1.0,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hermite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cube'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orientation'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHSlicer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_slicer.</span></span><span class="sig-name descname"><span class="pre">SHSlicer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coeffs_4d</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orientation'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHSlicer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Represent <code class="docutils literal notranslate"><span class="pre">SHSlicer</span></code> in Skyline.</p>
+<p>Build and drive the single billboard actor backing an ODF visualization.</p>
+<p>Owns the flattened, non-zero-only glyph data (coefficients, model-space
+centers, voxel indices) passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">sph_glyph_billboard_sliced()</span></code>,
+and forwards per-axis slice/visibility/scale/opacity changes to that
+actor’s material without ever rebuilding the geometry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>coeffs_4d</strong><span class="classifier">ndarray</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">coeffs</span> <span class="pre">4d</span></code>.</p>
+<dt><strong>coeffs_4d</strong><span class="classifier">ndarray, shape (X, Y, Z, C)</span></dt><dd><p>SH coefficients per voxel.  Converted from <code class="docutils literal notranslate"><span class="pre">descoteaux07</span></code> to
+Fury’s standard basis on construction if needed.</p>
 </dd>
-<dt><strong>voxel_sizes</strong><span class="classifier">tuple(float, float, float), optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">voxel</span> <span class="pre">sizes</span></code>.</p>
+<dt><strong>scale</strong><span class="classifier">float, optional</span></dt><dd><p>Uniform billboard size multiplier relative to estimated SH radii.</p>
 </dd>
-<dt><strong>scale</strong><span class="classifier">float, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">scale</span></code>.</p>
+<dt><strong>l_max</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum SH order to shade.  For <code class="docutils literal notranslate"><span class="pre">descoteaux</span></code>/<code class="docutils literal notranslate"><span class="pre">descoteaux07</span></code>
+input, capped to the order implied by <code class="docutils literal notranslate"><span class="pre">coeffs_4d</span></code>’s last axis
+when that is lower; for <code class="docutils literal notranslate"><span class="pre">standard</span></code> input it must not exceed that
+order (raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> downstream otherwise).</p>
 </dd>
-<dt><strong>l_max</strong><span class="classifier">int, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">l</span> <span class="pre">max</span></code>.</p>
+<dt><strong>lut_res</strong><span class="classifier">int, optional</span></dt><dd><p>Cube-map Hermite LUT resolution per face edge.</p>
 </dd>
-<dt><strong>lut_res</strong><span class="classifier">int, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">lut</span> <span class="pre">res</span></code>.</p>
+<dt><strong>mask</strong><span class="classifier">ndarray of bool, shape (X, Y, Z), optional</span></dt><dd><p>When given, voxels outside the mask are excluded even if their
+coefficients are non-zero.</p>
 </dd>
-<dt><strong>use_hermite</strong><span class="classifier">bool, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">use</span> <span class="pre">hermite</span></code>.</p>
+<dt><strong>basis_type</strong><span class="classifier">{“standard”, “descoteaux”, “descoteaux07”}, optional</span></dt><dd><p>SH basis convention of <code class="docutils literal notranslate"><span class="pre">coeffs_4d</span></code>.</p>
 </dd>
-<dt><strong>mapping_mode</strong><span class="classifier">str, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">mapping</span> <span class="pre">mode</span></code>.</p>
-</dd>
-<dt><strong>mask</strong><span class="classifier">ndarray, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">mask</span></code>.</p>
-</dd>
-<dt><strong>basis_type</strong><span class="classifier">str, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">basis</span> <span class="pre">type</span></code>.</p>
-</dd>
-<dt><strong>color_type</strong><span class="classifier">str, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">color</span> <span class="pre">type</span></code>.</p>
+<dt><strong>color_type</strong><span class="classifier">{“orientation”, “sign”}, optional</span></dt><dd><p>Glyph coloring: direction-mapped hue, or a two-color sign split.</p>
 </dd>
 </dl>
 </dd>
@@ -6604,7 +6484,7 @@ GPU buffer limits.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer.build" title="dipy.viz.skyline.render.sh_slicer.SHSlicer.build"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build</span></code></a>()</p></td>
-<td><p>Handle build for <code class="docutils literal notranslate"><span class="pre">SHSlicer</span></code>.</p></td>
+<td><p>Build the billboard actor and add it to <code class="xref py py-attr docutils literal notranslate"><span class="pre">actor</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer.hide_axis" title="dipy.viz.skyline.render.sh_slicer.SHSlicer.hide_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hide_axis</span></code></a>(axis)</p></td>
 <td><p>Hide all slices for <em>axis</em>.</p></td>
@@ -6616,7 +6496,7 @@ GPU buffer limits.</p>
 <td><p>Update scale on the actor.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer.set_slice" title="dipy.viz.skyline.render.sh_slicer.SHSlicer.set_slice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_slice</span></code></a>(axis, idx)</p></td>
-<td><p>Show slice <em>idx</em> on <em>axis</em> via uniform update.</p></td>
+<td><p>Move the active slice plane on one axis to a world-space position.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer.show_axis" title="dipy.viz.skyline.render.sh_slicer.SHSlicer.show_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_axis</span></code></a>(axis)</p></td>
 <td><p>Enable axis visibility.</p></td>
@@ -6627,7 +6507,17 @@ GPU buffer limits.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHSlicer.build">
 <span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHSlicer.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer.build" title="Link to this definition">#</a></dt>
-<dd><p>Handle build for <code class="docutils literal notranslate"><span class="pre">SHSlicer</span></code>.</p>
+<dd><p>Build the billboard actor and add it to <code class="xref py py-attr docutils literal notranslate"><span class="pre">actor</span></code>.</p>
+<p>Safe to call when every voxel is zero (or masked out): the group
+is then left empty and <code class="xref py py-attr docutils literal notranslate"><span class="pre">_glyph_actor</span></code> stays <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>Group</dt><dd><p>The (possibly empty) parent group holding the billboard actor.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -6651,7 +6541,20 @@ GPU buffer limits.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHSlicer.set_slice">
 <span class="sig-name descname"><span class="pre">set_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHSlicer.set_slice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer.set_slice" title="Link to this definition">#</a></dt>
-<dd><p>Show slice <em>idx</em> on <em>axis</em> via uniform update.</p>
+<dd><p>Move the active slice plane on one axis to a world-space position.</p>
+<p>A no-op when <code class="docutils literal notranslate"><span class="pre">idx</span></code> matches the axis’s current position, so
+repeated calls from a UI slider don’t trigger redundant GPU
+uniform uploads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>axis</strong><span class="classifier">{“x”, “y”, “z”}</span></dt><dd><p>Which per-axis slice-position uniform to update.</p>
+</dd>
+<dt><strong>idx</strong><span class="classifier">float</span></dt><dd><p>World-space coordinate of the new slice plane along <code class="docutils literal notranslate"><span class="pre">axis</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -6667,35 +6570,36 @@ GPU buffer limits.</p>
 <h3><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHGlyph3D</span></code></a><a class="headerlink" href="#shglyph3d" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHGlyph3D">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_slicer.</span></span><span class="sig-name descname"><span class="pre">SHGlyph3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hermite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cube'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sync_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHGlyph3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_slicer.</span></span><span class="sig-name descname"><span class="pre">SHGlyph3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sync_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHGlyph3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dipy.viz.skyline.render.renderer.Visualization" title="dipy.viz.skyline.render.renderer.Visualization"><code class="xref py py-class docutils literal notranslate"><span class="pre">Visualization</span></code></a></p>
-<p>Represent <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code> in Skyline.</p>
+<p>High-level ODF visualization: UI widgets, sync, and slice state.</p>
+<p>Wraps a single <a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHSlicer" title="dipy.viz.skyline.render.sh_slicer.SHSlicer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHSlicer</span></code></a> and converts the shared, world-space
+<code class="docutils literal notranslate"><span class="pre">state</span></code> vector (synchronized across every Skyline visualization) into
+the per-axis slice positions the billboard shader expects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>Display name used in the Skyline UI.</p>
 </dd>
-<dt><strong>coeffs</strong><span class="classifier">ndarray</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">coeffs</span></code>.</p>
+<dt><strong>coeffs</strong><span class="classifier">ndarray, shape (X, Y, Z, C)</span></dt><dd><p>SH coefficients per voxel.</p>
 </dd>
-<dt><strong>affine</strong><span class="classifier">ndarray, optional</span></dt><dd><p>Voxel-to-world affine used to position slices in world coordinates.</p>
+<dt><strong>affine</strong><span class="classifier">ndarray, optional</span></dt><dd><p>Voxel-to-world affine used to position slices in world coordinates.
+When <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">state</span></code>/slice positions are voxel indices instead.</p>
 </dd>
 <dt><strong>render_callback</strong><span class="classifier">callable, optional</span></dt><dd><p>Callback used to request a render/update.</p>
 </dd>
-<dt><strong>scale</strong><span class="classifier">float, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">scale</span></code>.</p>
+<dt><strong>scale</strong><span class="classifier">float, optional</span></dt><dd><p>Per-glyph scale used only when <code class="docutils literal notranslate"><span class="pre">affine</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>; otherwise
+the scale is derived from the affine’s voxel sizes.</p>
 </dd>
-<dt><strong>l_max</strong><span class="classifier">int, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">l</span> <span class="pre">max</span></code>.</p>
+<dt><strong>l_max</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum SH order to shade.</p>
 </dd>
-<dt><strong>lut_res</strong><span class="classifier">int, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">lut</span> <span class="pre">res</span></code>.</p>
+<dt><strong>lut_res</strong><span class="classifier">int, optional</span></dt><dd><p>Cube-map Hermite LUT resolution per face edge.</p>
 </dd>
-<dt><strong>use_hermite</strong><span class="classifier">bool, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">use</span> <span class="pre">hermite</span></code>.</p>
+<dt><strong>basis_type</strong><span class="classifier">{“standard”, “descoteaux”, “descoteaux07”}, optional</span></dt><dd><p>SH basis convention of <code class="docutils literal notranslate"><span class="pre">coeffs</span></code>.</p>
 </dd>
-<dt><strong>mapping_mode</strong><span class="classifier">str, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">mapping</span> <span class="pre">mode</span></code>.</p>
+<dt><strong>color_type</strong><span class="classifier">{“orientation”, “sign”}, optional</span></dt><dd><p>Glyph coloring: direction-mapped hue, or a two-color sign split.</p>
 </dd>
-<dt><strong>basis_type</strong><span class="classifier">str, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">basis</span> <span class="pre">type</span></code>.</p>
-</dd>
-<dt><strong>color_type</strong><span class="classifier">str, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">color</span> <span class="pre">type</span></code>.</p>
-</dd>
-<dt><strong>mask</strong><span class="classifier">ndarray, optional</span></dt><dd><p>Value for <code class="docutils literal notranslate"><span class="pre">mask</span></code>.</p>
+<dt><strong>mask</strong><span class="classifier">ndarray of bool, optional</span></dt><dd><p>Boolean mask of valid voxels.</p>
 </dd>
 <dt><strong>sync_callback</strong><span class="classifier">callable, optional</span></dt><dd><p>Callback used to synchronize state across views.</p>
 </dd>
@@ -6703,7 +6607,7 @@ GPU buffer limits.</p>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.actor" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.actor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">actor</span></code></a></dt><dd><p>Handle actor for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p>
+<dt><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.actor" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.actor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">actor</span></code></a></dt><dd><p>Group actor to add to the scene; delegates to the slicer.</p>
 </dd>
 <dt><a class="reference internal" href="#dipy.viz.skyline.render.renderer.Visualization.viz_type" title="dipy.viz.skyline.render.renderer.Visualization.viz_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viz_type</span></code></a></dt><dd><p>Return the visualization type identifier string.</p>
 </dd>
@@ -6720,19 +6624,19 @@ GPU buffer limits.</p>
 <td><p>Request a window redraw through <code class="xref py py-attr docutils literal notranslate"><span class="pre">_render_callback</span></code> when set.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.render_widgets" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.render_widgets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_widgets</span></code></a>()</p></td>
-<td><p>Handle render widgets for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p></td>
+<td><p>Draw the sync toggle, scale/opacity controls, and per-axis sliders.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">renderer</span></code>(is_open, *[, group_visible])</p></td>
 <td><p>Draw the sidebar header and optional widget body for this layer.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slice_visibility" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slice_visibility"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_slice_visibility</span></code></a>()</p></td>
-<td><p>Handle set slice visibility for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p></td>
+<td><p>Show/hide each axis's slice per <code class="xref py py-attr docutils literal notranslate"><span class="pre">_slice_visibility</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slices" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_slices</span></code></a>()</p></td>
-<td><p>Handle set slices for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p></td>
+<td><p>Push the current <code class="docutils literal notranslate"><span class="pre">state</span></code> to the billboard material's slice uniforms.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.update_state" title="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.update_state"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_state</span></code></a>(new_state)</p></td>
-<td><p>Handle update state for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p></td>
+<td><p>Apply a synchronized world-space state from another visualization.</p></td>
 </tr>
 </tbody>
 </table>
@@ -6740,11 +6644,11 @@ GPU buffer limits.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.actor">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">actor</span></span><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.actor" title="Link to this definition">#</a></dt>
-<dd><p>Handle actor for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p>
+<dd><p>Group actor to add to the scene; delegates to the slicer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt>Group</dt><dd><p>The actor of the SHGlyph3D visualization.</p>
+<dt>Group</dt><dd><p>Parent group containing the billboard actor.</p>
 </dd>
 </dl>
 </dd>
@@ -6754,29 +6658,38 @@ GPU buffer limits.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.render_widgets">
 <span class="sig-name descname"><span class="pre">render_widgets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHGlyph3D.render_widgets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.render_widgets" title="Link to this definition">#</a></dt>
-<dd><p>Handle render widgets for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p>
+<dd><p>Draw the sync toggle, scale/opacity controls, and per-axis sliders.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slice_visibility">
 <span class="sig-name descname"><span class="pre">set_slice_visibility</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHGlyph3D.set_slice_visibility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slice_visibility" title="Link to this definition">#</a></dt>
-<dd><p>Handle set slice visibility for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p>
+<dd><p>Show/hide each axis’s slice per <code class="xref py py-attr docutils literal notranslate"><span class="pre">_slice_visibility</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slices">
 <span class="sig-name descname"><span class="pre">set_slices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHGlyph3D.set_slices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slices" title="Link to this definition">#</a></dt>
-<dd><p>Handle set slices for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p>
+<dd><p>Push the current <code class="docutils literal notranslate"><span class="pre">state</span></code> to the billboard material’s slice uniforms.</p>
+<p>Snaps <code class="docutils literal notranslate"><span class="pre">state</span></code> to the nearest voxel (<code class="xref py py-meth docutils literal notranslate"><span class="pre">_voxel_from_world_state()</span></code>),
+then forward-transforms that voxel back to world space (when an
+affine is present) before writing it to each axis’s
+<code class="docutils literal notranslate"><span class="pre">active_slice_*</span></code> uniform.  This mirrors how <code class="docutils literal notranslate"><span class="pre">Peak3D</span></code> derives its
+cross section, and pairs with the vertex shader’s own snap-onto-plane
+logic to keep the rendered slice crisp for any affine, including
+rotated or axis-swapped ones.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.SHGlyph3D.update_state">
 <span class="sig-name descname"><span class="pre">update_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#SHGlyph3D.update_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.update_state" title="Link to this definition">#</a></dt>
-<dd><p>Handle update state for <code class="docutils literal notranslate"><span class="pre">SHGlyph3D</span></code>.</p>
+<dd><p>Apply a synchronized world-space state from another visualization.</p>
+<p>Ignored when <code class="xref py py-attr docutils literal notranslate"><span class="pre">_synchronize</span></code> is off (per-view slice sync toggle).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>new_state</strong><span class="classifier">array-like</span></dt><dd><p>New synchronized state for this visualization.</p>
+<dt><strong>new_state</strong><span class="classifier">array-like</span></dt><dd><p>New shared world-space (x, y, z) state; only the first 3
+components are used.</p>
 </dd>
 </dl>
 </dd>
@@ -6790,7 +6703,7 @@ GPU buffer limits.</p>
 <h3>create_shm_visualization<a class="headerlink" href="#create-shm-visualization" title="Link to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="dipy.viz.skyline.render.sh_slicer.create_shm_visualization">
-<span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_slicer.</span></span><span class="sig-name descname"><span class="pre">create_shm_visualization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hermite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cube'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'descoteaux07'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sync_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#create_shm_visualization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.create_shm_visualization" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dipy.viz.skyline.render.sh_slicer.</span></span><span class="sig-name descname"><span class="pre">create_shm_visualization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'descoteaux07'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sync_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/render/sh_slicer.html#create_shm_visualization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.render.sh_slicer.create_shm_visualization" title="Link to this definition">#</a></dt>
 <dd><p>Create SH glyph visualization from input.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -6809,10 +6722,6 @@ GPU buffer limits.</p>
 <dt><strong>l_max</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum SH order.</p>
 </dd>
 <dt><strong>lut_res</strong><span class="classifier">int, optional</span></dt><dd><p>LUT resolution.</p>
-</dd>
-<dt><strong>use_hermite</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to use Hermite analytic normals.</p>
-</dd>
-<dt><strong>mapping_mode</strong><span class="classifier">str, optional</span></dt><dd><p>Billboard mapping mode.</p>
 </dd>
 <dt><strong>basis_type</strong><span class="classifier">str, optional</span></dt><dd><p>SH basis convention. Ignored if provided in <code class="docutils literal notranslate"><span class="pre">input</span></code> as 4th element.</p>
 </dd>
@@ -8043,15 +7952,7 @@ Default is None.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#slicedsphglyphmaterial"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial"><code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_x"><code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial.active_slice_x</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_y"><code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial.active_slice_y</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.active_slice_z"><code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial.active_slice_z</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_x"><code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial.vis_x</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_y"><code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial.vis_y</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial.vis_z"><code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial.vis_z</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial"><code class="docutils literal notranslate"><span class="pre">SlicedSphGlyphMaterial</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#billboard"><code class="xref py py-class docutils literal notranslate"><span class="pre">Billboard</span></code></a><ul class="nav section-nav flex-column">
@@ -8074,8 +7975,8 @@ Default is None.</p>
 </li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#enable-octahedral-lut">enable_octahedral_lut</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.enable_octahedral_lut"><code class="docutils literal notranslate"><span class="pre">enable_octahedral_lut()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bake-hermite-lut">bake_hermite_lut</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.viz.skyline.render.sh_billboard.bake_hermite_lut"><code class="docutils literal notranslate"><span class="pre">bake_hermite_lut()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sph-glyph-billboard-sliced">sph_glyph_billboard_sliced</a><ul class="nav section-nav flex-column">

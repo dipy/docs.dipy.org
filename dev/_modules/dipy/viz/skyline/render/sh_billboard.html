@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.sh_billboard &#8212; dipy 1.13.0.dev0+git20260921.3602fb3 documentation</title>
+    <title>dipy.viz.skyline.render.sh_billboard &#8212; dipy 1.13.0.dev0+git20260921.abc24f1 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=5eea7723"></script>
+    <script src="../../../../../_static/documentation_options.js?v=58e7027f"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,13 +883,23 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.viz.skyline.render.sh_billboard</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""GPU billboard pipeline for dense spherical-harmonic glyphs in Skyline."""</span>
+<span></span><span class="sd">"""GPU billboard pipeline for spherical-harmonic ODF glyphs.</span>
+
+<span class="sd">Each ODF glyph is a camera-facing quad; the fragment shader ray-marches</span>
+<span class="sd">it to find where the view ray meets the SH surface r(omega) =</span>
+<span class="sd">sum(c_lm * Y_lm(omega)).  Because evaluating that sum per pixel is</span>
+<span class="sd">expensive, :func:`bake_hermite_lut` pre-bakes it into a cube-map Hermite</span>
+<span class="sd">LUT that the shader samples instead, falling back to direct evaluation</span>
+<span class="sd">when no LUT is baked.  See individual function/class docstrings for</span>
+<span class="sd">details (LUT layout and chunking, shader bindings, etc.).</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">ceil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassVar</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.wgsl</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dipy_wgsl</span>
 
@@ -935,8 +945,7 @@ document.write(`
         <span class="k">return</span> <span class="n">decorator</span>
 
 
-<span class="n">_GPU_DEVICE_LIMITS_CACHE</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">_GPU_HERMITE_COMPUTE_CACHE</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">_gpu_cache</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
 
 <span class="n">_MAX_LUT_CHUNKS</span> <span class="o">=</span> <span class="mi">8</span>
 
@@ -949,19 +958,19 @@ document.write(`
 <span class="sd">    int</span>
 <span class="sd">        Device limit in bytes, falling back to 128 MiB if discovery fails.</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="s2">"max_storage_buffer_binding_size"</span> <span class="ow">in</span> <span class="n">_GPU_DEVICE_LIMITS_CACHE</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_GPU_DEVICE_LIMITS_CACHE</span><span class="p">[</span><span class="s2">"max_storage_buffer_binding_size"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">"max_buffer_size"</span> <span class="ow">in</span> <span class="n">_gpu_cache</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_gpu_cache</span><span class="p">[</span><span class="s2">"max_buffer_size"</span><span class="p">]</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">adapter</span> <span class="o">=</span> <span class="n">wgpu</span><span class="o">.</span><span class="n">gpu</span><span class="o">.</span><span class="n">request_adapter_sync</span><span class="p">(</span><span class="n">power_preference</span><span class="o">=</span><span class="s2">"high-performance"</span><span class="p">)</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">request_device_sync</span><span class="p">()</span>
         <span class="n">limits</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">limits</span>
         <span class="n">max_size</span> <span class="o">=</span> <span class="n">limits</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"max-storage-buffer-binding-size"</span><span class="p">,</span> <span class="mi">128</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
-        <span class="n">_GPU_DEVICE_LIMITS_CACHE</span><span class="p">[</span><span class="s2">"max_storage_buffer_binding_size"</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_size</span>
+        <span class="n">_gpu_cache</span><span class="p">[</span><span class="s2">"max_buffer_size"</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_size</span>
         <span class="k">return</span> <span class="n">max_size</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">default</span> <span class="o">=</span> <span class="mi">128</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
-        <span class="n">_GPU_DEVICE_LIMITS_CACHE</span><span class="p">[</span><span class="s2">"max_storage_buffer_binding_size"</span><span class="p">]</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="n">_gpu_cache</span><span class="p">[</span><span class="s2">"max_buffer_size"</span><span class="p">]</span> <span class="o">=</span> <span class="n">default</span>
         <span class="k">return</span> <span class="n">default</span>
 
 
@@ -1037,25 +1046,7 @@ document.write(`
 <div class="viewcode-block" id="SlicedSphGlyphMaterial">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SlicedSphGlyphMaterial</span><span class="p">(</span><span class="n">SphGlyphMaterial</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Represent ``SlicedSphGlyphMaterial`` in Skyline.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    active_slice_x : float, optional</span>
-<span class="sd">        Value for ``active slice x``.</span>
-<span class="sd">    active_slice_y : float, optional</span>
-<span class="sd">        Value for ``active slice y``.</span>
-<span class="sd">    active_slice_z : float, optional</span>
-<span class="sd">        Value for ``active slice z``.</span>
-<span class="sd">    vis_x : int, optional</span>
-<span class="sd">        Value for ``vis x``.</span>
-<span class="sd">    vis_y : int, optional</span>
-<span class="sd">        Value for ``vis y``.</span>
-<span class="sd">    vis_z : int, optional</span>
-<span class="sd">        Value for ``vis z``.</span>
-<span class="sd">    **kwargs : dict</span>
-<span class="sd">        Value for ``kwargs``.</span>
-<span class="sd">    """</span>
+<span class="w">    </span><span class="sd">"""Material with world-space slice positions and integer visibility flags."""</span>
 
     <span class="n">uniform_type</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">SphGlyphMaterial</span><span class="o">.</span><span class="n">uniform_type</span><span class="p">,</span>
@@ -1070,229 +1061,39 @@ document.write(`
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">active_slice_x</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">active_slice_y</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">active_slice_z</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">active_slice_x</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">active_slice_y</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">active_slice_z</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="n">vis_x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">vis_y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">vis_z</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Represent ``SlicedSphGlyphMaterial`` in Skyline.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        active_slice_x : float, optional</span>
-<span class="sd">            Value for ``active slice x``.</span>
-<span class="sd">        active_slice_y : float, optional</span>
-<span class="sd">            Value for ``active slice y``.</span>
-<span class="sd">        active_slice_z : float, optional</span>
-<span class="sd">            Value for ``active slice z``.</span>
-<span class="sd">        vis_x : int, optional</span>
-<span class="sd">            Value for ``vis x``.</span>
-<span class="sd">        vis_y : int, optional</span>
-<span class="sd">            Value for ``vis y``.</span>
-<span class="sd">        vis_z : int, optional</span>
-<span class="sd">            Value for ``vis z``.</span>
-<span class="sd">        **kwargs : dict</span>
-<span class="sd">            Value for ``kwargs``.</span>
-<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_slice_x</span> <span class="o">=</span> <span class="n">active_slice_x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_slice_y</span> <span class="o">=</span> <span class="n">active_slice_y</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_slice_z</span> <span class="o">=</span> <span class="n">active_slice_z</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vis_x</span> <span class="o">=</span> <span class="n">vis_x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vis_y</span> <span class="o">=</span> <span class="n">vis_y</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vis_z</span> <span class="o">=</span> <span class="n">vis_z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis_z</span> <span class="o">=</span> <span class="n">vis_z</span></div>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_set_i4</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  set i4 for ``SlicedSphGlyphMaterial``.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        name : str</span>
-<span class="sd">            Display name used in the Skyline UI.</span>
-<span class="sd">        value : int</span>
-<span class="sd">            Value for ``value``.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_uniform_property</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">cast</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">update_full</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_set_f4</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle set f4 for ``SlicedSphGlyphMaterial``.</span>
+    <span class="k">return</span> <span class="nb">property</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        name : str</span>
-<span class="sd">            Uniform name.</span>
-<span class="sd">        value : float</span>
-<span class="sd">            Value for ``value``.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">update_full</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_get_i4</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  get i4 for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        name : str</span>
-<span class="sd">            Display name used in the Skyline UI.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            The value of the uniform buffer.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_get_f4</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle get f4 for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        name : str</span>
-<span class="sd">            Uniform name.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        float</span>
-<span class="sd">            The value of the uniform buffer.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">active_slice_x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle active slice x for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        float</span>
-<span class="sd">            The value of the active slice x.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_f4</span><span class="p">(</span><span class="s2">"active_slice_x"</span><span class="p">)</span>
-
-    <span class="nd">@active_slice_x</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">active_slice_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle active slice x for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        v : float</span>
-<span class="sd">            Value for ``v``.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_f4</span><span class="p">(</span><span class="s2">"active_slice_x"</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">active_slice_y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle active slice y for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        float</span>
-<span class="sd">            The value of the active slice y.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_f4</span><span class="p">(</span><span class="s2">"active_slice_y"</span><span class="p">)</span>
-
-    <span class="nd">@active_slice_y</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">active_slice_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle active slice y for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        v : float</span>
-<span class="sd">            Value for ``v``.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_f4</span><span class="p">(</span><span class="s2">"active_slice_y"</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">active_slice_z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle active slice z for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        float</span>
-<span class="sd">            The value of the active slice z.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_f4</span><span class="p">(</span><span class="s2">"active_slice_z"</span><span class="p">)</span>
-
-    <span class="nd">@active_slice_z</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">active_slice_z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle active slice z for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        v : float</span>
-<span class="sd">            Value for ``v``.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_f4</span><span class="p">(</span><span class="s2">"active_slice_z"</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">vis_x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle vis x for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            The value of the vis x.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_i4</span><span class="p">(</span><span class="s2">"vis_x"</span><span class="p">)</span>
-
-    <span class="nd">@vis_x</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">vis_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle vis x for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        v : int</span>
-<span class="sd">            Value for ``v``.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_i4</span><span class="p">(</span><span class="s2">"vis_x"</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">vis_y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle vis y for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            Returned value.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_i4</span><span class="p">(</span><span class="s2">"vis_y"</span><span class="p">)</span>
-
-    <span class="nd">@vis_y</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">vis_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle vis y for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        v : int</span>
-<span class="sd">            Value for ``v``.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_i4</span><span class="p">(</span><span class="s2">"vis_y"</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">vis_z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle vis z for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            The value of the vis z.</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_i4</span><span class="p">(</span><span class="s2">"vis_z"</span><span class="p">)</span>
-
-    <span class="nd">@vis_z</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">vis_z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle vis z for ``SlicedSphGlyphMaterial``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        v : int</span>
-<span class="sd">            Value for ``v``.</span>
-<span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_i4</span><span class="p">(</span><span class="s2">"vis_z"</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span></div>
-
+<span class="k">for</span> <span class="n">_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"active_slice_x"</span><span class="p">,</span> <span class="s2">"active_slice_y"</span><span class="p">,</span> <span class="s2">"active_slice_z"</span><span class="p">):</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">SlicedSphGlyphMaterial</span><span class="p">,</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_make_uniform_property</span><span class="p">(</span><span class="n">_name</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"vis_x"</span><span class="p">,</span> <span class="s2">"vis_y"</span><span class="p">,</span> <span class="s2">"vis_z"</span><span class="p">):</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">SlicedSphGlyphMaterial</span><span class="p">,</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_make_uniform_property</span><span class="p">(</span><span class="n">_name</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="Billboard">
@@ -1311,24 +1112,12 @@ document.write(`
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">l_max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle l max for ``SphGlyphBillboard``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            The value of the l max.</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""int: Maximum SH order currently shaded (-1 if never set)."""</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_l_max"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="nd">@l_max</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">l_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle l max for ``SphGlyphBillboard``.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        value : int</span>
-<span class="sd">            Value for ``value``.</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Truncate shading to ``value``; raises if it exceeds the coefficients."""</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The attribute 'l_max' must be a non-negative integer."</span><span class="p">)</span>
         <span class="n">max_supported</span> <span class="o">=</span> <span class="n">get_lmax</span><span class="p">(</span>
@@ -1349,7 +1138,12 @@ document.write(`
 <div class="viewcode-block" id="BillboardSphGlyphShader">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BillboardSphGlyphShader</span><span class="p">(</span><span class="n">MeshShader</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Represent ``BillboardSphGlyphShader`` in Skyline.</span>
+<span class="w">    </span><span class="sd">"""pygfx shader: template variables and bindings for the ODF billboard pipeline.</span>
+
+<span class="sd">    Reads flags/dimensions off ``wobject`` (the :class:`SphGlyphBillboard`</span>
+<span class="sd">    actor) at construction time and exposes them as WGSL template variables</span>
+<span class="sd">    (``{{ n_coeffs }}``, ``{{ use_hermite_lut }}``, etc.) consumed by</span>
+<span class="sd">    ``sh_billboard.wgsl``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1358,63 +1152,21 @@ document.write(`
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wobject</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Represent ``BillboardSphGlyphShader`` in Skyline.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        wobject : SphGlyphBillboard</span>
-<span class="sd">            Billboard object rendered by this shader.</span>
-<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">wobject</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_wobject</span> <span class="o">=</span> <span class="n">wobject</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"billboard_count"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"billboard_count"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"lighting"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"phong"</span>
-        <span class="n">original_lmax</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_l_max"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"n_coeffs"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"coeffs_per_glyph"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"l_max"</span><span class="p">]</span> <span class="o">=</span> <span class="n">original_lmax</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"l_max"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_l_max"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"color_type"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"color_type"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"use_precomputation"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_is_precomputed"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"use_level_of_detail"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
-            <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_use_level_of_detail"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">use_radius_lut</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_use_radius_lut"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"use_precomputed_radius_lut"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">use_radius_lut</span> <span class="k">else</span> <span class="s2">"false"</span>
-
-        <span class="n">interp_mode</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_interpolation_mode"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">interp_mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">use_bicubic</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_use_bicubic"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-            <span class="n">interp_mode</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">use_bicubic</span> <span class="k">else</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"interpolation_mode"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">interp_mode</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"radius_lut_theta"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_theta_res"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"radius_lut_phi"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_phi_res"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"radius_lut_stride"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_stride"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"radius_theta_step"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_theta_step"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"radius_phi_step"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_phi_step"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"lut_n_chunks"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_n_chunks"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"lut_glyphs_per_chunk"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_glyphs_per_chunk"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"debug_mode"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_debug_mode"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">force_direct</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_force_direct_eval"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"force_direct_sh_eval"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">force_direct</span> <span class="k">else</span> <span class="s2">"false"</span>
-        <span class="n">use_octahedral</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_use_octahedral_lut"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"use_octahedral_lut"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">use_octahedral</span> <span class="k">else</span> <span class="s2">"false"</span>
-        <span class="n">use_hermite</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_use_hermite_interp"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"use_hermite_interp"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">use_hermite</span> <span class="k">else</span> <span class="s2">"false"</span>
-        <span class="n">force_fd</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_force_fd_normals"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"force_fd_normals"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">force_fd</span> <span class="k">else</span> <span class="s2">"false"</span>
+        <span class="n">lut_ready</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_ready"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"use_hermite_lut"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">lut_ready</span> <span class="k">else</span> <span class="s2">"false"</span>
         <span class="n">use_float16</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_use_float16"</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"use_float16"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">use_float16</span> <span class="k">else</span> <span class="s2">"false"</span>
-
-        <span class="n">mapping_mode_str</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_mapping_mode"</span><span class="p">,</span> <span class="s2">"octahedral"</span><span class="p">)</span>
-        <span class="n">mapping_mode_map</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">"octahedral"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">"dual_hemi"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="s2">"dual_paraboloid"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="s2">"latlong"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-            <span class="s2">"fibonacci"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-            <span class="s2">"cube"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="bp">self</span><span class="p">[</span><span class="s2">"mapping_mode"</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapping_mode_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mapping_mode_str</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"radius_lut_phi"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_phi_res"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"radius_lut_stride"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_stride"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"lut_n_chunks"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_n_chunks"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">"lut_glyphs_per_chunk"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_lut_glyphs_per_chunk"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="n">use_slicing</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span>
             <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"material"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">SlicedSphGlyphMaterial</span>
@@ -1424,19 +1176,16 @@ document.write(`
 <div class="viewcode-block" id="BillboardSphGlyphShader.get_render_info">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_render_info">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_render_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wobject</span><span class="p">,</span> <span class="n">shared</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle get render info for ``BillboardSphGlyphShader``.</span>
+<span class="w">        </span><span class="sd">"""Instance/vertex counts pygfx needs to issue the draw call.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        wobject : SphGlyphBillboard</span>
-<span class="sd">            Billboard object rendered by this shader.</span>
-<span class="sd">        shared : dict</span>
-<span class="sd">            Value for ``shared``.</span>
+<span class="sd">        Falls back to computing them from the geometry's vertex buffer</span>
+<span class="sd">        when the base ``MeshShader`` doesn't already provide indices</span>
+<span class="sd">        (e.g. before the geometry has been fully wired up).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
-<span class="sd">            The render info of the billboard shader.</span>
+<span class="sd">            ``{"indices": (vertex_count, instance_count, 0, 0)}``.</span>
 <span class="sd">        """</span>
         <span class="n">render_info</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_render_info</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="n">shared</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">render_info</span> <span class="ow">or</span> <span class="n">render_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"indices"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1455,21 +1204,19 @@ document.write(`
 <div class="viewcode-block" id="BillboardSphGlyphShader.get_bindings">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_bindings">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_bindings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wobject</span><span class="p">,</span> <span class="n">shared</span><span class="p">,</span> <span class="n">scene</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pep3102: ignore</span>
-<span class="w">        </span><span class="sd">"""Handle get bindings for ``BillboardSphGlyphShader``.</span>
+<span class="w">        </span><span class="sd">"""Wire the SH-coefficient and Hermite-LUT storage buffers.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        wobject : SphGlyphBillboard</span>
-<span class="sd">            Billboard object rendered by this shader.</span>
-<span class="sd">        shared : dict</span>
-<span class="sd">            Value for ``shared``.</span>
-<span class="sd">        scene : Scene, optional</span>
-<span class="sd">            Active rendering scene passed by the renderer.</span>
+<span class="sd">        Group 2 binding 0 is the flat SH coefficient buffer; group 3</span>
+<span class="sd">        bindings 0-7 are the (up to 8) Hermite LUT chunk buffers, padded</span>
+<span class="sd">        out with a shared dummy ``vec4&lt;f32&gt;`` buffer when ``wobject``</span>
+<span class="sd">        has fewer chunks than that (or hasn't baked a LUT at all), since</span>
+<span class="sd">        WGSL bindings must all be declared even when unused.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
-<span class="sd">            The bindings of the billboard shader.</span>
+<span class="sd">            Bindings dict with groups 2 and 3 populated, merged onto</span>
+<span class="sd">            whatever the base ``MeshShader`` already provided.</span>
 <span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">bindings</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_bindings</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="n">shared</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>
@@ -1493,68 +1240,20 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">define_bindings</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">coeff_bindings</span><span class="p">)</span>
         <span class="n">bindings</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeff_bindings</span>
 
-        <span class="n">radius_buffers</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_radius_lut_buffers"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">normal_buffer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_normal_lut_buffer"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">normal_buffer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">normal_buffer</span> <span class="o">=</span> <span class="n">Buffer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
-
-        <span class="n">lut_bindings</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">dummy_buf</span> <span class="o">=</span> <span class="n">Buffer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">radius_buffers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">radius_buffers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">buf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">radius_buffers</span><span class="p">):</span>
-                <span class="n">lut_bindings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"s_sh_radius_lut_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="s2">"buffer/read_only_storage"</span><span class="p">,</span>
-                    <span class="n">buf</span><span class="p">,</span>
-                    <span class="s2">"FRAGMENT"</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">radius_buffers</span><span class="p">),</span> <span class="mi">8</span><span class="p">):</span>
-                <span class="n">lut_bindings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"s_sh_radius_lut_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="s2">"buffer/read_only_storage"</span><span class="p">,</span>
-                    <span class="n">dummy_buf</span><span class="p">,</span>
-                    <span class="s2">"FRAGMENT"</span><span class="p">,</span>
-                <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">radius_buffer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_radius_lut_buffer"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">radius_buffer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">radius_buffer</span> <span class="o">=</span> <span class="n">Buffer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
-            <span class="n">lut_bindings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
-                <span class="s2">"s_sh_radius_lut_0"</span><span class="p">,</span>
-                <span class="s2">"buffer/read_only_storage"</span><span class="p">,</span>
-                <span class="n">radius_buffer</span><span class="p">,</span>
-                <span class="s2">"FRAGMENT"</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
-                <span class="n">lut_bindings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"s_sh_radius_lut_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="s2">"buffer/read_only_storage"</span><span class="p">,</span>
-                    <span class="n">dummy_buf</span><span class="p">,</span>
-                    <span class="s2">"FRAGMENT"</span><span class="p">,</span>
-                <span class="p">)</span>
-
-        <span class="n">lut_bindings</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
-            <span class="s2">"s_sh_normal_lut"</span><span class="p">,</span>
-            <span class="s2">"buffer/read_only_storage"</span><span class="p">,</span>
-            <span class="n">normal_buffer</span><span class="p">,</span>
-            <span class="s2">"FRAGMENT"</span><span class="p">,</span>
-        <span class="p">)</span>
-
         <span class="n">hermite_buffers</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"_sh_hermite_lut_buffers"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">dummy_vec4</span> <span class="o">=</span> <span class="n">Buffer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
 
+        <span class="n">lut_bindings</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">hermite_buffers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">hermite_buffers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">buf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hermite_buffers</span><span class="p">):</span>
-                <span class="n">lut_bindings</span><span class="p">[</span><span class="mi">9</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
+                <span class="n">lut_bindings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"s_sh_hermite_lut_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                     <span class="s2">"buffer/read_only_storage"</span><span class="p">,</span>
                     <span class="n">buf</span><span class="p">,</span>
                     <span class="s2">"FRAGMENT"</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hermite_buffers</span><span class="p">),</span> <span class="mi">8</span><span class="p">):</span>
-                <span class="n">lut_bindings</span><span class="p">[</span><span class="mi">9</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
+                <span class="n">lut_bindings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"s_sh_hermite_lut_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                     <span class="s2">"buffer/read_only_storage"</span><span class="p">,</span>
                     <span class="n">dummy_vec4</span><span class="p">,</span>
@@ -1562,7 +1261,7 @@ document.write(`
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
-                <span class="n">lut_bindings</span><span class="p">[</span><span class="mi">9</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
+                <span class="n">lut_bindings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Binding</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"s_sh_hermite_lut_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                     <span class="s2">"buffer/read_only_storage"</span><span class="p">,</span>
                     <span class="n">dummy_vec4</span><span class="p">,</span>
@@ -1577,13 +1276,7 @@ document.write(`
 <div class="viewcode-block" id="BillboardSphGlyphShader.get_code">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_code">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle get code for ``BillboardSphGlyphShader``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            The code of the billboard shader.</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Return the (still-templated) WGSL source for this shader."""</span>
         <span class="k">return</span> <span class="n">load_dipy_wgsl</span><span class="p">(</span><span class="s2">"sh_billboard.wgsl"</span><span class="p">)</span></div>
 </div>
 
@@ -1599,6 +1292,13 @@ document.write(`
     <span class="n">material_cls</span><span class="p">,</span>
     <span class="n">material_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Build a per-glyph 6-vertex-quad ``SphGlyphBillboard`` geometry + material.</span>
+
+<span class="sd">    Broadcasts ``colors``/``sizes`` to match ``centers`` when given as a</span>
+<span class="sd">    single value, repeats each glyph's data across its 6 quad vertices,</span>
+<span class="sd">    and stores ``billboard_count``/``billboard_centers``/``billboard_sizes``</span>
+<span class="sd">    on the returned actor for later use (LUT baking, picking, resizing).</span>
+<span class="sd">    """</span>
     <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">centers</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">centers</span> <span class="o">=</span> <span class="n">centers</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -1655,60 +1355,16 @@ document.write(`
     <span class="k">return</span> <span class="n">obj</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_populate_radius_lut_cube_cpu_chunked</span><span class="p">(</span>
-    <span class="n">actor</span><span class="p">,</span> <span class="n">lut_res</span><span class="p">,</span> <span class="n">glyph_count</span><span class="p">,</span> <span class="n">n_coeffs</span><span class="p">,</span> <span class="n">chunk_info</span>
-<span class="p">):</span>
-    <span class="n">padded_res</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">+</span> <span class="mi">2</span>
-    <span class="n">step</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">lut_res</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">step</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">step</span><span class="p">,</span> <span class="n">padded_res</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">step</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">step</span><span class="p">,</span> <span class="n">padded_res</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="n">uu</span><span class="p">,</span> <span class="n">vv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-    <span class="n">uu</span> <span class="o">=</span> <span class="n">uu</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-    <span class="n">vv</span> <span class="o">=</span> <span class="n">vv</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-    <span class="n">ones</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">uu</span><span class="p">)</span>
-    <span class="n">d0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">ones</span><span class="p">,</span> <span class="o">-</span><span class="n">vv</span><span class="p">,</span> <span class="o">-</span><span class="n">uu</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">d1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="o">-</span><span class="n">ones</span><span class="p">,</span> <span class="o">-</span><span class="n">vv</span><span class="p">,</span> <span class="n">uu</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">d2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">uu</span><span class="p">,</span> <span class="n">ones</span><span class="p">,</span> <span class="n">vv</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">d3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">uu</span><span class="p">,</span> <span class="o">-</span><span class="n">ones</span><span class="p">,</span> <span class="o">-</span><span class="n">vv</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">d4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">uu</span><span class="p">,</span> <span class="o">-</span><span class="n">vv</span><span class="p">,</span> <span class="n">ones</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">d5</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="o">-</span><span class="n">uu</span><span class="p">,</span> <span class="o">-</span><span class="n">vv</span><span class="p">,</span> <span class="o">-</span><span class="n">ones</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">d0</span><span class="p">,</span> <span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">,</span> <span class="n">d3</span><span class="p">,</span> <span class="n">d4</span><span class="p">,</span> <span class="n">d5</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dirs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">dirs</span> <span class="o">=</span> <span class="n">dirs</span> <span class="o">/</span> <span class="n">norms</span>
-
-    <span class="n">l_max</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_coeffs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">basis_matrix</span> <span class="o">=</span> <span class="n">create_sh_basis_matrix</span><span class="p">(</span><span class="n">dirs</span><span class="p">,</span> <span class="n">l_max</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">basis_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">n_coeffs</span><span class="p">:</span>
-        <span class="n">basis_matrix</span> <span class="o">=</span> <span class="n">basis_matrix</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_coeffs</span><span class="p">]</span>
-
-    <span class="n">glyph_offset</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">chunk_idx</span><span class="p">,</span> <span class="n">chunk_glyphs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chunk_info</span><span class="p">[</span><span class="s2">"chunk_sizes"</span><span class="p">]):</span>
-        <span class="n">radius_lut</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">_sh_radius_lut_buffers</span><span class="p">[</span><span class="n">chunk_idx</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
-        <span class="n">start_glyph</span> <span class="o">=</span> <span class="n">glyph_offset</span>
-        <span class="n">end_glyph</span> <span class="o">=</span> <span class="n">glyph_offset</span> <span class="o">+</span> <span class="n">chunk_glyphs</span>
-
-        <span class="n">coeffs_data</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">sh_coeffs</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">coeffs_data</span><span class="p">,</span> <span class="s2">"data"</span><span class="p">):</span>
-            <span class="n">coeffs_data</span> <span class="o">=</span> <span class="n">coeffs_data</span><span class="o">.</span><span class="n">data</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coeffs_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="n">coeffs_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coeffs_data</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">coeffs_data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">coeffs_data</span><span class="o">.</span><span class="n">size</span> <span class="o">%</span> <span class="n">n_coeffs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">coeffs_data</span> <span class="o">=</span> <span class="n">coeffs_data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_coeffs</span><span class="p">)</span>
-
-        <span class="n">chunk_coeffs</span> <span class="o">=</span> <span class="n">coeffs_data</span><span class="p">[</span><span class="n">start_glyph</span><span class="p">:</span><span class="n">end_glyph</span><span class="p">]</span>
-        <span class="n">radii</span> <span class="o">=</span> <span class="n">chunk_coeffs</span> <span class="o">@</span> <span class="n">basis_matrix</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">radius_lut</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">radii</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_radius_lut_buffers</span><span class="p">[</span><span class="n">chunk_idx</span><span class="p">]</span><span class="o">.</span><span class="n">update_full</span><span class="p">()</span>
-        <span class="n">glyph_offset</span> <span class="o">+=</span> <span class="n">chunk_glyphs</span>
-
-    <span class="k">return</span> <span class="kc">True</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_populate_hermite_lut_cube_cpu_chunked</span><span class="p">(</span>
     <span class="n">actor</span><span class="p">,</span> <span class="n">lut_res</span><span class="p">,</span> <span class="n">glyph_count</span><span class="p">,</span> <span class="n">n_coeffs</span><span class="p">,</span> <span class="n">chunk_info</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">use_float16</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">"""CPU (NumPy) fallback for ``bake_hermite_lut`` when GPU compute is unavailable.</span>
+
+<span class="sd">    Evaluates the SH basis on a padded per-face grid, takes a 4th-order</span>
+<span class="sd">    finite-difference of the raw values to get (value, du, dv, d2uv),</span>
+<span class="sd">    and writes the result into ``actor``'s already-allocated Hermite LUT</span>
+<span class="sd">    chunk buffers.</span>
+<span class="sd">    """</span>
     <span class="n">N</span> <span class="o">=</span> <span class="n">lut_res</span>
     <span class="n">g</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">size</span> <span class="o">=</span> <span class="n">N</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">g</span>
@@ -1816,9 +1472,6 @@ document.write(`
 
 <span class="sd">    Runs imperatively via ``wgpu`` — no pygfx render-function needed.</span>
 <span class="sd">    """</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_time</span>
-
-    <span class="n">_t0</span> <span class="o">=</span> <span class="n">_time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
     <span class="n">N</span> <span class="o">=</span> <span class="n">lut_res</span>
     <span class="n">g_int</span> <span class="o">=</span> <span class="mi">3</span>
@@ -1829,7 +1482,7 @@ document.write(`
     <span class="n">l_max</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">"_l_max"</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 
     <span class="c1"># --- cached device + pipelines ----------------------------------------</span>
-    <span class="n">cache</span> <span class="o">=</span> <span class="n">_GPU_HERMITE_COMPUTE_CACHE</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="n">_gpu_cache</span>
     <span class="k">if</span> <span class="s2">"device"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
         <span class="n">shader_src</span> <span class="o">=</span> <span class="n">load_dipy_wgsl</span><span class="p">(</span><span class="s2">"sh_cube_hermite_lut_compute.wgsl"</span><span class="p">)</span>
         <span class="n">adapter</span> <span class="o">=</span> <span class="n">wgpu</span><span class="o">.</span><span class="n">gpu</span><span class="o">.</span><span class="n">request_adapter_sync</span><span class="p">(</span><span class="n">power_preference</span><span class="o">=</span><span class="s2">"high-performance"</span><span class="p">)</span>
@@ -2041,39 +1694,26 @@ document.write(`
 
         <span class="n">glyph_offset</span> <span class="o">+=</span> <span class="n">chunk_glyphs</span>
 
-    <span class="n">_elapsed</span> <span class="o">=</span> <span class="n">_time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">_t0</span>
     <span class="k">return</span> <span class="kc">True</span>
 
 
-<div class="viewcode-block" id="enable_octahedral_lut">
-<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.enable_octahedral_lut">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">enable_octahedral_lut</span><span class="p">(</span>
-    <span class="n">actor</span><span class="p">,</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">lut_res</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
-    <span class="n">use_hermite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">force_rebake</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">mapping_mode</span><span class="o">=</span><span class="s2">"octahedral"</span><span class="p">,</span>
-    <span class="n">use_float16</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Bake radius or Hermite LUT chunks on ``actor`` if GPU memory allows.</span>
+<div class="viewcode-block" id="bake_hermite_lut">
+<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.bake_hermite_lut">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bake_hermite_lut</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lut_res</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">force_rebake</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_float16</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Bake a cube-mapped Hermite LUT on ``actor`` if GPU memory allows.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    actor : SphGlyphBillboard</span>
 <span class="sd">        Target billboard with populated ``billboard_count`` and coefficients.</span>
 <span class="sd">    lut_res : int, optional</span>
-<span class="sd">        Base cube-map or octahedral resolution per face/hemisphere.</span>
-<span class="sd">    use_hermite : bool, optional</span>
-<span class="sd">        Allocate paired position/normal Hermite LUT texels.</span>
+<span class="sd">        Cube-map resolution per face edge.</span>
 <span class="sd">    force_rebake : bool, optional</span>
 <span class="sd">        Recompute even when flags indicate the LUT is ready.</span>
-<span class="sd">    mapping_mode : str, optional</span>
-<span class="sd">        One of ``"cube"``, ``"dual_hemi"``, ``"dual_paraboloid"``, or ``"fibonacci"``.</span>
 <span class="sd">    use_float16 : bool, optional</span>
-<span class="sd">        Store Hermite LUTs with reduced precision when supported.</span>
+<span class="sd">        Store the Hermite LUT with reduced precision when supported.</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">"_sh_use_octahedral_lut"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force_rebake</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">"_sh_lut_ready"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force_rebake</span><span class="p">:</span>
         <span class="k">return</span>
 
     <span class="n">glyph_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">"billboard_count"</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
@@ -2081,25 +1721,21 @@ document.write(`
     <span class="k">if</span> <span class="n">glyph_count</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n_coeffs</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span>
 
-    <span class="k">if</span> <span class="n">mapping_mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"dual_hemi"</span><span class="p">,</span> <span class="s2">"dual_paraboloid"</span><span class="p">):</span>
-        <span class="n">samples_per_glyph</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">lut_res</span> <span class="o">*</span> <span class="n">lut_res</span>
-    <span class="k">elif</span> <span class="n">mapping_mode</span> <span class="o">==</span> <span class="s2">"fibonacci"</span><span class="p">:</span>
-        <span class="n">samples_per_glyph</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">*</span> <span class="n">lut_res</span>
-    <span class="k">elif</span> <span class="n">mapping_mode</span> <span class="o">==</span> <span class="s2">"cube"</span><span class="p">:</span>
-        <span class="n">padded_res</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">+</span> <span class="mi">2</span>
-        <span class="n">samples_per_glyph</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">padded_res</span> <span class="o">*</span> <span class="n">padded_res</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">samples_per_glyph</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">*</span> <span class="n">lut_res</span>
-
-    <span class="n">bytes_per_sample</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8</span> <span class="k">if</span> <span class="n">use_float16</span> <span class="k">else</span> <span class="mi">16</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_hermite</span> <span class="k">else</span> <span class="mi">4</span>
+    <span class="n">padded_res</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">+</span> <span class="mi">2</span>
+    <span class="n">samples_per_glyph</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">padded_res</span> <span class="o">*</span> <span class="n">padded_res</span>
+    <span class="n">bytes_per_sample</span> <span class="o">=</span> <span class="mi">8</span> <span class="k">if</span> <span class="n">use_float16</span> <span class="k">else</span> <span class="mi">16</span>
     <span class="n">chunk_info</span> <span class="o">=</span> <span class="n">_calculate_lut_chunking</span><span class="p">(</span>
         <span class="n">glyph_count</span><span class="p">,</span> <span class="n">samples_per_glyph</span><span class="p">,</span> <span class="n">bytes_per_sample</span><span class="o">=</span><span class="n">bytes_per_sample</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk_info</span><span class="p">[</span><span class="s2">"feasible"</span><span class="p">]:</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_use_radius_lut</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_use_octahedral_lut</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_ready</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_ready</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffers</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffer</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_n_chunks</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_glyphs_per_chunk</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_phi_res</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_stride</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span>
 
     <span class="n">n_chunks</span> <span class="o">=</span> <span class="n">chunk_info</span><span class="p">[</span><span class="s2">"n_chunks"</span><span class="p">]</span>
@@ -2111,84 +1747,39 @@ document.write(`
     <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_glyphs_per_chunk</span> <span class="o">=</span> <span class="n">chunk_info</span><span class="p">[</span><span class="s2">"glyphs_per_chunk"</span><span class="p">]</span>
     <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_chunk_sizes</span> <span class="o">=</span> <span class="n">chunk_info</span><span class="p">[</span><span class="s2">"chunk_sizes"</span><span class="p">]</span>
 
-    <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="n">use_hermite</span><span class="p">:</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_radius_lut_buffers</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span> <span class="k">if</span> <span class="n">use_float16</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span> <span class="k">if</span> <span class="n">use_float16</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="k">for</span> <span class="n">chunk_glyphs</span> <span class="ow">in</span> <span class="n">chunk_info</span><span class="p">[</span><span class="s2">"chunk_sizes"</span><span class="p">]:</span>
+        <span class="n">chunk_samples</span> <span class="o">=</span> <span class="n">chunk_glyphs</span> <span class="o">*</span> <span class="n">samples_per_glyph</span>
+        <span class="n">hermite_lut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">chunk_samples</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Buffer</span><span class="p">(</span><span class="n">hermite_lut</span><span class="p">,</span> <span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">))</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffer</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">chunk_glyphs</span> <span class="ow">in</span> <span class="n">chunk_info</span><span class="p">[</span><span class="s2">"chunk_sizes"</span><span class="p">]:</span>
-            <span class="n">chunk_samples</span> <span class="o">=</span> <span class="n">chunk_glyphs</span> <span class="o">*</span> <span class="n">samples_per_glyph</span>
-            <span class="n">hermite_lut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">chunk_samples</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-            <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Buffer</span><span class="p">(</span><span class="n">hermite_lut</span><span class="p">,</span> <span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="n">_populate_hermite_lut_cube_gpu</span><span class="p">(</span>
+            <span class="n">actor</span><span class="p">,</span>
+            <span class="n">lut_res</span><span class="p">,</span>
+            <span class="n">glyph_count</span><span class="p">,</span>
+            <span class="n">n_coeffs</span><span class="p">,</span>
+            <span class="n">chunk_info</span><span class="p">,</span>
+            <span class="n">use_float16</span><span class="o">=</span><span class="n">use_float16</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"GPU LUT bake failed, falling back to CPU: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="n">_populate_hermite_lut_cube_cpu_chunked</span><span class="p">(</span>
+            <span class="n">actor</span><span class="p">,</span>
+            <span class="n">lut_res</span><span class="p">,</span>
+            <span class="n">glyph_count</span><span class="p">,</span>
+            <span class="n">n_coeffs</span><span class="p">,</span>
+            <span class="n">chunk_info</span><span class="p">,</span>
+            <span class="n">use_float16</span><span class="o">=</span><span class="n">use_float16</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffer</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">_sh_hermite_lut_buffers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_radius_lut_buffer</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">_sh_use_float16</span> <span class="o">=</span> <span class="n">use_float16</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_phi_res</span> <span class="o">=</span> <span class="n">padded_res</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_stride</span> <span class="o">=</span> <span class="n">samples_per_glyph</span>
 
-        <span class="k">if</span> <span class="n">mapping_mode</span> <span class="o">==</span> <span class="s2">"cube"</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">success</span> <span class="o">=</span> <span class="n">_populate_hermite_lut_cube_gpu</span><span class="p">(</span>
-                    <span class="n">actor</span><span class="p">,</span>
-                    <span class="n">lut_res</span><span class="p">,</span>
-                    <span class="n">glyph_count</span><span class="p">,</span>
-                    <span class="n">n_coeffs</span><span class="p">,</span>
-                    <span class="n">chunk_info</span><span class="p">,</span>
-                    <span class="n">use_float16</span><span class="o">=</span><span class="n">use_float16</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">success</span> <span class="o">=</span> <span class="n">_populate_hermite_lut_cube_cpu_chunked</span><span class="p">(</span>
-                    <span class="n">actor</span><span class="p">,</span>
-                    <span class="n">lut_res</span><span class="p">,</span>
-                    <span class="n">glyph_count</span><span class="p">,</span>
-                    <span class="n">n_coeffs</span><span class="p">,</span>
-                    <span class="n">chunk_info</span><span class="p">,</span>
-                    <span class="n">use_float16</span><span class="o">=</span><span class="n">use_float16</span><span class="p">,</span>
-                <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_use_hermite_interp</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_use_float16</span> <span class="o">=</span> <span class="n">use_float16</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_radius_lut_buffers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">chunk_glyphs</span> <span class="ow">in</span> <span class="n">chunk_info</span><span class="p">[</span><span class="s2">"chunk_sizes"</span><span class="p">]:</span>
-            <span class="n">chunk_samples</span> <span class="o">=</span> <span class="n">chunk_glyphs</span> <span class="o">*</span> <span class="n">samples_per_glyph</span>
-            <span class="n">radius_lut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">chunk_samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-            <span class="n">actor</span><span class="o">.</span><span class="n">_sh_radius_lut_buffers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Buffer</span><span class="p">(</span><span class="n">radius_lut</span><span class="p">,</span> <span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">))</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_radius_lut_buffer</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">_sh_radius_lut_buffers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">mapping_mode</span> <span class="o">==</span> <span class="s2">"cube"</span><span class="p">:</span>
-            <span class="n">success</span> <span class="o">=</span> <span class="n">_populate_radius_lut_cube_cpu_chunked</span><span class="p">(</span>
-                <span class="n">actor</span><span class="p">,</span> <span class="n">lut_res</span><span class="p">,</span> <span class="n">glyph_count</span><span class="p">,</span> <span class="n">n_coeffs</span><span class="p">,</span> <span class="n">chunk_info</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_use_hermite_interp</span> <span class="o">=</span> <span class="kc">False</span>
-
-    <span class="k">if</span> <span class="n">mapping_mode</span> <span class="o">==</span> <span class="s2">"cube"</span><span class="p">:</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_theta_res</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">+</span> <span class="mi">2</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_phi_res</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">+</span> <span class="mi">2</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_theta_res</span> <span class="o">=</span> <span class="n">lut_res</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_phi_res</span> <span class="o">=</span> <span class="n">lut_res</span>
-
-    <span class="n">actor</span><span class="o">.</span><span class="n">_sh_mapping_mode</span> <span class="o">=</span> <span class="n">mapping_mode</span>
-
-    <span class="k">if</span> <span class="n">mapping_mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"dual_hemi"</span><span class="p">,</span> <span class="s2">"dual_paraboloid"</span><span class="p">):</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_stride</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">lut_res</span> <span class="o">*</span> <span class="n">lut_res</span>
-    <span class="k">elif</span> <span class="n">mapping_mode</span> <span class="o">==</span> <span class="s2">"fibonacci"</span><span class="p">:</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_stride</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">*</span> <span class="n">lut_res</span>
-    <span class="k">elif</span> <span class="n">mapping_mode</span> <span class="o">==</span> <span class="s2">"cube"</span><span class="p">:</span>
-        <span class="n">padded_res</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">+</span> <span class="mi">2</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_stride</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">padded_res</span> <span class="o">*</span> <span class="n">padded_res</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_stride</span> <span class="o">=</span> <span class="n">lut_res</span> <span class="o">*</span> <span class="n">lut_res</span>
-
-    <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_use_octahedral_lut</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_use_radius_lut</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_ready</span> <span class="o">=</span> <span class="kc">True</span></div>
+    <span class="n">actor</span><span class="o">.</span><span class="n">_sh_lut_ready</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">success</span><span class="p">)</span></div>
 
 
 
@@ -2206,8 +1797,6 @@ document.write(`
     <span class="n">opacity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">enable_picking</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">lut_res</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-    <span class="n">use_hermite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">mapping_mode</span><span class="o">=</span><span class="s2">"cube"</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Create a *sliced* billboard SH glyph actor.</span>
 
@@ -2242,15 +1831,11 @@ document.write(`
 <span class="sd">        Whether picking handlers are installed on the billboard mesh.</span>
 <span class="sd">    lut_res : int, optional</span>
 <span class="sd">        Cube-map LUT resolution per face edge.</span>
-<span class="sd">    use_hermite : bool, optional</span>
-<span class="sd">        Use Hermite interpolation LUT.</span>
-<span class="sd">    mapping_mode : str, optional</span>
-<span class="sd">        LUT mapping mode.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    SphGlyphBillboard</span>
-<span class="sd">        Configured billboard with slice index buffer and baked LUTs.</span>
+<span class="sd">        Configured billboard with baked Hermite LUTs.</span>
 <span class="sd">    """</span>
     <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -2300,7 +1885,6 @@ document.write(`
     <span class="p">)</span>
 
     <span class="n">obj</span><span class="o">.</span><span class="n">billboard_radii</span> <span class="o">=</span> <span class="n">max_radius</span> <span class="o">*</span> <span class="n">scale</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">billboard_mode</span> <span class="o">=</span> <span class="s2">"spherical_harmonic"</span>
     <span class="n">obj</span><span class="o">.</span><span class="n">n_coeff</span> <span class="o">=</span> <span class="n">n_coeff</span>
     <span class="n">obj</span><span class="o">.</span><span class="n">sh_coeffs</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">obj</span><span class="o">.</span><span class="n">sh_coeffs_buffer</span> <span class="o">=</span> <span class="n">Buffer</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">sh_coeffs</span><span class="p">)</span>
@@ -2308,27 +1892,10 @@ document.write(`
     <span class="n">obj</span><span class="o">.</span><span class="n">color_type</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">color_type</span> <span class="o">==</span> <span class="s2">"sign"</span> <span class="k">else</span> <span class="mi">1</span>
     <span class="n">obj</span><span class="o">.</span><span class="n">_basis_type</span> <span class="o">=</span> <span class="s2">"standard"</span>
     <span class="n">obj</span><span class="o">.</span><span class="n">_l_max</span> <span class="o">=</span> <span class="n">inferred_l_max</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_sh_debug_mode</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_sh_force_direct_eval</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_sh_use_octahedral_lut</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_sh_use_hermite_interp</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_sh_force_fd_normals</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_is_precomputed</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_is_optimized</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_use_level_of_detail</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_use_early_discard</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_sh_interpolation_mode</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_sh_mapping_mode</span> <span class="o">=</span> <span class="n">mapping_mode</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">_sh_requested_lut_res</span> <span class="o">=</span> <span class="n">lut_res</span>
 
     <span class="n">obj</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">n_coeffs</span> <span class="o">=</span> <span class="n">material_n_coeffs</span>
 
-    <span class="n">enable_octahedral_lut</span><span class="p">(</span>
-        <span class="n">obj</span><span class="p">,</span>
-        <span class="n">lut_res</span><span class="o">=</span><span class="n">lut_res</span><span class="p">,</span>
-        <span class="n">use_hermite</span><span class="o">=</span><span class="n">use_hermite</span><span class="p">,</span>
-        <span class="n">mapping_mode</span><span class="o">=</span><span class="n">mapping_mode</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">bake_hermite_lut</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">lut_res</span><span class="o">=</span><span class="n">lut_res</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">obj</span></div>
 
