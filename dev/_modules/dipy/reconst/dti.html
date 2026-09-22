@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.dti &#8212; dipy 1.13.0.dev0+git20260921.43e9297 documentation</title>
+    <title>dipy.reconst.dti &#8212; dipy 1.13.0.dev0+git20260921.a68da30 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=90804faf"></script>
+    <script src="../../../_static/documentation_options.js?v=66a6c5e4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -2818,6 +2818,13 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    nlls_params: the eigen-values and eigen-vectors of the tensor in each</span>
 <span class="sd">        voxel.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For DKI and CTI fits, if the squared mean diffusivity is zero, the</span>
+<span class="sd">    normalized kurtosis tensor elements are set to zero without a division</span>
+<span class="sd">    warning. This is a numerical convention, not a physically defined</span>
+<span class="sd">    kurtosis at zero diffusivity. The CTI covariance elements are retained.</span>
 <span class="sd">    """</span>
     <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-6</span>
 
@@ -2919,7 +2926,18 @@ document.write(`
             <span class="n">model_S0</span><span class="p">[</span><span class="n">vox</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">this_param</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dti</span><span class="p">:</span>
             <span class="n">md2</span> <span class="o">=</span> <span class="n">evals</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-            <span class="n">params</span><span class="p">[</span><span class="n">vox</span><span class="p">,</span> <span class="mi">12</span><span class="p">:]</span> <span class="o">=</span> <span class="n">this_param</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">md2</span>
+            <span class="k">if</span> <span class="n">md2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">npa</span> <span class="o">==</span> <span class="mi">27</span><span class="p">:</span>  <span class="c1"># DKI (12 DTI + 15 DKI)</span>
+                    <span class="n">params</span><span class="p">[</span><span class="n">vox</span><span class="p">,</span> <span class="mi">12</span><span class="p">:</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_param</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">21</span><span class="p">]</span> <span class="o">/</span> <span class="n">md2</span>
+                <span class="k">elif</span> <span class="n">npa</span> <span class="o">==</span> <span class="mi">48</span><span class="p">:</span>  <span class="c1"># CTI (12 DTI + 15 DKI + 21 CTI)</span>
+                    <span class="n">params</span><span class="p">[</span><span class="n">vox</span><span class="p">,</span> <span class="mi">12</span><span class="p">:</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_param</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">21</span><span class="p">]</span> <span class="o">/</span> <span class="n">md2</span>
+                    <span class="n">params</span><span class="p">[</span><span class="n">vox</span><span class="p">,</span> <span class="mi">27</span><span class="p">:</span><span class="mi">48</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_param</span><span class="p">[</span><span class="mi">21</span><span class="p">:</span><span class="mi">42</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">npa</span> <span class="o">==</span> <span class="mi">27</span><span class="p">:</span>
+                    <span class="n">params</span><span class="p">[</span><span class="n">vox</span><span class="p">,</span> <span class="mi">12</span><span class="p">:</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">elif</span> <span class="n">npa</span> <span class="o">==</span> <span class="mi">48</span><span class="p">:</span>
+                    <span class="n">params</span><span class="p">[</span><span class="n">vox</span><span class="p">,</span> <span class="mi">12</span><span class="p">:</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">params</span><span class="p">[</span><span class="n">vox</span><span class="p">,</span> <span class="mi">27</span><span class="p">:</span><span class="mi">48</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_param</span><span class="p">[</span><span class="mi">21</span><span class="p">:</span><span class="mi">42</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">resort_to_OLS</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">ols_resort_msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
