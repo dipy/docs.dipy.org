@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.segment.bundles &#8212; dipy 1.13.0.dev0+git20260922.0861197 documentation</title>
+    <title>dipy.segment.bundles &#8212; dipy 1.13.0.dev0+git20260923.dc2dc72 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=ebc1e5bc"></script>
+    <script src="../../../_static/documentation_options.js?v=4debde21"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1273,10 +1273,11 @@ document.write(`
 <span class="sd">            (default True)</span>
 <span class="sd">        num_threads : int, optional</span>
 <span class="sd">            Number of threads to be used for OpenMP parallelization. If None</span>
-<span class="sd">            (default) the value of OMP_NUM_THREADS environment variable is used</span>
-<span class="sd">            if it is set, otherwise all available threads are used. If &lt; 0 the</span>
-<span class="sd">            maximal number of threads minus $|num_threads + 1|$ is used (enter</span>
-<span class="sd">            -1 to use as many threads as possible). 0 raises an error.</span>
+<span class="sd">            the value of OMP_NUM_THREADS environment variable is used if it is</span>
+<span class="sd">            set, otherwise all available threads are used. If &lt; 0 the maximal</span>
+<span class="sd">            number of threads minus $|num_threads + 1|$ is used (enter -1 to</span>
+<span class="sd">            use as many threads as possible). 0 raises an error. Only used</span>
+<span class="sd">            when ``slr_metric`` is None or ``"symmetric"``.</span>
 <span class="sd">        slr_metric : BundleMinDistanceMetric</span>
 <span class="sd">        slr_x0 : array or int or str, optional</span>
 <span class="sd">            Transformation allowed. translation, rigid, similarity or scaling</span>
@@ -1399,6 +1400,7 @@ document.write(`
         <span class="n">slr_method</span><span class="o">=</span><span class="s2">"L-BFGS-B"</span><span class="p">,</span>
         <span class="n">pruning_thr</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
         <span class="n">pruning_distance</span><span class="o">=</span><span class="s2">"mdf"</span><span class="p">,</span>
+        <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Refine and recognize the model_bundle in self.streamlines</span>
 <span class="sd">        This method expects once pruned streamlines as input. It refines the</span>
@@ -1471,6 +1473,13 @@ document.write(`
 <span class="sd">            Pruning after reducing the search space.</span>
 <span class="sd">        pruning_distance : string</span>
 <span class="sd">            Pruning distance type can be mdf or mam.</span>
+<span class="sd">        num_threads : int, optional</span>
+<span class="sd">            Number of threads to be used for OpenMP parallelization. If None</span>
+<span class="sd">            the value of OMP_NUM_THREADS environment variable is used if it is</span>
+<span class="sd">            set, otherwise all available threads are used. If &lt; 0 the maximal</span>
+<span class="sd">            number of threads minus $|num_threads + 1|$ is used (enter -1 to</span>
+<span class="sd">            use as many threads as possible). 0 raises an error. Only used</span>
+<span class="sd">            when ``slr_metric`` is None or ``"symmetric"``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1517,7 +1526,11 @@ document.write(`
                 <span class="n">select_model</span><span class="o">=</span><span class="n">slr_select</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                 <span class="n">select_target</span><span class="o">=</span><span class="n">slr_select</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                 <span class="n">method</span><span class="o">=</span><span class="n">slr_method</span><span class="p">,</span>
+                <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
             <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">transf_streamlines</span> <span class="o">=</span> <span class="n">neighb_streamlines</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"pruning after 2nd local Slr"</span><span class="p">)</span>
 
