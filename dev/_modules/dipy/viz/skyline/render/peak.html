@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.peak &#8212; dipy 1.13.0.dev0+git20260923.05df74a documentation</title>
+    <title>dipy.viz.skyline.render.peak &#8212; dipy 1.13.0.dev0+git20260925.1a1e2d6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=6a745070"></script>
+    <script src="../../../../../_static/documentation_options.js?v=1a9404ab"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -932,16 +932,17 @@ document.write(`
     <span class="n">render_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">sync_callabck</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Create peak visualization from input</span>
+<span class="w">    </span><span class="sd">"""Create a peak visualization from loaded PAM data.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    input : tuple</span>
-<span class="sd">        Tuple of the (pam, filename) or (pam,)</span>
+<span class="sd">        Tuple of the form ``(pam, filename)`` or ``(pam,)``, where ``pam``</span>
+<span class="sd">        is a :class:`~dipy.direction.peaks.PeaksAndMetrics` instance.</span>
 <span class="sd">    idx : int</span>
 <span class="sd">        Index of the peak for naming purposes if filename is not provided.</span>
 <span class="sd">    opacity : int, optional</span>
-<span class="sd">        Opacity of the peak rendering.</span>
+<span class="sd">        Initial opacity of the peak rendering, in percent ``[0, 100]``.</span>
 <span class="sd">    render_callback : callable, optional</span>
 <span class="sd">        Callback function to be called after rendering.</span>
 <span class="sd">    sync_callabck : callable, optional</span>
@@ -951,6 +952,11 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    Peak3D</span>
 <span class="sd">        The created Peak3D object.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``input`` is not a tuple of length 1 or 2.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -984,20 +990,23 @@ document.write(`
 <div class="viewcode-block" id="Peak3D">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.peak.Peak3D">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Peak3D</span><span class="p">(</span><span class="n">Visualization</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Represent ``Peak3D`` in Skyline.</span>
+<span class="w">    </span><span class="sd">"""Represent a peak-direction (PAM) vector-field slicer in Skyline.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name : str</span>
 <span class="sd">        Display name used in the Skyline UI.</span>
-<span class="sd">    peaks : ndarray</span>
-<span class="sd">        Value for ``peaks``.</span>
+<span class="sd">    peaks : ndarray, shape (X, Y, Z, N, 3) or (X, Y, Z, 3)</span>
+<span class="sd">        Per-voxel peak directions rendered as a vector field.</span>
 <span class="sd">    affine : ndarray, optional</span>
 <span class="sd">        Voxel-to-world affine used to position slices in world coordinates.</span>
 <span class="sd">    peak_values : ndarray or float, optional</span>
-<span class="sd">        Value for ``peak values``.</span>
+<span class="sd">        Per-peak magnitude scaling the rendered line length; a scalar</span>
+<span class="sd">        value is applied uniformly to every peak.</span>
 <span class="sd">    opacity : int, optional</span>
-<span class="sd">        Slice opacity in percent, expected in ``[0, 100]``.</span>
+<span class="sd">        Initial value of the Opacity slider, in percent ``[0, 100]``. Stored</span>
+<span class="sd">        on ``self.opacity`` but not applied to the actor until the Opacity</span>
+<span class="sd">        slider is changed once in :meth:`render_widgets`.</span>
 <span class="sd">    render_callback : callable, optional</span>
 <span class="sd">        Callback used to request a render/update.</span>
 <span class="sd">    sync_callabck : callable, optional</span>
@@ -1015,20 +1024,23 @@ document.write(`
         <span class="n">render_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">sync_callabck</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Represent ``Peak3D`` in Skyline.</span>
+<span class="w">        </span><span class="sd">"""Initialize the peak-direction (PAM) vector-field slicer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        name : str</span>
 <span class="sd">            Display name used in the Skyline UI.</span>
-<span class="sd">        peaks : ndarray</span>
-<span class="sd">            Value for ``peaks``.</span>
+<span class="sd">        peaks : ndarray, shape (X, Y, Z, N, 3) or (X, Y, Z, 3)</span>
+<span class="sd">            Per-voxel peak directions rendered as a vector field.</span>
 <span class="sd">        affine : ndarray, optional</span>
 <span class="sd">            Voxel-to-world affine used to position slices in world coordinates.</span>
 <span class="sd">        peak_values : ndarray or float, optional</span>
-<span class="sd">            Value for ``peak values``.</span>
+<span class="sd">            Per-peak magnitude scaling the rendered line length; a scalar</span>
+<span class="sd">            value is applied uniformly to every peak.</span>
 <span class="sd">        opacity : int, optional</span>
-<span class="sd">            Slice opacity in percent, expected in ``[0, 100]``.</span>
+<span class="sd">            Initial value of the Opacity slider, in percent ``[0, 100]``.</span>
+<span class="sd">            Stored on ``self.opacity`` but not applied to the actor until</span>
+<span class="sd">            the Opacity slider is changed once in :meth:`render_widgets`.</span>
 <span class="sd">        render_callback : callable, optional</span>
 <span class="sd">            Callback used to request a render/update.</span>
 <span class="sd">        sync_callabck : callable, optional</span>
@@ -1046,8 +1058,10 @@ document.write(`
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">render_callback</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_create_peak_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  create peak actor for ``Peak3D``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Build the peaks-slicer actor and derive its cross-section state.</span>
+
+<span class="sd">        Called from :meth:`__init__` and again whenever the Scale slider</span>
+<span class="sd">        changes, since the slicer actor must be rebuilt for a new scale.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span> <span class="o">=</span> <span class="n">peaks_slicer</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="p">,</span>
@@ -1069,12 +1083,12 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_apply_cross_section_from_state</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_populate_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  populate info for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Build the multi-line summary shown in the info panel.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            The information of the peak visualization.</span>
+<span class="sd">            Peaks array shape and dtype, plus affine details when available.</span>
 <span class="sd">        """</span>
         <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Peaks shape: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
         <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"Peaks dtype: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">peaks</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
@@ -1084,17 +1098,18 @@ document.write(`
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle actor for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Vector-field actor group backing this peak visualization.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Group</span>
-<span class="sd">            The actor of the peak visualization.</span>
+<span class="sd">            Parent group of chunked vector-field actors rendered as the</span>
+<span class="sd">            three orthogonal peak-direction slices.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_cross_section</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  get cross section for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Read the shared cross-section position off the slicer's first chunk.</span>
 
 <span class="sd">        ``peaks_slicer`` returns a ``Group`` of chunked ``VectorField`` actors and</span>
 <span class="sd">        only the chunks carry the ``cross_section`` property, so read it off the</span>
@@ -1103,12 +1118,13 @@ document.write(`
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        np.ndarray</span>
-<span class="sd">            The cross section of the peak visualization.</span>
+<span class="sd">            Current cross-section position, in the same space (voxel or</span>
+<span class="sd">            world) the slicer actor was last set to.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cross_section</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_cross_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cross_section</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  set cross section for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Propagate a cross-section position to every chunk of the slicer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1119,12 +1135,15 @@ document.write(`
             <span class="n">chunk</span><span class="o">.</span><span class="n">cross_section</span> <span class="o">=</span> <span class="n">cross_section</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_infer_cross_section_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  infer cross section space for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Determine whether the current cross section is voxel or world space.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            The cross section space of the peak visualization.</span>
+<span class="sd">            ``"voxel"`` when no affine is set, or when the cross section</span>
+<span class="sd">            reported by ``peaks_slicer`` is closer to the voxel-space</span>
+<span class="sd">            volume center than to its world-space counterpart; otherwise</span>
+<span class="sd">            ``"world"``.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">"voxel"</span>
@@ -1140,7 +1159,7 @@ document.write(`
         <span class="k">return</span> <span class="s2">"world"</span> <span class="k">if</span> <span class="n">world_dist</span> <span class="o">&lt;=</span> <span class="n">voxel_dist</span> <span class="k">else</span> <span class="s2">"voxel"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_voxel_from_world_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">world_state</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  voxel from world state for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Map a world-space state vector to a clipped voxel index.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1150,7 +1169,8 @@ document.write(`
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        np.ndarray</span>
-<span class="sd">            The voxel state of the peak visualization.</span>
+<span class="sd">            Voxel index nearest to ``world_state``, clipped to the volume</span>
+<span class="sd">            bounds.</span>
 <span class="sd">        """</span>
         <span class="n">voxel_state</span> <span class="o">=</span> <span class="n">apply_transformation</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">world_state</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
@@ -1160,8 +1180,11 @@ document.write(`
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">voxel_state</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_cross_section_from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  apply cross section from state for ``Peak3D``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Push ``self.state`` to the slicer as a cross section.</span>
+
+<span class="sd">        Converts ``self.state`` to voxel or world coordinates to match</span>
+<span class="sd">        :attr:`_cross_section_space` before writing it to every chunk of</span>
+<span class="sd">        the slicer via :meth:`_set_cross_section`.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">voxel_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
@@ -1183,7 +1206,7 @@ document.write(`
 <div class="viewcode-block" id="Peak3D.update_state">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.peak.Peak3D.update_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_state</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle update state for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Apply a synchronized state from another visualization.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1196,7 +1219,7 @@ document.write(`
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opacity</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  set opacity for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Apply an opacity fraction to every chunk of the peaks-slicer actor.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1206,7 +1229,7 @@ document.write(`
         <span class="n">set_group_opacity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span><span class="p">,</span> <span class="n">opacity</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_slice_visibility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visibility</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  set slice visibility for ``Peak3D``.</span>
+<span class="w">        </span><span class="sd">"""Apply per-axis slice visibility to every chunk's material.</span>
 
 <span class="sd">        ``peaks_slicer`` returns a ``Group`` whose ``material`` is ``None``; the</span>
 <span class="sd">        per-axis visibility flags live on the material of each chunk.</span>
@@ -1222,7 +1245,7 @@ document.write(`
 <div class="viewcode-block" id="Peak3D.render_widgets">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.peak.Peak3D.render_widgets">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle render widgets for ``Peak3D``."""</span>
+<span class="w">        </span><span class="sd">"""Draw the sync toggle, scale, opacity, and per-axis slice controls."""</span>
         <span class="n">changed</span><span class="p">,</span> <span class="n">new</span> <span class="o">=</span> <span class="n">toggle_button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_synchronize</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Synchronize Slices"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_synchronize</span> <span class="o">=</span> <span class="n">new</span>

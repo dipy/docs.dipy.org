@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.streamline &#8212; dipy 1.13.0.dev0+git20260923.05df74a documentation</title>
+    <title>dipy.viz.skyline.render.streamline &#8212; dipy 1.13.0.dev0+git20260925.1a1e2d6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=6a745070"></script>
+    <script src="../../../../../_static/documentation_options.js?v=1a9404ab"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1091,12 +1091,13 @@ document.write(`
     <span class="n">buan_pvals_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">async_clustering</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Create streamline visualization from input</span>
+<span class="w">    </span><span class="sd">"""Create a Streamline3D or ClusterStreamline3D from a loaded tractogram.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    input : tuple</span>
-<span class="sd">        Tuple of the (sft, filename) or (sft,)</span>
+<span class="sd">        Tuple of ``(sft, filename)`` or ``(sft,)``, where ``sft`` is a</span>
+<span class="sd">        StatefulTractogram.</span>
 <span class="sd">    idx : int</span>
 <span class="sd">        Index of the tractogram for naming purposes.</span>
 <span class="sd">    is_cluster : bool, optional</span>
@@ -1111,12 +1112,10 @@ document.write(`
 <span class="sd">        Callback function to be called after rendering.</span>
 <span class="sd">    colormap : colormap, optional</span>
 <span class="sd">        Colormap for clustering.</span>
-<span class="sd">    tract_colors : variable float or str, optional</span>
-<span class="sd">        Define the colors of the tractograms. Colors can be defined with</span>
-<span class="sd">        3 values and should be between [0-1].</span>
-<span class="sd">        String options are 'random' for random colors for each tractogram,</span>
-<span class="sd">        'direction'  for directionally colored streamlines.</span>
-<span class="sd">        For example, a value of (1, 0, 0) would mean the red color.</span>
+<span class="sd">    tract_colors : str or tuple of float or None, optional</span>
+<span class="sd">        ``"random"`` picks the next color from ``colormap``; ``"direction"``</span>
+<span class="sd">        or a 3- or 4-value tuple in ``[0, 1]`` is used as-is; any other</span>
+<span class="sd">        string raises ``ValueError``. If None, ``color`` is used unchanged.</span>
 <span class="sd">    switch_render_callback : callable, optional</span>
 <span class="sd">        Callback function to switch rendering type, used for cluster visualization.</span>
 <span class="sd">    loader : callable, optional</span>
@@ -1133,8 +1132,16 @@ document.write(`
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    Visualization</span>
-<span class="sd">        The created streamline visualization object.</span>
+<span class="sd">    Streamline3D or ClusterStreamline3D</span>
+<span class="sd">        The created streamline visualization; a ClusterStreamline3D when</span>
+<span class="sd">        ``is_cluster`` is True, otherwise a Streamline3D.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``input`` is not a 1- or 2-element tuple, or if ``tract_colors``</span>
+<span class="sd">        is a string other than ``"random"``/``"direction"`` and is not a</span>
+<span class="sd">        3- or 4-value tuple.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -1204,8 +1211,10 @@ document.write(`
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    Actor</span>
-<span class="sd">        Fury actor (line or tube container) ready to parent under a ``Group``.</span>
+<span class="sd">    Actor or None</span>
+<span class="sd">        Fury actor (line or tube container) ready to parent under a</span>
+<span class="sd">        ``Group``, or None when ``line_type`` is neither ``"Line"`` nor</span>
+<span class="sd">        ``"Tube"``.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">color</span> <span class="o">==</span> <span class="s2">"direction"</span> <span class="ow">and</span> <span class="n">lines</span><span class="p">:</span>
         <span class="n">color</span> <span class="o">=</span> <span class="n">line_colors</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
@@ -1247,26 +1256,26 @@ document.write(`
 <div class="viewcode-block" id="Streamline3D">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.Streamline3D">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Streamline3D</span><span class="p">(</span><span class="n">Visualization</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Represent ``Streamline3D`` in Skyline.</span>
+<span class="w">    </span><span class="sd">"""Non-clustered tractography layer rendered as a single line or tube actor.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name : str</span>
 <span class="sd">        Display name used in the Skyline UI.</span>
 <span class="sd">    sft : StatefulTractogram</span>
-<span class="sd">        Value for ``sft``.</span>
+<span class="sd">        Tractogram whose streamlines are rendered.</span>
 <span class="sd">    line_type : str, optional</span>
-<span class="sd">        Value for ``line type``.</span>
+<span class="sd">        The type of line to render ("Line" or "Tube").</span>
 <span class="sd">    color : tuple(float, float, float), optional</span>
-<span class="sd">        Value for ``color``.</span>
+<span class="sd">        RGB color of the streamlines in ``[0, 1]``.</span>
 <span class="sd">    render_callback : callable, optional</span>
 <span class="sd">        Callback used to request a render/update.</span>
 <span class="sd">    switch_render_callback : callable, optional</span>
-<span class="sd">        Value for ``switch render callback``.</span>
+<span class="sd">        Callback invoked to switch to the clustered rendering mode.</span>
 <span class="sd">    buan_pvals_file : str, optional</span>
-<span class="sd">        Value for ``buan pvals file``.</span>
+<span class="sd">        File path to BUAN p-values used to color the streamlines on creation.</span>
 <span class="sd">    loader : callable, optional</span>
-<span class="sd">        Value for ``loader``.</span>
+<span class="sd">        Callback function to show/hide loader during asynchronous operations.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1281,26 +1290,26 @@ document.write(`
         <span class="n">buan_pvals_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">loader</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Represent ``Streamline3D`` in Skyline.</span>
+<span class="w">        </span><span class="sd">"""Initialize the non-clustered tractography layer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        name : str</span>
 <span class="sd">            Display name used in the Skyline UI.</span>
 <span class="sd">        sft : StatefulTractogram</span>
-<span class="sd">            Value for ``sft``.</span>
+<span class="sd">            Tractogram whose streamlines are rendered.</span>
 <span class="sd">        line_type : str, optional</span>
-<span class="sd">            Value for ``line type``.</span>
+<span class="sd">            The type of line to render ("Line" or "Tube").</span>
 <span class="sd">        color : tuple(float, float, float), optional</span>
-<span class="sd">            Value for ``color``.</span>
+<span class="sd">            RGB color of the streamlines in ``[0, 1]``.</span>
 <span class="sd">        render_callback : callable, optional</span>
 <span class="sd">            Callback used to request a render/update.</span>
 <span class="sd">        switch_render_callback : callable, optional</span>
-<span class="sd">            Value for ``switch render callback``.</span>
+<span class="sd">            Callback invoked to switch to the clustered rendering mode.</span>
 <span class="sd">        buan_pvals_file : str, optional</span>
-<span class="sd">            Value for ``buan pvals file``.</span>
+<span class="sd">            File path to BUAN p-values used to color the streamlines on creation.</span>
 <span class="sd">        loader : callable, optional</span>
-<span class="sd">            Value for ``loader``.</span>
+<span class="sd">            Callback function to show/hide loader during asynchronous operations.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sft</span> <span class="o">=</span> <span class="n">sft</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
@@ -1329,7 +1338,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">handle_color_change</span><span class="p">(</span><span class="n">buan_pvals_file</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_create_streamline_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  create streamline actor for ``Streamline3D``."""</span>
+<span class="w">        </span><span class="sd">"""Build and store the Fury line or tube actor for the streamlines."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_actor</span> <span class="o">=</span> <span class="n">create_streamline</span><span class="p">(</span>
             <span class="n">lines</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sft</span><span class="o">.</span><span class="n">streamlines</span><span class="p">,</span>
             <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
@@ -1338,22 +1347,22 @@ document.write(`
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle actor for ``Streamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Return the Fury line or tube actor rendering the streamlines.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Line</span>
-<span class="sd">            Returned value.</span>
+<span class="sd">        Actor</span>
+<span class="sd">            The line or tube actor built by :func:`create_streamline`.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actor</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_populate_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  populate info for ``Streamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Build the streamline count and length summary shown in the UI.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            The information of the Streamline3D visualization.</span>
+<span class="sd">            Multi-line text with the streamline count and min/max length.</span>
 <span class="sd">        """</span>
         <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Number of streamlines: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sft</span><span class="o">.</span><span class="n">streamlines</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
@@ -1365,12 +1374,13 @@ document.write(`
 <div class="viewcode-block" id="Streamline3D.handle_color_change">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.Streamline3D.handle_color_change">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">handle_color_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle handle color change for ``Streamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Recolor the streamlines from a BUAN p-values file and re-render.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        fname : str</span>
-<span class="sd">            Value for ``fname``.</span>
+<span class="sd">        fname : list of str or None</span>
+<span class="sd">            Selected file path(s) from the uploader; only ``fname[0]`` is</span>
+<span class="sd">            used. If None, the color is left unchanged.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buan_pvals_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fname</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">name</span>
@@ -1387,7 +1397,7 @@ document.write(`
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_buan_colors_on_sliders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  update buan colors on sliders for ``Streamline3D``."""</span>
+<span class="w">        </span><span class="sd">"""Recompute BUAN colors from the current hue/saturation/value sliders."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buan_color_idx</span> <span class="o">=</span> <span class="n">apply_buan_colors</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sft</span><span class="o">.</span><span class="n">streamlines</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buan_pvals_data</span><span class="p">,</span>
@@ -1402,7 +1412,7 @@ document.write(`
 <div class="viewcode-block" id="Streamline3D.render_widgets">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.Streamline3D.render_widgets">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle render widgets for ``Streamline3D``."""</span>
+<span class="w">        </span><span class="sd">"""Draw the line-type, color, and BUAN coloring controls for this layer."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_line_change_next_frame</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_apply_line_change_next_frame</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_streamline_actor</span><span class="p">)</span>
@@ -1544,30 +1554,38 @@ document.write(`
 <div class="viewcode-block" id="ClusterStreamline3D">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.ClusterStreamline3D">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ClusterStreamline3D</span><span class="p">(</span><span class="n">Visualization</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Represent ``ClusterStreamline3D`` in Skyline.</span>
+<span class="w">    </span><span class="sd">"""Clustered tractography layer that groups streamlines with QuickBundlesX.</span>
+
+<span class="sd">    Renders one centroid tube per cluster; clusters can be expanded to show</span>
+<span class="sd">    their member streamlines, selected, hidden, and filtered by size or</span>
+<span class="sd">    length. Clustering runs in a background thread unless</span>
+<span class="sd">    ``async_clustering`` is False.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name : str</span>
 <span class="sd">        Display name used in the Skyline UI.</span>
 <span class="sd">    sft : StatefulTractogram</span>
-<span class="sd">        Value for ``sft``.</span>
-<span class="sd">    thr : float, optional</span>
-<span class="sd">        Value for ``thr``.</span>
+<span class="sd">        Tractogram whose streamlines are clustered.</span>
+<span class="sd">    thr : float</span>
+<span class="sd">        Initial clustering distance threshold, in mm.</span>
 <span class="sd">    line_type : str, optional</span>
-<span class="sd">        Value for ``line type``.</span>
+<span class="sd">        The type of line to render ("Line" or "Tube") for expanded clusters.</span>
 <span class="sd">    render_callback : callable, optional</span>
 <span class="sd">        Callback used to request a render/update.</span>
 <span class="sd">    switch_render_callback : callable, optional</span>
-<span class="sd">        Value for ``switch render callback``.</span>
+<span class="sd">        Callback invoked to switch back to the non-clustered rendering mode.</span>
 <span class="sd">    loader : callable, optional</span>
-<span class="sd">        Value for ``loader``.</span>
+<span class="sd">        Callback function to show/hide loader during asynchronous operations.</span>
 <span class="sd">    size_threshold : int, optional</span>
-<span class="sd">        Value for ``size threshold``.</span>
+<span class="sd">        Minimum number of streamlines in a cluster to be visible. If None,</span>
+<span class="sd">        it is set to 10.</span>
 <span class="sd">    length_threshold : float, optional</span>
-<span class="sd">        Value for ``length threshold``.</span>
+<span class="sd">        Minimum length of streamlines in a cluster to be visible. If None,</span>
+<span class="sd">        it is set to 20.0.</span>
 <span class="sd">    async_clustering : bool, optional</span>
-<span class="sd">        Value for ``async clustering``.</span>
+<span class="sd">        Whether to perform clustering asynchronously. Set to False to block</span>
+<span class="sd">        until clustering completes (used in stealth mode).</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1584,30 +1602,36 @@ document.write(`
         <span class="n">length_threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">async_clustering</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Represent ``ClusterStreamline3D`` in Skyline.</span>
+<span class="w">        </span><span class="sd">"""Initialize the clustered tractography layer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        name : str</span>
 <span class="sd">            Display name used in the Skyline UI.</span>
 <span class="sd">        sft : StatefulTractogram</span>
-<span class="sd">            Value for ``sft``.</span>
-<span class="sd">        thr : float, optional</span>
-<span class="sd">            Value for ``thr``.</span>
+<span class="sd">            Tractogram whose streamlines are clustered.</span>
+<span class="sd">        thr : float</span>
+<span class="sd">            Initial clustering distance threshold, in mm.</span>
 <span class="sd">        line_type : str, optional</span>
-<span class="sd">            Value for ``line type``.</span>
+<span class="sd">            The type of line to render ("Line" or "Tube") for expanded</span>
+<span class="sd">            clusters.</span>
 <span class="sd">        render_callback : callable, optional</span>
 <span class="sd">            Callback used to request a render/update.</span>
 <span class="sd">        switch_render_callback : callable, optional</span>
-<span class="sd">            Value for ``switch render callback``.</span>
+<span class="sd">            Callback invoked to switch back to the non-clustered rendering</span>
+<span class="sd">            mode.</span>
 <span class="sd">        loader : callable, optional</span>
-<span class="sd">            Value for ``loader``.</span>
+<span class="sd">            Callback function to show/hide loader during asynchronous</span>
+<span class="sd">            operations.</span>
 <span class="sd">        size_threshold : int, optional</span>
-<span class="sd">            Value for ``size threshold``.</span>
+<span class="sd">            Minimum number of streamlines in a cluster to be visible. If</span>
+<span class="sd">            None, it is set to 10.</span>
 <span class="sd">        length_threshold : float, optional</span>
-<span class="sd">            Value for ``length threshold``.</span>
+<span class="sd">            Minimum length of streamlines in a cluster to be visible. If</span>
+<span class="sd">            None, it is set to 20.0.</span>
 <span class="sd">        async_clustering : bool, optional</span>
-<span class="sd">            Value for ``async clustering``.</span>
+<span class="sd">            Whether to perform clustering asynchronously. Set to False to</span>
+<span class="sd">            block until clustering completes (used in stealth mode).</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sft</span> <span class="o">=</span> <span class="n">sft</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">thr</span> <span class="o">=</span> <span class="n">thr</span>
@@ -1631,7 +1655,12 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_perform_clustering</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_perform_clustering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  perform clustering for ``ClusterStreamline3D``."""</span>
+<span class="w">        </span><span class="sd">"""Recompute clusters for the current threshold, sync or async.</span>
+
+<span class="sd">        Coalesces overlapping requests: if clustering is already running,</span>
+<span class="sd">        the call is queued and re-run once the in-flight clustering</span>
+<span class="sd">        finishes.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_clustering</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_queued_recluster</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">return</span>
@@ -1653,17 +1682,27 @@ document.write(`
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_compute_clustering_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thr</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  compute clustering data for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Cluster the streamlines with QuickBundlesX at the given threshold.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        thr : float, optional</span>
-<span class="sd">            Value for ``thr``.</span>
+<span class="sd">        thr : float</span>
+<span class="sd">            Final clustering distance threshold, in mm, passed to</span>
+<span class="sd">            :func:`~dipy.segment.clustering.qbx_and_merge` as the last of</span>
+<span class="sd">            the thresholds ``[40, 30, 25, 20, thr]``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        tuple</span>
-<span class="sd">            Returned value.</span>
+<span class="sd">        clusters : ClusterMapCentroid</span>
+<span class="sd">            Cluster map returned by ``qbx_and_merge``.</span>
+<span class="sd">        lengths : ndarray</span>
+<span class="sd">            Centroid streamline length for each cluster.</span>
+<span class="sd">        sizes : ndarray</span>
+<span class="sd">            Number of streamlines in each cluster.</span>
+<span class="sd">        colormap : list</span>
+<span class="sd">            Per-cluster RGB color from ``distinguishable_colormap``.</span>
+<span class="sd">        line_widths : ndarray</span>
+<span class="sd">            Per-cluster centroid tube radius interpolated from ``sizes``.</span>
 <span class="sd">        """</span>
         <span class="n">clusters</span> <span class="o">=</span> <span class="n">qbx_and_merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sft</span><span class="o">.</span><span class="n">streamlines</span><span class="p">,</span> <span class="p">[</span><span class="mi">40</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">thr</span><span class="p">])</span>
         <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">streamline_length</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">clusters</span><span class="o">.</span><span class="n">centroids</span><span class="p">])</span>
@@ -1676,14 +1715,21 @@ document.write(`
         <span class="k">return</span> <span class="n">clusters</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">sizes</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <span class="n">line_widths</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_clustering_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  apply clustering result for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Rebuild cluster actors from ``_compute_clustering_data``'s result.</span>
+
+<span class="sd">        Follows the :func:`~dipy.viz.skyline.compute.run_async` callback</span>
+<span class="sd">        contract: called on the main thread with the return value of the</span>
+<span class="sd">        clustered function and any exception it raised.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        result : tuple</span>
-<span class="sd">            Clustering outputs ``(clusters, lengths, sizes, colormap, line_widths)``.</span>
+<span class="sd">            Clustering outputs ``(clusters, lengths, sizes, colormap,</span>
+<span class="sd">            line_widths)`` from :meth:`_compute_clustering_data`.</span>
 <span class="sd">        exception : Exception or None</span>
-<span class="sd">            Value for ``exception``.</span>
+<span class="sd">            Exception raised while clustering, if any. When set, the</span>
+<span class="sd">            previous cluster actors are left unchanged and the error is</span>
+<span class="sd">            logged.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_clustering</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -1733,9 +1779,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">_loader</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_refresh_cluster_visibility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  refresh cluster visibility for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Show or hide each cluster actor based on the size/length filters."""</span>
         <span class="k">for</span> <span class="n">centroid_rep</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">is_visible</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">"size"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="ow">and</span> <span class="n">state</span><span class="p">[</span><span class="s2">"length"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span>
             <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="s2">"expanded"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">state</span><span class="p">[</span><span class="s2">"cluster_actor"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1745,17 +1789,19 @@ document.write(`
 
     <span class="c1"># Interaction methods</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_create_cluster_streamlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">centroid_rep</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  create cluster streamlines for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Build the expanded line/tube actor for one cluster's streamlines.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        centroid_rep : str</span>
-<span class="sd">            Value for ``centroid rep``.</span>
+<span class="sd">        centroid_rep : Actor</span>
+<span class="sd">            Centroid tube actor keying the cluster in ``_cluster_state``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        object</span>
-<span class="sd">            Returned value.</span>
+<span class="sd">        centroid_rep : Actor</span>
+<span class="sd">            The same centroid actor passed in.</span>
+<span class="sd">        streamline_actor : Actor</span>
+<span class="sd">            The line or tube actor for the cluster's member streamlines.</span>
 <span class="sd">        """</span>
         <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="p">[</span><span class="n">centroid_rep</span><span class="p">]</span>
         <span class="n">cluster_idx</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">"cluster"</span><span class="p">]</span>
@@ -1770,13 +1816,12 @@ document.write(`
         <span class="k">return</span> <span class="n">centroid_rep</span><span class="p">,</span> <span class="n">streamline_actor</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_selected_unexpanded_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  selected unexpanded clusters for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Return the centroid actors that are selected but not expanded.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        object</span>
-<span class="sd">            Returned value.</span>
+<span class="sd">        list of Actor</span>
+<span class="sd">            Centroid actors satisfying both conditions.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="n">centroid_rep</span>
@@ -1785,9 +1830,7 @@ document.write(`
         <span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_expand_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  expand clusters for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Replace each selected, unexpanded centroid with its streamlines."""</span>
         <span class="n">selected_clusters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selected_unexpanded_clusters</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">selected_clusters</span><span class="p">:</span>
             <span class="k">return</span>
@@ -1801,9 +1844,7 @@ document.write(`
             <span class="n">state</span><span class="p">[</span><span class="s2">"expanded"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_collapse_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  collapse clusters for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Replace each selected, expanded cluster's streamlines with its centroid."""</span>
         <span class="k">for</span> <span class="n">centroid_rep</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="s2">"selected"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">state</span><span class="p">[</span><span class="s2">"expanded"</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_actor</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">centroid_rep</span><span class="p">)</span>
@@ -1814,28 +1855,24 @@ document.write(`
                 <span class="n">state</span><span class="p">[</span><span class="s2">"expanded"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_select_all_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  select all clusters for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Mark every cluster as selected."""</span>
         <span class="k">for</span> <span class="n">centroid_rep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_cluster_state</span><span class="p">(</span><span class="n">centroid_rep</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_deselect_all_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  deselect all clusters for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Mark every cluster as not selected."""</span>
         <span class="k">for</span> <span class="n">centroid_rep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_cluster_state</span><span class="p">(</span><span class="n">centroid_rep</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_cluster_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">centroid_rep</span><span class="p">,</span> <span class="n">selected</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  update cluster state for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Set a cluster's selected flag and update its centroid opacity.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        centroid_rep : str</span>
-<span class="sd">            Value for ``centroid rep``.</span>
+<span class="sd">        centroid_rep : Actor</span>
+<span class="sd">            Centroid tube actor keying the cluster in ``_cluster_state``.</span>
 <span class="sd">        selected : bool</span>
-<span class="sd">            Value for ``selected``.</span>
+<span class="sd">            Whether the cluster should be marked as selected.</span>
 <span class="sd">        """</span>
         <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="p">[</span><span class="n">centroid_rep</span><span class="p">]</span>
         <span class="n">state</span><span class="p">[</span><span class="s2">"selected"</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected</span>
@@ -1845,12 +1882,12 @@ document.write(`
             <span class="n">centroid_rep</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="mf">0.5</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_toggle_cluster_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  toggle cluster selection for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Flip a cluster's selected flag in response to a pointer-down event.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        cluster : ClusterCentroid</span>
-<span class="sd">            Value for ``cluster``.</span>
+<span class="sd">        cluster : Actor</span>
+<span class="sd">            Centroid tube actor that was clicked.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_cluster_state</span><span class="p">,</span>
@@ -1859,29 +1896,23 @@ document.write(`
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_hide_deselected_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  hide deselected clusters for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Hide the centroid actor of every cluster that is not selected."""</span>
         <span class="k">for</span> <span class="n">centroid_rep</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="p">[</span><span class="s2">"selected"</span><span class="p">]:</span>
                 <span class="n">centroid_rep</span><span class="o">.</span><span class="n">visible</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_show_all_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  show all clusters for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Make every centroid actor visible, ignoring the size/length filters."""</span>
         <span class="k">for</span> <span class="n">centroid_rep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="p">:</span>
             <span class="n">centroid_rep</span><span class="o">.</span><span class="n">visible</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_show_all_clusters_and_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  show all clusters and refresh for ``ClusterStreamline3D``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Show every cluster, then reapply the size/length visibility filters."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_show_all_clusters</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_cluster_visibility</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_cluster_line_type_change</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  apply cluster line type change for ``ClusterStreamline3D``."""</span>
+<span class="w">        </span><span class="sd">"""Rebuild every expanded cluster's actor with the current line type."""</span>
         <span class="k">for</span> <span class="n">centroid_rep</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="s2">"expanded"</span><span class="p">]:</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">new_actor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_cluster_streamlines</span><span class="p">(</span><span class="n">centroid_rep</span><span class="p">)</span>
@@ -1890,12 +1921,13 @@ document.write(`
                 <span class="n">state</span><span class="p">[</span><span class="s2">"cluster_actor"</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_actor</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_populate_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  populate info for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Build the streamline/cluster count and size/length summary.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            The information of the ClusterStreamline3D visualization.</span>
+<span class="sd">            Multi-line text with the streamline count, cluster count, and</span>
+<span class="sd">            min/max cluster size and length.</span>
 <span class="sd">        """</span>
         <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Total streamlines: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sft</span><span class="o">.</span><span class="n">streamlines</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
@@ -1919,12 +1951,13 @@ document.write(`
 <div class="viewcode-block" id="ClusterStreamline3D.compute_visible_tractogram">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.ClusterStreamline3D.compute_visible_tractogram">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_visible_tractogram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle compute visible tractogram for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Build a tractogram containing the streamlines of selected clusters.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        StatefulTractogram</span>
-<span class="sd">            The visible tractogram of the ClusterStreamline3D visualization.</span>
+<span class="sd">            Tractogram with the streamlines from every cluster whose</span>
+<span class="sd">            ``selected`` state is True, in the same space as ``sft``.</span>
 <span class="sd">        """</span>
         <span class="n">visible_streamlines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -1938,16 +1971,20 @@ document.write(`
 <div class="viewcode-block" id="ClusterStreamline3D.save_tractogram">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.ClusterStreamline3D.save_tractogram">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save_tractogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filenames</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle save tractogram for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Save the selected clusters' streamlines to a file.</span>
+
+<span class="sd">        Matches the shared download-callback signature used across Skyline</span>
+<span class="sd">        visualizations; ``rois`` and ``shm_coeffs`` are accepted but unused.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        filenames : list, optional</span>
-<span class="sd">            Value for ``filenames``.</span>
-<span class="sd">        rois : list, optional</span>
-<span class="sd">            Value for ``rois``.</span>
-<span class="sd">        shm_coeffs : list, optional</span>
-<span class="sd">            Value for ``shm coeffs``.</span>
+<span class="sd">        filenames : list of str</span>
+<span class="sd">            Selected save path(s) from the file dialog; only the first</span>
+<span class="sd">            entry is used.</span>
+<span class="sd">        rois : list of str or None, optional</span>
+<span class="sd">            Unused by this visualization.</span>
+<span class="sd">        shm_coeffs : list of str or None, optional</span>
+<span class="sd">            Unused by this visualization.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">filenames</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
@@ -1959,7 +1996,11 @@ document.write(`
 <div class="viewcode-block" id="ClusterStreamline3D.handle_key_events">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.ClusterStreamline3D.handle_key_events">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">handle_key_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle handle key events for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Expand, collapse, select, deselect, hide, or show clusters by key.</span>
+
+<span class="sd">        Recognizes ``"e"`` (expand), ``"c"`` (collapse), ``"a"`` (select</span>
+<span class="sd">        all), ``"d"`` (deselect all), ``"h"`` (hide deselected), and</span>
+<span class="sd">        ``"s"`` (show all) on ``event.key``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1982,19 +2023,20 @@ document.write(`
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle actor for ``ClusterStreamline3D``.</span>
+<span class="w">        </span><span class="sd">"""Return the group containing every centroid and cluster actor.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Group or Line</span>
-<span class="sd">            The actor of the ClusterStreamline3D visualization.</span>
+<span class="sd">        Group</span>
+<span class="sd">            Container actor holding one child per cluster (a centroid tube,</span>
+<span class="sd">            or its expanded streamline actor).</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actor</span>
 
 <div class="viewcode-block" id="ClusterStreamline3D.render_widgets">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.ClusterStreamline3D.render_widgets">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle render widgets for ``ClusterStreamline3D``."""</span>
+<span class="w">        </span><span class="sd">"""Draw the line-type, threshold, size/length, and download controls."""</span>
         <span class="n">changed</span><span class="p">,</span> <span class="n">is_clustered</span> <span class="o">=</span> <span class="n">toggle_button</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Cluster"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">changed</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_switch_render_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_switch_render_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_clustered</span><span class="p">)</span>

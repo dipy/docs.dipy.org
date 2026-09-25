@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20260923.05df74a documentation</title>
+    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20260925.1a1e2d6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=6a745070"></script>
+    <script src="../../../../_static/documentation_options.js?v=1a9404ab"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,7 +883,11 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.viz.skyline.app</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Application entry points and main ``Skyline`` viewer class."""</span>
+<span></span><span class="sd">"""Skyline viewer application entry points.</span>
+
+<span class="sd">Expose the ``Skyline`` class and the ``skyline``/``skyline_from_files``</span>
+<span class="sd">functions used to construct and launch the FURY-based multi-modal viewer.</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
@@ -932,56 +936,95 @@ document.write(`
 <div class="viewcode-block" id="Skyline">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.app.Skyline">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Skyline</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Represent ``Skyline`` in Skyline.</span>
+<span class="w">    </span><span class="sd">"""The Skyline viewer, hosting the FURY scene, UI, and visualizations.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    visualizer_type : str, optional</span>
-<span class="sd">        Value for ``visualizer type``.</span>
-<span class="sd">    images : list, optional</span>
-<span class="sd">        Value for ``images``.</span>
-<span class="sd">    peaks : ndarray</span>
-<span class="sd">        Value for ``peaks``.</span>
-<span class="sd">    rois : list, optional</span>
-<span class="sd">        Value for ``rois``.</span>
-<span class="sd">    surfaces : list, optional</span>
-<span class="sd">        Value for ``surfaces``.</span>
-<span class="sd">    tractograms : list, optional</span>
-<span class="sd">        Value for ``tractograms``.</span>
-<span class="sd">    sh_coeffs : list, optional</span>
-<span class="sd">        Value for ``sh coeffs``.</span>
+<span class="sd">    visualizer_type : {"standalone", "gui", "jupyter", "stealth"}, optional</span>
+<span class="sd">        Kind of window to create. The options map to FURY window types via</span>
+<span class="sd">        ``create_window``:</span>
+
+<span class="sd">        - "standalone": a default interactive window.</span>
+<span class="sd">        - "gui": a Qt-based window.</span>
+<span class="sd">        - "jupyter": an inline Jupyter notebook window.</span>
+<span class="sd">        - "stealth": an offscreen window with no GUI, used for scripted</span>
+<span class="sd">          snapshots.</span>
+
+<span class="sd">        An unrecognized value logs an error and terminates the process.</span>
+<span class="sd">    images : list of tuple, optional</span>
+<span class="sd">        Already-loaded image data to show at startup, as ``(data, affine)``</span>
+<span class="sd">        or ``(data, affine, filename)`` tuples.</span>
+<span class="sd">    peaks : list of tuple, optional</span>
+<span class="sd">        Already-loaded peak data to show at startup, as ``(pam,)`` or</span>
+<span class="sd">        ``(pam, filename)`` tuples, where ``pam`` is a ``PeaksAndMetrics``.</span>
+<span class="sd">    rois : list of tuple, optional</span>
+<span class="sd">        Already-loaded ROI data to show at startup, as ``(roi, affine)`` or</span>
+<span class="sd">        ``(roi, affine, filename)`` tuples.</span>
+<span class="sd">    surfaces : list of tuple, optional</span>
+<span class="sd">        Already-loaded surface data to show at startup, as</span>
+<span class="sd">        ``(vertices, faces)`` or ``(vertices, faces, filename)`` tuples.</span>
+<span class="sd">    tractograms : list of tuple, optional</span>
+<span class="sd">        Already-loaded tractogram data to show at startup, as ``(sft,)`` or</span>
+<span class="sd">        ``(sft, filename)`` tuples, where ``sft`` is a</span>
+<span class="sd">        ``StatefulTractogram``. Entries with no streamlines are skipped</span>
+<span class="sd">        with a warning.</span>
+<span class="sd">    sh_coeffs : list of tuple, optional</span>
+<span class="sd">        Already-loaded spherical harmonic coefficient data to show at</span>
+<span class="sd">        startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
+<span class="sd">        ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
+<span class="sd">        be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
 <span class="sd">    is_cluster : bool, optional</span>
-<span class="sd">        Value for ``is cluster``.</span>
+<span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>
-<span class="sd">        Value for ``is light version``.</span>
+<span class="sd">        Whether to render tractograms as ``"Line"`` instead of ``"Tube"``,</span>
+<span class="sd">        which improves performance for large tractograms.</span>
 <span class="sd">    glass_brain : bool, optional</span>
-<span class="sd">        Value for ``glass brain``.</span>
-<span class="sd">    bg_color : tuple(float, float, float), optional</span>
-<span class="sd">        Value for ``bg color``.</span>
-<span class="sd">    tract_colors : str or tuple, optional</span>
-<span class="sd">        Value for ``tract colors``.</span>
+<span class="sd">        Whether to render surfaces black with the ``"basic"`` material at</span>
+<span class="sd">        25% opacity and default the background to white.</span>
+<span class="sd">    bg_color : tuple of float, optional</span>
+<span class="sd">        Background color of the scene as an RGB tuple in ``[0, 1]``. If</span>
+<span class="sd">        None, it is white when ``glass_brain`` is True, otherwise dark</span>
+<span class="sd">        gray.</span>
+<span class="sd">    tract_colors : str or tuple of float or None, optional</span>
+<span class="sd">        Coloring scheme for the tractograms: ``"direction"`` for</span>
+<span class="sd">        directionally colored streamlines, ``"random"`` for the next color</span>
+<span class="sd">        from a distinguishable colormap per tractogram, an RGB(A) tuple in</span>
+<span class="sd">        ``[0, 1]``, or a string of three space-separated numbers parsed to</span>
+<span class="sd">        such a tuple. If None, ``"direction"`` is used.</span>
 <span class="sd">    cluster_thr : float, optional</span>
-<span class="sd">        Value for ``cluster thr``.</span>
+<span class="sd">        Final distance threshold, in mm, used by ``qbx_and_merge`` when</span>
+<span class="sd">        clustering is enabled; small-animal data may need a smaller value</span>
+<span class="sd">        such as 2.0.</span>
 <span class="sd">    cluster_size_thr : int, optional</span>
-<span class="sd">        Value for ``cluster size thr``.</span>
+<span class="sd">        Clusters with size less than ``cluster_size_thr`` are hidden. If</span>
+<span class="sd">        None, the 50th percentile of the cluster size distribution is</span>
+<span class="sd">        used.</span>
 <span class="sd">    cluster_length_thr : float, optional</span>
-<span class="sd">        Value for ``cluster length thr``.</span>
+<span class="sd">        Clusters with average length less than ``cluster_length_thr`` mm</span>
+<span class="sd">        are hidden. If None, the 25th percentile of the cluster length</span>
+<span class="sd">        distribution is used.</span>
 <span class="sd">    buan_pvals : str, optional</span>
-<span class="sd">        Value for ``buan pvals``.</span>
+<span class="sd">        File path for BUAN p-values used for BUAN-based coloring of</span>
+<span class="sd">        tractograms.</span>
 <span class="sd">    rgb : bool or None, optional</span>
 <span class="sd">        ``None``: auto-detect from structured NIfTI ``DT_RGB24``</span>
 <span class="sd">        dtype; show toggle for other 4D volumes with 3 or 4 channels.</span>
 <span class="sd">        ``True``: force RGB mode.  ``False``: never treat as RGB.</span>
-<span class="sd">    initial_filenames : list, optional</span>
-<span class="sd">        Value for ``initial filenames``.</span>
-<span class="sd">    initial_rois : list, optional</span>
-<span class="sd">        Value for ``initial rois``.</span>
-<span class="sd">    initial_shm_coeffs : list, optional</span>
-<span class="sd">        Value for ``initial shm coeffs``.</span>
+<span class="sd">    initial_filenames : list of str, optional</span>
+<span class="sd">        File paths loaded asynchronously into the viewer on startup. If</span>
+<span class="sd">        neither preloaded data nor initial files are given and a UI</span>
+<span class="sd">        exists, the file dialog opens on start.</span>
+<span class="sd">    initial_rois : list of str, optional</span>
+<span class="sd">        ROI file paths loaded asynchronously into the viewer on startup.</span>
+<span class="sd">    initial_shm_coeffs : list of str, optional</span>
+<span class="sd">        Spherical harmonic coefficient file paths loaded asynchronously</span>
+<span class="sd">        into the viewer on startup.</span>
 <span class="sd">    out_dir : str or Path, optional</span>
-<span class="sd">        Value for ``out dir``.</span>
+<span class="sd">        Directory for the stealth-mode output image; created if missing.</span>
+<span class="sd">        Used only when ``visualizer_type`` is ``"stealth"``.</span>
 <span class="sd">    out_stealth_png : str, optional</span>
-<span class="sd">        Value for ``out stealth png``.</span>
+<span class="sd">        Output image name, without extension, used as the stealth window</span>
+<span class="sd">        title. Used only when ``visualizer_type`` is ``"stealth"``.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1010,56 +1053,97 @@ document.write(`
         <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">out_stealth_png</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Represent ``Skyline`` in Skyline.</span>
+<span class="w">        </span><span class="sd">"""Initialize the Skyline viewer.</span>
+
+<span class="sd">        Blocks in ``self.window.start()`` until the window is closed.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        visualizer_type : str, optional</span>
-<span class="sd">            Value for ``visualizer type``.</span>
-<span class="sd">        images : list, optional</span>
-<span class="sd">            Value for ``images``.</span>
-<span class="sd">        peaks : ndarray</span>
-<span class="sd">            Value for ``peaks``.</span>
-<span class="sd">        rois : list, optional</span>
-<span class="sd">            Value for ``rois``.</span>
-<span class="sd">        surfaces : list, optional</span>
-<span class="sd">            Value for ``surfaces``.</span>
-<span class="sd">        tractograms : list, optional</span>
-<span class="sd">            Value for ``tractograms``.</span>
-<span class="sd">        sh_coeffs : list, optional</span>
-<span class="sd">            Value for ``sh coeffs``.</span>
+<span class="sd">        visualizer_type : {"standalone", "gui", "jupyter", "stealth"}, optional</span>
+<span class="sd">            Kind of window to create. The options map to FURY window types via</span>
+<span class="sd">            ``create_window``:</span>
+
+<span class="sd">            - "standalone": a default interactive window.</span>
+<span class="sd">            - "gui": a Qt-based window.</span>
+<span class="sd">            - "jupyter": an inline Jupyter notebook window.</span>
+<span class="sd">            - "stealth": an offscreen window with no GUI, used for scripted</span>
+<span class="sd">              snapshots.</span>
+
+<span class="sd">            An unrecognized value logs an error and terminates the process.</span>
+<span class="sd">        images : list of tuple, optional</span>
+<span class="sd">            Already-loaded image data to show at startup, as ``(data, affine)``</span>
+<span class="sd">            or ``(data, affine, filename)`` tuples.</span>
+<span class="sd">        peaks : list of tuple, optional</span>
+<span class="sd">            Already-loaded peak data to show at startup, as ``(pam,)`` or</span>
+<span class="sd">            ``(pam, filename)`` tuples, where ``pam`` is a ``PeaksAndMetrics``.</span>
+<span class="sd">        rois : list of tuple, optional</span>
+<span class="sd">            Already-loaded ROI data to show at startup, as ``(roi, affine)`` or</span>
+<span class="sd">            ``(roi, affine, filename)`` tuples.</span>
+<span class="sd">        surfaces : list of tuple, optional</span>
+<span class="sd">            Already-loaded surface data to show at startup, as</span>
+<span class="sd">            ``(vertices, faces)`` or ``(vertices, faces, filename)`` tuples.</span>
+<span class="sd">        tractograms : list of tuple, optional</span>
+<span class="sd">            Already-loaded tractogram data to show at startup, as ``(sft,)`` or</span>
+<span class="sd">            ``(sft, filename)`` tuples, where ``sft`` is a</span>
+<span class="sd">            ``StatefulTractogram``. Entries with no streamlines are skipped</span>
+<span class="sd">            with a warning.</span>
+<span class="sd">        sh_coeffs : list of tuple, optional</span>
+<span class="sd">            Already-loaded spherical harmonic coefficient data to show at</span>
+<span class="sd">            startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
+<span class="sd">            ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
+<span class="sd">            be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
 <span class="sd">        is_cluster : bool, optional</span>
-<span class="sd">            Value for ``is cluster``.</span>
+<span class="sd">            Whether to cluster the tractograms.</span>
 <span class="sd">        is_light_version : bool, optional</span>
-<span class="sd">            Value for ``is light version``.</span>
+<span class="sd">            Whether to render tractograms as ``"Line"`` instead of ``"Tube"``,</span>
+<span class="sd">            which improves performance for large tractograms.</span>
 <span class="sd">        glass_brain : bool, optional</span>
-<span class="sd">            Value for ``glass brain``.</span>
-<span class="sd">        bg_color : tuple(float, float, float), optional</span>
-<span class="sd">            Value for ``bg color``.</span>
-<span class="sd">        tract_colors : str or tuple, optional</span>
-<span class="sd">            Value for ``tract colors``.</span>
+<span class="sd">            Whether to render surfaces black with the ``"basic"`` material at</span>
+<span class="sd">            25% opacity and default the background to white.</span>
+<span class="sd">        bg_color : tuple of float, optional</span>
+<span class="sd">            Background color of the scene as an RGB tuple in ``[0, 1]``. If</span>
+<span class="sd">            None, it is white when ``glass_brain`` is True, otherwise dark</span>
+<span class="sd">            gray.</span>
+<span class="sd">        tract_colors : str or tuple of float or None, optional</span>
+<span class="sd">            Coloring scheme for the tractograms: ``"direction"`` for</span>
+<span class="sd">            directionally colored streamlines, ``"random"`` for the next color</span>
+<span class="sd">            from a distinguishable colormap per tractogram, an RGB(A) tuple in</span>
+<span class="sd">            ``[0, 1]``, or a string of three space-separated numbers parsed to</span>
+<span class="sd">            such a tuple. If None, ``"direction"`` is used.</span>
 <span class="sd">        cluster_thr : float, optional</span>
-<span class="sd">            Value for ``cluster thr``.</span>
+<span class="sd">            Final distance threshold, in mm, used by ``qbx_and_merge`` when</span>
+<span class="sd">            clustering is enabled; small-animal data may need a smaller value</span>
+<span class="sd">            such as 2.0.</span>
 <span class="sd">        cluster_size_thr : int, optional</span>
-<span class="sd">            Value for ``cluster size thr``.</span>
+<span class="sd">            Clusters with size less than ``cluster_size_thr`` are hidden. If</span>
+<span class="sd">            None, the 50th percentile of the cluster size distribution is</span>
+<span class="sd">            used.</span>
 <span class="sd">        cluster_length_thr : float, optional</span>
-<span class="sd">            Value for ``cluster length thr``.</span>
+<span class="sd">            Clusters with average length less than ``cluster_length_thr`` mm</span>
+<span class="sd">            are hidden. If None, the 25th percentile of the cluster length</span>
+<span class="sd">            distribution is used.</span>
 <span class="sd">        buan_pvals : str, optional</span>
-<span class="sd">            Value for ``buan pvals``.</span>
+<span class="sd">            File path for BUAN p-values used for BUAN-based coloring of</span>
+<span class="sd">            tractograms.</span>
 <span class="sd">        rgb : bool or None, optional</span>
 <span class="sd">            ``None``: auto-detect from structured NIfTI ``DT_RGB24``</span>
 <span class="sd">            dtype; show toggle for other 4D volumes with 3 or 4 channels.</span>
 <span class="sd">            ``True``: force RGB mode.  ``False``: never treat as RGB.</span>
-<span class="sd">        initial_filenames : list, optional</span>
-<span class="sd">            Value for ``initial filenames``.</span>
-<span class="sd">        initial_rois : list, optional</span>
-<span class="sd">            Value for ``initial rois``.</span>
-<span class="sd">        initial_shm_coeffs : list, optional</span>
-<span class="sd">            Value for ``initial shm coeffs``.</span>
+<span class="sd">        initial_filenames : list of str, optional</span>
+<span class="sd">            File paths loaded asynchronously into the viewer on startup. If</span>
+<span class="sd">            neither preloaded data nor initial files are given and a UI</span>
+<span class="sd">            exists, the file dialog opens on start.</span>
+<span class="sd">        initial_rois : list of str, optional</span>
+<span class="sd">            ROI file paths loaded asynchronously into the viewer on startup.</span>
+<span class="sd">        initial_shm_coeffs : list of str, optional</span>
+<span class="sd">            Spherical harmonic coefficient file paths loaded asynchronously</span>
+<span class="sd">            into the viewer on startup.</span>
 <span class="sd">        out_dir : str or Path, optional</span>
-<span class="sd">            Value for ``out dir``.</span>
+<span class="sd">            Directory for the stealth-mode output image; created if missing.</span>
+<span class="sd">            Used only when ``visualizer_type`` is ``"stealth"``.</span>
 <span class="sd">        out_stealth_png : str, optional</span>
-<span class="sd">            Value for ``out stealth png``.</span>
+<span class="sd">            Output image name, without extension, used as the stealth window</span>
+<span class="sd">            title. Used only when ``visualizer_type`` is ``"stealth"``.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -1175,8 +1259,11 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_wait_for_loading_in_stealth_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  wait for loading in stealth mode for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Block until all queued and pending visualizations finish loading.</span>
+
+<span class="sd">        Repeatedly runs the async callback queue and drains pending loaded</span>
+<span class="sd">        files so stealth-mode snapshots are not taken before every</span>
+<span class="sd">        requested visualization has been created.</span>
 <span class="sd">        """</span>
         <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_loaded_files</span> <span class="ow">or</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_loading_total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_done</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_total</span>
@@ -1186,8 +1273,10 @@ document.write(`
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_refresh_actors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  refresh actors for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Sync the main scene's actors with the current visualizations.</span>
+
+<span class="sd">        Removes actors that no longer belong to any visualization and adds</span>
+<span class="sd">        actors for visualizations not yet present in the scene.</span>
 <span class="sd">        """</span>
         <span class="n">all_actors</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">actor</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">visualizations</span><span class="p">]</span>
 
@@ -1201,8 +1290,11 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">screens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">main_scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_refresh_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  refresh ui for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Drop tracked visualizations whose UI section was closed.</span>
+
+<span class="sd">        A visualization removed from the UI (for example via its close</span>
+<span class="sd">        button) no longer has a matching section id, so it is unregistered</span>
+<span class="sd">        from the viewer as well.</span>
 <span class="sd">        """</span>
         <span class="k">for</span> <span class="n">viz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">visualizations</span><span class="p">:</span>
             <span class="n">viz_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">viz</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">viz</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
@@ -1210,8 +1302,11 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">_remove_visualization</span><span class="p">(</span><span class="n">viz</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_arrange_image_actors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  arrange image actors for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Stagger overlapping image slicer actors to avoid z-fighting.</span>
+
+<span class="sd">        Restores the previously active image to its base slice state, then</span>
+<span class="sd">        offsets the newly active image slightly further along its slice</span>
+<span class="sd">        axis for each additional loaded image.</span>
 <span class="sd">        """</span>
         <span class="k">for</span> <span class="n">viz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">viz</span><span class="o">.</span><span class="n">active</span><span class="p">:</span>
@@ -1226,12 +1321,17 @@ document.write(`
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_tractogram_helper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  update tractogram helper for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Show or hide the cluster interaction help overlay.</span>
+
+<span class="sd">        The overlay is added when a ``ClusterStreamline3D`` visualization is</span>
+<span class="sd">        present and removed once none remain, or immediately when</span>
+<span class="sd">        ``remove`` is True.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        remove : bool, optional</span>
-<span class="sd">            Value for ``remove``.</span>
+<span class="sd">            Whether to force-remove the overlay regardless of its current</span>
+<span class="sd">            visualizations.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">remove</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram_help</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">screens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tractogram_help</span><span class="p">)</span>
@@ -1261,8 +1361,12 @@ document.write(`
 <div class="viewcode-block" id="Skyline.draw_ui">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.app.Skyline.draw_ui">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">draw_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle draw ui for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Draw the ImGui overlay for a single frame.</span>
+
+<span class="sd">        Invoked as the ImGui GUI callback. Renders the UI window, then</span>
+<span class="sd">        drains pending tractogram switches, visualizations, synchronization</span>
+<span class="sd">        requests, and scene operations queued while drawing, applying a</span>
+<span class="sd">        pending background color change and refreshing if required.</span>
 <span class="sd">        """</span>
         <span class="n">process_async_callbacks</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_drawing_ui</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1292,8 +1396,10 @@ document.write(`
 <div class="viewcode-block" id="Skyline.request_refresh">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.app.Skyline.request_refresh">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">request_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle request refresh for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Flag the viewer for a refresh on the next UI frame.</span>
+
+<span class="sd">        The actual actor sync and render happen later, either at the end of</span>
+<span class="sd">        the current ``draw_ui`` call or on the next ``before_render`` call.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_requested</span> <span class="o">=</span> <span class="kc">True</span></div>
 
@@ -1323,16 +1429,21 @@ document.write(`
 <div class="viewcode-block" id="Skyline.enqueue_scene_op">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.app.Skyline.enqueue_scene_op">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">enqueue_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle enqueue scene op for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Run or defer a scene-mutating callable.</span>
+
+<span class="sd">        Runs ``func`` immediately unless the UI is currently drawing, in</span>
+<span class="sd">        which case the call is queued for ``_flush_pending_scene_ops`` and</span>
+<span class="sd">        coalesced with any previously queued call sharing the same bound</span>
+<span class="sd">        method or function name.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        func : callable</span>
-<span class="sd">            Value for ``func``.</span>
+<span class="sd">            Scene-mutating callable to run or defer.</span>
 <span class="sd">        *args : tuple</span>
-<span class="sd">            Value for ``args``.</span>
+<span class="sd">            Positional arguments forwarded to ``func``.</span>
 <span class="sd">        **kwargs : dict</span>
-<span class="sd">            Value for ``kwargs``.</span>
+<span class="sd">            Keyword arguments forwarded to ``func``.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_drawing_ui</span><span class="p">:</span>
             <span class="n">op_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene_op_key</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
@@ -1351,8 +1462,10 @@ document.write(`
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_perform_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  perform refresh for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Update the cluster helper, UI bookkeeping, and scene actors.</span>
+
+<span class="sd">        Does not render; callers that need the change visible must follow</span>
+<span class="sd">        up with ``_render_window``.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">!=</span> <span class="s2">"stealth"</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_tractogram_helper</span><span class="p">()</span>
@@ -1360,28 +1473,32 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_actors</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_perform_refresh_and_render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  perform refresh and render for ``Skyline``.</span>
-<span class="sd">        None</span>
-<span class="sd">        """</span>
+<span class="w">        </span><span class="sd">"""Perform a refresh, clear the refresh flag, and render the window."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_perform_refresh</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_requested</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_render_window</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_render_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  render window for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Render the window, unless the UI is currently being drawn.</span>
+
+<span class="sd">        Rendering while ``draw_ui`` is running is skipped because the</span>
+<span class="sd">        surrounding ImGui frame already triggers a render.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_drawing_ui</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_queue_loaded_visualizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loaded_files</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">"Loading Files..."</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  queue loaded visualizations for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Queue a batch of already-loaded visualization data for creation.</span>
+
+<span class="sd">        The batch is consumed later by ``_drain_pending_visualizations``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        loaded_files : dict</span>
-<span class="sd">            Value for ``loaded files``.</span>
+<span class="sd">            Mapping with the ``"images"``, ``"peaks"``, ``"rois"``,</span>
+<span class="sd">            ``"surfaces"``, ``"tractograms"``, and ``"shm_coeffs"`` keys,</span>
+<span class="sd">            each holding a list of loaded-data tuples.</span>
 <span class="sd">        message : str, optional</span>
 <span class="sd">            Message text shown to the user.</span>
 <span class="sd">        """</span>
@@ -1391,8 +1508,10 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_flush_pending_sync_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  flush pending sync requests for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Apply state-synchronization requests queued while drawing the UI.</span>
+
+<span class="sd">        Requests are re-checked at flush time in case the source</span>
+<span class="sd">        visualization had synchronization toggled off while queued.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_sync_requests</span><span class="p">:</span>
             <span class="k">return</span>
@@ -1406,8 +1525,11 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_requested</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_flush_pending_scene_ops</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  flush pending scene ops for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Apply scene operations queued while drawing the UI.</span>
+
+<span class="sd">        Each queued callable is invoked with its stored arguments; failures</span>
+<span class="sd">        are logged rather than propagated so one broken operation does not</span>
+<span class="sd">        block the others.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_scene_ops</span><span class="p">:</span>
             <span class="k">return</span>
@@ -1416,7 +1538,7 @@ document.write(`
         <span class="k">for</span> <span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
                     <span class="s2">"Failed to apply deferred scene operation </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span>
                     <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">"__qualname__"</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">func</span><span class="p">)),</span>
@@ -1476,8 +1598,12 @@ document.write(`
             <span class="n">viz</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">reference_state</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_drain_pending_visualizations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  drain pending visualizations for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Consume one queued batch of loaded files into visualizations.</span>
+
+<span class="sd">        Pops the oldest pending batch, creates its visualizations while</span>
+<span class="sd">        preserving the current slice pose, refreshes the scene actors,</span>
+<span class="sd">        recenters the camera on the updated scene bounds, and hides the</span>
+<span class="sd">        loader once every queued batch has been consumed.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_loaded_files</span><span class="p">:</span>
             <span class="n">loaded_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_loaded_files</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -1528,8 +1654,10 @@ document.write(`
 <div class="viewcode-block" id="Skyline.before_render">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.app.Skyline.before_render">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">before_render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle before render for ``Skyline``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Refresh and render, or defer to a request if mid-UI-draw.</span>
+
+<span class="sd">        Called after the constructor's initial load and whenever a change</span>
+<span class="sd">        needs to be shown outside of the ``draw_ui`` frame callback.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_drawing_ui</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">request_refresh</span><span class="p">()</span>
@@ -1540,12 +1668,14 @@ document.write(`
 <div class="viewcode-block" id="Skyline.handle_resize">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.app.Skyline.handle_resize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">handle_resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle handle resize for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Update cached layout state after the window is resized.</span>
+
+<span class="sd">        Registered as the window's resize callback.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        size : tuple(int, int), optional</span>
-<span class="sd">            Value for ``size``.</span>
+<span class="sd">        size : tuple of int</span>
+<span class="sd">            New window size, in pixels, as ``(width, height)``.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -1561,7 +1691,9 @@ document.write(`
 <div class="viewcode-block" id="Skyline.handle_key_events">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.app.Skyline.handle_key_events">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">handle_key_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle handle key events for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Forward a key event to clustered tractogram visualizations.</span>
+
+<span class="sd">        Registered as the renderer's ``"key_down"`` event handler.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1574,12 +1706,20 @@ document.write(`
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_visualization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  add visualization for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Register a visualization in its per-type list and in the UI.</span>
+
+<span class="sd">        Skips registration and logs a warning if a visualization with the</span>
+<span class="sd">        same path/name id is already present.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        viz : Visualization</span>
-<span class="sd">            Value for ``viz``.</span>
+<span class="sd">            Visualization instance to register.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            If ``viz`` is not an instance of a supported visualization type.</span>
 <span class="sd">        """</span>
         <span class="n">viz_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">viz</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">viz</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">viz_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span><span class="o">.</span><span class="n">sections</span><span class="p">:</span>
@@ -1600,7 +1740,7 @@ document.write(`
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="n">SHGlyph3D</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sh_glyph_visualizations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">viz</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unsupported visualization type"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"Unsupported visualization type"</span><span class="p">)</span>
         <span class="n">viz</span><span class="o">.</span><span class="n">_scene_op_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enqueue_scene_op</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">viz_id</span><span class="p">,</span> <span class="n">viz</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span> <span class="n">viz_type</span><span class="o">=</span><span class="n">viz</span><span class="o">.</span><span class="n">viz_type</span><span class="p">)</span>
@@ -1617,26 +1757,39 @@ document.write(`
         <span class="n">is_cluster</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">async_clustering</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  load visualiations for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Create and register visualizations from batches of loaded data.</span>
+
+<span class="sd">        Each argument is a list of loaded-data tuples in the shape produced</span>
+<span class="sd">        by ``io.load_files`` (see ``Skyline`` for the tuple forms). Sets the</span>
+<span class="sd">        last loaded image active and opens the file dialog if no</span>
+<span class="sd">        visualization ends up loaded.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        images : list, optional</span>
-<span class="sd">            Value for ``images``.</span>
-<span class="sd">        peaks : ndarray</span>
-<span class="sd">            Value for ``peaks``.</span>
-<span class="sd">        rois : list, optional</span>
-<span class="sd">            Value for ``rois``.</span>
-<span class="sd">        surfaces : list, optional</span>
-<span class="sd">            Value for ``surfaces``.</span>
-<span class="sd">        tractograms : list, optional</span>
-<span class="sd">            Value for ``tractograms``.</span>
-<span class="sd">        sh_coeffs : list, optional</span>
-<span class="sd">            Value for ``sh coeffs``.</span>
+<span class="sd">        images : list of tuple, optional</span>
+<span class="sd">            Loaded image data, as ``(data, affine)`` or</span>
+<span class="sd">            ``(data, affine, filename)`` tuples.</span>
+<span class="sd">        peaks : list of tuple, optional</span>
+<span class="sd">            Loaded peak data, as ``(pam,)`` or ``(pam, filename)`` tuples.</span>
+<span class="sd">        rois : list of tuple, optional</span>
+<span class="sd">            Loaded ROI data, as ``(roi, affine)`` or</span>
+<span class="sd">            ``(roi, affine, filename)`` tuples.</span>
+<span class="sd">        surfaces : list of tuple, optional</span>
+<span class="sd">            Loaded surface data, as ``(vertices, faces)`` or</span>
+<span class="sd">            ``(vertices, faces, filename)`` tuples.</span>
+<span class="sd">        tractograms : list of tuple, optional</span>
+<span class="sd">            Loaded tractogram data, as ``(sft,)`` or ``(sft, filename)``</span>
+<span class="sd">            tuples. Entries with no streamlines are skipped with a warning.</span>
+<span class="sd">        sh_coeffs : list of tuple, optional</span>
+<span class="sd">            Loaded spherical harmonic coefficient data, as</span>
+<span class="sd">            ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
+<span class="sd">            ``(coeffs, affine, filename, basis_type)`` tuples. Entries whose</span>
+<span class="sd">            ``coeffs`` is not a 4D ndarray are skipped with a warning.</span>
 <span class="sd">        is_cluster : bool, optional</span>
-<span class="sd">            Value for ``is cluster``.</span>
+<span class="sd">            Overrides ``self._is_cluster`` for the tractograms in this batch.</span>
 <span class="sd">        async_clustering : bool, optional</span>
-<span class="sd">            Value for ``async clustering``.</span>
+<span class="sd">            Overrides the default async-clustering choice for the</span>
+<span class="sd">            tractograms in this batch.</span>
 <span class="sd">        """</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="nb">input</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">images</span> <span class="ow">or</span> <span class="p">[]):</span>
             <span class="n">image3d</span> <span class="o">=</span> <span class="n">create_image_visualization</span><span class="p">(</span>
@@ -1740,16 +1893,21 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_append_visualization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  append visualization for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Load files from disk asynchronously and queue them for display.</span>
+
+<span class="sd">        Each path is loaded in its own background task via</span>
+<span class="sd">        ``io.load_files``; each completed task's result is appended to</span>
+<span class="sd">        ``self._pending_loaded_files`` for ``_drain_pending_visualizations``</span>
+<span class="sd">        to consume on a later frame.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        filenames : list, optional</span>
-<span class="sd">            Value for ``filenames``.</span>
-<span class="sd">        rois : list, optional</span>
-<span class="sd">            Value for ``rois``.</span>
-<span class="sd">        shm_coeffs : list, optional</span>
-<span class="sd">            Value for ``shm coeffs``.</span>
+<span class="sd">        filenames : list of str, optional</span>
+<span class="sd">            Paths to images, peaks, surfaces, or tractograms to load.</span>
+<span class="sd">        rois : list of str, optional</span>
+<span class="sd">            Paths to ROI files to load.</span>
+<span class="sd">        shm_coeffs : list of str, optional</span>
+<span class="sd">            Paths to spherical harmonic coefficient files to load.</span>
 <span class="sd">        """</span>
         <span class="n">total_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span> <span class="ow">or</span> <span class="p">[])</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">rois</span> <span class="ow">or</span> <span class="p">[])</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">shm_coeffs</span> <span class="ow">or</span> <span class="p">[])</span>
         <span class="k">if</span> <span class="n">total_files</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1793,12 +1951,20 @@ document.write(`
             <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_remove_visualization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  remove visualization for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Unregister a visualization from its per-type tracking list.</span>
+
+<span class="sd">        Also clears ``self._slice_focus_viz`` if it pointed at ``viz`` and</span>
+<span class="sd">        opens the file dialog if no visualization remains.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        viz : Visualization</span>
-<span class="sd">            Value for ``viz``.</span>
+<span class="sd">            Visualization instance to unregister.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        TypeError</span>
+<span class="sd">            If ``viz`` is not an instance of a supported visualization type.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="n">Image3D</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">viz</span><span class="p">)</span>
@@ -1813,7 +1979,7 @@ document.write(`
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="n">SHGlyph3D</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sh_glyph_visualizations</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">viz</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unsupported visualization type"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"Unsupported visualization type"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">viz</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1823,7 +1989,7 @@ document.write(`
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_snapshot_state</span><span class="p">(</span><span class="n">new_state</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  snapshot state for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Copy a slice state so later mutation cannot affect the snapshot.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1844,16 +2010,16 @@ document.write(`
         <span class="k">return</span> <span class="n">new_state</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_synchronize_visualizations_from_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_viz</span><span class="p">,</span> <span class="n">new_state</span><span class="p">):</span>
-        <span class="c1"># Source-side guard: only push if this view has sync enabled.</span>
-<span class="w">        </span><span class="sd">"""Handle  synchronize visualizations from source for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Push a new slice state from ``source_viz`` to other visualizations.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        source_viz : Visualization</span>
-<span class="sd">            Value for ``source viz``.</span>
+<span class="sd">            Visualization whose state change is being propagated.</span>
 <span class="sd">        new_state : array-like</span>
 <span class="sd">            New synchronized state for this visualization.</span>
 <span class="sd">        """</span>
+        <span class="c1"># Source-side guard: only push if this view has sync enabled.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">source_viz</span><span class="p">,</span> <span class="s2">"_synchronize"</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
             <span class="k">return</span>
 
@@ -1863,12 +2029,17 @@ document.write(`
                 <span class="n">viz</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">new_state</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_synchronize_visualizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_viz</span><span class="p">,</span> <span class="n">new_state</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  synchronize visualizations for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Propagate a slice-state change reported by a visualization.</span>
+
+<span class="sd">        Called by visualizations as their state-change callback. Updates</span>
+<span class="sd">        the slice-focus visualization, then either queues the request for</span>
+<span class="sd">        ``_flush_pending_sync_requests`` when the UI is mid-draw, or</span>
+<span class="sd">        propagates it immediately otherwise.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        source_viz : Visualization</span>
-<span class="sd">            Value for ``source viz``.</span>
+<span class="sd">            Visualization whose state change is being reported.</span>
 <span class="sd">        new_state : array-like</span>
 <span class="sd">            New synchronized state for this visualization.</span>
 <span class="sd">        """</span>
@@ -1888,12 +2059,12 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrange_image_actors</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_background_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_color</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  update background color for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Apply or defer a background color change from the UI.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        new_color : tuple(float, float, float)</span>
-<span class="sd">            Value for ``new color``.</span>
+<span class="sd">        new_color : tuple of float</span>
+<span class="sd">            New scene background color as an RGB tuple in ``[0, 1]``.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_drawing_ui</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pending_bg_color</span> <span class="o">=</span> <span class="n">new_color</span>
@@ -1904,7 +2075,12 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_render_window</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_process_tractogram_switches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  process tractogram switches for ``Skyline``."""</span>
+<span class="w">        </span><span class="sd">"""Apply queued clustered/unclustered tractogram mode switches.</span>
+
+<span class="sd">        For each queued switch, removes the old visualization from the</span>
+<span class="sd">        scene and UI, then asynchronously re-creates it in the requested</span>
+<span class="sd">        mode via a deferred ``run_async`` call.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_tractogram_switches</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="n">pending</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_tractogram_switches</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -1949,14 +2125,14 @@ document.write(`
             <span class="n">run_async</span><span class="p">(</span><span class="n">_delay</span><span class="p">,</span> <span class="n">_on_delay_done</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_tractogram_rendering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streamline_viz</span><span class="p">,</span> <span class="n">is_clustered</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  update tractogram rendering for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Queue a clustered/unclustered mode switch for a tractogram.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        streamline_viz : Visualization</span>
-<span class="sd">            Value for ``streamline viz``.</span>
+<span class="sd">            Streamline visualization whose rendering mode changed.</span>
 <span class="sd">        is_clustered : bool</span>
-<span class="sd">            Value for ``is clustered``.</span>
+<span class="sd">            Whether the visualization should switch to clustered mode.</span>
 <span class="sd">        """</span>
         <span class="k">for</span> <span class="n">viz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram_visualizations</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">viz</span> <span class="ow">is</span> <span class="n">streamline_viz</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
@@ -1968,7 +2144,7 @@ document.write(`
 <div class="viewcode-block" id="Skyline.loader">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.app.Skyline.loader">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">loader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle loader for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Show or hide the UI's loading indicator.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1998,7 +2174,7 @@ document.write(`
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">visualizations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle visualizations for ``Skyline``.</span>
+<span class="w">        </span><span class="sd">"""Return every visualization currently tracked by the viewer.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2037,73 +2213,86 @@ document.write(`
     <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">out_stealth_png</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Launch Skyline GUI from files.</span>
+<span class="w">    </span><span class="sd">"""Launch the Skyline GUI from file paths.</span>
+
+<span class="sd">    Loads every path in the background and constructs the corresponding</span>
+<span class="sd">    ``Skyline`` viewer, forwarding ``fnames``/``rois``/``shm_coeffs`` as</span>
+<span class="sd">    ``initial_filenames``/``initial_rois``/``initial_shm_coeffs``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    fnames : list</span>
-<span class="sd">        List of file paths to be loaded into the Skyline viewer.</span>
+<span class="sd">    fnames : list of str</span>
+<span class="sd">        File paths to be loaded into the Skyline viewer.</span>
+
 <span class="sd">        Supported file types include:</span>
+
 <span class="sd">        - NIfTI images (.nii, .nii.gz)</span>
 <span class="sd">        - Peaks (.pam5)</span>
 <span class="sd">        - Surfaces (.pial, .gii, .gii.gz)</span>
-<span class="sd">        - Tractograms (.trx, .trk, .dpy, .tck, .vtk, .vtp, .fib)</span>
-<span class="sd">    rois : list, optional</span>
-<span class="sd">        List of file paths for ROIs to be loaded into the Skyline viewer.</span>
-<span class="sd">        Supported file types include NIfTI images (.nii, .nii.gz).</span>
-<span class="sd">    shm_coeffs : list, optional</span>
-<span class="sd">        List of file paths for spherical harmonics coefficients to be loaded into the</span>
-<span class="sd">        Skyline viewer. Supported file types include .pam5 files containing SH</span>
-<span class="sd">        coefficients.</span>
+<span class="sd">        - Tractograms (.trk, .trx, .dpy, .tck, .vtk, .vtp, .fib)</span>
+
+<span class="sd">        Unsupported extensions are logged and skipped; ``.npy`` entries are</span>
+<span class="sd">        ignored.</span>
+<span class="sd">    rois : list of str, optional</span>
+<span class="sd">        File paths for ROIs to be loaded into the Skyline viewer. Only</span>
+<span class="sd">        NIfTI images (.nii, .nii.gz) are supported; other extensions are</span>
+<span class="sd">        logged and skipped.</span>
+<span class="sd">    shm_coeffs : list of str, optional</span>
+<span class="sd">        File paths for spherical harmonics coefficients to be loaded into</span>
+<span class="sd">        the Skyline viewer. Only ``.pam5`` files are supported; other</span>
+<span class="sd">        extensions are silently skipped.</span>
 <span class="sd">    is_cluster : bool, optional</span>
 <span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>
-<span class="sd">        Whether to use the light version of the tractogram rendering. This will render</span>
-<span class="sd">        tractograms as lines instead of tubes, which can improve performance for large</span>
-<span class="sd">        tractograms.</span>
+<span class="sd">        Whether to render tractograms as ``"Line"`` instead of ``"Tube"``,</span>
+<span class="sd">        which improves performance for large tractograms.</span>
 <span class="sd">    glass_brain : bool, optional</span>
-<span class="sd">        Whether to use glass brain mode. This will overwrite the background color</span>
-<span class="sd">        to white if not explicitly set by the user.</span>
-<span class="sd">    bg_color : variable float, optional</span>
-<span class="sd">        Define the background color of the scene. Colors can be defined with</span>
-<span class="sd">        3 values and should be between [0-1].</span>
-<span class="sd">        For example, a value of (0, 0, 0) would mean the black color.</span>
-<span class="sd">    tract_colors : variable float or str, optional</span>
-<span class="sd">        Define the colors of the tractograms. Colors can be defined with</span>
-<span class="sd">        3 values and should be between [0-1].</span>
-<span class="sd">        String options are 'random' for random colors for each tractogram,</span>
-<span class="sd">        'direction'  for directionally colored streamlines.</span>
-<span class="sd">        For example, a value of (1, 0, 0) would mean the red color.</span>
+<span class="sd">        Whether to render surfaces black with the ``"basic"`` material at</span>
+<span class="sd">        25% opacity and default the background to white.</span>
+<span class="sd">    bg_color : tuple of float, optional</span>
+<span class="sd">        Background color of the scene as an RGB tuple in ``[0, 1]``. If</span>
+<span class="sd">        None, it is white when ``glass_brain`` is True, otherwise dark</span>
+<span class="sd">        gray.</span>
+<span class="sd">    tract_colors : str or tuple of float or None, optional</span>
+<span class="sd">        Coloring scheme for the tractograms: ``"direction"`` for</span>
+<span class="sd">        directionally colored streamlines, ``"random"`` for the next color</span>
+<span class="sd">        from a distinguishable colormap per tractogram, an RGB(A) tuple in</span>
+<span class="sd">        ``[0, 1]``, or a string of three space-separated numbers parsed to</span>
+<span class="sd">        such a tuple. If None, ``"direction"`` is used.</span>
 <span class="sd">    cluster_thr : float, optional</span>
-<span class="sd">        Distance threshold used for clustering. Default value 15.0 for</span>
-<span class="sd">        small animal brains you may need to use something smaller such</span>
-<span class="sd">        as 2.0. The distance is in mm. For this parameter to be active</span>
-<span class="sd">        ``cluster`` should be enabled.</span>
+<span class="sd">        Final distance threshold, in mm, used by ``qbx_and_merge`` when</span>
+<span class="sd">        clustering is enabled; small-animal data may need a smaller value</span>
+<span class="sd">        such as 2.0.</span>
 <span class="sd">    cluster_size_thr : int, optional</span>
-<span class="sd">        Clusters with size less than ``cluster_size_thr`` will be hidden.</span>
-<span class="sd">        If None, it will show all cluster above the 50th percentile of the cluster</span>
-<span class="sd">        size distribution.</span>
+<span class="sd">        Clusters with size less than ``cluster_size_thr`` are hidden. If</span>
+<span class="sd">        None, the 50th percentile of the cluster size distribution is</span>
+<span class="sd">        used.</span>
 <span class="sd">    cluster_length_thr : float, optional</span>
-<span class="sd">        Clusters with average length less than ``cluster_length_thr`` in mm will be</span>
-<span class="sd">        hidden. If None, it will show all cluster above the 25th percentile of the</span>
-<span class="sd">        cluster length distribution.</span>
+<span class="sd">        Clusters with average length less than ``cluster_length_thr`` mm</span>
+<span class="sd">        are hidden. If None, the 25th percentile of the cluster length</span>
+<span class="sd">        distribution is used.</span>
 <span class="sd">    buan_pvals : str, optional</span>
-<span class="sd">        File path for BUAN p-values to be used for BUAN-based coloring of tractograms.</span>
+<span class="sd">        File path for BUAN p-values used for BUAN-based coloring of</span>
+<span class="sd">        tractograms.</span>
 <span class="sd">    stealth : bool, optional</span>
-<span class="sd">        Do not use interactive mode just save figure.</span>
+<span class="sd">        Whether to render offscreen and save a snapshot instead of opening</span>
+<span class="sd">        an interactive window; sets ``visualizer_type`` to ``"stealth"``.</span>
 <span class="sd">    rgb : bool or None, optional</span>
 <span class="sd">        ``None``: auto-detect from structured NIfTI ``DT_RGB24``</span>
 <span class="sd">        dtype; show toggle for other 4D volumes with 3 or 4 channels.</span>
 <span class="sd">        ``True``: force RGB mode.  ``False``: never treat as RGB.</span>
 <span class="sd">    out_dir : str or Path, optional</span>
-<span class="sd">        Output directory to save the figure if stealth mode is enabled.</span>
+<span class="sd">        Directory for the stealth-mode output image; created if missing.</span>
+<span class="sd">        Used only when ``stealth`` is True.</span>
 <span class="sd">    out_stealth_png : str, optional</span>
-<span class="sd">        Filename of saved picture if stealth mode is enabled.</span>
+<span class="sd">        Output image name, without extension, used as the stealth window</span>
+<span class="sd">        title. Used only when ``stealth`` is True.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Skyline</span>
-<span class="sd">        Constructed viewer instance (blocking for interactive modes).</span>
+<span class="sd">        The constructed viewer, returned once construction returns from</span>
+<span class="sd">        its blocking ``self.window.start()`` call.</span>
 <span class="sd">    """</span>
     <span class="n">visualizer_type</span> <span class="o">=</span> <span class="s2">"stealth"</span> <span class="k">if</span> <span class="n">stealth</span> <span class="k">else</span> <span class="s2">"standalone"</span>
 
@@ -2155,80 +2344,103 @@ document.write(`
     <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">out_stealth_png</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Launch Skyline GUI.</span>
+<span class="w">    </span><span class="sd">"""Launch the Skyline GUI.</span>
+
+<span class="sd">    Constructs and returns a ``Skyline`` viewer with the given data.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    visualizer_type : str, optional</span>
-<span class="sd">        Type of visualizer to create. The options are:</span>
-<span class="sd">        - "standalone": A standalone window with full interactivity.</span>
-<span class="sd">        - "gui": A Qt-based GUI window.</span>
-<span class="sd">        - "jupyter": An inline Jupyter notebook visualizer.</span>
-<span class="sd">        - "stealth": An offscreen visualizer without GUI.</span>
-<span class="sd">    images : list, optional</span>
-<span class="sd">        List of path for each image to be added to the Skyline viewer.</span>
-<span class="sd">    peaks : list, optional</span>
-<span class="sd">        List of path for each peak to be added to the Skyline viewer.</span>
-<span class="sd">    rois : list, optional</span>
-<span class="sd">        List of path for each ROI to be added to the Skyline viewer.</span>
-<span class="sd">    surfaces : list, optional</span>
-<span class="sd">        List of path for each surface to be added to the Skyline viewer.</span>
-<span class="sd">    tractograms : list, optional</span>
-<span class="sd">        List of path for each tractogram to be added to the Skyline viewer.</span>
+<span class="sd">    visualizer_type : {"standalone", "gui", "jupyter", "stealth"}, optional</span>
+<span class="sd">        Kind of window to create. The options map to FURY window types via</span>
+<span class="sd">        ``create_window``:</span>
+
+<span class="sd">        - "standalone": a default interactive window.</span>
+<span class="sd">        - "gui": a Qt-based window.</span>
+<span class="sd">        - "jupyter": an inline Jupyter notebook window.</span>
+<span class="sd">        - "stealth": an offscreen window with no GUI, used for scripted</span>
+<span class="sd">          snapshots.</span>
+
+<span class="sd">        An unrecognized value logs an error and terminates the process.</span>
+<span class="sd">    images : list of tuple, optional</span>
+<span class="sd">        Already-loaded image data to show at startup, as ``(data, affine)``</span>
+<span class="sd">        or ``(data, affine, filename)`` tuples.</span>
+<span class="sd">    peaks : list of tuple, optional</span>
+<span class="sd">        Already-loaded peak data to show at startup, as ``(pam,)`` or</span>
+<span class="sd">        ``(pam, filename)`` tuples, where ``pam`` is a ``PeaksAndMetrics``.</span>
+<span class="sd">    rois : list of tuple, optional</span>
+<span class="sd">        Already-loaded ROI data to show at startup, as ``(roi, affine)`` or</span>
+<span class="sd">        ``(roi, affine, filename)`` tuples.</span>
+<span class="sd">    surfaces : list of tuple, optional</span>
+<span class="sd">        Already-loaded surface data to show at startup, as</span>
+<span class="sd">        ``(vertices, faces)`` or ``(vertices, faces, filename)`` tuples.</span>
+<span class="sd">    tractograms : list of tuple, optional</span>
+<span class="sd">        Already-loaded tractogram data to show at startup, as ``(sft,)`` or</span>
+<span class="sd">        ``(sft, filename)`` tuples, where ``sft`` is a</span>
+<span class="sd">        ``StatefulTractogram``. Entries with no streamlines are skipped</span>
+<span class="sd">        with a warning.</span>
+<span class="sd">    sh_coeffs : list of tuple, optional</span>
+<span class="sd">        Already-loaded spherical harmonic coefficient data to show at</span>
+<span class="sd">        startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
+<span class="sd">        ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
+<span class="sd">        be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
 <span class="sd">    is_cluster : bool, optional</span>
 <span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>
-<span class="sd">        Whether to use the light version of the tractogram rendering. This will render</span>
-<span class="sd">        tractograms as lines instead of tubes, which can improve performance for large</span>
-<span class="sd">        tractograms.</span>
+<span class="sd">        Whether to render tractograms as ``"Line"`` instead of ``"Tube"``,</span>
+<span class="sd">        which improves performance for large tractograms.</span>
 <span class="sd">    glass_brain : bool, optional</span>
-<span class="sd">        Whether to use glass brain mode. This will overwrite the background color</span>
-<span class="sd">        to white if not explicitly set by the user.</span>
-<span class="sd">    bg_color : variable float, optional</span>
-<span class="sd">        Define the background color of the scene. Colors can be defined with</span>
-<span class="sd">        3 values and should be between [0-1].</span>
-<span class="sd">        For example, a value of (0, 0, 0) would mean the black color.</span>
-<span class="sd">    tract_colors : variable float or str, optional</span>
-<span class="sd">        Define the colors of the tractograms. Colors can be defined with</span>
-<span class="sd">        3 values and should be between [0-1].</span>
-<span class="sd">        String options are 'random' for random colors for each tractogram,</span>
-<span class="sd">        'direction'  for directionally colored streamlines.</span>
-<span class="sd">        For example, a value of (1, 0, 0) would mean the red color.</span>
+<span class="sd">        Whether to render surfaces black with the ``"basic"`` material at</span>
+<span class="sd">        25% opacity and default the background to white.</span>
+<span class="sd">    bg_color : tuple of float, optional</span>
+<span class="sd">        Background color of the scene as an RGB tuple in ``[0, 1]``. If</span>
+<span class="sd">        None, it is white when ``glass_brain`` is True, otherwise dark</span>
+<span class="sd">        gray.</span>
+<span class="sd">    tract_colors : str or tuple of float or None, optional</span>
+<span class="sd">        Coloring scheme for the tractograms: ``"direction"`` for</span>
+<span class="sd">        directionally colored streamlines, ``"random"`` for the next color</span>
+<span class="sd">        from a distinguishable colormap per tractogram, an RGB(A) tuple in</span>
+<span class="sd">        ``[0, 1]``, or a string of three space-separated numbers parsed to</span>
+<span class="sd">        such a tuple. If None, ``"direction"`` is used.</span>
 <span class="sd">    cluster_thr : float, optional</span>
-<span class="sd">        Distance threshold used for clustering. Default value 15.0 for</span>
-<span class="sd">        small animal brains you may need to use something smaller such</span>
-<span class="sd">        as 2.0. The distance is in mm. For this parameter to be active</span>
-<span class="sd">        ``cluster`` should be enabled.</span>
+<span class="sd">        Final distance threshold, in mm, used by ``qbx_and_merge`` when</span>
+<span class="sd">        clustering is enabled; small-animal data may need a smaller value</span>
+<span class="sd">        such as 2.0.</span>
 <span class="sd">    cluster_size_thr : int, optional</span>
-<span class="sd">        Clusters with size less than ``cluster_size_thr`` will be hidden.</span>
-<span class="sd">        If None, it will show all cluster above the 50th percentile of the cluster</span>
-<span class="sd">        size distribution.</span>
+<span class="sd">        Clusters with size less than ``cluster_size_thr`` are hidden. If</span>
+<span class="sd">        None, the 50th percentile of the cluster size distribution is</span>
+<span class="sd">        used.</span>
 <span class="sd">    cluster_length_thr : float, optional</span>
-<span class="sd">        Clusters with average length less than ``cluster_length_thr`` in mm will be</span>
-<span class="sd">        hidden. If None, it will show all cluster above the 25th percentile of the</span>
-<span class="sd">        cluster length distribution.</span>
+<span class="sd">        Clusters with average length less than ``cluster_length_thr`` mm</span>
+<span class="sd">        are hidden. If None, the 25th percentile of the cluster length</span>
+<span class="sd">        distribution is used.</span>
+<span class="sd">    buan_pvals : str, optional</span>
+<span class="sd">        File path for BUAN p-values used for BUAN-based coloring of</span>
+<span class="sd">        tractograms.</span>
 <span class="sd">    rgb : bool or None, optional</span>
 <span class="sd">        ``None``: auto-detect from structured NIfTI ``DT_RGB24``</span>
 <span class="sd">        dtype; show toggle for other 4D volumes with 3 or 4 channels.</span>
 <span class="sd">        ``True``: force RGB mode.  ``False``: never treat as RGB.</span>
-<span class="sd">    buan_pvals : str, optional</span>
-<span class="sd">        File path for BUAN p-values to be used for BUAN-based coloring of tractograms.</span>
-<span class="sd">    initial_filenames : list, optional</span>
-<span class="sd">        List of file paths to be loaded into the Skyline viewer on startup.</span>
-<span class="sd">    initial_rois : list, optional</span>
-<span class="sd">        List of file paths for ROIs to be loaded into the Skyline viewer on startup.</span>
-<span class="sd">    initial_shm_coeffs : list, optional</span>
-<span class="sd">        List of file paths for spherical harmonics coefficients to be loaded into the</span>
-<span class="sd">        Skyline viewer on startup.</span>
+<span class="sd">    initial_filenames : list of str, optional</span>
+<span class="sd">        File paths loaded asynchronously into the viewer on startup. If</span>
+<span class="sd">        neither preloaded data nor initial files are given and a UI</span>
+<span class="sd">        exists, the file dialog opens on start.</span>
+<span class="sd">    initial_rois : list of str, optional</span>
+<span class="sd">        ROI file paths loaded asynchronously into the viewer on startup.</span>
+<span class="sd">    initial_shm_coeffs : list of str, optional</span>
+<span class="sd">        Spherical harmonic coefficient file paths loaded asynchronously</span>
+<span class="sd">        into the viewer on startup.</span>
 <span class="sd">    out_dir : str or Path, optional</span>
-<span class="sd">        Output directory to save the figure if stealth mode is enabled.</span>
+<span class="sd">        Directory for the stealth-mode output image; created if missing.</span>
+<span class="sd">        Used only when ``visualizer_type`` is ``"stealth"``.</span>
 <span class="sd">    out_stealth_png : str, optional</span>
-<span class="sd">        Filename of saved picture if stealth mode is enabled.</span>
+<span class="sd">        Output image name, without extension, used as the stealth window</span>
+<span class="sd">        title. Used only when ``visualizer_type`` is ``"stealth"``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Skyline</span>
-<span class="sd">        Constructed viewer instance (blocking for interactive modes).</span>
+<span class="sd">        The constructed viewer, returned once construction returns from</span>
+<span class="sd">        its blocking ``self.window.start()`` call.</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">Skyline</span><span class="p">(</span>
         <span class="n">visualizer_type</span><span class="o">=</span><span class="n">visualizer_type</span><span class="p">,</span>

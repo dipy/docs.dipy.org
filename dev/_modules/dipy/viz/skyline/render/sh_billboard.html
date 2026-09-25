@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.sh_billboard &#8212; dipy 1.13.0.dev0+git20260923.05df74a documentation</title>
+    <title>dipy.viz.skyline.render.sh_billboard &#8212; dipy 1.13.0.dev0+git20260925.1a1e2d6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=6a745070"></script>
+    <script src="../../../../../_static/documentation_options.js?v=1a9404ab"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -968,7 +968,7 @@ document.write(`
         <span class="n">max_size</span> <span class="o">=</span> <span class="n">limits</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"max-storage-buffer-binding-size"</span><span class="p">,</span> <span class="mi">128</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
         <span class="n">_gpu_cache</span><span class="p">[</span><span class="s2">"max_buffer_size"</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_size</span>
         <span class="k">return</span> <span class="n">max_size</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001</span>
         <span class="n">default</span> <span class="o">=</span> <span class="mi">128</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
         <span class="n">_gpu_cache</span><span class="p">[</span><span class="s2">"max_buffer_size"</span><span class="p">]</span> <span class="o">=</span> <span class="n">default</span>
         <span class="k">return</span> <span class="n">default</span>
@@ -1046,9 +1046,30 @@ document.write(`
 <div class="viewcode-block" id="SlicedSphGlyphMaterial">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.SlicedSphGlyphMaterial">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SlicedSphGlyphMaterial</span><span class="p">(</span><span class="n">SphGlyphMaterial</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Material with world-space slice positions and integer visibility flags."""</span>
+<span class="w">    </span><span class="sd">"""SH glyph material with world-space slice positions and visibility flags.</span>
 
-    <span class="n">uniform_type</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    active_slice_x : float, optional</span>
+<span class="sd">        World-space X coordinate of the visible slice plane; a negative</span>
+<span class="sd">        value disables X-axis slicing.</span>
+<span class="sd">    active_slice_y : float, optional</span>
+<span class="sd">        World-space Y coordinate of the visible slice plane; a negative</span>
+<span class="sd">        value disables Y-axis slicing.</span>
+<span class="sd">    active_slice_z : float, optional</span>
+<span class="sd">        World-space Z coordinate of the visible slice plane; a negative</span>
+<span class="sd">        value disables Z-axis slicing.</span>
+<span class="sd">    vis_x : int, optional</span>
+<span class="sd">        Nonzero to enable X-axis slice visibility, zero to hide it.</span>
+<span class="sd">    vis_y : int, optional</span>
+<span class="sd">        Nonzero to enable Y-axis slice visibility, zero to hide it.</span>
+<span class="sd">    vis_z : int, optional</span>
+<span class="sd">        Nonzero to enable Z-axis slice visibility, zero to hide it.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Forwarded to :class:`fury.material.SphGlyphMaterial`.</span>
+<span class="sd">    """</span>
+
+    <span class="n">uniform_type</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>  <span class="c1"># noqa: RUF012</span>
         <span class="n">SphGlyphMaterial</span><span class="o">.</span><span class="n">uniform_type</span><span class="p">,</span>
         <span class="n">active_slice_x</span><span class="o">=</span><span class="s2">"f4"</span><span class="p">,</span>
         <span class="n">active_slice_y</span><span class="o">=</span><span class="s2">"f4"</span><span class="p">,</span>
@@ -1069,6 +1090,28 @@ document.write(`
         <span class="n">vis_z</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize the sliced SH glyph material.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        active_slice_x : float, optional</span>
+<span class="sd">            World-space X coordinate of the visible slice plane; a negative</span>
+<span class="sd">            value disables X-axis slicing.</span>
+<span class="sd">        active_slice_y : float, optional</span>
+<span class="sd">            World-space Y coordinate of the visible slice plane; a negative</span>
+<span class="sd">            value disables Y-axis slicing.</span>
+<span class="sd">        active_slice_z : float, optional</span>
+<span class="sd">            World-space Z coordinate of the visible slice plane; a negative</span>
+<span class="sd">            value disables Z-axis slicing.</span>
+<span class="sd">        vis_x : int, optional</span>
+<span class="sd">            Nonzero to enable X-axis slice visibility, zero to hide it.</span>
+<span class="sd">        vis_y : int, optional</span>
+<span class="sd">            Nonzero to enable Y-axis slice visibility, zero to hide it.</span>
+<span class="sd">        vis_z : int, optional</span>
+<span class="sd">            Nonzero to enable Z-axis slice visibility, zero to hide it.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Forwarded to :class:`fury.material.SphGlyphMaterial`.</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_slice_x</span> <span class="o">=</span> <span class="n">active_slice_x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_slice_y</span> <span class="o">=</span> <span class="n">active_slice_y</span>
@@ -1080,6 +1123,23 @@ document.write(`
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_make_uniform_property</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">cast</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Build a property that reads and writes one GPU uniform buffer field.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Field name in the material's ``uniform_buffer``.</span>
+<span class="sd">    cast : callable</span>
+<span class="sd">        Applied to values on both read and write (e.g. ``float``, ``int``).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    property</span>
+<span class="sd">        Descriptor whose getter casts and returns the buffer field, and</span>
+<span class="sd">        whose setter casts the value, writes it back, and marks the</span>
+<span class="sd">        uniform buffer fully dirty via ``update_full``.</span>
+<span class="sd">    """</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">getter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uniform_buffer</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
 
@@ -1112,12 +1172,31 @@ document.write(`
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">l_max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""int: Maximum SH order currently shaded (-1 if never set)."""</span>
+<span class="w">        </span><span class="sd">"""Maximum SH order currently shaded.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Current SH truncation order, or -1 if never set.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_l_max"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="nd">@l_max</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">l_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Truncate shading to ``value``; raises if it exceeds the coefficients."""</span>
+<span class="w">        </span><span class="sd">"""Truncate shading to the given SH order.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        value : int</span>
+<span class="sd">            New SH truncation order; must be a non-negative integer that</span>
+<span class="sd">            does not exceed the order supported by the current coefficients.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``value`` is not a non-negative integer, or exceeds the SH</span>
+<span class="sd">            order supported by the number of coefficients on this billboard.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The attribute 'l_max' must be a non-negative integer."</span><span class="p">)</span>
         <span class="n">max_supported</span> <span class="o">=</span> <span class="n">get_lmax</span><span class="p">(</span>
@@ -1138,7 +1217,7 @@ document.write(`
 <div class="viewcode-block" id="BillboardSphGlyphShader">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BillboardSphGlyphShader</span><span class="p">(</span><span class="n">MeshShader</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""pygfx shader: template variables and bindings for the ODF billboard pipeline.</span>
+<span class="w">    </span><span class="sd">"""Pygfx shader: template variables and bindings for the ODF billboard pipeline.</span>
 
 <span class="sd">    Reads flags/dimensions off ``wobject`` (the :class:`SphGlyphBillboard`</span>
 <span class="sd">    actor) at construction time and exposes them as WGSL template variables</span>
@@ -1152,6 +1231,13 @@ document.write(`
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wobject</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize the shader from the billboard's current state.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wobject : SphGlyphBillboard</span>
+<span class="sd">            Billboard object rendered by this shader.</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">wobject</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_wobject</span> <span class="o">=</span> <span class="n">wobject</span>
         <span class="bp">self</span><span class="p">[</span><span class="s2">"billboard_count"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">wobject</span><span class="p">,</span> <span class="s2">"billboard_count"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -1176,11 +1262,18 @@ document.write(`
 <div class="viewcode-block" id="BillboardSphGlyphShader.get_render_info">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_render_info">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_render_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wobject</span><span class="p">,</span> <span class="n">shared</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Instance/vertex counts pygfx needs to issue the draw call.</span>
+<span class="w">        </span><span class="sd">"""Compute the instance/vertex counts pygfx needs to issue the draw call.</span>
 
 <span class="sd">        Falls back to computing them from the geometry's vertex buffer</span>
 <span class="sd">        when the base ``MeshShader`` doesn't already provide indices</span>
 <span class="sd">        (e.g. before the geometry has been fully wired up).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wobject : SphGlyphBillboard</span>
+<span class="sd">            Billboard object being rendered.</span>
+<span class="sd">        shared : fury.lib.Shared</span>
+<span class="sd">            Pygfx object holding the shared device and pipeline caches.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1211,6 +1304,16 @@ document.write(`
 <span class="sd">        out with a shared dummy ``vec4&lt;f32&gt;`` buffer when ``wobject``</span>
 <span class="sd">        has fewer chunks than that (or hasn't baked a LUT at all), since</span>
 <span class="sd">        WGSL bindings must all be declared even when unused.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wobject : SphGlyphBillboard</span>
+<span class="sd">            Billboard object being rendered.</span>
+<span class="sd">        shared : fury.lib.Shared</span>
+<span class="sd">            Pygfx object holding the shared device and pipeline caches.</span>
+<span class="sd">        scene : fury.lib.Scene or None, optional</span>
+<span class="sd">            Scene the billboard belongs to; forwarded to the base</span>
+<span class="sd">            ``MeshShader`` implementation when it accepts it.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1276,7 +1379,14 @@ document.write(`
 <div class="viewcode-block" id="BillboardSphGlyphShader.get_code">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_billboard.BillboardSphGlyphShader.get_code">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return the (still-templated) WGSL source for this shader."""</span>
+<span class="w">        </span><span class="sd">"""Return the (still-templated) WGSL source for this shader.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            WGSL source of ``sh_billboard.wgsl``, with template variables</span>
+<span class="sd">            such as ``{{ n_coeffs }}`` not yet substituted.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">load_dipy_wgsl</span><span class="p">(</span><span class="s2">"sh_billboard.wgsl"</span><span class="p">)</span></div>
 </div>
 
@@ -1298,6 +1408,31 @@ document.write(`
 <span class="sd">    single value, repeats each glyph's data across its 6 quad vertices,</span>
 <span class="sd">    and stores ``billboard_count``/``billboard_centers``/``billboard_sizes``</span>
 <span class="sd">    on the returned actor for later use (LUT baking, picking, resizing).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    centers : ndarray (N, 3) or (3,)</span>
+<span class="sd">        World-space glyph centers.</span>
+<span class="sd">    colors : ndarray (N, 3) or (3,)</span>
+<span class="sd">        Per-glyph RGB color, broadcast to every glyph when a single color.</span>
+<span class="sd">    sizes : ndarray or scalar</span>
+<span class="sd">        Per-glyph 2D quad half-extents; a scalar or a length-2/length-N</span>
+<span class="sd">        array is broadcast to shape ``(N, 2)``.</span>
+<span class="sd">    opacity : float or None</span>
+<span class="sd">        Scalar opacity forwarded to :func:`fury.material.validate_opacity`.</span>
+<span class="sd">    enable_picking : bool</span>
+<span class="sd">        Whether the material is created with picking writes enabled.</span>
+<span class="sd">    material_cls : type</span>
+<span class="sd">        Fury material class used to construct the billboard's material.</span>
+<span class="sd">    material_kwargs : dict or None, optional</span>
+<span class="sd">        Extra keyword arguments forwarded to ``material_cls``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    SphGlyphBillboard</span>
+<span class="sd">        Billboard actor with geometry, material, and billboard bookkeeping</span>
+<span class="sd">        attributes (``billboard_count``, ``billboard_centers``,</span>
+<span class="sd">        ``billboard_sizes``) set.</span>
 <span class="sd">    """</span>
     <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">centers</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1364,6 +1499,27 @@ document.write(`
 <span class="sd">    finite-difference of the raw values to get (value, du, dv, d2uv),</span>
 <span class="sd">    and writes the result into ``actor``'s already-allocated Hermite LUT</span>
 <span class="sd">    chunk buffers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actor : SphGlyphBillboard</span>
+<span class="sd">        Billboard with populated ``sh_coeffs`` and allocated</span>
+<span class="sd">        ``_sh_hermite_lut_buffers``.</span>
+<span class="sd">    lut_res : int</span>
+<span class="sd">        Cube-map resolution per face edge.</span>
+<span class="sd">    glyph_count : int</span>
+<span class="sd">        Total number of glyphs baked across all chunks.</span>
+<span class="sd">    n_coeffs : int</span>
+<span class="sd">        Number of SH coefficients per glyph.</span>
+<span class="sd">    chunk_info : dict</span>
+<span class="sd">        Chunking plan from :func:`_calculate_lut_chunking`.</span>
+<span class="sd">    use_float16 : bool, optional</span>
+<span class="sd">        Store the baked LUT values with reduced precision when True.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        Always True, indicating the bake completed.</span>
 <span class="sd">    """</span>
     <span class="n">N</span> <span class="o">=</span> <span class="n">lut_res</span>
     <span class="n">g</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1471,6 +1627,27 @@ document.write(`
 <span class="sd">    (value, du, dv, d²uv) into the output hermite LUT buffer.</span>
 
 <span class="sd">    Runs imperatively via ``wgpu`` — no pygfx render-function needed.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actor : SphGlyphBillboard</span>
+<span class="sd">        Billboard with populated ``sh_coeffs`` and allocated</span>
+<span class="sd">        ``_sh_hermite_lut_buffers``.</span>
+<span class="sd">    lut_res : int</span>
+<span class="sd">        Cube-map resolution per face edge.</span>
+<span class="sd">    glyph_count : int</span>
+<span class="sd">        Total number of glyphs baked across all chunks.</span>
+<span class="sd">    n_coeffs : int</span>
+<span class="sd">        Number of SH coefficients per glyph.</span>
+<span class="sd">    chunk_info : dict</span>
+<span class="sd">        Chunking plan from :func:`_calculate_lut_chunking`.</span>
+<span class="sd">    use_float16 : bool, optional</span>
+<span class="sd">        Store the baked LUT values with reduced precision when True.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        Always True, indicating the bake completed.</span>
 <span class="sd">    """</span>
 
     <span class="n">N</span> <span class="o">=</span> <span class="n">lut_res</span>
@@ -1657,9 +1834,9 @@ document.write(`
         <span class="c1"># wg_y = ceil(total_wg / 65535), wg_x = min(total_wg, 65535)</span>
         <span class="n">wg_size</span> <span class="o">=</span> <span class="mi">256</span>
         <span class="n">total_p1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_glyphs</span><span class="p">)</span> <span class="o">*</span> <span class="n">items_per_glyph_p1</span>
-        <span class="n">p1_total_wg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ceil</span><span class="p">(</span><span class="n">total_p1</span> <span class="o">/</span> <span class="n">wg_size</span><span class="p">))</span>
+        <span class="n">p1_total_wg</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">total_p1</span> <span class="o">/</span> <span class="n">wg_size</span><span class="p">)</span>
         <span class="n">p1_x</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">p1_total_wg</span><span class="p">,</span> <span class="mi">65535</span><span class="p">)</span>
-        <span class="n">p1_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ceil</span><span class="p">(</span><span class="n">p1_total_wg</span> <span class="o">/</span> <span class="mi">65535</span><span class="p">))</span>
+        <span class="n">p1_y</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">p1_total_wg</span> <span class="o">/</span> <span class="mi">65535</span><span class="p">)</span>
 
         <span class="n">encoder</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">create_command_encoder</span><span class="p">()</span>
         <span class="n">cpass</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">begin_compute_pass</span><span class="p">()</span>
@@ -1670,9 +1847,9 @@ document.write(`
 
         <span class="c1"># --- dispatch pass 2 (finite-difference hermite) ---</span>
         <span class="n">total_p2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_glyphs</span><span class="p">)</span> <span class="o">*</span> <span class="n">items_per_glyph_p2</span>
-        <span class="n">p2_total_wg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ceil</span><span class="p">(</span><span class="n">total_p2</span> <span class="o">/</span> <span class="n">wg_size</span><span class="p">))</span>
+        <span class="n">p2_total_wg</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">total_p2</span> <span class="o">/</span> <span class="n">wg_size</span><span class="p">)</span>
         <span class="n">p2_x</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">p2_total_wg</span><span class="p">,</span> <span class="mi">65535</span><span class="p">)</span>
-        <span class="n">p2_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ceil</span><span class="p">(</span><span class="n">p2_total_wg</span> <span class="o">/</span> <span class="mi">65535</span><span class="p">))</span>
+        <span class="n">p2_y</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">p2_total_wg</span> <span class="o">/</span> <span class="mi">65535</span><span class="p">)</span>
 
         <span class="n">cpass2</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">begin_compute_pass</span><span class="p">()</span>
         <span class="n">cpass2</span><span class="o">.</span><span class="n">set_pipeline</span><span class="p">(</span><span class="n">pass2_pipeline</span><span class="p">)</span>
@@ -1764,7 +1941,7 @@ document.write(`
             <span class="n">chunk_info</span><span class="p">,</span>
             <span class="n">use_float16</span><span class="o">=</span><span class="n">use_float16</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># noqa: BLE001</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"GPU LUT bake failed, falling back to CPU: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
         <span class="n">success</span> <span class="o">=</span> <span class="n">_populate_hermite_lut_cube_cpu_chunked</span><span class="p">(</span>
             <span class="n">actor</span><span class="p">,</span>
@@ -1903,7 +2080,18 @@ document.write(`
 
 <span class="nd">@register_wgpu_render_function</span><span class="p">(</span><span class="n">SphGlyphBillboard</span><span class="p">,</span> <span class="n">SlicedSphGlyphMaterial</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_register_sliced_sph_glyph_render</span><span class="p">(</span><span class="n">wobject</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Return the shader pair used for sliced SH billboards."""</span>
+<span class="w">    </span><span class="sd">"""Return the shader used for sliced SH billboard rendering.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wobject : SphGlyphBillboard</span>
+<span class="sd">        Billboard object pygfx is about to render.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of BillboardSphGlyphShader</span>
+<span class="sd">        Single-element tuple containing the shader instance to use.</span>
+<span class="sd">    """</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="n">BillboardSphGlyphShader</span><span class="p">(</span><span class="n">wobject</span><span class="p">),)</span>
 

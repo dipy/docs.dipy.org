@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.renderer &#8212; dipy 1.13.0.dev0+git20260923.05df74a documentation</title>
+    <title>dipy.viz.skyline.render.renderer &#8212; dipy 1.13.0.dev0+git20260925.1a1e2d6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=6a745070"></script>
+    <script src="../../../../../_static/documentation_options.js?v=1a9404ab"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1091,7 +1091,7 @@ document.write(`
 <div class="viewcode-block" id="Visualization">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.renderer.Visualization">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Visualization</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Represent ``Visualization`` in Skyline.</span>
+<span class="w">    </span><span class="sd">"""Base class for a single visualization layer in the Skyline sidebar.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1102,7 +1102,7 @@ document.write(`
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">render_callback</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Represent ``Visualization`` in Skyline.</span>
+<span class="w">        </span><span class="sd">"""Initialize the visualization layer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1135,7 +1135,18 @@ document.write(`
 <div class="viewcode-block" id="Visualization.apply_scene_op">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.renderer.Visualization.apply_scene_op">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Run ``func`` immediately or defer it via :attr:`_scene_op_callback`."""</span>
+<span class="w">        </span><span class="sd">"""Run ``func`` immediately or defer it via :attr:`_scene_op_callback`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        func : callable</span>
+<span class="sd">            Scene-mutating callable to run, either directly or through the</span>
+<span class="sd">            deferral callback.</span>
+<span class="sd">        *args</span>
+<span class="sd">            Positional arguments forwarded to ``func``.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword arguments forwarded to ``func``.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene_op_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_scene_op_callback</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">return</span>
@@ -1143,7 +1154,7 @@ document.write(`
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_actor_visible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visible</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  set actor visible for ``Visualization``.</span>
+<span class="w">        </span><span class="sd">"""Show or hide the actor by setting its ``visible`` attribute.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1154,18 +1165,31 @@ document.write(`
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle actor for ``Visualization``.</span>
+<span class="w">        </span><span class="sd">"""The FURY actor rendered for this visualization.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        object</span>
+<span class="sd">            The visualization's underlying FURY actor object.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
-<span class="sd">            if the method is not implemented in the subclass.</span>
+<span class="sd">            If the method is not implemented in the subclass.</span>
 <span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Subclasses must implement the actor property."</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">viz_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Return the visualization type identifier string."""</span>
+<span class="w">        </span><span class="sd">"""The visualization type identifier derived from the subclass name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str or None</span>
+<span class="sd">            One of ``"image"``, ``"surface"``, ``"peak"``, ``"roi"``,</span>
+<span class="sd">            ``"tractography"``, or ``"sh_glyph"`` depending on the concrete</span>
+<span class="sd">            subclass, or None if the subclass name is not recognized.</span>
+<span class="sd">        """</span>
         <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"Image3D"</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">"image"</span>
@@ -1256,7 +1280,7 @@ document.write(`
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
-<span class="sd">            if the method is not implemented in the subclass.</span>
+<span class="sd">            If the method is not implemented in the subclass.</span>
 <span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
             <span class="s2">"Subclasses must implement the render_widgets method."</span>
@@ -1264,13 +1288,13 @@ document.write(`
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_populate_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Handle  populate info for ``Visualization``.</span>
-<span class="sd">        None</span>
+<span class="w">        </span><span class="sd">"""Build the info string shown in the sidebar for this visualization.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        object</span>
-<span class="sd">            Returned value.</span>
+<span class="sd">        str</span>
+<span class="sd">            The visualization's display name; subclasses override this to</span>
+<span class="sd">            include additional details such as affine and voxel information.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
 
@@ -1292,14 +1316,15 @@ document.write(`
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    visualizer_type : str, optional</span>
-<span class="sd">        Type of visualizer to create. The options are:</span>
-<span class="sd">        - "standalone": A standalone window with full interactivity.</span>
-<span class="sd">        - "gui": A Qt-based GUI window.</span>
-<span class="sd">        - "jupyter": An inline Jupyter notebook visualizer.</span>
-<span class="sd">        - "stealth": An offscreen visualizer without GUI.</span>
-<span class="sd">    size : tuple, optional</span>
-<span class="sd">        Size of the window</span>
+<span class="sd">    visualizer_type : {"standalone", "gui", "jupyter", "stealth"}, optional</span>
+<span class="sd">        Type of visualizer to create:</span>
+
+<span class="sd">        - "standalone": a standalone window with full interactivity.</span>
+<span class="sd">        - "gui": a Qt-based GUI window.</span>
+<span class="sd">        - "jupyter": an inline Jupyter notebook visualizer.</span>
+<span class="sd">        - "stealth": an offscreen visualizer without GUI.</span>
+<span class="sd">    size : tuple of int, optional</span>
+<span class="sd">        Window size in pixels as ``(width, height)``.</span>
 <span class="sd">    screen_config : list, optional</span>
 <span class="sd">        Defines the screen layout. Can be a list of integers (vertical/horizontal</span>
 <span class="sd">        sections) or a list of explicit bounding box tuples (x, y, w, h).</span>
@@ -1311,6 +1336,12 @@ document.write(`
 <span class="sd">    ShowManager</span>
 <span class="sd">        An instance of FURY's ShowManager configured according to the</span>
 <span class="sd">        specified visualizer type.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    If ``visualizer_type`` is not one of the recognized values, the error is</span>
+<span class="sd">    logged and the process exits via ``sys.exit(1)`` instead of raising a</span>
+<span class="sd">    Python exception.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">visualizer_type</span> <span class="o">==</span> <span class="s2">"standalone"</span><span class="p">:</span>
         <span class="n">window_type</span> <span class="o">=</span> <span class="s2">"default"</span>

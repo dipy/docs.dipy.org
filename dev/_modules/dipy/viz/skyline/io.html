@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.io &#8212; dipy 1.13.0.dev0+git20260923.05df74a documentation</title>
+    <title>dipy.viz.skyline.io &#8212; dipy 1.13.0.dev0+git20260925.1a1e2d6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=6a745070"></script>
+    <script src="../../../../_static/documentation_options.js?v=1a9404ab"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -941,22 +941,39 @@ document.write(`
 <div class="viewcode-block" id="load_files">
 <a class="viewcode-back" href="../../../../reference/dipy.viz.html#dipy.viz.skyline.io.load_files">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_files</span><span class="p">(</span><span class="n">fnames</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Load the provided list of files.</span>
+<span class="w">    </span><span class="sd">"""Load images, peaks, surfaces, and tractograms from ``fnames``.</span>
+
+<span class="sd">    Dispatches each path by extension to the matching DIPY loader and</span>
+<span class="sd">    collects the results into per-type lists. Extensions not recognized in</span>
+<span class="sd">    ``fnames`` are logged and skipped; ``.npy`` entries are recognized but</span>
+<span class="sd">    ignored (reserved for BUAN p-value files, not loaded here).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    fnames : list of str</span>
-<span class="sd">        Path of the file.</span>
+<span class="sd">    fnames : list of str or None</span>
+<span class="sd">        Paths to load. Supported extensions: images use ``.nii`` or</span>
+<span class="sd">        ``.nii.gz``; peaks use ``.pam5``; surfaces use ``.pial``, ``.gii``,</span>
+<span class="sd">        or ``.gii.gz``; tractograms use ``.trk``, ``.trx``, ``.dpy``,</span>
+<span class="sd">        ``.tck``, ``.vtk``, ``.vtp``, or ``.fib``.</span>
 <span class="sd">    rois : list of str, optional</span>
-<span class="sd">        Paths of the ROIs.</span>
+<span class="sd">        Paths to ROI images (``.nii`` or ``.nii.gz``); other extensions</span>
+<span class="sd">        are logged and skipped.</span>
 <span class="sd">    shm_coeffs : list of str, optional</span>
-<span class="sd">        Paths of the SH coefficients files.</span>
+<span class="sd">        Paths to spherical-harmonic coefficient files (``.pam5``); other</span>
+<span class="sd">        extensions are silently skipped.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
-<span class="sd">        Dictionary containing the loaded images, peaks, ROIs, surfaces,</span>
-<span class="sd">        tractograms, and spherical-harmonic coefficient data.</span>
+<span class="sd">        Dictionary with keys ``"images"``, ``"peaks"``, ``"rois"``,</span>
+<span class="sd">        ``"surfaces"``, ``"tractograms"``, ``"shm_coeffs"``, each a list</span>
+<span class="sd">        of tuples for the matching ``create_*_visualization`` function:</span>
+
+<span class="sd">        - images, rois : ``(data, affine, fname)``</span>
+<span class="sd">        - peaks : ``(pam, fname)``</span>
+<span class="sd">        - surfaces : ``(vertices, faces, fname)``</span>
+<span class="sd">        - tractograms : ``(sft, fname)``</span>
+<span class="sd">        - shm_coeffs : ``(coeffs, affine, fname, "descoteaux")``</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">fnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fnames</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1062,13 +1079,13 @@ document.write(`
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    np.ndarray</span>
-<span class="sd">        The loaded numpy array.</span>
+<span class="sd">    ndarray or None</span>
+<span class="sd">        The loaded array, or None if the file could not be loaded.</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error loading numpy file '</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 

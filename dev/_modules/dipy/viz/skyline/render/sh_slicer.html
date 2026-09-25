@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.sh_slicer &#8212; dipy 1.13.0.dev0+git20260923.05df74a documentation</title>
+    <title>dipy.viz.skyline.render.sh_slicer &#8212; dipy 1.13.0.dev0+git20260925.1a1e2d6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=6a745070"></script>
+    <script src="../../../../../_static/documentation_options.js?v=1a9404ab"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -887,9 +887,10 @@ document.write(`
 
 <span class="sd">Builds a GPU-accelerated 3-D visualization of orientation distribution</span>
 <span class="sd">functions (ODFs) from a 4-D array of spherical-harmonic coefficients and a</span>
-<span class="sd">voxel-to-world affine.  ``create_shm_visualization`` unpacks the input</span>
-<span class="sd">tuple into a :class:`SHGlyph3D`, which owns a :class:`SHSlicer` that builds</span>
-<span class="sd">the billboard actor (:func:`~dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced`)</span>
+<span class="sd">voxel-to-world affine.  ``create_shm_visualization`` unpacks the input tuple</span>
+<span class="sd">into a :class:`SHGlyph3D`, which owns a :class:`SHSlicer` that builds the</span>
+<span class="sd">billboard actor via</span>
+<span class="sd">:func:`~dipy.viz.skyline.render.sh_billboard.sph_glyph_billboard_sliced`</span>
 <span class="sd">and drives its per-axis slice uniforms.  See individual class/method</span>
 <span class="sd">docstrings for coordinate-space and slicing details.</span>
 <span class="sd">"""</span>
@@ -955,9 +956,13 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    input : tuple</span>
 <span class="sd">        Tuple of one of the following forms:</span>
-<span class="sd">        - (coeffs, affine, filename, basis_type)</span>
-<span class="sd">        - (coeffs, affine, filename)</span>
-<span class="sd">        - (coeffs, affine)</span>
+
+<span class="sd">        - ``(coeffs, affine, filename, basis_type)``</span>
+<span class="sd">        - ``(coeffs, affine, filename)``</span>
+<span class="sd">        - ``(coeffs, affine)``</span>
+
+<span class="sd">        A ``basis_type`` present as the 4th tuple element overrides the</span>
+<span class="sd">        ``basis_type`` keyword argument.</span>
 <span class="sd">    idx : int</span>
 <span class="sd">        Index used for naming when filename is not provided.</span>
 <span class="sd">    render_callback : callable, optional</span>
@@ -971,7 +976,7 @@ document.write(`
 <span class="sd">    basis_type : str, optional</span>
 <span class="sd">        SH basis convention. Ignored if provided in ``input`` as 4th element.</span>
 <span class="sd">    color_type : str, optional</span>
-<span class="sd">        Colour mapping type.</span>
+<span class="sd">        Color mapping type.</span>
 <span class="sd">    mask : ndarray, optional</span>
 <span class="sd">        Boolean mask of valid voxels.</span>
 <span class="sd">    sync_callback : callable, optional</span>
@@ -1098,6 +1103,30 @@ document.write(`
         <span class="n">basis_type</span><span class="o">=</span><span class="s2">"standard"</span><span class="p">,</span>
         <span class="n">color_type</span><span class="o">=</span><span class="s2">"orientation"</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize the billboard actor driver.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coeffs_4d : ndarray, shape (X, Y, Z, C)</span>
+<span class="sd">            SH coefficients per voxel.  Converted from ``descoteaux07`` to</span>
+<span class="sd">            Fury's standard basis on construction if needed.</span>
+<span class="sd">        scale : float, optional</span>
+<span class="sd">            Uniform billboard size multiplier relative to estimated SH radii.</span>
+<span class="sd">        l_max : int, optional</span>
+<span class="sd">            Maximum SH order to shade.  For ``descoteaux``/``descoteaux07``</span>
+<span class="sd">            input, capped to the order implied by ``coeffs_4d``'s last axis</span>
+<span class="sd">            when that is lower; for ``standard`` input it must not exceed</span>
+<span class="sd">            that order (raises ``ValueError`` downstream otherwise).</span>
+<span class="sd">        lut_res : int, optional</span>
+<span class="sd">            Cube-map Hermite LUT resolution per face edge.</span>
+<span class="sd">        mask : ndarray of bool, shape (X, Y, Z), optional</span>
+<span class="sd">            When given, voxels outside the mask are excluded even if their</span>
+<span class="sd">            coefficients are non-zero.</span>
+<span class="sd">        basis_type : {"standard", "descoteaux", "descoteaux07"}, optional</span>
+<span class="sd">            SH basis convention of ``coeffs_4d``.</span>
+<span class="sd">        color_type : {"orientation", "sign"}, optional</span>
+<span class="sd">            Glyph coloring: direction-mapped hue, or a two-color sign split.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">basis_type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"descoteaux"</span><span class="p">,</span> <span class="s2">"descoteaux07"</span><span class="p">):</span>
             <span class="n">data_sh_order</span> <span class="o">=</span> <span class="n">calculate_max_order</span><span class="p">(</span><span class="n">coeffs_4d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
             <span class="n">l_max</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">l_max</span><span class="p">,</span> <span class="n">data_sh_order</span><span class="p">)</span>
@@ -1213,7 +1242,13 @@ document.write(`
 <div class="viewcode-block" id="SHSlicer.hide_axis">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_slicer.SHSlicer.hide_axis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">hide_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Hide all slices for *axis*."""</span>
+<span class="w">        </span><span class="sd">"""Hide all slices for *axis*.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        axis : {"x", "y", "z"}</span>
+<span class="sd">            Which axis's slice-visibility uniform to clear.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glyph_actor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_glyph_actor</span><span class="o">.</span><span class="n">material</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"vis_</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cur</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span></div>
@@ -1222,7 +1257,13 @@ document.write(`
 <div class="viewcode-block" id="SHSlicer.show_axis">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_slicer.SHSlicer.show_axis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Enable axis visibility."""</span>
+<span class="w">        </span><span class="sd">"""Enable axis visibility.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        axis : {"x", "y", "z"}</span>
+<span class="sd">            Which axis's slice-visibility uniform to set.</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glyph_actor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_glyph_actor</span><span class="o">.</span><span class="n">material</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"vis_</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 
@@ -1230,7 +1271,13 @@ document.write(`
 <div class="viewcode-block" id="SHSlicer.set_scale">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_slicer.SHSlicer.set_scale">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_scale</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Update scale on the actor."""</span>
+<span class="w">        </span><span class="sd">"""Update scale on the actor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        new_scale : float</span>
+<span class="sd">            New uniform billboard size multiplier.</span>
+<span class="sd">        """</span>
         <span class="n">ratio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">new_scale</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ratio</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
             <span class="k">return</span>
@@ -1245,7 +1292,14 @@ document.write(`
 <div class="viewcode-block" id="SHSlicer.set_opacity">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_slicer.SHSlicer.set_opacity">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opacity</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Set opacity."""</span>
+<span class="w">        </span><span class="sd">"""Set opacity.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        opacity : float</span>
+<span class="sd">            Glyph opacity as a fraction, expected in ``[0, 1]``. Below</span>
+<span class="sd">            ``1.0`` the material's ``alpha_mode`` switches to ``"blend"``.</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_opacity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">opacity</span><span class="p">)</span>
         <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glyph_actor</span>
         <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1307,6 +1361,36 @@ document.write(`
         <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">sync_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize the ODF visualization.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Display name used in the Skyline UI.</span>
+<span class="sd">        coeffs : ndarray, shape (X, Y, Z, C)</span>
+<span class="sd">            SH coefficients per voxel.</span>
+<span class="sd">        affine : ndarray, optional</span>
+<span class="sd">            Voxel-to-world affine used to position slices in world</span>
+<span class="sd">            coordinates. When ``None``, ``state``/slice positions are</span>
+<span class="sd">            voxel indices instead.</span>
+<span class="sd">        render_callback : callable, optional</span>
+<span class="sd">            Callback used to request a render/update.</span>
+<span class="sd">        scale : float, optional</span>
+<span class="sd">            Per-glyph scale used only when ``affine`` is ``None``;</span>
+<span class="sd">            otherwise the scale is derived from the affine's voxel sizes.</span>
+<span class="sd">        l_max : int, optional</span>
+<span class="sd">            Maximum SH order to shade.</span>
+<span class="sd">        lut_res : int, optional</span>
+<span class="sd">            Cube-map Hermite LUT resolution per face edge.</span>
+<span class="sd">        basis_type : {"standard", "descoteaux", "descoteaux07"}, optional</span>
+<span class="sd">            SH basis convention of ``coeffs``.</span>
+<span class="sd">        color_type : {"orientation", "sign"}, optional</span>
+<span class="sd">            Glyph coloring: direction-mapped hue, or a two-color sign split.</span>
+<span class="sd">        mask : ndarray of bool, optional</span>
+<span class="sd">            Boolean mask of valid voxels.</span>
+<span class="sd">        sync_callback : callable, optional</span>
+<span class="sd">            Callback used to synchronize state across views.</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">default_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">affine_voxel_sizes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">)))</span>
@@ -1514,7 +1598,7 @@ document.write(`
         <span class="n">render_data</span> <span class="o">=</span> <span class="n">render_group</span><span class="p">(</span><span class="s2">"Slice"</span><span class="p">,</span> <span class="n">slicers</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">changed</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">toggle</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">render_data</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
-                <span class="n">slider_state</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">new</span><span class="p">))</span>
+                <span class="n">slider_state</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">slice_state_from_slider_values</span><span class="p">(</span>
                     <span class="n">slider_state</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">affine</span>
                 <span class="p">)</span>
