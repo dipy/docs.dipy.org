@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.reconst &#8212; dipy 1.13.0.dev0+git20260928.308772f documentation</title>
+    <title>dipy.workflows.reconst &#8212; dipy 1.13.0.dev0+git20260928.ce44b3f documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=3164fe2c"></script>
+    <script src="../../../_static/documentation_options.js?v=a9c4dbda"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -900,7 +900,11 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.ndindex</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndindex</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">HemiSphere</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span><span class="p">,</span> <span class="n">get_sphere</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">peak_directions</span><span class="p">,</span> <span class="n">peaks_from_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">peak_directions</span><span class="p">,</span>
+    <span class="n">peaks_from_model</span><span class="p">,</span>
+    <span class="n">reshape_peaks_for_visualization</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">load_nifti_data</span><span class="p">,</span> <span class="n">save_nifti</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -939,6 +943,7 @@ document.write(`
     <span class="n">multi_shell_fiber_response</span><span class="p">,</span>
     <span class="n">response_from_mask_msmt</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.odffp</span><span class="w"> </span><span class="kn">import</span> <span class="n">OdffpDictionary</span><span class="p">,</span> <span class="n">OdffpModel</span><span class="p">,</span> <span class="n">odffp_peaks</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.rumba</span><span class="w"> </span><span class="kn">import</span> <span class="n">RumbaSDModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.sfm</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparseFascicleModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -4912,6 +4917,373 @@ document.write(`
             <span class="p">)</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"FORCE metrics saved to </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ReconstOdffpFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstOdffpFlow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconstOdffpFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<div class="viewcode-block" id="ReconstOdffpFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstOdffpFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"odffp"</span></div>
+
+
+<div class="viewcode-block" id="ReconstOdffpFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.reconst.ReconstOdffpFlow.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_files</span><span class="p">,</span>
+        <span class="n">bvalues_files</span><span class="p">,</span>
+        <span class="n">bvectors_files</span><span class="p">,</span>
+        <span class="n">mask_files</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">b0_threshold</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+        <span class="n">bvecs_tol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">dict_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dict_size</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span>
+        <span class="n">max_peaks_num</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">equal_fibers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">p_iso</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">p_fib</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">f_in</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">d_iso</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">d_a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">d_e</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">d_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_chunk_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="n">assert_faster_d_a</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">tortuosity_approximation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+        <span class="n">sphere_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sampling_length</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+        <span class="n">penalty</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">sh_order_max</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">keep_negative_odf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">zero_baseline_odf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">output_measured_odf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">matching_precision</span><span class="o">=</span><span class="s2">"float32"</span><span class="p">,</span>
+        <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">engine</span><span class="o">=</span><span class="s2">"serial"</span><span class="p">,</span>
+        <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">vox_per_chunk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">normalize_peaks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">extract_pam_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+        <span class="n">out_pam</span><span class="o">=</span><span class="s2">"peaks.pam5"</span><span class="p">,</span>
+        <span class="n">out_dict</span><span class="o">=</span><span class="s2">"odf_dict.npz"</span><span class="p">,</span>
+        <span class="n">out_num_fibers</span><span class="o">=</span><span class="s2">"num_fibers.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_free_water</span><span class="o">=</span><span class="s2">"free_water.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_predicted_signal</span><span class="o">=</span><span class="s2">"predicted_signal.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_shm</span><span class="o">=</span><span class="s2">"shm.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_peaks_dir</span><span class="o">=</span><span class="s2">"peaks_dirs.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_peaks_values</span><span class="o">=</span><span class="s2">"peaks_values.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_peaks_indices</span><span class="o">=</span><span class="s2">"peaks_indices.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_gfa</span><span class="o">=</span><span class="s2">"gfa.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_qa</span><span class="o">=</span><span class="s2">"qa.nii.gz"</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Workflow for ODF-Fingerprinting (ODF-FP) reconstruction.</span>
+
+<span class="sd">        Performs ODF-FP :footcite:p:`Baete2019,Filipiak2022` on the files by</span>
+<span class="sd">        'globing' ``input_files`` and saves the peaks and the microstructure</span>
+<span class="sd">        maps in a directory specified by ``out_dir``.</span>
+
+<span class="sd">        The ODF of every voxel is reconstructed with GQI and matched against a</span>
+<span class="sd">        dictionary of ODF fingerprints simulated from a multi-compartment</span>
+<span class="sd">        model. The dictionary is generated for the gradient table of the input</span>
+<span class="sd">        data, or loaded from ``dict_file`` when it was saved by a previous run</span>
+<span class="sd">        with ``save_dict``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_files : string or Path</span>
+<span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
+<span class="sd">            process multiple inputs at once.</span>
+<span class="sd">        bvalues_files : string or Path</span>
+<span class="sd">            Path to the bvalues files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvalues files at once.</span>
+<span class="sd">        bvectors_files : string or Path</span>
+<span class="sd">            Path to the bvectors files. This path may contain wildcards to use</span>
+<span class="sd">            multiple bvectors files at once.</span>
+<span class="sd">        mask_files : string or Path</span>
+<span class="sd">            Path to the input masks. This path may contain wildcards to use</span>
+<span class="sd">            multiple masks at once.</span>
+<span class="sd">        b0_threshold : float, optional</span>
+<span class="sd">            Threshold used to find b0 volumes.</span>
+<span class="sd">        bvecs_tol : float, optional</span>
+<span class="sd">            Threshold used to check that norm(bvec) = 1 +/- bvecs_tol.</span>
+<span class="sd">        dict_file : string, optional</span>
+<span class="sd">            Path to a dictionary archive (``.npz``) saved by a previous run</span>
+<span class="sd">            with ``save_dict``. If set, the dictionary is loaded instead of</span>
+<span class="sd">            generated. It must have been generated with the same gradient</span>
+<span class="sd">            table and sphere as the current run.</span>
+<span class="sd">        dict_size : int, optional</span>
+<span class="sd">            Number of fingerprints in the generated dictionary.</span>
+<span class="sd">        max_peaks_num : int, optional</span>
+<span class="sd">            Maximum number of fiber compartments in a fingerprint.</span>
+<span class="sd">        equal_fibers : bool, optional</span>
+<span class="sd">            Use identical microstructure parameters for all fibers of a</span>
+<span class="sd">            fingerprint.</span>
+<span class="sd">        p_iso : variable float, optional</span>
+<span class="sd">            Two values ``min max`` for the free-water volume fraction. If not</span>
+<span class="sd">            set, defaults to ``0 1``.</span>
+<span class="sd">        p_fib : variable float, optional</span>
+<span class="sd">            Two values ``min max`` for each fiber-compartment volume fraction.</span>
+<span class="sd">            If not set, defaults to ``0 1``.</span>
+<span class="sd">        f_in : variable float, optional</span>
+<span class="sd">            Two values ``min max`` for the intra-axonal signal fraction. If</span>
+<span class="sd">            not set, defaults to ``0 1``.</span>
+<span class="sd">        d_iso : variable float, optional</span>
+<span class="sd">            Two values ``min max`` (in um^2/ms) for the free-water isotropic</span>
+<span class="sd">            diffusivity. If not set, defaults to ``2 3``.</span>
+<span class="sd">        d_a : variable float, optional</span>
+<span class="sd">            Two values ``min max`` (in um^2/ms) for the intra-axonal</span>
+<span class="sd">            diffusivity. If not set, defaults to ``1.5 2.5``.</span>
+<span class="sd">        d_e : variable float, optional</span>
+<span class="sd">            Two values ``min max`` (in um^2/ms) for the extra-axonal axial</span>
+<span class="sd">            diffusivity. If not set, defaults to ``1.5 2.5``.</span>
+<span class="sd">        d_r : variable float, optional</span>
+<span class="sd">            Two values ``min max`` (in um^2/ms) for the extra-axonal radial</span>
+<span class="sd">            diffusivity. If not set, defaults to ``0.5 1.5``.</span>
+<span class="sd">        max_chunk_size : int, optional</span>
+<span class="sd">            Maximum number of fingerprints simulated at once.</span>
+<span class="sd">        assert_faster_d_a : bool, optional</span>
+<span class="sd">            Reject fingerprints whose intra-axonal diffusivity is smaller than</span>
+<span class="sd">            their extra-axonal axial diffusivity.</span>
+<span class="sd">        tortuosity_approximation : bool, optional</span>
+<span class="sd">            Derive the extra-axonal radial diffusivity from the intra-axonal</span>
+<span class="sd">            fraction and diffusivity with the tortuosity approximation.</span>
+<span class="sd">        seed : int, optional</span>
+<span class="sd">            Random seed used to generate the dictionary. The same seed always</span>
+<span class="sd">            yields the same dictionary.</span>
+<span class="sd">        sphere_name : string, optional</span>
+<span class="sd">            Name of the full symmetric sphere on which the dictionary and the</span>
+<span class="sd">            measured ODFs are sampled. If not set, ``repulsion724`` is used.</span>
+<span class="sd">        sampling_length : float, optional</span>
+<span class="sd">            Sampling length of the GQI model used to reconstruct the ODFs.</span>
+<span class="sd">        penalty : float, optional</span>
+<span class="sd">            Model-complexity penalty applied to fingerprints with more fibers</span>
+<span class="sd">            during matching, in the interval [0, 0.1].</span>
+<span class="sd">        sh_order_max : int, optional</span>
+<span class="sd">            Maximum spherical harmonics order (l) used for alignment,</span>
+<span class="sd">            matching and to store the matched ODFs.</span>
+<span class="sd">        keep_negative_odf : bool, optional</span>
+<span class="sd">            Keep negative ODF samples instead of setting them to zero before</span>
+<span class="sd">            normalization.</span>
+<span class="sd">        zero_baseline_odf : bool, optional</span>
+<span class="sd">            Subtract the minimum of each ODF before normalization.</span>
+<span class="sd">        output_measured_odf : bool, optional</span>
+<span class="sd">            Store the measured (GQI) ODF of each voxel instead of the matched</span>
+<span class="sd">            dictionary ODF.</span>
+<span class="sd">        matching_precision : string, optional</span>
+<span class="sd">            Floating-point precision used for fingerprint matching:</span>
+<span class="sd">            ``float32`` or ``float64``.</span>
+<span class="sd">        num_threads : int, optional</span>
+<span class="sd">            Number of threads used by the matching kernels. If not set, the</span>
+<span class="sd">            default number of OpenMP threads is used.</span>
+<span class="sd">        engine : string, optional</span>
+<span class="sd">            Parallel engine for fitting: "ray" or "serial". If "ray" is</span>
+<span class="sd">            requested but not installed, falls back to "serial" with a warning.</span>
+<span class="sd">        n_jobs : int, optional</span>
+<span class="sd">            Number of processes used by the "ray" engine. Use -1 to use all</span>
+<span class="sd">            available cores.</span>
+<span class="sd">        vox_per_chunk : int, optional</span>
+<span class="sd">            Number of voxels matched per batch. If not set, an engine-specific</span>
+<span class="sd">            default is used.</span>
+<span class="sd">        save_dict : bool, optional</span>
+<span class="sd">            Save the generated dictionary to ``out_dict`` so it can be reused</span>
+<span class="sd">            with ``dict_file``.</span>
+<span class="sd">        normalize_peaks : bool, optional</span>
+<span class="sd">            Divide the peak values of each voxel by its main-peak value. By</span>
+<span class="sd">            default the peak values are the quantitative anisotropy: the ODF</span>
+<span class="sd">            amplitude above its isotropic floor, scaled so that the largest</span>
+<span class="sd">            peak in the volume is 1.</span>
+<span class="sd">        extract_pam_values : bool, optional</span>
+<span class="sd">            Save or not to save pam volumes as single nifti files.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            Whether to print verbose messages during processing.</span>
+<span class="sd">        out_dir : string or Path, optional</span>
+<span class="sd">            Output directory.</span>
+<span class="sd">        out_pam : string, optional</span>
+<span class="sd">            Name of the peaks volume to be saved.</span>
+<span class="sd">        out_dict : string, optional</span>
+<span class="sd">            Name of the dictionary archive to be saved (requires save_dict).</span>
+<span class="sd">        out_num_fibers : string, optional</span>
+<span class="sd">            Name of the number of fibers volume to be saved.</span>
+<span class="sd">        out_free_water : string, optional</span>
+<span class="sd">            Name of the free-water fraction volume to be saved.</span>
+<span class="sd">        out_predicted_signal : string, optional</span>
+<span class="sd">            Name of the predicted signal volume to be saved.</span>
+<span class="sd">        out_shm : string, optional</span>
+<span class="sd">            Name of the spherical harmonics volume to be saved.</span>
+<span class="sd">        out_peaks_dir : string, optional</span>
+<span class="sd">            Name of the peaks directions volume to be saved.</span>
+<span class="sd">        out_peaks_values : string, optional</span>
+<span class="sd">            Name of the peaks values volume to be saved.</span>
+<span class="sd">        out_peaks_indices : string, optional</span>
+<span class="sd">            Name of the peaks indices volume to be saved.</span>
+<span class="sd">        out_gfa : string, optional</span>
+<span class="sd">            Name of the generalized FA volume to be saved.</span>
+<span class="sd">        out_qa : string, optional</span>
+<span class="sd">            Name of the quantitative anisotropy volume to be saved.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_as_interval</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' expects exactly two values (min max); "</span>
+                    <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' min (</span><span class="si">{</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) must not exceed max (</span><span class="si">{</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">)."</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">values</span>
+
+        <span class="c1"># Any interval left unset falls back to the OdffpDictionary default.</span>
+        <span class="n">generate_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"dict_size"</span><span class="p">:</span> <span class="n">dict_size</span><span class="p">,</span>
+            <span class="s2">"max_peaks_num"</span><span class="p">:</span> <span class="n">max_peaks_num</span><span class="p">,</span>
+            <span class="s2">"equal_fibers"</span><span class="p">:</span> <span class="n">equal_fibers</span><span class="p">,</span>
+            <span class="s2">"max_chunk_size"</span><span class="p">:</span> <span class="n">max_chunk_size</span><span class="p">,</span>
+            <span class="s2">"assert_faster_D_a"</span><span class="p">:</span> <span class="n">assert_faster_d_a</span><span class="p">,</span>
+            <span class="s2">"tortuosity_approximation"</span><span class="p">:</span> <span class="n">tortuosity_approximation</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">intervals</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"p_iso"</span><span class="p">:</span> <span class="n">p_iso</span><span class="p">,</span>
+            <span class="s2">"p_fib"</span><span class="p">:</span> <span class="n">p_fib</span><span class="p">,</span>
+            <span class="s2">"f_in"</span><span class="p">:</span> <span class="n">f_in</span><span class="p">,</span>
+            <span class="s2">"D_iso"</span><span class="p">:</span> <span class="n">d_iso</span><span class="p">,</span>
+            <span class="s2">"D_a"</span><span class="p">:</span> <span class="n">d_a</span><span class="p">,</span>
+            <span class="s2">"D_e"</span><span class="p">:</span> <span class="n">d_e</span><span class="p">,</span>
+            <span class="s2">"D_r"</span><span class="p">:</span> <span class="n">d_r</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">intervals</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">generate_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_as_interval</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">"ray"</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">has_ray</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"ray"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">has_ray</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">"Ray is not installed. Falling back to serial engine. "</span>
+                    <span class="s2">"Install ray with: pip install ray"</span>
+                <span class="p">)</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="s2">"serial"</span>
+
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">dwi</span><span class="p">,</span>
+            <span class="n">bval</span><span class="p">,</span>
+            <span class="n">bvec</span><span class="p">,</span>
+            <span class="n">maskfile</span><span class="p">,</span>
+            <span class="n">opam</span><span class="p">,</span>
+            <span class="n">odict</span><span class="p">,</span>
+            <span class="n">onum_fibers</span><span class="p">,</span>
+            <span class="n">ofree_water</span><span class="p">,</span>
+            <span class="n">opredicted_signal</span><span class="p">,</span>
+            <span class="n">oshm</span><span class="p">,</span>
+            <span class="n">opeaks_dir</span><span class="p">,</span>
+            <span class="n">opeaks_values</span><span class="p">,</span>
+            <span class="n">opeaks_indices</span><span class="p">,</span>
+            <span class="n">ogfa</span><span class="p">,</span>
+            <span class="n">oqa</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading </span><span class="si">{</span><span class="n">dwi</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">)</span>
+            <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">)</span>
+            <span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span>
+                <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">bvecs_tol</span>
+            <span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">load_nifti_data</span><span class="p">(</span><span class="n">maskfile</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+            <span class="n">sphere</span> <span class="o">=</span> <span class="n">get_sphere</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">"repulsion724"</span> <span class="k">if</span> <span class="n">sphere_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">sphere_name</span>
+            <span class="p">)</span>
+            <span class="n">odf_recon_model</span> <span class="o">=</span> <span class="n">GeneralizedQSamplingModel</span><span class="p">(</span>
+                <span class="n">gtab</span><span class="p">,</span> <span class="n">sampling_length</span><span class="o">=</span><span class="n">sampling_length</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">dict_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading ODF-FP dictionary from </span><span class="si">{</span><span class="n">dict_file</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">odf_dict</span> <span class="o">=</span> <span class="n">OdffpDictionary</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span> <span class="n">dict_file</span><span class="o">=</span><span class="n">dict_file</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Generating ODF-FP dictionary with </span><span class="si">{</span><span class="n">dict_size</span><span class="si">}</span><span class="s2"> fingerprints..."</span>
+                <span class="p">)</span>
+                <span class="n">odf_dict</span> <span class="o">=</span> <span class="n">OdffpDictionary</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">)</span>
+                <span class="n">odf_dict</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+                    <span class="n">odf_recon_model</span><span class="o">=</span><span class="n">odf_recon_model</span><span class="p">,</span>
+                    <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">),</span>
+                    <span class="o">**</span><span class="n">generate_kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">save_dict</span><span class="p">:</span>
+                    <span class="n">odf_dict</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">dict_file</span><span class="o">=</span><span class="n">odict</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ODF-FP dictionary saved to </span><span class="si">{</span><span class="n">odict</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"ODF-FP matching started."</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">OdffpModel</span><span class="p">(</span>
+                <span class="n">gtab</span><span class="p">,</span>
+                <span class="n">odf_dict</span><span class="p">,</span>
+                <span class="n">penalty</span><span class="o">=</span><span class="n">penalty</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">drop_negative_odf</span><span class="o">=</span><span class="ow">not</span> <span class="n">keep_negative_odf</span><span class="p">,</span>
+                <span class="n">zero_baseline_odf</span><span class="o">=</span><span class="n">zero_baseline_odf</span><span class="p">,</span>
+                <span class="n">output_dict_odf</span><span class="o">=</span><span class="ow">not</span> <span class="n">output_measured_odf</span><span class="p">,</span>
+                <span class="n">matching_precision</span><span class="o">=</span><span class="n">matching_precision</span><span class="p">,</span>
+                <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+                <span class="n">odf_recon_model</span><span class="o">=</span><span class="n">odf_recon_model</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">fit_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"engine"</span><span class="p">:</span> <span class="n">engine</span><span class="p">,</span> <span class="s2">"n_jobs"</span><span class="p">:</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="s2">"verbose"</span><span class="p">:</span> <span class="n">verbose</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">vox_per_chunk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fit_kwargs</span><span class="p">[</span><span class="s2">"vox_per_chunk"</span><span class="p">]</span> <span class="o">=</span> <span class="n">vox_per_chunk</span>
+            <span class="n">odffp_fit</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="o">**</span><span class="n">fit_kwargs</span><span class="p">)</span>
+
+            <span class="n">peaks</span> <span class="o">=</span> <span class="n">odffp_peaks</span><span class="p">(</span>
+                <span class="n">odffp_fit</span><span class="p">,</span> <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span> <span class="n">normalize_peaks</span><span class="o">=</span><span class="n">normalize_peaks</span>
+            <span class="p">)</span>
+            <span class="n">peaks</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+            <span class="n">save_pam</span><span class="p">(</span><span class="n">opam</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"ODF-FP matching completed."</span><span class="p">)</span>
+
+            <span class="c1"># Microstructure of the matched fingerprints.</span>
+            <span class="n">dict_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">odffp_fit</span><span class="o">.</span><span class="n">dict_idx</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">num_fibers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">odf_dict</span><span class="o">.</span><span class="n">peaks_per_voxel</span><span class="p">[</span><span class="n">dict_idx</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">save_nifti</span><span class="p">(</span><span class="n">onum_fibers</span><span class="p">,</span> <span class="n">num_fibers</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">affine</span><span class="p">)</span>
+
+            <span class="n">free_water</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">free_water</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">odffp_fit</span><span class="o">.</span><span class="n">compartment_volume</span><span class="p">)[</span><span class="n">mask</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">save_nifti</span><span class="p">(</span><span class="n">ofree_water</span><span class="p">,</span> <span class="n">free_water</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+
+            <span class="c1"># Signal of the matched fingerprints, scaled by the measured b0.</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">):</span>
+                <span class="n">s0</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">s0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">predicted</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">odffp_fit</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+            <span class="n">save_nifti</span><span class="p">(</span><span class="n">opredicted_signal</span><span class="p">,</span> <span class="n">predicted</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">affine</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">extract_pam_values</span><span class="p">:</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">oshm</span><span class="p">,</span> <span class="n">peaks</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">opeaks_dir</span><span class="p">,</span> <span class="n">reshape_peaks_for_visualization</span><span class="p">(</span><span class="n">peaks</span><span class="p">),</span> <span class="n">affine</span><span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">opeaks_values</span><span class="p">,</span> <span class="n">peaks</span><span class="o">.</span><span class="n">peak_values</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">opeaks_indices</span><span class="p">,</span> <span class="n">peaks</span><span class="o">.</span><span class="n">peak_indices</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">ogfa</span><span class="p">,</span> <span class="n">peaks</span><span class="o">.</span><span class="n">gfa</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+                <span class="n">save_nifti</span><span class="p">(</span><span class="n">oqa</span><span class="p">,</span> <span class="n">peaks</span><span class="o">.</span><span class="n">qa</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ODF-FP results saved to </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">opam</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

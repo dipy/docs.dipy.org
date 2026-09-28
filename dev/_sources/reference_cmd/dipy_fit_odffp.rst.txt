@@ -1,0 +1,316 @@
+.. dipy_fit_odffp:
+
+==============
+dipy_fit_odffp
+==============
+
+Synopsis
+--------
+
+Workflow for ODF-Fingerprinting (ODF-FP) reconstruction.
+
+Performs ODF-FP :footcite:p:`Baete2019,Filipiak2022` on the files by
+'globing' ``input_files`` and saves the peaks and the microstructure
+maps in a directory specified by ``out_dir``.
+
+The ODF of every voxel is reconstructed with GQI and matched against a
+dictionary of ODF fingerprints simulated from a multi-compartment
+model. The dictionary is generated for the gradient table of the input
+data, or loaded from ``dict_file`` when it was saved by a previous run
+with ``save_dict``.
+
+Usage
+-----
+
+.. code-block:: bash
+
+    dipy_fit_odffp [OPTIONS] input_files bvalues_files bvectors_files mask_files
+
+Input Parameters
+----------------
+
+* ``input_files``
+
+  Path to the input volumes. This path may contain wildcards to
+  process multiple inputs at once.
+
+* ``bvalues_files``
+
+  Path to the bvalues files. This path may contain wildcards to use
+  multiple bvalues files at once.
+
+* ``bvectors_files``
+
+  Path to the bvectors files. This path may contain wildcards to use
+  multiple bvectors files at once.
+
+* ``mask_files``
+
+  Path to the input masks. This path may contain wildcards to use
+  multiple masks at once.
+
+General Options
+---------------
+
+* ``--b0_threshold``
+
+  Threshold used to find b0 volumes.
+  (default: 50.0)
+
+* ``--bvecs_tol``
+
+  Threshold used to check that norm(bvec) = 1 +/- bvecs_tol.
+  (default: 0.01)
+
+* ``--dict_file``
+
+  Path to a dictionary archive (``.npz``) saved by a previous run
+  with ``save_dict``. If set, the dictionary is loaded instead of
+  generated. It must have been generated with the same gradient
+  table and sphere as the current run.
+  (default: None)
+
+* ``--dict_size``
+
+  Number of fingerprints in the generated dictionary.
+  (default: 1000000)
+
+* ``--max_peaks_num``
+
+  Maximum number of fiber compartments in a fingerprint.
+  (default: 3)
+
+* ``--equal_fibers``
+
+  Use identical microstructure parameters for all fibers of a
+  fingerprint.
+  (default: False)
+
+* ``--p_iso``
+
+  Two values ``min max`` for the free-water volume fraction. If not
+  set, defaults to ``0 1``.
+  (default: None)
+
+* ``--p_fib``
+
+  Two values ``min max`` for each fiber-compartment volume fraction.
+  If not set, defaults to ``0 1``.
+  (default: None)
+
+* ``--f_in``
+
+  Two values ``min max`` for the intra-axonal signal fraction. If
+  not set, defaults to ``0 1``.
+  (default: None)
+
+* ``--d_iso``
+
+  Two values ``min max`` (in um^2/ms) for the free-water isotropic
+  diffusivity. If not set, defaults to ``2 3``.
+  (default: None)
+
+* ``--d_a``
+
+  Two values ``min max`` (in um^2/ms) for the intra-axonal
+  diffusivity. If not set, defaults to ``1.5 2.5``.
+  (default: None)
+
+* ``--d_e``
+
+  Two values ``min max`` (in um^2/ms) for the extra-axonal axial
+  diffusivity. If not set, defaults to ``1.5 2.5``.
+  (default: None)
+
+* ``--d_r``
+
+  Two values ``min max`` (in um^2/ms) for the extra-axonal radial
+  diffusivity. If not set, defaults to ``0.5 1.5``.
+  (default: None)
+
+* ``--max_chunk_size``
+
+  Maximum number of fingerprints simulated at once.
+  (default: 10000)
+
+* ``--assert_faster_d_a``
+
+  Reject fingerprints whose intra-axonal diffusivity is smaller than
+  their extra-axonal axial diffusivity.
+  (default: False)
+
+* ``--tortuosity_approximation``
+
+  Derive the extra-axonal radial diffusivity from the intra-axonal
+  fraction and diffusivity with the tortuosity approximation.
+  (default: False)
+
+* ``--seed``
+
+  Random seed used to generate the dictionary. The same seed always
+  yields the same dictionary.
+  (default: 42)
+
+* ``--sphere_name``
+
+  Name of the full symmetric sphere on which the dictionary and the
+  measured ODFs are sampled. If not set, ``repulsion724`` is used.
+  (default: None)
+
+* ``--sampling_length``
+
+  Sampling length of the GQI model used to reconstruct the ODFs.
+  (default: 1.2)
+
+* ``--penalty``
+
+  Model-complexity penalty applied to fingerprints with more fibers
+  during matching, in the interval [0, 0.1].
+  (default: 1e-05)
+
+* ``--sh_order_max``
+
+  Maximum spherical harmonics order (l) used for alignment,
+  matching and to store the matched ODFs.
+  (default: 8)
+
+* ``--keep_negative_odf``
+
+  Keep negative ODF samples instead of setting them to zero before
+  normalization.
+  (default: False)
+
+* ``--zero_baseline_odf``
+
+  Subtract the minimum of each ODF before normalization.
+  (default: False)
+
+* ``--output_measured_odf``
+
+  Store the measured (GQI) ODF of each voxel instead of the matched
+  dictionary ODF.
+  (default: False)
+
+* ``--matching_precision``
+
+  Floating-point precision used for fingerprint matching:
+  ``float32`` or ``float64``.
+  (default: float32)
+
+* ``--num_threads``
+
+  Number of threads used by the matching kernels. If not set, the
+  default number of OpenMP threads is used.
+  (default: None)
+
+* ``--engine``
+
+  Parallel engine for fitting: "ray" or "serial". If "ray" is
+  requested but not installed, falls back to "serial" with a warning.
+  (default: serial)
+
+* ``--n_jobs``
+
+  Number of processes used by the "ray" engine. Use -1 to use all
+  available cores.
+  (default: -1)
+
+* ``--vox_per_chunk``
+
+  Number of voxels matched per batch. If not set, an engine-specific
+  default is used.
+  (default: None)
+
+* ``--save_dict``
+
+  Save the generated dictionary to ``out_dict`` so it can be reused
+  with ``dict_file``.
+  (default: False)
+
+* ``--normalize_peaks``
+
+  Divide the peak values of each voxel by its main-peak value. By
+  default the peak values are the quantitative anisotropy: the ODF
+  amplitude above its isotropic floor, scaled so that the largest
+  peak in the volume is 1.
+  (default: False)
+
+* ``--extract_pam_values``
+
+  Save or not to save pam volumes as single nifti files.
+  (default: False)
+
+* ``--verbose``
+
+  Whether to print verbose messages during processing.
+  (default: False)
+
+Output Options
+--------------
+
+* ``--out_dir``
+
+  Output directory.
+  (default:  current directory)
+
+* ``--out_pam``
+
+  Name of the peaks volume to be saved.
+  (default: peaks.pam5)
+
+* ``--out_dict``
+
+  Name of the dictionary archive to be saved (requires save_dict).
+  (default: odf_dict.npz)
+
+* ``--out_num_fibers``
+
+  Name of the number of fibers volume to be saved.
+  (default: num_fibers.nii.gz)
+
+* ``--out_free_water``
+
+  Name of the free-water fraction volume to be saved.
+  (default: free_water.nii.gz)
+
+* ``--out_predicted_signal``
+
+  Name of the predicted signal volume to be saved.
+  (default: predicted_signal.nii.gz)
+
+* ``--out_shm``
+
+  Name of the spherical harmonics volume to be saved.
+  (default: shm.nii.gz)
+
+* ``--out_peaks_dir``
+
+  Name of the peaks directions volume to be saved.
+  (default: peaks_dirs.nii.gz)
+
+* ``--out_peaks_values``
+
+  Name of the peaks values volume to be saved.
+  (default: peaks_values.nii.gz)
+
+* ``--out_peaks_indices``
+
+  Name of the peaks indices volume to be saved.
+  (default: peaks_indices.nii.gz)
+
+* ``--out_gfa``
+
+  Name of the generalized FA volume to be saved.
+  (default: gfa.nii.gz)
+
+* ``--out_qa``
+
+  Name of the quantitative anisotropy volume to be saved.
+  (default: qa.nii.gz)
+
+References
+----------
+
+.. footbibliography::
+
+Garyfallidis, E., M. Brett, B. Amirbekian, A. Rokem, S. Van Der Walt, M. Descoteaux, and I. Nimmo-Smith. Dipy, a library for the analysis of diffusion MRI data. Frontiers in Neuroinformatics, 1-18, 2014.
