@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.shm &#8212; dipy 1.13.0.dev0+git20260928.ce44b3f documentation</title>
+    <title>dipy.reconst.shm &#8212; dipy 1.13.0.dev0+git20261001.b42d50a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=a9c4dbda"></script>
+    <script src="../../../_static/documentation_options.js?v=edff5a6b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -904,6 +904,7 @@ document.write(`
 <span class="sd">where data is Y.T and sh_coef is x.T.</span>
 <span class="sd">"""</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -912,8 +913,10 @@ document.write(`
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">cart2sphere</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.onetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_attr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">hemi_icosahedron</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.odf</span><span class="w"> </span><span class="kn">import</span> <span class="n">OdfFit</span><span class="p">,</span> <span class="n">OdfModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.recspeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">fmls_afd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.compatibility</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_max_version</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">deprecate_with_version</span><span class="p">,</span>
@@ -1902,6 +1905,41 @@ document.write(`
 
 
 
+<span class="nd">@cache</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_afd_sphere</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Directions, quadrature weights and adjacency used to compute the AFD.</span>
+
+<span class="sd">    Uses the same 1281 directions and integration weights as MRtrix3's</span>
+<span class="sd">    ``fod2fixel``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sphere : HemiSphere</span>
+<span class="sd">        Directions on which the FOD is sampled.</span>
+<span class="sd">    weights : ndarray (N,)</span>
+<span class="sd">        Quadrature weights of the directions over the full sphere.</span>
+<span class="sd">    adj_indptr : ndarray (N + 1,)</span>
+<span class="sd">        Offsets of each direction's neighbors in `adj_indices`.</span>
+<span class="sd">    adj_indices : ndarray</span>
+<span class="sd">        Neighbor indices of every direction.</span>
+<span class="sd">    """</span>
+    <span class="n">sphere</span> <span class="o">=</span> <span class="n">hemi_icosahedron</span><span class="o">.</span><span class="n">subdivide</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">n_dirs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span>
+
+    <span class="n">sh_order_max</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">n_dirs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+    <span class="n">B</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">real_sh_descoteaux</span><span class="p">(</span><span class="n">sh_order_max</span><span class="p">,</span> <span class="n">sphere</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">sphere</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">legacy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">integrals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">B</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">integrals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">B</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">integrals</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sphere</span><span class="o">.</span><span class="n">edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">intp</span><span class="p">)</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">edges</span><span class="p">,</span> <span class="n">edges</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"stable"</span><span class="p">)]</span>
+    <span class="n">adj_indptr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_dirs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">intp</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_dirs</span><span class="p">),</span> <span class="n">out</span><span class="o">=</span><span class="n">adj_indptr</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="n">sphere</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">adj_indptr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+
+
 <div class="viewcode-block" id="SphHarmFit">
 <a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shm.SphHarmFit">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SphHarmFit</span><span class="p">(</span><span class="n">OdfFit</span><span class="p">):</span>
@@ -1957,6 +1995,68 @@ document.write(`
     <span class="nd">@auto_attr</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">gfa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_gfa_sh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span> <span class="n">sh0_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SphHarmFit.afd">
+<a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.shm.SphHarmFit.afd">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">afd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">npeaks</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">peak_threshold</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">integral_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Apparent fiber density (AFD) of each FOD lobe.</span>
+
+<span class="sd">        Each FOD is split into lobes :footcite:p:`Smith2013` and the AFD of a</span>
+<span class="sd">        lobe is its integral :footcite:p:`Raffelt2012`, as in MRtrix3's</span>
+<span class="sd">        ``fod2fixel -afd``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        npeaks : int, optional</span>
+<span class="sd">            Maximum number of lobes returned per voxel.</span>
+<span class="sd">        peak_threshold : float, optional</span>
+<span class="sd">            Lobes whose maximum FOD amplitude is below this value are</span>
+<span class="sd">            discarded (``-fmls_peak_value`` in MRtrix3).</span>
+<span class="sd">        integral_threshold : float, optional</span>
+<span class="sd">            Lobes whose AFD is below this value are discarded</span>
+<span class="sd">            (``-fmls_integral`` in MRtrix3).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        afd : ndarray (..., npeaks)</span>
+<span class="sd">            AFD of each lobe, sorted by descending peak amplitude. Missing</span>
+<span class="sd">            lobes are set to 0.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Voxels whose isotropic SH coefficient is not positive have no lobes.</span>
+<span class="sd">        The thresholds are absolute, so they depend on the scale of the FOD.</span>
+<span class="sd">        Unlike MRtrix3, the peak amplitude is the largest sampled amplitude of</span>
+<span class="sd">        the lobe, without Newton refinement.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+<span class="sd">        """</span>
+        <span class="n">sphere</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">adj_indptr</span><span class="p">,</span> <span class="n">adj_indices</span> <span class="o">=</span> <span class="n">_afd_sphere</span><span class="p">()</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sampling_matrix</span><span class="p">(</span><span class="n">sphere</span><span class="p">)</span>
+        <span class="n">shm_coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shm_coeff</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shm_coeff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">afd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">shm_coeff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">npeaks</span><span class="p">))</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">((</span><span class="n">shm_coeff</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">shm_coeff</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
+
+        <span class="c1"># Process voxels in chunks to bound the memory of the sampled FODs</span>
+        <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">10000</span>
+        <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">):</span>
+            <span class="n">voxels</span> <span class="o">=</span> <span class="n">valid</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">start</span> <span class="o">+</span> <span class="n">chunk_size</span><span class="p">]</span>
+            <span class="n">odf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">shm_coeff</span><span class="p">[</span><span class="n">voxels</span><span class="p">],</span> <span class="n">B</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">odf</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"stable"</span><span class="p">)</span>
+            <span class="n">afd</span><span class="p">[</span><span class="n">voxels</span><span class="p">]</span> <span class="o">=</span> <span class="n">fmls_afd</span><span class="p">(</span>
+                <span class="n">odf</span><span class="p">,</span>
+                <span class="n">order</span><span class="p">,</span>
+                <span class="n">weights</span><span class="p">,</span>
+                <span class="n">adj_indptr</span><span class="p">,</span>
+                <span class="n">adj_indices</span><span class="p">,</span>
+                <span class="n">npeaks</span><span class="p">,</span>
+                <span class="n">peak_threshold</span><span class="p">,</span>
+                <span class="n">integral_threshold</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">afd</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">npeaks</span><span class="p">,))</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shm_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
