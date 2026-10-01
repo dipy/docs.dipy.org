@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261001.9365384 documentation</title>
+    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261001.db0b14a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=5bf6d061"></script>
+    <script src="../../../../_static/documentation_options.js?v=f2e2c9a9"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1553,23 +1553,39 @@ document.write(`
 <span class="sd">        -------</span>
 <span class="sd">        np.ndarray or list or tuple or None</span>
 <span class="sd">            Snapshot of slice state from an existing synchronizable visualization,</span>
-<span class="sd">            or None when no such visualization exists (first load).</span>
+<span class="sd">            or None when no such visualization exists (first load). For an image</span>
+<span class="sd">            with directions, the current direction is appended as a fourth value.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_state</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_image</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference_state_of</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_image</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">visualizations</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_state</span><span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-                <span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference_state_of</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">viz</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visualizations</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="p">(</span><span class="n">Image3D</span><span class="p">,</span> <span class="n">Peak3D</span><span class="p">,</span> <span class="n">SHGlyph3D</span><span class="p">)):</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_state</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">viz</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference_state_of</span><span class="p">(</span><span class="n">viz</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reference_state_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the slice state of ``viz``, with its direction if it has one.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        viz : Visualization</span>
+<span class="sd">            Visualization to take the reference state from.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Slice position, followed by the direction index for an image with</span>
+<span class="sd">            directions.</span>
+<span class="sd">        """</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">viz</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="n">Image3D</span><span class="p">)</span> <span class="ow">and</span> <span class="n">viz</span><span class="o">.</span><span class="n">_has_directions</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="o">*</span><span class="n">state</span><span class="p">,</span> <span class="n">viz</span><span class="o">.</span><span class="n">_volume_idx</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_reference_slice_state_to_new_visualizations</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">reference_state</span><span class="p">,</span> <span class="n">n_img_before</span><span class="p">,</span> <span class="n">n_peak_before</span><span class="p">,</span> <span class="n">n_sh_before</span>
