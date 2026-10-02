@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Denoising &#8212; dipy 1.13.0.dev0+git20261002.5ddebe0 documentation</title>
+    <title>Denoising &#8212; dipy 1.13.0.dev0+git20261002.d80977d documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=9aa11467"></script>
+    <script src="../_static/documentation_options.js?v=173f6a06"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -914,6 +914,39 @@ document.write(`
 Multiple denoising methods are available in DIPY.</p>
 <p>You can try these methods using your own data; we will be using the data in DIPY.
 You can check how to <a class="reference internal" href="data_fetch.html#data-fetch"><span class="std std-ref">fetch the DIPY data</span></a>.</p>
+<section id="automatic-method-selection">
+<h2>Automatic method selection<a class="headerlink" href="#automatic-method-selection" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">dipy_denoise</span></code> command chooses a denoising method from the data itself
+and runs it. By default (<code class="docutils literal notranslate"><span class="pre">--method</span> <span class="pre">auto</span></code>), the choice is made per input file
+from the number of volumes, the number of diffusion-weighted volumes and an
+estimate of their SNR. The criteria are checked in this order and the first
+one that matches decides:</p>
+<ol class="arabic simple">
+<li><p>fewer than <code class="docutils literal notranslate"><span class="pre">--min_volumes</span></code> volumes (3D or a handful of 4D volumes):
+NLMEANS, because PCA-based methods have no redundancy to exploit;</p></li>
+<li><p>fewer than <code class="docutils literal notranslate"><span class="pre">--min_directions</span></code> diffusion-weighted volumes: MPPCA;</p></li>
+<li><p>an estimated SNR below <code class="docutils literal notranslate"><span class="pre">--min_snr</span></code>: MPPCA;</p></li>
+<li><p>otherwise: Patch2Self, or MPPCA when no <code class="docutils literal notranslate"><span class="pre">--bvalues_files</span></code> is given.</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">--method</span></code> takes precedence over these thresholds: with any value other
+than <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">--min_volumes</span></code>, <code class="docutils literal notranslate"><span class="pre">--min_directions</span></code> and <code class="docutils literal notranslate"><span class="pre">--min_snr</span></code> are
+ignored.</p>
+<p>Patch2Self predicts each volume from all the others. With few directions and
+a low SNR, that regression shrinks every volume toward their common mean and
+removes the angular contrast together with the noise, which then breaks
+tensor fitting and tractography downstream. MPPCA works on local patches and
+degrades more gracefully in that regime.</p>
+<p>Create a directory for the output and run the command with the b-values file,
+so that b0 volumes are separated from the diffusion-weighted ones:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span> <span class="n">denoise_output</span>
+<span class="n">dipy_denoise</span> <span class="n">data</span><span class="o">/</span><span class="n">stanford_hardi</span><span class="o">/</span><span class="n">HARDI150</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">--</span><span class="n">bvalues_files</span> <span class="n">data</span><span class="o">/</span><span class="n">stanford_hardi</span><span class="o">/</span><span class="n">HARDI150</span><span class="o">.</span><span class="n">bval</span> <span class="o">--</span><span class="n">out_dir</span> <span class="s2">"denoise_output"</span>
+</pre></div>
+</div>
+<p>The chosen method and the reason are logged. A specific method can be forced
+with <code class="docutils literal notranslate"><span class="pre">--method</span> <span class="pre">patch2self</span></code>, <code class="docutils literal notranslate"><span class="pre">--method</span> <span class="pre">mppca</span></code> or <code class="docutils literal notranslate"><span class="pre">--method</span> <span class="pre">nlmeans</span></code>; the
+thresholds are tunable with <code class="docutils literal notranslate"><span class="pre">--min_volumes</span></code>, <code class="docutils literal notranslate"><span class="pre">--min_directions</span></code> and
+<code class="docutils literal notranslate"><span class="pre">--min_snr</span></code>. The denoised volume is saved as <code class="docutils literal notranslate"><span class="pre">dwi_denoised.nii.gz</span></code>.</p>
+</section>
 <section id="denoising-using-overcomplete-local-pca">
 <h2>Denoising using Overcomplete Local PCA<a class="headerlink" href="#denoising-using-overcomplete-local-pca" title="Link to this heading">#</a></h2>
 <p>Denoising algorithms based on principal components analysis (PCA) are effective
@@ -1214,6 +1247,7 @@ also specify the version of the model to use with the <code class="docutils lite
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-method-selection">Automatic method selection</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#denoising-using-overcomplete-local-pca">Denoising using Overcomplete Local PCA</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#denoising-using-marcenko-pastur-pca">Denoising using Marcenko-Pastur PCA</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#denoising-using-nlmeans">Denoising using NLMEANS</a></li>
