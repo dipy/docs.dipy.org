@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.stats.analysis &#8212; dipy 1.13.0.dev0+git20261002.d80977d documentation</title>
+    <title>dipy.stats.analysis &#8212; dipy 1.13.0.dev0+git20261002.ea57be4 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=173f6a06"></script>
+    <script src="../../../_static/documentation_options.js?v=87f531cc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -886,7 +886,8 @@ document.write(`
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">map_coordinates</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">splev</span><span class="p">,</span> <span class="n">splprep</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">gaussian_filter1d</span><span class="p">,</span> <span class="n">map_coordinates</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">cKDTree</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">mahalanobis</span>
 
@@ -895,6 +896,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.metricspeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">AveragePointwiseEuclideanMetric</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Streamlines</span><span class="p">,</span>
+    <span class="n">length</span><span class="p">,</span>
     <span class="n">orient_by_streamline</span><span class="p">,</span>
     <span class="n">set_number_of_points</span><span class="p">,</span>
     <span class="n">transform_streamlines</span><span class="p">,</span>
@@ -1119,6 +1121,856 @@ document.write(`
         <span class="n">bundle_profile</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">weighted_mean</span>
 
     <span class="k">return</span> <span class="n">bundle_profile</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_streamlines</span><span class="p">(</span><span class="n">bundle</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return ``bundle`` as a Streamlines object."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">Streamlines</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">bundle</span>
+    <span class="k">return</span> <span class="n">Streamlines</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_centroid">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.get_centroid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_centroid</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">100.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Compute a representative QuickBundles centroid for a bundle.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bundle : Streamlines</span>
+<span class="sd">        Input streamline bundle.</span>
+<span class="sd">    n_points : int, optional</span>
+<span class="sd">        Number of points used to resample streamlines before clustering.</span>
+<span class="sd">    threshold : float, optional</span>
+<span class="sd">        QuickBundles clustering threshold.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    centroid : ndarray, shape (n_points, 3)</span>
+<span class="sd">        Representative centroid streamline.</span>
+
+<span class="sd">    """</span>
+    <span class="n">bundle</span> <span class="o">=</span> <span class="n">_as_streamlines</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Bundle contains no streamlines"</span><span class="p">)</span>
+
+    <span class="n">resampled</span> <span class="o">=</span> <span class="n">set_number_of_points</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">nb_points</span><span class="o">=</span><span class="n">n_points</span><span class="p">)</span>
+    <span class="n">metric</span> <span class="o">=</span> <span class="n">AveragePointwiseEuclideanMetric</span><span class="p">()</span>
+    <span class="n">qb</span> <span class="o">=</span> <span class="n">QuickBundles</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span>
+    <span class="n">clusters</span> <span class="o">=</span> <span class="n">qb</span><span class="o">.</span><span class="n">cluster</span><span class="p">(</span><span class="n">resampled</span><span class="p">)</span>
+    <span class="n">centroids</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><span class="n">clusters</span><span class="o">.</span><span class="n">centroids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">centroids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"QuickBundles did not generate a centroid"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">centroids</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">length</span><span class="p">(</span><span class="n">centroids</span><span class="p">))]</span></div>
+
+
+
+<div class="viewcode-block" id="get_n_segment_by_length">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.get_n_segment_by_length">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_n_segment_by_length</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">segment_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Estimate the number of along-tract segments from bundle length.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bundle : Streamlines</span>
+<span class="sd">        Input streamline bundle.</span>
+<span class="sd">    segment_length : float, optional</span>
+<span class="sd">        Desired segment length in millimeters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    n_segments : int</span>
+<span class="sd">        Number of along-tract segments.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">segment_length</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"segment_length must be greater than zero"</span><span class="p">)</span>
+
+    <span class="n">bundle_lengths</span> <span class="o">=</span> <span class="n">length</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bundle_lengths</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Bundle contains no streamlines"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">bundle_lengths</span><span class="p">)</span> <span class="o">/</span> <span class="n">segment_length</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resample_curve_by_arclength</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">n_points</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Resample a 3D curve uniformly by arc length."""</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"At least two points are required"</span><span class="p">)</span>
+
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">distances</span><span class="p">)))</span>
+    <span class="n">total_length</span> <span class="o">=</span> <span class="n">cumulative</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">total_length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">points</span><span class="p">[:</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">total_length</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">cumulative</span><span class="p">,</span> <span class="n">points</span><span class="p">[:,</span> <span class="n">dim</span><span class="p">])</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="compute_robust_centroid">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.compute_robust_centroid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_robust_centroid</span><span class="p">(</span>
+    <span class="n">bundle</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">segment_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">n_segments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+    <span class="n">extrapolate_prop</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Compute a centroid that covers the full extent of a bundle.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bundle : Streamlines</span>
+<span class="sd">        Atlas or model bundle.</span>
+<span class="sd">    segment_length : float, optional</span>
+<span class="sd">        Desired along-tract segment length in millimeters.</span>
+<span class="sd">    n_segments : int, optional</span>
+<span class="sd">        Number of along-tract segments. If provided, this takes precedence</span>
+<span class="sd">        over ``segment_length``.</span>
+<span class="sd">    threshold : float, optional</span>
+<span class="sd">        QuickBundles threshold used to estimate the initial centroid.</span>
+<span class="sd">    extrapolate_prop : float, optional</span>
+<span class="sd">        Maximum fraction of the centroid length used for endpoint extension.</span>
+<span class="sd">    method : {"linear", "spline"}, optional</span>
+<span class="sd">        Endpoint extension method.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    centroid : ndarray, shape (n_segments, 3)</span>
+<span class="sd">        Centroid sampled uniformly by arc length.</span>
+
+<span class="sd">    """</span>
+    <span class="n">bundle</span> <span class="o">=</span> <span class="n">_as_streamlines</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Bundle contains no streamlines"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"linear"</span><span class="p">,</span> <span class="s2">"spline"</span><span class="p">}:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"method must be either 'linear' or 'spline'"</span><span class="p">)</span>
+
+    <span class="n">centroid</span> <span class="o">=</span> <span class="n">get_centroid</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+    <span class="n">all_points</span> <span class="o">=</span> <span class="n">bundle</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+    <span class="n">start_tangent</span> <span class="o">=</span> <span class="n">centroid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">end_tangent</span> <span class="o">=</span> <span class="n">centroid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">start_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">start_tangent</span><span class="p">)</span>
+    <span class="n">end_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">end_tangent</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">start_norm</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">end_norm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n_segments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_segments</span> <span class="o">=</span> <span class="n">get_n_segment_by_length</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">segment_length</span><span class="o">=</span><span class="n">segment_length</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_resample_curve_by_arclength</span><span class="p">(</span><span class="n">centroid</span><span class="p">,</span> <span class="n">n_segments</span><span class="p">)</span>
+
+    <span class="n">start_tangent</span> <span class="o">/=</span> <span class="n">start_norm</span>
+    <span class="n">end_tangent</span> <span class="o">/=</span> <span class="n">end_norm</span>
+
+    <span class="n">start_projection</span> <span class="o">=</span> <span class="p">(</span><span class="n">all_points</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">@</span> <span class="n">start_tangent</span>
+    <span class="n">end_projection</span> <span class="o">=</span> <span class="p">(</span><span class="n">all_points</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">@</span> <span class="n">end_tangent</span>
+    <span class="n">start_extension</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">start_projection</span><span class="p">))</span>
+    <span class="n">end_extension</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">end_projection</span><span class="p">))</span>
+
+    <span class="n">centroid_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">centroid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">max_extension</span> <span class="o">=</span> <span class="n">extrapolate_prop</span> <span class="o">*</span> <span class="n">centroid_length</span>
+    <span class="n">start_extension</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">start_extension</span><span class="p">,</span> <span class="n">max_extension</span><span class="p">)</span>
+    <span class="n">end_extension</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">end_extension</span><span class="p">,</span> <span class="n">max_extension</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"linear"</span><span class="p">:</span>
+        <span class="n">start_point</span> <span class="o">=</span> <span class="n">centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">start_tangent</span> <span class="o">*</span> <span class="n">start_extension</span>
+        <span class="n">end_point</span> <span class="o">=</span> <span class="n">centroid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">end_tangent</span> <span class="o">*</span> <span class="n">end_extension</span>
+        <span class="n">extended</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">start_point</span><span class="p">,</span> <span class="n">centroid</span><span class="p">,</span> <span class="n">end_point</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tck</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">splprep</span><span class="p">(</span><span class="n">centroid</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">centroid</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">start_fraction</span> <span class="o">=</span> <span class="n">start_extension</span> <span class="o">/</span> <span class="n">centroid_length</span>
+        <span class="n">end_fraction</span> <span class="o">=</span> <span class="n">end_extension</span> <span class="o">/</span> <span class="n">centroid_length</span>
+        <span class="n">t_extended</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">start_fraction</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="n">end_fraction</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+        <span class="n">extended</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">splev</span><span class="p">(</span><span class="n">t_extended</span><span class="p">,</span> <span class="n">tck</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="n">extended_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">extended</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">n_segments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_segments</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">extended_length</span> <span class="o">/</span> <span class="n">segment_length</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_resample_curve_by_arclength</span><span class="p">(</span><span class="n">extended</span><span class="p">,</span> <span class="n">n_segments</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_radial_bins">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.create_radial_bins">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_radial_bins</span><span class="p">(</span>
+    <span class="n">radial_distance</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">radial_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">n_radial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">merge_threshold</span><span class="o">=</span><span class="mf">0.2</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Create bins from signed radial distances.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    radial_distance : ndarray, shape (n_points,)</span>
+<span class="sd">        Signed radial position of each atlas point.</span>
+<span class="sd">    radial_length : float, optional</span>
+<span class="sd">        Desired radial-bin width in millimeters.</span>
+<span class="sd">    n_radial : int, optional</span>
+<span class="sd">        Number of radial bins. If provided, automatic edge-bin merging is</span>
+<span class="sd">        disabled.</span>
+<span class="sd">    merge_threshold : float, optional</span>
+<span class="sd">        Edge bins holding fewer points than ``merge_threshold`` times the</span>
+<span class="sd">        median count of non-empty bins are merged into their neighbor.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    radial_index : ndarray</span>
+<span class="sd">        Radial-bin index for each point.</span>
+<span class="sd">    n_radial : int</span>
+<span class="sd">        Final number of radial bins.</span>
+<span class="sd">    radial_edges : ndarray</span>
+<span class="sd">        Radial-bin boundaries.</span>
+
+<span class="sd">    """</span>
+    <span class="n">radial_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">radial_distance</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">radial_distance</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"radial_distance cannot be empty"</span><span class="p">)</span>
+
+    <span class="n">r_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">radial_distance</span><span class="p">)</span>
+    <span class="n">r_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">radial_distance</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">n_radial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_bins</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n_radial</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">radial_length</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"radial_length must be greater than zero"</span><span class="p">)</span>
+        <span class="n">n_bins</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">r_max</span> <span class="o">-</span> <span class="n">r_min</span><span class="p">)</span> <span class="o">/</span> <span class="n">radial_length</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">radial_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">r_min</span><span class="p">,</span> <span class="n">r_max</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">radial_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">radial_distance</span><span class="p">,</span> <span class="n">radial_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">radial_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">radial_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">n_radial</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n_bins</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">radial_index</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_bins</span><span class="p">)</span>
+        <span class="n">nonzero</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">counts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">nonzero</span><span class="p">)</span> <span class="o">*</span> <span class="n">merge_threshold</span>
+        <span class="n">remove_first</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">threshold</span>
+        <span class="n">remove_last</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">threshold</span>
+
+        <span class="k">if</span> <span class="n">n_bins</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">remove_first</span> <span class="ow">and</span> <span class="n">remove_last</span><span class="p">:</span>
+            <span class="c1"># Both bins are edge bins: merge only the sparser one, otherwise</span>
+            <span class="c1"># no bin would remain.</span>
+            <span class="n">remove_last</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">counts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">remove_first</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">remove_last</span>
+
+        <span class="k">if</span> <span class="n">remove_first</span><span class="p">:</span>
+            <span class="n">radial_index</span><span class="p">[</span><span class="n">radial_index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">radial_edges</span> <span class="o">=</span> <span class="n">radial_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="k">if</span> <span class="n">remove_last</span><span class="p">:</span>
+            <span class="n">last_index</span> <span class="o">=</span> <span class="n">n_bins</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">radial_index</span><span class="p">[</span><span class="n">radial_index</span> <span class="o">==</span> <span class="n">last_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_index</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">radial_edges</span> <span class="o">=</span> <span class="n">radial_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">remove_first</span> <span class="ow">or</span> <span class="n">remove_last</span><span class="p">:</span>
+            <span class="n">n_bins</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">radial_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">radial_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">radial_distance</span><span class="p">,</span> <span class="n">radial_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">radial_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">radial_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">radial_index</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">radial_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">radial_edges</span></div>
+
+
+
+<div class="viewcode-block" id="get_grid_from_atlas">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.get_grid_from_atlas">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_grid_from_atlas</span><span class="p">(</span>
+    <span class="n">atlas_bundle</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">segment_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">radial_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">n_segments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_radial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+    <span class="n">use_robust_centroid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">robust_method</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Construct a SPECTRA grid from an atlas bundle.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    atlas_bundle : Streamlines</span>
+<span class="sd">        Atlas or template bundle used to define the SPECTRA grid.</span>
+<span class="sd">    segment_length : float, optional</span>
+<span class="sd">        Desired along-tract segment length in millimeters.</span>
+<span class="sd">    radial_length : float, optional</span>
+<span class="sd">        Desired radial-bin width in millimeters.</span>
+<span class="sd">    n_segments : int, optional</span>
+<span class="sd">        Number of along-tract segments.</span>
+<span class="sd">    n_radial : int, optional</span>
+<span class="sd">        Number of radial bins. If ``n_segments`` is given without</span>
+<span class="sd">        ``n_radial``, a single radial bin is used (1D profile).</span>
+<span class="sd">    threshold : float, optional</span>
+<span class="sd">        QuickBundles threshold used to estimate the atlas centroid.</span>
+<span class="sd">    use_robust_centroid : bool, optional</span>
+<span class="sd">        If True, use an extended centroid that covers the bundle endpoints.</span>
+<span class="sd">    robust_method : {"linear", "spline"}, optional</span>
+<span class="sd">        Endpoint extension method used by ``compute_robust_centroid``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    s_index : ndarray</span>
+<span class="sd">        Along-tract assignment for each atlas point.</span>
+<span class="sd">    r_index : ndarray</span>
+<span class="sd">        Radial assignment for each atlas point.</span>
+<span class="sd">    centroid : ndarray</span>
+<span class="sd">        Atlas centroid.</span>
+<span class="sd">    radial_vectors : ndarray</span>
+<span class="sd">        Radial direction at each along-tract segment.</span>
+<span class="sd">    radial_edges : ndarray</span>
+<span class="sd">        Radial-bin boundaries.</span>
+<span class="sd">    segment_length_actual : float</span>
+<span class="sd">        Mean spacing between neighboring centroid points.</span>
+<span class="sd">    radial_length_actual : float</span>
+<span class="sd">        Mean radial-bin width.</span>
+
+<span class="sd">    """</span>
+    <span class="n">atlas_bundle</span> <span class="o">=</span> <span class="n">_as_streamlines</span><span class="p">(</span><span class="n">atlas_bundle</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atlas_bundle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Atlas bundle contains no streamlines"</span><span class="p">)</span>
+
+    <span class="c1"># 1D mode: a fixed number of segments without a radial size means one bin</span>
+    <span class="k">if</span> <span class="n">n_segments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n_radial</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_radial</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">use_robust_centroid</span><span class="p">:</span>
+        <span class="n">centroid</span> <span class="o">=</span> <span class="n">compute_robust_centroid</span><span class="p">(</span>
+            <span class="n">atlas_bundle</span><span class="p">,</span>
+            <span class="n">segment_length</span><span class="o">=</span><span class="n">segment_length</span><span class="p">,</span>
+            <span class="n">n_segments</span><span class="o">=</span><span class="n">n_segments</span><span class="p">,</span>
+            <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">robust_method</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n_segments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_segments</span> <span class="o">=</span> <span class="n">get_n_segment_by_length</span><span class="p">(</span>
+                <span class="n">atlas_bundle</span><span class="p">,</span> <span class="n">segment_length</span><span class="o">=</span><span class="n">segment_length</span>
+            <span class="p">)</span>
+        <span class="n">centroid</span> <span class="o">=</span> <span class="n">get_centroid</span><span class="p">(</span><span class="n">atlas_bundle</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="n">n_segments</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+
+    <span class="n">n_segments_actual</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">centroid</span><span class="p">)</span>
+    <span class="n">atlas_points</span> <span class="o">=</span> <span class="n">atlas_bundle</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">cKDTree</span><span class="p">(</span><span class="n">centroid</span><span class="p">,</span> <span class="n">copy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">s_index</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">atlas_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">centroid_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">centroid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">segment_length_actual</span> <span class="o">=</span> <span class="n">centroid_length</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_segments_actual</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">tangents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">centroid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">tangent_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tangents</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tangent_norms</span><span class="p">[</span><span class="n">tangent_norms</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">tangents</span> <span class="o">/=</span> <span class="n">tangent_norms</span>
+
+    <span class="n">radial_vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_segments_actual</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_segments_actual</span><span class="p">):</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">atlas_points</span><span class="p">[</span><span class="n">s_index</span> <span class="o">==</span> <span class="n">segment</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">points</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">[</span><span class="n">segment</span><span class="p">]</span>
+        <span class="n">tangent</span> <span class="o">=</span> <span class="n">tangents</span><span class="p">[</span><span class="n">segment</span><span class="p">]</span>
+        <span class="n">projected</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">delta</span> <span class="o">@</span> <span class="n">tangent</span><span class="p">,</span> <span class="n">tangent</span><span class="p">)</span>
+        <span class="n">covariance</span> <span class="o">=</span> <span class="n">projected</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">projected</span>
+        <span class="n">eigenvalues</span><span class="p">,</span> <span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">covariance</span><span class="p">)</span>
+        <span class="n">radial_vectors</span><span class="p">[</span><span class="n">segment</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigenvectors</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">)]</span>
+
+    <span class="n">radial_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">radial_vectors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">radial_norms</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">valid</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unable to determine radial directions from atlas geometry"</span><span class="p">)</span>
+
+    <span class="n">valid_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_segments_actual</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">valid</span><span class="p">[</span><span class="n">segment</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">valid_indices</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">valid_indices</span> <span class="o">-</span> <span class="n">segment</span><span class="p">))]</span>
+        <span class="n">radial_vectors</span><span class="p">[</span><span class="n">segment</span><span class="p">]</span> <span class="o">=</span> <span class="n">radial_vectors</span><span class="p">[</span><span class="n">nearest</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_segments_actual</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">radial_vectors</span><span class="p">[</span><span class="n">segment</span><span class="p">],</span> <span class="n">radial_vectors</span><span class="p">[</span><span class="n">segment</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">radial_vectors</span><span class="p">[</span><span class="n">segment</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">radial_vectors</span> <span class="o">=</span> <span class="n">gaussian_filter1d</span><span class="p">(</span><span class="n">radial_vectors</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">radial_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">radial_vectors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">radial_norms</span><span class="p">[</span><span class="n">radial_norms</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">radial_vectors</span> <span class="o">/=</span> <span class="n">radial_norms</span>
+
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">atlas_points</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">[</span><span class="n">s_index</span><span class="p">]</span>
+    <span class="n">radial_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">delta</span> <span class="o">*</span> <span class="n">radial_vectors</span><span class="p">[</span><span class="n">s_index</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">r_index</span><span class="p">,</span> <span class="n">n_radial_actual</span><span class="p">,</span> <span class="n">radial_edges</span> <span class="o">=</span> <span class="n">create_radial_bins</span><span class="p">(</span>
+        <span class="n">radial_distance</span><span class="p">,</span> <span class="n">radial_length</span><span class="o">=</span><span class="n">radial_length</span><span class="p">,</span> <span class="n">n_radial</span><span class="o">=</span><span class="n">n_radial</span>
+    <span class="p">)</span>
+    <span class="n">radial_length_actual</span> <span class="o">=</span> <span class="p">(</span><span class="n">radial_edges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">radial_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="n">n_radial_actual</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">s_index</span><span class="p">,</span>
+        <span class="n">r_index</span><span class="p">,</span>
+        <span class="n">centroid</span><span class="p">,</span>
+        <span class="n">radial_vectors</span><span class="p">,</span>
+        <span class="n">radial_edges</span><span class="p">,</span>
+        <span class="n">segment_length_actual</span><span class="p">,</span>
+        <span class="n">radial_length_actual</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parameterize_bundle">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.parameterize_bundle">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parameterize_bundle</span><span class="p">(</span>
+    <span class="n">bundle</span><span class="p">,</span>
+    <span class="n">centroid</span><span class="p">,</span>
+    <span class="n">radial_vectors</span><span class="p">,</span>
+    <span class="n">radial_edges</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mask_threshold</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">min_count</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">max_count</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Map a bundle onto a SPECTRA grid.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bundle : Streamlines</span>
+<span class="sd">        Subject bundle in the same space as the atlas bundle.</span>
+<span class="sd">    centroid : ndarray, shape (n_segments, 3)</span>
+<span class="sd">        Atlas centroid.</span>
+<span class="sd">    radial_vectors : ndarray, shape (n_segments, 3)</span>
+<span class="sd">        Atlas radial directions.</span>
+<span class="sd">    radial_edges : ndarray</span>
+<span class="sd">        Atlas radial-bin boundaries.</span>
+<span class="sd">    mask_threshold : float, optional</span>
+<span class="sd">        Fraction of the median non-empty cell count below which a cell is</span>
+<span class="sd">        considered sparse.</span>
+<span class="sd">    min_count : int, optional</span>
+<span class="sd">        Lower bound of the sparse-cell count cutoff.</span>
+<span class="sd">    max_count : int, optional</span>
+<span class="sd">        Upper bound of the sparse-cell count cutoff.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    s_index : ndarray</span>
+<span class="sd">        Along-tract assignment for each bundle point.</span>
+<span class="sd">    r_index : ndarray</span>
+<span class="sd">        Radial assignment for each bundle point.</span>
+<span class="sd">    s_distance : ndarray</span>
+<span class="sd">        Distance from each bundle point to the nearest centroid point.</span>
+<span class="sd">    valid_mask : ndarray</span>
+<span class="sd">        Boolean mask identifying points retained for profiling.</span>
+<span class="sd">    counts : ndarray</span>
+<span class="sd">        Number of points in each SPECTRA grid cell.</span>
+
+<span class="sd">    """</span>
+    <span class="n">bundle</span> <span class="o">=</span> <span class="n">_as_streamlines</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Bundle contains no streamlines"</span><span class="p">)</span>
+
+    <span class="n">points</span> <span class="o">=</span> <span class="n">bundle</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+    <span class="n">n_segments</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">centroid</span><span class="p">)</span>
+    <span class="n">n_radial</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">radial_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">cKDTree</span><span class="p">(</span><span class="n">centroid</span><span class="p">,</span> <span class="n">copy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">s_distance</span><span class="p">,</span> <span class="n">s_index</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">points</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">[</span><span class="n">s_index</span><span class="p">]</span>
+    <span class="n">radial_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">delta</span> <span class="o">*</span> <span class="n">radial_vectors</span><span class="p">[</span><span class="n">s_index</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">r_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">radial_distance</span><span class="p">,</span> <span class="n">radial_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">valid_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">r_index</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">r_index</span> <span class="o">&lt;</span> <span class="n">n_radial</span><span class="p">)</span>
+    <span class="n">r_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">r_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n_radial</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">bin_ids</span> <span class="o">=</span> <span class="n">s_index</span> <span class="o">*</span> <span class="n">n_radial</span> <span class="o">+</span> <span class="n">r_index</span>
+    <span class="n">counts_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">bin_ids</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_segments</span> <span class="o">*</span> <span class="n">n_radial</span><span class="p">)</span>
+    <span class="n">nonzero</span> <span class="o">=</span> <span class="n">counts_flat</span><span class="p">[</span><span class="n">counts_flat</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">nonzero</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+        <span class="n">sparse_threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">nonzero</span><span class="p">)</span> <span class="o">*</span> <span class="n">mask_threshold</span><span class="p">,</span> <span class="n">min_count</span><span class="p">,</span> <span class="n">max_count</span>
+        <span class="p">)</span>
+        <span class="n">sparse_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">counts_flat</span> <span class="o">&lt;</span> <span class="n">sparse_threshold</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sparse_bins</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="n">valid_mask</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">bin_ids</span><span class="p">,</span> <span class="n">sparse_bins</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">counts_flat</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_segments</span><span class="p">,</span> <span class="n">n_radial</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s_index</span><span class="p">,</span> <span class="n">r_index</span><span class="p">,</span> <span class="n">s_distance</span><span class="p">,</span> <span class="n">valid_mask</span><span class="p">,</span> <span class="n">counts</span></div>
+
+
+
+<div class="viewcode-block" id="SpectraGrid">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.SpectraGrid">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SpectraGrid</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""SPECTRA grid defined by an atlas bundle.</span>
+
+<span class="sd">    See :footcite:p:`Feng2026SPECTRA` for further details about the method.</span>
+
+<span class="sd">    The grid is built once from the atlas bundle and can then be applied to</span>
+<span class="sd">    any number of subject bundles, so users do not have to carry the centroid,</span>
+<span class="sd">    radial vectors and radial edges between function calls.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    atlas_bundle : Streamlines</span>
+<span class="sd">        Atlas or template bundle used to define the grid.</span>
+<span class="sd">    segment_length : float, optional</span>
+<span class="sd">        Desired along-tract segment length in millimeters.</span>
+<span class="sd">    radial_length : float, optional</span>
+<span class="sd">        Desired radial-bin width in millimeters.</span>
+<span class="sd">    n_segments : int, optional</span>
+<span class="sd">        Number of along-tract segments.</span>
+<span class="sd">    n_radial : int, optional</span>
+<span class="sd">        Number of radial bins. If ``n_segments`` is given without</span>
+<span class="sd">        ``n_radial``, a single radial bin is used (1D profile).</span>
+<span class="sd">    threshold : float, optional</span>
+<span class="sd">        QuickBundles threshold used to estimate the atlas centroid.</span>
+<span class="sd">    use_robust_centroid : bool, optional</span>
+<span class="sd">        If True, use an extended centroid that covers the bundle endpoints.</span>
+<span class="sd">    robust_method : {"linear", "spline"}, optional</span>
+<span class="sd">        Endpoint extension method used by ``compute_robust_centroid``.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    centroid : ndarray, shape (n_segments, 3)</span>
+<span class="sd">        Atlas centroid.</span>
+<span class="sd">    radial_vectors : ndarray, shape (n_segments, 3)</span>
+<span class="sd">        Radial direction at each along-tract segment.</span>
+<span class="sd">    radial_edges : ndarray, shape (n_radial + 1,)</span>
+<span class="sd">        Radial-bin boundaries.</span>
+<span class="sd">    n_segments : int</span>
+<span class="sd">        Number of along-tract segments.</span>
+<span class="sd">    n_radial : int</span>
+<span class="sd">        Number of radial bins.</span>
+<span class="sd">    segment_length_actual : float</span>
+<span class="sd">        Mean spacing between neighboring centroid points.</span>
+<span class="sd">    radial_length_actual : float</span>
+<span class="sd">        Mean radial-bin width.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">atlas_bundle</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">segment_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+        <span class="n">radial_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+        <span class="n">n_segments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_radial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">threshold</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+        <span class="n">use_robust_centroid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">robust_method</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="p">(</span>
+            <span class="n">_</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centroid</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">radial_vectors</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">radial_edges</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">segment_length_actual</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">radial_length_actual</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">get_grid_from_atlas</span><span class="p">(</span>
+            <span class="n">atlas_bundle</span><span class="p">,</span>
+            <span class="n">segment_length</span><span class="o">=</span><span class="n">segment_length</span><span class="p">,</span>
+            <span class="n">radial_length</span><span class="o">=</span><span class="n">radial_length</span><span class="p">,</span>
+            <span class="n">n_segments</span><span class="o">=</span><span class="n">n_segments</span><span class="p">,</span>
+            <span class="n">n_radial</span><span class="o">=</span><span class="n">n_radial</span><span class="p">,</span>
+            <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+            <span class="n">use_robust_centroid</span><span class="o">=</span><span class="n">use_robust_centroid</span><span class="p">,</span>
+            <span class="n">robust_method</span><span class="o">=</span><span class="n">robust_method</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_segments</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centroid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_radial</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">radial_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="SpectraGrid.assign">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.SpectraGrid.assign">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Assign bundle points to the grid.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bundle : Streamlines</span>
+<span class="sd">            Subject bundle in the same space as the atlas bundle.</span>
+<span class="sd">        **kwargs : dict, optional</span>
+<span class="sd">            Sparse-cell masking options passed to ``parameterize_bundle``</span>
+<span class="sd">            (``mask_threshold``, ``min_count``, ``max_count``).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        s_index, r_index, s_distance, valid_mask, counts</span>
+<span class="sd">            See ``parameterize_bundle``.</span>
+
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">parameterize_bundle</span><span class="p">(</span>
+            <span class="n">bundle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radial_vectors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radial_edges</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SpectraGrid.profile">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.SpectraGrid.profile">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">orig_bundle</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Create a two-dimensional SPECTRA profile of a subject bundle.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bundle : Streamlines</span>
+<span class="sd">            Subject bundle in the atlas space. Used for grid assignment.</span>
+<span class="sd">        orig_bundle : Streamlines</span>
+<span class="sd">            Corresponding subject bundle in native/world space. Must</span>
+<span class="sd">            correspond point-for-point to ``bundle``.</span>
+<span class="sd">        metric : ndarray</span>
+<span class="sd">            3D scalar volume sampled along ``orig_bundle``.</span>
+<span class="sd">        affine : ndarray, shape (4, 4)</span>
+<span class="sd">            Voxel-to-world affine of ``metric``.</span>
+<span class="sd">        **kwargs : dict, optional</span>
+<span class="sd">            Sparse-cell masking options passed to ``parameterize_bundle``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        profile : ndarray, shape (n_segments, n_radial)</span>
+<span class="sd">            Mean metric value in each grid cell.</span>
+
+<span class="sd">        """</span>
+        <span class="n">bundle</span> <span class="o">=</span> <span class="n">_as_streamlines</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+        <span class="n">orig_bundle</span> <span class="o">=</span> <span class="n">_as_streamlines</span><span class="p">(</span><span class="n">orig_bundle</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">orig_bundle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"One of the bundles contains no streamlines"</span><span class="p">)</span>
+
+        <span class="n">s_index</span><span class="p">,</span> <span class="n">r_index</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">valid_mask</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">grid_profile</span><span class="p">(</span>
+            <span class="n">orig_bundle</span><span class="p">,</span>
+            <span class="n">s_index</span><span class="p">,</span>
+            <span class="n">r_index</span><span class="p">,</span>
+            <span class="n">valid_mask</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_segments</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_radial</span><span class="p">,</span>
+            <span class="n">metric</span><span class="p">,</span>
+            <span class="n">affine</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="spectra_assignment_map">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.spectra_assignment_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">spectra_assignment_map</span><span class="p">(</span>
+    <span class="n">target_bundle</span><span class="p">,</span>
+    <span class="n">model_bundle</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">segment_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">radial_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">n_segments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_radial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+    <span class="n">use_robust_centroid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">robust_method</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Assign bundle points to an atlas-defined SPECTRA grid.</span>
+
+<span class="sd">    See :footcite:p:`Feng2026SPECTRA` for further details about the method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    target_bundle : Streamlines</span>
+<span class="sd">        Subject bundle in common space.</span>
+<span class="sd">    model_bundle : Streamlines</span>
+<span class="sd">        Atlas bundle used to define the SPECTRA grid.</span>
+<span class="sd">    segment_length : float, optional</span>
+<span class="sd">        Desired along-tract segment length in millimeters.</span>
+<span class="sd">    radial_length : float, optional</span>
+<span class="sd">        Desired radial-bin width in millimeters.</span>
+<span class="sd">    n_segments : int, optional</span>
+<span class="sd">        Number of along-tract segments.</span>
+<span class="sd">    n_radial : int, optional</span>
+<span class="sd">        Number of radial bins.</span>
+<span class="sd">    threshold : float, optional</span>
+<span class="sd">        QuickBundles threshold used to estimate the atlas centroid.</span>
+<span class="sd">    use_robust_centroid : bool, optional</span>
+<span class="sd">        If True, use an extended centroid that covers the bundle endpoints.</span>
+<span class="sd">    robust_method : {"linear", "spline"}, optional</span>
+<span class="sd">        Endpoint extension method used by ``compute_robust_centroid``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    s_index : ndarray</span>
+<span class="sd">        Along-tract assignment for each target-bundle point.</span>
+<span class="sd">    r_index : ndarray</span>
+<span class="sd">        Radial assignment for each target-bundle point.</span>
+<span class="sd">    s_distance : ndarray</span>
+<span class="sd">        Distance from each target-bundle point to the nearest centroid point.</span>
+<span class="sd">    valid_mask : ndarray</span>
+<span class="sd">        Boolean mask identifying points retained for profiling.</span>
+<span class="sd">    counts : ndarray</span>
+<span class="sd">        Number of points in each SPECTRA grid cell.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+
+<span class="sd">    """</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">SpectraGrid</span><span class="p">(</span>
+        <span class="n">model_bundle</span><span class="p">,</span>
+        <span class="n">segment_length</span><span class="o">=</span><span class="n">segment_length</span><span class="p">,</span>
+        <span class="n">radial_length</span><span class="o">=</span><span class="n">radial_length</span><span class="p">,</span>
+        <span class="n">n_segments</span><span class="o">=</span><span class="n">n_segments</span><span class="p">,</span>
+        <span class="n">n_radial</span><span class="o">=</span><span class="n">n_radial</span><span class="p">,</span>
+        <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+        <span class="n">use_robust_centroid</span><span class="o">=</span><span class="n">use_robust_centroid</span><span class="p">,</span>
+        <span class="n">robust_method</span><span class="o">=</span><span class="n">robust_method</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">grid</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">target_bundle</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="grid_profile">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.grid_profile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">grid_profile</span><span class="p">(</span>
+    <span class="n">orig_bundle</span><span class="p">,</span>
+    <span class="n">s_index</span><span class="p">,</span>
+    <span class="n">r_index</span><span class="p">,</span>
+    <span class="n">valid_mask</span><span class="p">,</span>
+    <span class="n">n_segments</span><span class="p">,</span>
+    <span class="n">n_radial</span><span class="p">,</span>
+    <span class="n">metric</span><span class="p">,</span>
+    <span class="n">affine</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Compute mean metric values within a SPECTRA grid.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orig_bundle : Streamlines</span>
+<span class="sd">        Subject bundle in the metric volume's world space.</span>
+<span class="sd">    s_index : ndarray</span>
+<span class="sd">        Along-tract assignment for each bundle point.</span>
+<span class="sd">    r_index : ndarray</span>
+<span class="sd">        Radial assignment for each bundle point.</span>
+<span class="sd">    valid_mask : ndarray</span>
+<span class="sd">        Boolean mask identifying points retained for profiling.</span>
+<span class="sd">    n_segments : int</span>
+<span class="sd">        Number of along-tract segments.</span>
+<span class="sd">    n_radial : int</span>
+<span class="sd">        Number of radial bins.</span>
+<span class="sd">    metric : ndarray</span>
+<span class="sd">        3D scalar volume sampled along the bundle.</span>
+<span class="sd">    affine : ndarray, shape (4, 4)</span>
+<span class="sd">        Voxel-to-world affine of ``metric``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    profile : ndarray, shape (n_segments, n_radial)</span>
+<span class="sd">        Mean metric value in each SPECTRA grid cell.</span>
+
+<span class="sd">    """</span>
+    <span class="n">orig_bundle</span> <span class="o">=</span> <span class="n">_as_streamlines</span><span class="p">(</span><span class="n">orig_bundle</span><span class="p">)</span>
+    <span class="n">affine_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">affine</span><span class="p">)</span>
+    <span class="n">transformed_orig_bundle</span> <span class="o">=</span> <span class="n">Streamlines</span><span class="p">(</span><span class="n">transform_streamlines</span><span class="p">(</span><span class="n">orig_bundle</span><span class="p">,</span> <span class="n">affine_r</span><span class="p">))</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">map_coordinates</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">transformed_orig_bundle</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">valid_mask</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">s_valid</span> <span class="o">=</span> <span class="n">s_index</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+    <span class="n">r_valid</span> <span class="o">=</span> <span class="n">r_index</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+    <span class="n">values_valid</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+    <span class="n">bin_ids</span> <span class="o">=</span> <span class="n">s_valid</span> <span class="o">*</span> <span class="n">n_radial</span> <span class="o">+</span> <span class="n">r_valid</span>
+
+    <span class="n">metric_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span>
+        <span class="n">bin_ids</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">values_valid</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_segments</span> <span class="o">*</span> <span class="n">n_radial</span>
+    <span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">bin_ids</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_segments</span> <span class="o">*</span> <span class="n">n_radial</span><span class="p">)</span>
+
+    <span class="n">profile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_segments</span> <span class="o">*</span> <span class="n">n_radial</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">occupied</span> <span class="o">=</span> <span class="n">counts</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">profile</span><span class="p">[</span><span class="n">occupied</span><span class="p">]</span> <span class="o">=</span> <span class="n">metric_sum</span><span class="p">[</span><span class="n">occupied</span><span class="p">]</span> <span class="o">/</span> <span class="n">counts</span><span class="p">[</span><span class="n">occupied</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">profile</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_segments</span><span class="p">,</span> <span class="n">n_radial</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="spectra_profile">
+<a class="viewcode-back" href="../../../reference/dipy.stats.html#dipy.stats.analysis.spectra_profile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">spectra_profile</span><span class="p">(</span>
+    <span class="n">model_bundle</span><span class="p">,</span>
+    <span class="n">bundle</span><span class="p">,</span>
+    <span class="n">orig_bundle</span><span class="p">,</span>
+    <span class="n">metric</span><span class="p">,</span>
+    <span class="n">affine</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">segment_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">radial_length</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">n_segments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_radial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+    <span class="n">use_robust_centroid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">robust_method</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Create a two-dimensional SPECTRA bundle profile.</span>
+
+<span class="sd">    See :footcite:p:`Feng2026SPECTRA` for further details about the method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model_bundle : Streamlines</span>
+<span class="sd">        Atlas bundle used to define the SPECTRA grid. Must be in the same</span>
+<span class="sd">        space as ``bundle``.</span>
+<span class="sd">    bundle : Streamlines</span>
+<span class="sd">        Subject bundle in common space. Used for SPECTRA grid assignment.</span>
+<span class="sd">    orig_bundle : Streamlines</span>
+<span class="sd">        Corresponding subject bundle in native/world space. Must correspond</span>
+<span class="sd">        point-for-point to ``bundle``.</span>
+<span class="sd">    metric : ndarray</span>
+<span class="sd">        3D scalar volume sampled along ``orig_bundle``.</span>
+<span class="sd">    affine : ndarray, shape (4, 4)</span>
+<span class="sd">        Voxel-to-world affine of ``metric``.</span>
+<span class="sd">    segment_length : float, optional</span>
+<span class="sd">        Desired along-tract segment length in millimeters.</span>
+<span class="sd">    radial_length : float, optional</span>
+<span class="sd">        Desired radial-bin width in millimeters.</span>
+<span class="sd">    n_segments : int, optional</span>
+<span class="sd">        Number of along-tract segments.</span>
+<span class="sd">    n_radial : int, optional</span>
+<span class="sd">        Number of radial bins.</span>
+<span class="sd">    threshold : float, optional</span>
+<span class="sd">        QuickBundles threshold used to estimate the atlas centroid.</span>
+<span class="sd">    use_robust_centroid : bool, optional</span>
+<span class="sd">        If True, use an extended centroid that covers the bundle endpoints.</span>
+<span class="sd">    robust_method : {"linear", "spline"}, optional</span>
+<span class="sd">        Endpoint extension method used by ``compute_robust_centroid``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    profile : ndarray</span>
+<span class="sd">        Two-dimensional bundle profile with shape ``(n_segments, n_radial)``.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+
+<span class="sd">    """</span>
+    <span class="n">model_bundle</span> <span class="o">=</span> <span class="n">_as_streamlines</span><span class="p">(</span><span class="n">model_bundle</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_bundle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"One of the bundles contains no streamlines"</span><span class="p">)</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">SpectraGrid</span><span class="p">(</span>
+        <span class="n">model_bundle</span><span class="p">,</span>
+        <span class="n">segment_length</span><span class="o">=</span><span class="n">segment_length</span><span class="p">,</span>
+        <span class="n">radial_length</span><span class="o">=</span><span class="n">radial_length</span><span class="p">,</span>
+        <span class="n">n_segments</span><span class="o">=</span><span class="n">n_segments</span><span class="p">,</span>
+        <span class="n">n_radial</span><span class="o">=</span><span class="n">n_radial</span><span class="p">,</span>
+        <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+        <span class="n">use_robust_centroid</span><span class="o">=</span><span class="n">use_robust_centroid</span><span class="p">,</span>
+        <span class="n">robust_method</span><span class="o">=</span><span class="n">robust_method</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">grid</span><span class="o">.</span><span class="n">profile</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">orig_bundle</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span></div>
 
 
 
