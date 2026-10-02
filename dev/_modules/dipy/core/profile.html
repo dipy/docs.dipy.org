@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.core.profile &#8212; dipy 1.13.0.dev0+git20261002.ea57be4 documentation</title>
+    <title>dipy.core.profile &#8212; dipy 1.13.0.dev0+git20261002.1b6a153 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=87f531cc"></script>
+    <script src="../../../_static/documentation_options.js?v=130ca3bc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,12 +883,15 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.core.profile</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Class for profiling cython code"""</span>
+<span></span><span class="sd">"""Deprecated. Class for profiling cython code, removed in DIPY 2.0.</span>
+
+<span class="sd">Use the ``spin profile`` developer command instead.</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecate_with_version</span><span class="p">,</span> <span class="n">warning_for_keywords</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
@@ -899,12 +902,17 @@ document.write(`
     <span class="s2">"part of the python-profiler package in "</span>
     <span class="s2">"Debian/Ubuntu"</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="n">pyximport</span><span class="p">,</span> <span class="n">have_pyximport</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"pyximport"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Profiler">
 <a class="viewcode-back" href="../../../reference/dipy.core.html#dipy.core.profile.Profiler">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Profiler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Profile python/cython files or functions</span>
+
+<span class="sd">    .. deprecated:: 1.13.0</span>
+<span class="sd">        ``dipy.core.profile`` is removed in 2.0.0. Use ``spin profile``</span>
+<span class="sd">        from a source checkout instead.</span>
 
 <span class="sd">    If you are profiling cython code you need to add</span>
 <span class="sd">    # cython: profile=True on the top of your .pyx file</span>
@@ -941,10 +949,17 @@ document.write(`
 
 <span class="sd">    """</span>
 
+    <span class="nd">@deprecate_with_version</span><span class="p">(</span>
+        <span class="s2">"dipy.core.profile.Profiler is deprecated and is removed in DIPY 2.0.0. "</span>
+        <span class="s2">"Use the `spin profile` developer command instead."</span><span class="p">,</span>
+        <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span>
+        <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="c1"># Delay import until use of class instance.  We were getting some very</span>
-        <span class="c1"># odd build-as-we-go errors running tests and documentation otherwise</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">pyximport</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">have_pyximport</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">"pyximport (Cython) is required by dipy.core.profile.Profiler."</span>
+            <span class="p">)</span>
 
         <span class="n">pyximport</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
 

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.core.histeq &#8212; dipy 1.13.0.dev0+git20261002.ea57be4 documentation</title>
+    <title>dipy.utils.histeq &#8212; dipy 1.13.0.dev0+git20261002.1b6a153 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=87f531cc"></script>
+    <script src="../../../_static/documentation_options.js?v=130ca3bc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -56,7 +56,7 @@
                 gtag('js', new Date());
                 gtag('config', 'G-D610GKJZRC');
             </script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/core/histeq';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dipy/utils/histeq';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.dipy.org/dev/_static/version_switcher.json';
@@ -865,7 +865,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../../dipy.html" class="nav-link">dipy</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">dipy.core.histeq</li>
+    <li class="breadcrumb-item active" aria-current="page">dipy.utils.histeq</li>
   </ul>
 </nav>
 </div>
@@ -882,8 +882,10 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for dipy.core.histeq</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+  <h1>Source code for dipy.utils.histeq</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Histogram equalization."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
 
@@ -900,7 +902,7 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    arr : ndarray</span>
 <span class="sd">        Image on which to perform histogram equalization.</span>
-<span class="sd">    num_bins : int</span>
+<span class="sd">    num_bins : int, optional</span>
 <span class="sd">        Number of bins used to construct the histogram.</span>
 
 <span class="sd">    Returns</span>
@@ -908,12 +910,9 @@ document.write(`
 <span class="sd">    result : ndarray</span>
 <span class="sd">        Histogram equalized image.</span>
 <span class="sd">    """</span>
-    <span class="c1"># get image histogram</span>
     <span class="n">histo</span><span class="p">,</span> <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">num_bins</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">cdf</span> <span class="o">=</span> <span class="n">histo</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
     <span class="n">cdf</span> <span class="o">=</span> <span class="mi">255</span> <span class="o">*</span> <span class="n">cdf</span> <span class="o">/</span> <span class="n">cdf</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-    <span class="c1"># use linear interpolation of cdf to find new pixel values</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">cdf</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
