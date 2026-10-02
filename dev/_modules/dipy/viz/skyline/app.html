@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261002.3aa2deb documentation</title>
+    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261002.745bdf8 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=c79fa94c"></script>
+    <script src="../../../../_static/documentation_options.js?v=e43634fd"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -900,7 +900,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">UIWindow</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.theme</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGO_SMALL</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.compute</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_async_callbacks</span><span class="p">,</span> <span class="n">run_async</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">SH_BASES</span><span class="p">,</span> <span class="n">load_files</span>
 
 <span class="n">fury_trip_msg</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">"Skyline requires Fury version 2.0.0 or higher."</span>
@@ -955,8 +955,8 @@ document.write(`
 <span class="sd">        Already-loaded image data to show at startup, as ``(data, affine)``</span>
 <span class="sd">        or ``(data, affine, filename)`` tuples.</span>
 <span class="sd">    peaks : list of tuple, optional</span>
-<span class="sd">        Already-loaded peak data to show at startup, as ``(pam,)`` or</span>
-<span class="sd">        ``(pam, filename)`` tuples, where ``pam`` is a ``PeaksAndMetrics``.</span>
+<span class="sd">        (peak_dirs, affine, filename, peak_values) tuples; see</span>
+<span class="sd">        `create_peak_visualization`.</span>
 <span class="sd">    rois : list of tuple, optional</span>
 <span class="sd">        Already-loaded ROI data to show at startup, as ``(roi, affine)`` or</span>
 <span class="sd">        ``(roi, affine, filename)`` tuples.</span>
@@ -973,6 +973,9 @@ document.write(`
 <span class="sd">        startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
 <span class="sd">        ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
 <span class="sd">        be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
+<span class="sd">    sh_basis : str, optional</span>
+<span class="sd">        SH basis of NIfTI ODFs: ``"descoteaux07"`` (DIPY legacy) or</span>
+<span class="sd">        ``"tournier07"`` (MRtrix3).</span>
 <span class="sd">    is_cluster : bool, optional</span>
 <span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>
@@ -1016,6 +1019,9 @@ document.write(`
 <span class="sd">        exists, the file dialog opens on start.</span>
 <span class="sd">    initial_rois : list of str, optional</span>
 <span class="sd">        ROI file paths loaded asynchronously into the viewer on startup.</span>
+<span class="sd">    initial_peaks : list of str, optional</span>
+<span class="sd">        List of ``.pam5`` or NIfTI (.nii, .nii.gz) peak file paths to load</span>
+<span class="sd">        into the Skyline viewer on startup.</span>
 <span class="sd">    initial_shm_coeffs : list of str, optional</span>
 <span class="sd">        Spherical harmonic coefficient file paths loaded asynchronously</span>
 <span class="sd">        into the viewer on startup.</span>
@@ -1037,6 +1043,7 @@ document.write(`
         <span class="n">surfaces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">tractograms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">sh_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sh_basis</span><span class="o">=</span><span class="s2">"descoteaux07"</span><span class="p">,</span>
         <span class="n">is_cluster</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">is_light_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">glass_brain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1049,6 +1056,7 @@ document.write(`
         <span class="n">rgb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">initial_filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">initial_rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">initial_peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">initial_shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">out_stealth_png</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1074,8 +1082,8 @@ document.write(`
 <span class="sd">            Already-loaded image data to show at startup, as ``(data, affine)``</span>
 <span class="sd">            or ``(data, affine, filename)`` tuples.</span>
 <span class="sd">        peaks : list of tuple, optional</span>
-<span class="sd">            Already-loaded peak data to show at startup, as ``(pam,)`` or</span>
-<span class="sd">            ``(pam, filename)`` tuples, where ``pam`` is a ``PeaksAndMetrics``.</span>
+<span class="sd">            (peak_dirs, affine, filename, peak_values) tuples; see</span>
+<span class="sd">            `create_peak_visualization`.</span>
 <span class="sd">        rois : list of tuple, optional</span>
 <span class="sd">            Already-loaded ROI data to show at startup, as ``(roi, affine)`` or</span>
 <span class="sd">            ``(roi, affine, filename)`` tuples.</span>
@@ -1092,6 +1100,9 @@ document.write(`
 <span class="sd">            startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
 <span class="sd">            ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
 <span class="sd">            be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
+<span class="sd">        sh_basis : str, optional</span>
+<span class="sd">            SH basis of NIfTI ODFs: ``"descoteaux07"`` (DIPY legacy) or</span>
+<span class="sd">            ``"tournier07"`` (MRtrix3).</span>
 <span class="sd">        is_cluster : bool, optional</span>
 <span class="sd">            Whether to cluster the tractograms.</span>
 <span class="sd">        is_light_version : bool, optional</span>
@@ -1135,6 +1146,9 @@ document.write(`
 <span class="sd">            exists, the file dialog opens on start.</span>
 <span class="sd">        initial_rois : list of str, optional</span>
 <span class="sd">            ROI file paths loaded asynchronously into the viewer on startup.</span>
+<span class="sd">        initial_peaks : list of str, optional</span>
+<span class="sd">            List of ``.pam5`` or NIfTI (.nii, .nii.gz) peak file paths to load</span>
+<span class="sd">            into the Skyline viewer on startup.</span>
 <span class="sd">        initial_shm_coeffs : list of str, optional</span>
 <span class="sd">            Spherical harmonic coefficient file paths loaded asynchronously</span>
 <span class="sd">            into the viewer on startup.</span>
@@ -1145,6 +1159,8 @@ document.write(`
 <span class="sd">            Output image name, without extension, used as the stealth window</span>
 <span class="sd">            title. Used only when ``visualizer_type`` is ``"stealth"``.</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">sh_basis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SH_BASES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sh_basis must be one of </span><span class="si">{</span><span class="n">SH_BASES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">sh_basis</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">=</span> <span class="n">visualizer_type</span>
@@ -1154,6 +1170,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_size_thr</span> <span class="o">=</span> <span class="n">cluster_size_thr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_length_thr</span> <span class="o">=</span> <span class="n">cluster_length_thr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buan_pvals</span> <span class="o">=</span> <span class="n">buan_pvals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span> <span class="o">=</span> <span class="n">sh_basis</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">!=</span> <span class="s2">"stealth"</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FURY_OFFSCREEN"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"0"</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">create_window</span><span class="p">(</span>
@@ -1237,7 +1254,9 @@ document.write(`
             <span class="s2">"shm_coeffs"</span><span class="p">:</span> <span class="n">sh_coeffs</span> <span class="ow">or</span> <span class="p">[],</span>
         <span class="p">}</span>
         <span class="n">has_initial_visualizations</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">initial_loaded_files</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">has_initial_files</span> <span class="o">=</span> <span class="nb">any</span><span class="p">((</span><span class="n">initial_filenames</span><span class="p">,</span> <span class="n">initial_rois</span><span class="p">,</span> <span class="n">initial_shm_coeffs</span><span class="p">))</span>
+        <span class="n">has_initial_files</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">initial_filenames</span><span class="p">,</span> <span class="n">initial_rois</span><span class="p">,</span> <span class="n">initial_peaks</span><span class="p">,</span> <span class="n">initial_shm_coeffs</span><span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">has_initial_visualizations</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_queue_loaded_visualizations</span><span class="p">(</span><span class="n">initial_loaded_files</span><span class="p">)</span>
@@ -1246,6 +1265,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">_append_visualization</span><span class="p">(</span>
                 <span class="n">filenames</span><span class="o">=</span><span class="n">initial_filenames</span><span class="p">,</span>
                 <span class="n">rois</span><span class="o">=</span><span class="n">initial_rois</span><span class="p">,</span>
+                <span class="n">peaks</span><span class="o">=</span><span class="n">initial_peaks</span><span class="p">,</span>
                 <span class="n">shm_coeffs</span><span class="o">=</span><span class="n">initial_shm_coeffs</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">has_initial_visualizations</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1786,7 +1806,8 @@ document.write(`
 <span class="sd">            Loaded image data, as ``(data, affine)`` or</span>
 <span class="sd">            ``(data, affine, filename)`` tuples.</span>
 <span class="sd">        peaks : list of tuple, optional</span>
-<span class="sd">            Loaded peak data, as ``(pam,)`` or ``(pam, filename)`` tuples.</span>
+<span class="sd">            (peak_dirs, affine, filename, peak_values) tuples; see</span>
+<span class="sd">            `create_peak_visualization`.</span>
 <span class="sd">        rois : list of tuple, optional</span>
 <span class="sd">            Loaded ROI data, as ``(roi, affine)`` or</span>
 <span class="sd">            ``(roi, affine, filename)`` tuples.</span>
@@ -1908,7 +1929,9 @@ document.write(`
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visualizations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_append_visualization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_append_visualization</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Load files from disk asynchronously and queue them for display.</span>
 
 <span class="sd">        Each path is loaded in its own background task via</span>
@@ -1922,18 +1945,31 @@ document.write(`
 <span class="sd">            Paths to images, peaks, surfaces, or tractograms to load.</span>
 <span class="sd">        rois : list of str, optional</span>
 <span class="sd">            Paths to ROI files to load.</span>
+<span class="sd">        peaks : list, optional</span>
+<span class="sd">            List of ``.pam5`` or NIfTI (.nii, .nii.gz) peak file paths.</span>
 <span class="sd">        shm_coeffs : list of str, optional</span>
 <span class="sd">            Paths to spherical harmonic coefficient files to load.</span>
 <span class="sd">        """</span>
-        <span class="n">total_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span> <span class="ow">or</span> <span class="p">[])</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">rois</span> <span class="ow">or</span> <span class="p">[])</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">shm_coeffs</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="n">total_files</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span> <span class="ow">or</span> <span class="p">[])</span>
+            <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">rois</span> <span class="ow">or</span> <span class="p">[])</span>
+            <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">peaks</span> <span class="ow">or</span> <span class="p">[])</span>
+            <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">shm_coeffs</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">total_files</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_loading_total</span> <span class="o">=</span> <span class="n">total_files</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loading_done</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">load_files_task</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">rois</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">load_files</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="n">rois</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="n">shm_coeffs</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">load_files_task</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">rois</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">load_files</span><span class="p">(</span>
+                <span class="n">filenames</span><span class="p">,</span>
+                <span class="n">rois</span><span class="o">=</span><span class="n">rois</span><span class="p">,</span>
+                <span class="n">peaks</span><span class="o">=</span><span class="n">peaks</span><span class="p">,</span>
+                <span class="n">shm_coeffs</span><span class="o">=</span><span class="n">shm_coeffs</span><span class="p">,</span>
+                <span class="n">sh_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span><span class="p">,</span>
+            <span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">on_files_loaded</span><span class="p">(</span><span class="n">loaded_files</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_loading_done</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -1947,6 +1983,7 @@ document.write(`
                 <span class="n">on_files_loaded</span><span class="p">,</span>
                 <span class="n">filenames</span><span class="o">=</span><span class="p">[</span><span class="n">filename</span><span class="p">],</span>
                 <span class="n">rois</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">peaks</span><span class="o">=</span><span class="p">[],</span>
                 <span class="n">shm_coeffs</span><span class="o">=</span><span class="p">[],</span>
             <span class="p">)</span>
         <span class="k">for</span> <span class="n">roi</span> <span class="ow">in</span> <span class="n">rois</span> <span class="ow">or</span> <span class="p">[]:</span>
@@ -1955,6 +1992,16 @@ document.write(`
                 <span class="n">on_files_loaded</span><span class="p">,</span>
                 <span class="n">filenames</span><span class="o">=</span><span class="p">[],</span>
                 <span class="n">rois</span><span class="o">=</span><span class="p">[</span><span class="n">roi</span><span class="p">],</span>
+                <span class="n">peaks</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">shm_coeffs</span><span class="o">=</span><span class="p">[],</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">peak</span> <span class="ow">in</span> <span class="n">peaks</span> <span class="ow">or</span> <span class="p">[]:</span>
+            <span class="n">run_async</span><span class="p">(</span>
+                <span class="n">load_files_task</span><span class="p">,</span>
+                <span class="n">on_files_loaded</span><span class="p">,</span>
+                <span class="n">filenames</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">rois</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">peaks</span><span class="o">=</span><span class="p">[</span><span class="n">peak</span><span class="p">],</span>
                 <span class="n">shm_coeffs</span><span class="o">=</span><span class="p">[],</span>
             <span class="p">)</span>
         <span class="k">for</span> <span class="n">shm</span> <span class="ow">in</span> <span class="n">shm_coeffs</span> <span class="ow">or</span> <span class="p">[]:</span>
@@ -1963,6 +2010,7 @@ document.write(`
                 <span class="n">on_files_loaded</span><span class="p">,</span>
                 <span class="n">filenames</span><span class="o">=</span><span class="p">[],</span>
                 <span class="n">rois</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">peaks</span><span class="o">=</span><span class="p">[],</span>
                 <span class="n">shm_coeffs</span><span class="o">=</span><span class="p">[</span><span class="n">shm</span><span class="p">],</span>
             <span class="p">)</span>
 
@@ -2214,7 +2262,9 @@ document.write(`
     <span class="n">fnames</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">sh_basis</span><span class="o">=</span><span class="s2">"descoteaux07"</span><span class="p">,</span>
     <span class="n">is_cluster</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">is_light_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">glass_brain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -2253,10 +2303,16 @@ document.write(`
 <span class="sd">        File paths for ROIs to be loaded into the Skyline viewer. Only</span>
 <span class="sd">        NIfTI images (.nii, .nii.gz) are supported; other extensions are</span>
 <span class="sd">        logged and skipped.</span>
+<span class="sd">    peaks : list, optional</span>
+<span class="sd">        Tuple of path for each peaks file (.pam5, or NIfTI with shape</span>
+<span class="sd">        (X, Y, Z, 3*N) or (X, Y, Z, N, 3)) to be added to the Skyline viewer.</span>
 <span class="sd">    shm_coeffs : list of str, optional</span>
 <span class="sd">        File paths for spherical harmonics coefficients to be loaded into</span>
 <span class="sd">        the Skyline viewer. Only ``.pam5`` files are supported; other</span>
 <span class="sd">        extensions are silently skipped.</span>
+<span class="sd">    sh_basis : str, optional</span>
+<span class="sd">        SH basis of NIfTI ODFs: 'descoteaux07' (DIPY legacy) or 'tournier07'</span>
+<span class="sd">        (MRtrix3).</span>
 <span class="sd">    is_cluster : bool, optional</span>
 <span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>
@@ -2316,7 +2372,9 @@ document.write(`
         <span class="n">visualizer_type</span><span class="o">=</span><span class="n">visualizer_type</span><span class="p">,</span>
         <span class="n">initial_filenames</span><span class="o">=</span><span class="n">fnames</span><span class="p">,</span>
         <span class="n">initial_rois</span><span class="o">=</span><span class="n">rois</span><span class="p">,</span>
+        <span class="n">initial_peaks</span><span class="o">=</span><span class="n">peaks</span><span class="p">,</span>
         <span class="n">initial_shm_coeffs</span><span class="o">=</span><span class="n">shm_coeffs</span><span class="p">,</span>
+        <span class="n">sh_basis</span><span class="o">=</span><span class="n">sh_basis</span><span class="p">,</span>
         <span class="n">is_cluster</span><span class="o">=</span><span class="n">is_cluster</span><span class="p">,</span>
         <span class="n">is_light_version</span><span class="o">=</span><span class="n">is_light_version</span><span class="p">,</span>
         <span class="n">glass_brain</span><span class="o">=</span><span class="n">glass_brain</span><span class="p">,</span>
@@ -2344,6 +2402,7 @@ document.write(`
     <span class="n">surfaces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">tractograms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">sh_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">sh_basis</span><span class="o">=</span><span class="s2">"descoteaux07"</span><span class="p">,</span>
     <span class="n">is_cluster</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">is_light_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">glass_brain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -2356,6 +2415,7 @@ document.write(`
     <span class="n">rgb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">initial_filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">initial_rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">initial_peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">initial_shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">out_stealth_png</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -2381,8 +2441,8 @@ document.write(`
 <span class="sd">        Already-loaded image data to show at startup, as ``(data, affine)``</span>
 <span class="sd">        or ``(data, affine, filename)`` tuples.</span>
 <span class="sd">    peaks : list of tuple, optional</span>
-<span class="sd">        Already-loaded peak data to show at startup, as ``(pam,)`` or</span>
-<span class="sd">        ``(pam, filename)`` tuples, where ``pam`` is a ``PeaksAndMetrics``.</span>
+<span class="sd">        (peak_dirs, affine, filename, peak_values) tuples; see</span>
+<span class="sd">        `create_peak_visualization`.</span>
 <span class="sd">    rois : list of tuple, optional</span>
 <span class="sd">        Already-loaded ROI data to show at startup, as ``(roi, affine)`` or</span>
 <span class="sd">        ``(roi, affine, filename)`` tuples.</span>
@@ -2399,6 +2459,9 @@ document.write(`
 <span class="sd">        startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
 <span class="sd">        ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
 <span class="sd">        be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
+<span class="sd">    sh_basis : str, optional</span>
+<span class="sd">        SH basis of NIfTI ODFs: 'descoteaux07' (DIPY legacy) or 'tournier07'</span>
+<span class="sd">        (MRtrix3).</span>
 <span class="sd">    is_cluster : bool, optional</span>
 <span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>
@@ -2442,6 +2505,9 @@ document.write(`
 <span class="sd">        exists, the file dialog opens on start.</span>
 <span class="sd">    initial_rois : list of str, optional</span>
 <span class="sd">        ROI file paths loaded asynchronously into the viewer on startup.</span>
+<span class="sd">    initial_peaks : list, optional</span>
+<span class="sd">        List of ``.pam5`` or NIfTI (.nii, .nii.gz) peak file paths to load</span>
+<span class="sd">        into the Skyline viewer on startup.</span>
 <span class="sd">    initial_shm_coeffs : list of str, optional</span>
 <span class="sd">        Spherical harmonic coefficient file paths loaded asynchronously</span>
 <span class="sd">        into the viewer on startup.</span>
@@ -2478,7 +2544,9 @@ document.write(`
         <span class="n">rgb</span><span class="o">=</span><span class="n">rgb</span><span class="p">,</span>
         <span class="n">initial_filenames</span><span class="o">=</span><span class="n">initial_filenames</span><span class="p">,</span>
         <span class="n">initial_rois</span><span class="o">=</span><span class="n">initial_rois</span><span class="p">,</span>
+        <span class="n">initial_peaks</span><span class="o">=</span><span class="n">initial_peaks</span><span class="p">,</span>
         <span class="n">initial_shm_coeffs</span><span class="o">=</span><span class="n">initial_shm_coeffs</span><span class="p">,</span>
+        <span class="n">sh_basis</span><span class="o">=</span><span class="n">sh_basis</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span>
         <span class="n">out_stealth_png</span><span class="o">=</span><span class="n">out_stealth_png</span><span class="p">,</span>
     <span class="p">)</span></div>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.peak &#8212; dipy 1.13.0.dev0+git20261002.3aa2deb documentation</title>
+    <title>dipy.viz.skyline.render.peak &#8212; dipy 1.13.0.dev0+git20261002.745bdf8 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=c79fa94c"></script>
+    <script src="../../../../../_static/documentation_options.js?v=e43634fd"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -937,8 +937,8 @@ document.write(`
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    input : tuple</span>
-<span class="sd">        Tuple of the form ``(pam, filename)`` or ``(pam,)``, where ``pam``</span>
-<span class="sd">        is a :class:`~dipy.direction.peaks.PeaksAndMetrics` instance.</span>
+<span class="sd">        One of (peak_dirs, affine, filename, peak_values), (peak_dirs, affine,</span>
+<span class="sd">        filename) or (peak_dirs, affine). ``peak_values`` may be None.</span>
 <span class="sd">    idx : int</span>
 <span class="sd">        Index of the peak for naming purposes if filename is not provided.</span>
 <span class="sd">    opacity : int, optional</span>
@@ -958,27 +958,26 @@ document.write(`
 <span class="sd">    ValueError</span>
 <span class="sd">        If ``input`` is not a tuple of length 1 or 2.</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">"Input must be a tuple containing (pam, filename) or (pam,) "</span>
+            <span class="s2">"Input must be a tuple containing (peak_dirs, affine, filename, "</span>
+            <span class="s2">"peak_values), (peak_dirs, affine, filename), or (peak_dirs, affine) "</span>
             <span class="s2">"for peak visualization."</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">pam</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Peaks_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">pam</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span>
+    <span class="n">peak_dirs</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"Peaks_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">raw_values</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="n">peak_values</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="k">if</span> <span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span>
-        <span class="n">peak_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">raw_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">raw_values</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span>
+        <span class="n">peak_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">raw_values</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">Peak3D</span><span class="p">(</span>
         <span class="n">filename</span><span class="p">,</span>
-        <span class="n">pam</span><span class="o">.</span><span class="n">peak_dirs</span><span class="p">,</span>
-        <span class="n">affine</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span>
+        <span class="n">peak_dirs</span><span class="p">,</span>
+        <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span>
         <span class="n">peak_values</span><span class="o">=</span><span class="n">peak_values</span><span class="p">,</span>
         <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">,</span>
         <span class="n">render_callback</span><span class="o">=</span><span class="n">render_callback</span><span class="p">,</span>
