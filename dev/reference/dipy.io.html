@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>io &#8212; dipy 1.13.0.dev0+git20261005.981038a documentation</title>
+    <title>io &#8212; dipy 1.13.0.dev0+git20261006.19a5fc2 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=3034880f"></script>
+    <script src="../_static/documentation_options.js?v=e6ddf6fc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -965,7 +965,7 @@ key features of the HDF5 (hierarchical data format) API <a class="reference inte
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_nifti</span></code></a>(fname, *[, return_img, ...])</p></td>
 <td><p>Load data and other information from a nifti file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.io.image.save_nifti" title="dipy.io.image.save_nifti"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_nifti</span></code></a>(fname, data, affine, *[, hdr, dtype])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.io.image.save_nifti" title="dipy.io.image.save_nifti"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_nifti</span></code></a>(fname, data, affine, *[, hdr, ...])</p></td>
 <td><p>Save a data array into a nifti file.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.io.image.save_qa_metric" title="dipy.io.image.save_qa_metric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_qa_metric</span></code></a>(fname, xopt, fopt)</p></td>
@@ -1419,6 +1419,11 @@ option to False.</p>
 <dt><a class="reference internal" href="#dipy.io.image.load_nifti" title="dipy.io.image.load_nifti"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_nifti</span></code></a></dt><dd></dd>
 </dl>
 </div>
+<p class="rubric">Notes</p>
+<p>Structured RGB/RGBA data (NIfTI <code class="docutils literal notranslate"><span class="pre">DT_RGB24</span></code>/<code class="docutils literal notranslate"><span class="pre">DT_RGBA32</span></code>) is
+auto-unpacked into a plain array with an added trailing color-channel
+axis, and a <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code> is raised. Pass <code class="docutils literal notranslate"><span class="pre">as_ndarray=False</span></code> to skip
+this and receive the raw structured data.</p>
 </dd></dl>
 
 </section>
@@ -1458,6 +1463,13 @@ option to False.</p>
 <dt><a class="reference internal" href="#dipy.io.image.load_nifti_data" title="dipy.io.image.load_nifti_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_nifti_data</span></code></a></dt><dd></dd>
 </dl>
 </div>
+<p class="rubric">Notes</p>
+<p>Like <cite>load_nifti_data</cite>, structured RGB/RGBA data is unpacked into a
+numeric array with a trailing color-channel axis and a <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code>
+when <code class="docutils literal notranslate"><span class="pre">as_ndarray=True</span></code>. Pass <code class="docutils literal notranslate"><span class="pre">as_ndarray=False</span></code> to retain the raw
+proxy.</p>
+<p>The returned image is unchanged: <code class="docutils literal notranslate"><span class="pre">np.asanyarray(img.dataobj)</span></code> accesses
+its structured data, while <code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code> cannot cast it to float.</p>
 </dd></dl>
 
 </section>
@@ -1465,7 +1477,7 @@ option to False.</p>
 <h3>save_nifti<a class="headerlink" href="#save-nifti" title="Link to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="dipy.io.image.save_nifti">
-<span class="sig-prename descclassname"><span class="pre">dipy.io.image.</span></span><span class="sig-name descname"><span class="pre">save_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/io/image.html#save_nifti"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.io.image.save_nifti" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dipy.io.image.</span></span><span class="sig-name descname"><span class="pre">save_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_decfa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/io/image.html#save_nifti"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.io.image.save_nifti" title="Link to this definition">#</a></dt>
 <dd><p>Save a data array into a nifti file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1477,6 +1489,13 @@ option to False.</p>
 <dt><strong>affine</strong><span class="classifier">4x4 array</span></dt><dd><p>The affine transform associated with the file.</p>
 </dd>
 <dt><strong>hdr</strong><span class="classifier">nifti header, optional</span></dt><dd><p>May contain additional information to store in the file header.</p>
+</dd>
+<dt><strong>as_decfa</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, encode data as a DEC FA image via <code class="docutils literal notranslate"><span class="pre">dipy.io.utils.decfa</span></code>;
+<code class="docutils literal notranslate"><span class="pre">dtype</span></code> is ignored in this case.</p>
+</dd>
+<dt><strong>scale</strong><span class="classifier">bool or None, optional</span></dt><dd><p>When <code class="docutils literal notranslate"><span class="pre">as_decfa</span></code> is True, controls scaling from the 0-1 to the
+0-255 range. None enables scaling for float data. Scaling is ignored
+for integer data or when <code class="docutils literal notranslate"><span class="pre">as_decfa</span></code> is False.</p>
 </dd>
 </dl>
 </dd>
@@ -3659,8 +3678,8 @@ otherwise the input unchanged.</p>
 <dt><strong>img_orig</strong><span class="classifier">Nifti1Image class instance.</span></dt><dd><p>Contains encoding of the DEC FA image with a 4D volume of data, where
 the elements on the last dimension represent R, G and B components.</p>
 </dd>
-<dt><strong>scale: bool.</strong></dt><dd><p>Whether to scale the incoming data from the 0-1 to the 0-255 range
-expected in the output.</p>
+<dt><strong>scale: bool.</strong></dt><dd><p>Whether to scale data from the 0-1 to the 0-255 range.
+Ignored for integer data, which already represents channel values.</p>
 </dd>
 </dl>
 </dd>

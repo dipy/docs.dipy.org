@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.io &#8212; dipy 1.13.0.dev0+git20261005.981038a documentation</title>
+    <title>dipy.workflows.io &#8212; dipy 1.13.0.dev0+git20261006.19a5fc2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=3034880f"></script>
+    <script src="../../../_static/documentation_options.js?v=e6ddf6fc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -914,7 +914,7 @@ document.write(`
     <span class="n">tensor_to_pam</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_tractogram</span><span class="p">,</span> <span class="n">save_tractogram</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_filename_extension</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_rgb_dtype</span><span class="p">,</span> <span class="n">split_filename_extension</span><span class="p">,</span> <span class="n">unpack_rgb_array</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_sh_descoteaux_tournier</span><span class="p">,</span> <span class="n">order_from_ncoef</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_tensors</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamlinespeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">length</span>
@@ -959,6 +959,7 @@ document.write(`
     <span class="n">AFFINE</span> <span class="o">=</span> <span class="s2">"Affine matrix"</span>
     <span class="n">VOXEL_ORDER</span> <span class="o">=</span> <span class="s2">"Voxel order"</span>
     <span class="n">DATA_TYPE</span> <span class="o">=</span> <span class="s2">"Data type"</span>
+    <span class="n">COLOR_ENCODING</span> <span class="o">=</span> <span class="s2">"Color encoding"</span>
     <span class="n">DIMENSIONS</span> <span class="o">=</span> <span class="s2">"Dimensions"</span>
     <span class="n">VOXEL_SIZE</span> <span class="o">=</span> <span class="s2">"Voxel size"</span></div>
 
@@ -1073,19 +1074,13 @@ document.write(`
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">tab</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">'std dev:'</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">alignment_space</span><span class="si">}}{</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_print_volumetric_information</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">vox_sz</span><span class="p">,</span> <span class="n">affcodes</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_volumetric_information</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Print volumetric information.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    data : ndarray</span>
-<span class="sd">        Data whose properties are to be printed.</span>
-<span class="sd">    affine : ndarray</span>
-<span class="sd">        Affine matrix.</span>
-<span class="sd">    vox_sz : tuple</span>
-<span class="sd">        Voxel size.</span>
-<span class="sd">    affcodes : tuple</span>
-<span class="sd">        Voxel order (anatomical coordinate system).</span>
+<span class="sd">    img : nibabel.spatialimages.SpatialImage</span>
+<span class="sd">        Image whose metadata and voxel statistics are to be printed.</span>
 <span class="sd">    alignment_space : int</span>
 <span class="sd">        Character width for the property, value pair alignment.</span>
 <span class="sd">    tab : str</span>
@@ -1123,11 +1118,22 @@ document.write(`
         <span class="p">)</span>
 
     <span class="n">_print_property_information</span><span class="p">(</span>
-        <span class="n">VolumetricPropertyName</span><span class="o">.</span><span class="n">DIMENSIONS</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="n">VolumetricPropertyName</span><span class="o">.</span><span class="n">DIMENSIONS</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">alignment_space</span>
     <span class="p">)</span>
     <span class="n">_print_property_information</span><span class="p">(</span>
-        <span class="n">VolumetricPropertyName</span><span class="o">.</span><span class="n">DATA_TYPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="n">VolumetricPropertyName</span><span class="o">.</span><span class="n">DATA_TYPE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">get_data_dtype</span><span class="p">(),</span> <span class="n">alignment_space</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="n">has_rgb_dtype</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">):</span>
+        <span class="n">color_encoding</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">"RGB (DT_RGB24)"</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">get_data_dtype</span><span class="p">()</span><span class="o">.</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+            <span class="k">else</span> <span class="s2">"RGBA (DT_RGBA32)"</span>
+        <span class="p">)</span>
+        <span class="n">_print_property_information</span><span class="p">(</span>
+            <span class="n">VolumetricPropertyName</span><span class="o">.</span><span class="n">COLOR_ENCODING</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">color_encoding</span><span class="p">,</span> <span class="n">alignment_space</span>
+        <span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">unpack_rgb_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
         <span class="n">_print_voxel_information</span><span class="p">(</span><span class="s2">"Data"</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">alignment_space</span><span class="p">,</span> <span class="n">tab</span><span class="p">)</span>
@@ -1136,10 +1142,11 @@ document.write(`
 
     <span class="n">_print_property_information</span><span class="p">(</span>
         <span class="n">VolumetricPropertyName</span><span class="o">.</span><span class="n">VOXEL_ORDER</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-        <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">affcodes</span><span class="p">),</span>
+        <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="n">aff2axcodes</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">affine</span><span class="p">)),</span>
         <span class="n">alignment_space</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Affine matrix:</span><span class="se">\n</span><span class="si">{</span><span class="n">affine</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Affine matrix:</span><span class="se">\n</span><span class="si">{</span><span class="n">img</span><span class="o">.</span><span class="n">affine</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">vox_sz</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get_zooms</span><span class="p">()[:</span><span class="mi">3</span><span class="p">]</span>
     <span class="n">_print_property_information</span><span class="p">(</span>
         <span class="n">VolumetricPropertyName</span><span class="o">.</span><span class="n">VOXEL_SIZE</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">vox_sz</span><span class="p">)),</span>
@@ -1584,9 +1591,7 @@ document.write(`
             <span class="n">extension</span> <span class="o">=</span> <span class="n">extension</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="n">extension</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">".nii"</span><span class="p">,</span> <span class="s2">".nii.gz"</span><span class="p">]:</span>
-                <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">vox_sz</span><span class="p">,</span> <span class="n">affcodes</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span>
-                    <span class="n">input_path</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_voxsize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_coords</span><span class="o">=</span><span class="kc">True</span>
-                <span class="p">)</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">img</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">as_ndarray</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">apply_tab_offset</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span>
                     <span class="nb">max</span><span class="p">(</span>
                         <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
@@ -1598,10 +1603,7 @@ document.write(`
                     <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="n">_print_volumetric_information</span><span class="p">(</span>
-                    <span class="n">data</span><span class="p">,</span>
-                    <span class="n">affine</span><span class="p">,</span>
-                    <span class="n">vox_sz</span><span class="p">,</span>
-                    <span class="n">affcodes</span><span class="p">,</span>
+                    <span class="n">img</span><span class="p">,</span>
                     <span class="nb">max</span><span class="p">(</span>
                         <span class="n">vol_property_length</span><span class="p">,</span> <span class="n">stats_property_length</span><span class="p">,</span> <span class="n">pctl_property_length</span>
                     <span class="p">)</span>

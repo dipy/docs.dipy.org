@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.image &#8212; dipy 1.13.0.dev0+git20261005.981038a documentation</title>
+    <title>dipy.viz.skyline.render.image &#8212; dipy 1.13.0.dev0+git20261006.19a5fc2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=3034880f"></script>
+    <script src="../../../../../_static/documentation_options.js?v=e6ddf6fc"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -885,6 +885,7 @@ document.write(`
   <h1>Source code for dipy.viz.skyline.render.image</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""NIfTI-backed volume slicers with linked UI controls for Skyline."""</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_rgb_dtype</span><span class="p">,</span> <span class="n">is_rgb_compatible_data</span><span class="p">,</span> <span class="n">unpack_rgb_array</span>
@@ -952,8 +953,8 @@ document.write(`
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    input : tuple</span>
-<span class="sd">        Tuple of ``(data, affine, filename)`` or ``(data, affine)`` holding</span>
-<span class="sd">        an already-loaded image volume, its affine, and an optional filename.</span>
+<span class="sd">        Tuple of ``(data, affine, filename)`` or ``(data, affine)`` where</span>
+<span class="sd">        ``data`` is a nibabel image or ndarray. The filename is a display label.</span>
 <span class="sd">    idx : int</span>
 <span class="sd">        Index of the image for naming purposes when filename is not provided.</span>
 <span class="sd">    interpolation : str, optional</span>
@@ -1026,10 +1027,10 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    name : str</span>
 <span class="sd">        Display name used in the Skyline UI.</span>
-<span class="sd">    volume : ndarray</span>
-<span class="sd">        Input image volume with shape ``(X, Y, Z)`` or ``(X, Y, Z, N)``.</span>
+<span class="sd">    volume : nibabel.spatialimages.SpatialImage or ndarray</span>
+<span class="sd">        Input image or array with shape ``(X, Y, Z)`` or ``(X, Y, Z, N)``.</span>
 <span class="sd">    affine : ndarray, optional</span>
-<span class="sd">        Voxel-to-world affine used to position slices in world coordinates.</span>
+<span class="sd">        Rendering affine; uses the image affine when omitted for image inputs.</span>
 <span class="sd">    interpolation : str, optional</span>
 <span class="sd">        Slice interpolation mode (``"linear"`` or ``"nearest"``).</span>
 <span class="sd">    render_callback : callable, optional</span>
@@ -1069,10 +1070,10 @@ document.write(`
 <span class="sd">        ----------</span>
 <span class="sd">        name : str</span>
 <span class="sd">            Display name used in the Skyline UI.</span>
-<span class="sd">        volume : ndarray</span>
-<span class="sd">            Input image volume with shape ``(X, Y, Z)`` or ``(X, Y, Z, N)``.</span>
+<span class="sd">        volume : nibabel.spatialimages.SpatialImage or ndarray</span>
+<span class="sd">            Input image or array with shape ``(X, Y, Z)`` or ``(X, Y, Z, N)``.</span>
 <span class="sd">        affine : ndarray, optional</span>
-<span class="sd">            Voxel-to-world affine used to position slices in world coordinates.</span>
+<span class="sd">            Rendering affine; uses the image affine when omitted for image inputs.</span>
 <span class="sd">        interpolation : str, optional</span>
 <span class="sd">            Slice interpolation mode (``"linear"`` or ``"nearest"``).</span>
 <span class="sd">        render_callback : callable, optional</span>
@@ -1090,8 +1091,15 @@ document.write(`
 <span class="sd">        sync_callabck : callable, optional</span>
 <span class="sd">            Callback used to synchronize state across views.</span>
 <span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span> <span class="o">=</span> <span class="n">volume</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_img</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">volume</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">nib</span><span class="o">.</span><span class="n">spatialimages</span><span class="o">.</span><span class="n">SpatialImage</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="o">.</span><span class="n">affine</span> <span class="k">if</span> <span class="n">affine</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">affine</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span> <span class="o">=</span> <span class="n">volume</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rgb_user</span> <span class="o">=</span> <span class="n">rgb</span>
         <span class="k">if</span> <span class="n">rgb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">rgb</span> <span class="o">=</span> <span class="n">has_rgb_dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="p">)</span>
@@ -1300,10 +1308,12 @@ document.write(`
 <span class="sd">            any), data type, and affine information (if available).</span>
 <span class="sd">        """</span>
         <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Dimensions: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="o">.</span><span class="n">shape</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="o">.</span><span class="n">get_data_dtype</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Dimensions: </span><span class="si">{</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_directions</span><span class="p">:</span>
             <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Directions: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Data Type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Data Type: </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">info</span> <span class="o">+=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="n">format_affine_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
 

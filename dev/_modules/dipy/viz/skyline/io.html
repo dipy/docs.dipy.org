@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.io &#8212; dipy 1.13.0.dev0+git20261005.981038a documentation</title>
+    <title>dipy.viz.skyline.io &#8212; dipy 1.13.0.dev0+git20261006.19a5fc2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=3034880f"></script>
+    <script src="../../../../_static/documentation_options.js?v=e6ddf6fc"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -918,28 +918,6 @@ document.write(`
 <span class="n">SH_BASES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"descoteaux07"</span><span class="p">,</span> <span class="s2">"tournier07"</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_reference_from_image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Build a NIfTI header usable as a tractogram spatial reference.</span>
-
-<span class="sd">    Formats without an embedded header (``.tck``, ``.vtk``, ``.dpy``, ...) need</span>
-<span class="sd">    a full reference, not just an affine.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    data : ndarray</span>
-<span class="sd">        Volume the reference geometry is taken from.</span>
-<span class="sd">    affine : ndarray, shape (4, 4)</span>
-<span class="sd">        Voxel-to-world transform of ``data``.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    nibabel.nifti1.Nifti1Header</span>
-<span class="sd">        Header carrying the volume's affine, dimensions and voxel sizes.</span>
-<span class="sd">    """</span>
-    <span class="n">vox_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">create_nifti_header</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">vox_size</span><span class="p">)</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_peaks_from_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Load peak directions from a NIfTI peaks volume.</span>
 
@@ -1046,7 +1024,8 @@ document.write(`
 <span class="sd">        ``"surfaces"``, ``"tractograms"``, ``"shm_coeffs"``, each a list</span>
 <span class="sd">        of tuples for the matching ``create_*_visualization`` function:</span>
 
-<span class="sd">        - images, rois : ``(data, affine, fname)``</span>
+<span class="sd">        - images : ``(img, affine, fname)`` with a nibabel image object</span>
+<span class="sd">        - rois : ``(data, affine, fname)`` with an ndarray</span>
 <span class="sd">        - peaks : ``(pam, fname)``</span>
 <span class="sd">        - surfaces : ``(vertices, faces, fname)``</span>
 <span class="sd">        - tractograms : ``(sft, fname)``</span>
@@ -1092,8 +1071,8 @@ document.write(`
         <span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">".nii.gz"</span><span class="p">,</span> <span class="s2">".nii"</span><span class="p">]:</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-            <span class="n">skyline_images</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">img</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">as_ndarray</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">skyline_images</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">".pam5"</span><span class="p">:</span>
             <span class="n">pam</span> <span class="o">=</span> <span class="n">load_pam</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
             <span class="n">skyline_peaks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_dirs</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span><span class="p">))</span>
@@ -1119,7 +1098,7 @@ document.write(`
             <span class="k">if</span> <span class="n">skyline_images</span><span class="p">:</span>
                 <span class="n">sft</span> <span class="o">=</span> <span class="n">load_tractogram</span><span class="p">(</span>
                     <span class="n">fname</span><span class="p">,</span>
-                    <span class="n">_reference_from_image</span><span class="p">(</span><span class="o">*</span><span class="n">skyline_images</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">2</span><span class="p">]),</span>
+                    <span class="n">skyline_images</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
                     <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>

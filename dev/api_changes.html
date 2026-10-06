@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API changes &#8212; dipy 1.13.0.dev0+git20261005.981038a documentation</title>
+    <title>API changes &#8212; dipy 1.13.0.dev0+git20261006.19a5fc2 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="_static/documentation_options.js?v=3034880f"></script>
+    <script src="_static/documentation_options.js?v=e6ddf6fc"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/sg-tags.js?v=d80f6fa4"></script>
@@ -963,6 +963,24 @@ location still resolves, calling it warns, and it is removed in 2.0.0:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">dipy.testing.memory.get_type_refcount</span></code> is deprecated and is removed in 2.0.0
 without replacement.</p></li>
+</ul>
+<p><strong>IO</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dipy.io.image.load_nifti</span></code> and <code class="docutils literal notranslate"><span class="pre">load_nifti_data</span></code> now unpack structured
+RGB/RGBA data into numeric channel arrays and emit a <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code>.
+<code class="docutils literal notranslate"><span class="pre">as_ndarray=False</span></code> returns the raw proxy silently. Returned images remain
+structured; use <code class="docutils literal notranslate"><span class="pre">img.dataobj</span></code>, not <code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code>, for their data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dipy.io.utils.decfa</span></code> and <code class="docutils literal notranslate"><span class="pre">dipy.io.image.save_nifti</span></code> now ignore
+<code class="docutils literal notranslate"><span class="pre">scale=True</span></code> for integer color data. Floating-point scaling is unchanged.</p></li>
+</ul>
+<p><strong>Workflows / CLI</strong></p>
+<ul class="simple">
+<li><p>Color FA outputs from <code class="docutils literal notranslate"><span class="pre">dipy_fit_dti</span></code>, <code class="docutils literal notranslate"><span class="pre">dipy_fit_dki</span></code>, and <code class="docutils literal notranslate"><span class="pre">dipy_fit_fwdti</span></code>
+use 3D <code class="docutils literal notranslate"><span class="pre">DT_RGB24</span></code> on disk; both DIPY loaders return <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y,</span> <span class="pre">Z,</span> <span class="pre">3)</span></code> arrays
+by default. <code class="docutils literal notranslate"><span class="pre">dipy_info</span></code> reports raw image metadata and labels RGB/RGBA data.</p></li>
+<li><p>Skyline <code class="docutils literal notranslate"><span class="pre">load_files()[&quot;images&quot;]</span></code> now returns <code class="docutils literal notranslate"><span class="pre">(img,</span> <span class="pre">affine,</span> <span class="pre">filename)</span></code>
+tuples with nibabel images, preserving metadata and RGB detection. Direct
+viewer inputs still accept ndarrays.</p></li>
 </ul>
 </section>
 <section id="dipy-1-12-0-changes">

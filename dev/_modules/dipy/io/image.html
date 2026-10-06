@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.image &#8212; dipy 1.13.0.dev0+git20261005.981038a documentation</title>
+    <title>dipy.io.image &#8212; dipy 1.13.0.dev0+git20261006.19a5fc2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=3034880f"></script>
+    <script src="../../../_static/documentation_options.js?v=e6ddf6fc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,11 +883,45 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.io.image</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">packaging.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">Version</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">decfa</span><span class="p">,</span> <span class="n">has_rgb_dtype</span><span class="p">,</span> <span class="n">unpack_rgb_array</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_nifti_data</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_ndarray</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Extract numeric data or the original proxy from a NIfTI image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : nibabel.spatialimages.SpatialImage</span>
+<span class="sd">        Image supplying the data object.</span>
+<span class="sd">    as_ndarray : bool</span>
+<span class="sd">        Whether to materialize and unpack structured color data.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    data : ndarray or nibabel.arrayproxy.ArrayProxy</span>
+<span class="sd">        Numeric array or the unchanged data proxy.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">as_ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">dataobj</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">has_rgb_dtype</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">"Loaded NIfTI data has a structured RGB/RGBA dtype (DT_RGB24 or "</span>
+            <span class="s2">"DT_RGBA32) and was auto-converted to a plain numeric array. "</span>
+            <span class="s2">"Pass as_ndarray=False to get the raw structured dtype."</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">unpack_rgb_array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span>
 
 
 <div class="viewcode-block" id="load_nifti_data">
@@ -909,13 +943,20 @@ document.write(`
 <span class="sd">    -------</span>
 <span class="sd">    data: np.ndarray or nib.ArrayProxy</span>
 
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Structured RGB/RGBA data (NIfTI ``DT_RGB24``/``DT_RGBA32``) is</span>
+<span class="sd">    auto-unpacked into a plain array with an added trailing color-channel</span>
+<span class="sd">    axis, and a ``UserWarning`` is raised. Pass ``as_ndarray=False`` to skip</span>
+<span class="sd">    this and receive the raw structured data.</span>
+
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    load_nifti</span>
 
 <span class="sd">    """</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span> <span class="k">if</span> <span class="n">as_ndarray</span> <span class="k">else</span> <span class="n">img</span><span class="o">.</span><span class="n">dataobj</span></div>
+    <span class="k">return</span> <span class="n">_nifti_data</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">as_ndarray</span><span class="o">=</span><span class="n">as_ndarray</span><span class="p">)</span></div>
 
 
 
@@ -956,13 +997,23 @@ document.write(`
 <span class="sd">    A tuple, with (at the most, if all keyword args are set to True):</span>
 <span class="sd">    (data, img.affine, img, vox_size, nib.aff2axcodes(img.affine))</span>
 
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Like `load_nifti_data`, structured RGB/RGBA data is unpacked into a</span>
+<span class="sd">    numeric array with a trailing color-channel axis and a ``UserWarning``</span>
+<span class="sd">    when ``as_ndarray=True``. Pass ``as_ndarray=False`` to retain the raw</span>
+<span class="sd">    proxy.</span>
+
+<span class="sd">    The returned image is unchanged: ``np.asanyarray(img.dataobj)`` accesses</span>
+<span class="sd">    its structured data, while ``img.get_fdata()`` cannot cast it to float.</span>
+
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    load_nifti_data</span>
 
 <span class="sd">    """</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span> <span class="k">if</span> <span class="n">as_ndarray</span> <span class="k">else</span> <span class="n">img</span><span class="o">.</span><span class="n">dataobj</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">_nifti_data</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">as_ndarray</span><span class="o">=</span><span class="n">as_ndarray</span><span class="p">)</span>
     <span class="n">vox_size</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get_zooms</span><span class="p">()[:</span><span class="mi">3</span><span class="p">]</span>
 
     <span class="n">ret_val</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">affine</span><span class="p">]</span>
@@ -981,7 +1032,9 @@ document.write(`
 <div class="viewcode-block" id="save_nifti">
 <a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.image.save_nifti">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">save_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">hdr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_nifti</span><span class="p">(</span>
+    <span class="n">fname</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">hdr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_decfa</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Save a data array into a nifti file.</span>
 
 <span class="sd">    Parameters</span>
@@ -997,6 +1050,15 @@ document.write(`
 
 <span class="sd">    hdr : nifti header, optional</span>
 <span class="sd">        May contain additional information to store in the file header.</span>
+
+<span class="sd">    as_decfa : bool, optional</span>
+<span class="sd">        If True, encode data as a DEC FA image via ``dipy.io.utils.decfa``;</span>
+<span class="sd">        ``dtype`` is ignored in this case.</span>
+
+<span class="sd">    scale : bool or None, optional</span>
+<span class="sd">        When ``as_decfa`` is True, controls scaling from the 0-1 to the</span>
+<span class="sd">        0-255 range. None enables scaling for float data. Scaling is ignored</span>
+<span class="sd">        for integer data or when ``as_decfa`` is False.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1029,6 +1091,12 @@ document.write(`
 
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"dtype"</span><span class="p">:</span> <span class="n">dtype</span><span class="p">}</span> <span class="k">if</span> <span class="n">NIBABEL_4_0_0_PLUS</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="n">result_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">hdr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">as_decfa</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)</span>
+        <span class="n">result_img</span> <span class="o">=</span> <span class="n">decfa</span><span class="p">(</span><span class="n">result_img</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+
     <span class="n">result_img</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span></div>
 
 
