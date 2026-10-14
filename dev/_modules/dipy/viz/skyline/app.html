@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261014.1cc50bd documentation</title>
+    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261014.57d245e documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=fe382762"></script>
+    <script src="../../../../_static/documentation_options.js?v=246d97c9"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -951,6 +951,8 @@ document.write(`
 <span class="sd">          snapshots.</span>
 
 <span class="sd">        An unrecognized value logs an error and terminates the process.</span>
+<span class="sd">        ``DIPY_OFFSCREEN=1`` or ``true`` (case-insensitive) forces stealth.</span>
+<span class="sd">        Otherwise, ``visualizer_type`` controls rendering.</span>
 <span class="sd">    images : list of tuple, optional</span>
 <span class="sd">        ``(data, affine)`` or ``(data, affine, filename)`` tuples where</span>
 <span class="sd">        ``data`` is a nibabel image or ndarray and ``filename`` is a display label.</span>
@@ -1026,11 +1028,16 @@ document.write(`
 <span class="sd">        Spherical harmonic coefficient file paths loaded asynchronously</span>
 <span class="sd">        into the viewer on startup.</span>
 <span class="sd">    out_dir : str or Path, optional</span>
-<span class="sd">        Directory for the stealth-mode output image; created if missing.</span>
-<span class="sd">        Used only when ``visualizer_type`` is ``"stealth"``.</span>
+<span class="sd">        Directory for the offscreen output image; created if missing.</span>
 <span class="sd">    out_stealth_png : str, optional</span>
-<span class="sd">        Output image name, without extension, used as the stealth window</span>
-<span class="sd">        title. Used only when ``visualizer_type`` is ``"stealth"``.</span>
+<span class="sd">        Output image name used as the offscreen window title. Applies when</span>
+<span class="sd">        stealth mode is requested or ``DIPY_OFFSCREEN`` is ``1``/``true``.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Window creation sets ``FURY_OFFSCREEN`` to ``1`` for stealth or removes</span>
+<span class="sd">    the key otherwise. Skyline restores its previous value or absence after</span>
+<span class="sd">    setup/start returns or raises.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1078,6 +1085,8 @@ document.write(`
 <span class="sd">              snapshots.</span>
 
 <span class="sd">            An unrecognized value logs an error and terminates the process.</span>
+<span class="sd">            ``DIPY_OFFSCREEN=1`` or ``true`` (case-insensitive) forces stealth.</span>
+<span class="sd">            Otherwise, ``visualizer_type`` controls rendering.</span>
 <span class="sd">        images : list of tuple, optional</span>
 <span class="sd">            ``(data, affine)`` or ``(data, affine, filename)`` tuples where</span>
 <span class="sd">            ``data`` is a nibabel image or ndarray and ``filename`` a display label.</span>
@@ -1153,17 +1162,28 @@ document.write(`
 <span class="sd">            Spherical harmonic coefficient file paths loaded asynchronously</span>
 <span class="sd">            into the viewer on startup.</span>
 <span class="sd">        out_dir : str or Path, optional</span>
-<span class="sd">            Directory for the stealth-mode output image; created if missing.</span>
-<span class="sd">            Used only when ``visualizer_type`` is ``"stealth"``.</span>
+<span class="sd">            Directory for the offscreen output image; created if missing.</span>
 <span class="sd">        out_stealth_png : str, optional</span>
-<span class="sd">            Output image name, without extension, used as the stealth window</span>
-<span class="sd">            title. Used only when ``visualizer_type`` is ``"stealth"``.</span>
+<span class="sd">            Output image name used as the offscreen window title. Applies when</span>
+<span class="sd">            stealth mode is requested or ``DIPY_OFFSCREEN`` is ``1``/``true``.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Window creation sets ``FURY_OFFSCREEN`` to ``1`` for stealth or removes</span>
+<span class="sd">        the key otherwise. Skyline restores its previous value or absence after</span>
+<span class="sd">        setup/start returns or raises.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">sh_basis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SH_BASES</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sh_basis must be one of </span><span class="si">{</span><span class="n">SH_BASES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">sh_basis</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">=</span> <span class="n">visualizer_type</span>
+        <span class="n">dipy_offscreen_requested</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DIPY_OFFSCREEN"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">"1"</span><span class="p">,</span>
+            <span class="s2">"true"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">"stealth"</span> <span class="k">if</span> <span class="n">dipy_offscreen_requested</span> <span class="k">else</span> <span class="n">visualizer_type</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_direct_load</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rgb</span> <span class="o">=</span> <span class="n">rgb</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_thr</span> <span class="o">=</span> <span class="n">cluster_thr</span>
@@ -1171,112 +1191,122 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_length_thr</span> <span class="o">=</span> <span class="n">cluster_length_thr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buan_pvals</span> <span class="o">=</span> <span class="n">buan_pvals</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span> <span class="o">=</span> <span class="n">sh_basis</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">!=</span> <span class="s2">"stealth"</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FURY_OFFSCREEN"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"0"</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">create_window</span><span class="p">(</span>
-                <span class="n">visualizer_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span><span class="p">,</span>
-                <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
-                <span class="n">screen_config</span><span class="o">=</span><span class="p">[</span>
-                    <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-                <span class="p">],</span>
+        <span class="n">previous_fury_offscreen</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"FURY_OFFSCREEN"</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">!=</span> <span class="s2">"stealth"</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">create_window</span><span class="p">(</span>
+                    <span class="n">visualizer_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span><span class="p">,</span>
+                    <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+                    <span class="n">screen_config</span><span class="o">=</span><span class="p">[</span>
+                        <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="mi">0</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="p">),</span>
+                    <span class="p">],</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s2">"DIPY SKYLINE"</span>
+                <span class="k">if</span> <span class="n">out_stealth_png</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="n">split_filename_extension</span><span class="p">(</span><span class="n">out_stealth_png</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">out_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">out_dir</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">create_window</span><span class="p">(</span>
+                    <span class="n">visualizer_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">bg_color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">bg_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">glass_brain</span> <span class="k">else</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bg_color</span> <span class="o">=</span> <span class="n">bg_color</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">screens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bg_color</span>
+
+            <span class="k">if</span> <span class="n">tract_colors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">tract_colors</span> <span class="o">=</span> <span class="s2">"direction"</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tract_colors</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tract_colors</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" "</span><span class="p">))</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">tract_colors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">tract_colors</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" "</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tract_colors</span> <span class="o">=</span> <span class="n">tract_colors</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peak_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_roi_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_surface_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sh_glyph_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_loaded_files</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_tractogram_switches</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_loading_total</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_loading_done</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_drawing_ui</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_requested</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_bg_color</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_sync_requests</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_scene_ops</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_cluster</span> <span class="o">=</span> <span class="n">is_cluster</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_light_version</span> <span class="o">=</span> <span class="n">is_light_version</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_glass_brain</span> <span class="o">=</span> <span class="n">glass_brain</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram_help</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">renderer</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_key_events</span><span class="p">,</span> <span class="s2">"key_down"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">resize_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_resize</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_color_gen</span> <span class="o">=</span> <span class="n">distinguishable_colormap</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">!=</span> <span class="s2">"stealth"</span><span class="p">:</span>
+                <span class="n">gpu_texture</span> <span class="o">=</span> <span class="n">load_image_as_wgpu_texture_view</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">LOGO_SMALL</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">device</span>
+                <span class="p">)</span>
+                <span class="n">logo_tex_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">_imgui</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">register_texture</span><span class="p">(</span><span class="n">gpu_texture</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="o">=</span> <span class="n">UIWindow</span><span class="p">(</span>
+                    <span class="s2">"Image Controls"</span><span class="p">,</span>
+                    <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span><span class="p">,</span>
+                    <span class="n">render_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_refresh</span><span class="p">,</span>
+                    <span class="n">logo_tex_ref</span><span class="o">=</span><span class="n">logo_tex_ref</span><span class="p">,</span>
+                    <span class="n">file_dialog_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_append_visualization</span><span class="p">,</span>
+                    <span class="n">bg_color_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_background_color</span><span class="p">,</span>
+                    <span class="n">snapshot_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_snapshot</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">_imgui</span><span class="o">.</span><span class="n">set_gui</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">draw_ui</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="n">initial_loaded_files</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"images"</span><span class="p">:</span> <span class="n">images</span> <span class="ow">or</span> <span class="p">[],</span>
+                <span class="s2">"peaks"</span><span class="p">:</span> <span class="n">peaks</span> <span class="ow">or</span> <span class="p">[],</span>
+                <span class="s2">"rois"</span><span class="p">:</span> <span class="n">rois</span> <span class="ow">or</span> <span class="p">[],</span>
+                <span class="s2">"surfaces"</span><span class="p">:</span> <span class="n">surfaces</span> <span class="ow">or</span> <span class="p">[],</span>
+                <span class="s2">"tractograms"</span><span class="p">:</span> <span class="n">tractograms</span> <span class="ow">or</span> <span class="p">[],</span>
+                <span class="s2">"shm_coeffs"</span><span class="p">:</span> <span class="n">sh_coeffs</span> <span class="ow">or</span> <span class="p">[],</span>
+            <span class="p">}</span>
+            <span class="n">has_initial_visualizations</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">initial_loaded_files</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="n">has_initial_files</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">initial_filenames</span><span class="p">,</span> <span class="n">initial_rois</span><span class="p">,</span> <span class="n">initial_peaks</span><span class="p">,</span> <span class="n">initial_shm_coeffs</span><span class="p">)</span>
             <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FURY_OFFSCREEN"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"1"</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="s2">"DIPY SKYLINE"</span>
-            <span class="k">if</span> <span class="n">out_stealth_png</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="n">split_filename_extension</span><span class="p">(</span><span class="n">out_stealth_png</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">out_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">out_dir</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">:</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">create_window</span><span class="p">(</span>
-                <span class="n">visualizer_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">bg_color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">bg_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">glass_brain</span> <span class="k">else</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bg_color</span> <span class="o">=</span> <span class="n">bg_color</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">screens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bg_color</span>
 
-        <span class="k">if</span> <span class="n">tract_colors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">tract_colors</span> <span class="o">=</span> <span class="s2">"direction"</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tract_colors</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tract_colors</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" "</span><span class="p">))</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">tract_colors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">tract_colors</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" "</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tract_colors</span> <span class="o">=</span> <span class="n">tract_colors</span>
+            <span class="k">if</span> <span class="n">has_initial_visualizations</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_queue_loaded_visualizations</span><span class="p">(</span><span class="n">initial_loaded_files</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_roi_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_surface_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sh_glyph_visualizations</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_loaded_files</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_tractogram_switches</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_loading_total</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_loading_done</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_is_drawing_ui</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_requested</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_bg_color</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_sync_requests</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_scene_ops</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_is_cluster</span> <span class="o">=</span> <span class="n">is_cluster</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_is_light_version</span> <span class="o">=</span> <span class="n">is_light_version</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_glass_brain</span> <span class="o">=</span> <span class="n">glass_brain</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tractogram_help</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">renderer</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_key_events</span><span class="p">,</span> <span class="s2">"key_down"</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">resize_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_resize</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_color_gen</span> <span class="o">=</span> <span class="n">distinguishable_colormap</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">has_initial_files</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_append_visualization</span><span class="p">(</span>
+                    <span class="n">filenames</span><span class="o">=</span><span class="n">initial_filenames</span><span class="p">,</span>
+                    <span class="n">rois</span><span class="o">=</span><span class="n">initial_rois</span><span class="p">,</span>
+                    <span class="n">peaks</span><span class="o">=</span><span class="n">initial_peaks</span><span class="p">,</span>
+                    <span class="n">shm_coeffs</span><span class="o">=</span><span class="n">initial_shm_coeffs</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">has_initial_visualizations</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">!=</span> <span class="s2">"stealth"</span><span class="p">:</span>
-            <span class="n">gpu_texture</span> <span class="o">=</span> <span class="n">load_image_as_wgpu_texture_view</span><span class="p">(</span>
-                <span class="nb">str</span><span class="p">(</span><span class="n">LOGO_SMALL</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">device</span>
-            <span class="p">)</span>
-            <span class="n">logo_tex_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">_imgui</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">register_texture</span><span class="p">(</span><span class="n">gpu_texture</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="o">=</span> <span class="n">UIWindow</span><span class="p">(</span>
-                <span class="s2">"Image Controls"</span><span class="p">,</span>
-                <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span><span class="p">,</span>
-                <span class="n">render_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_refresh</span><span class="p">,</span>
-                <span class="n">logo_tex_ref</span><span class="o">=</span><span class="n">logo_tex_ref</span><span class="p">,</span>
-                <span class="n">file_dialog_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_append_visualization</span><span class="p">,</span>
-                <span class="n">bg_color_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_background_color</span><span class="p">,</span>
-                <span class="n">snapshot_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_snapshot</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">_imgui</span><span class="o">.</span><span class="n">set_gui</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">draw_ui</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">==</span> <span class="s2">"stealth"</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_loading_in_stealth_mode</span><span class="p">()</span>
 
-        <span class="n">initial_loaded_files</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">"images"</span><span class="p">:</span> <span class="n">images</span> <span class="ow">or</span> <span class="p">[],</span>
-            <span class="s2">"peaks"</span><span class="p">:</span> <span class="n">peaks</span> <span class="ow">or</span> <span class="p">[],</span>
-            <span class="s2">"rois"</span><span class="p">:</span> <span class="n">rois</span> <span class="ow">or</span> <span class="p">[],</span>
-            <span class="s2">"surfaces"</span><span class="p">:</span> <span class="n">surfaces</span> <span class="ow">or</span> <span class="p">[],</span>
-            <span class="s2">"tractograms"</span><span class="p">:</span> <span class="n">tractograms</span> <span class="ow">or</span> <span class="p">[],</span>
-            <span class="s2">"shm_coeffs"</span><span class="p">:</span> <span class="n">sh_coeffs</span> <span class="ow">or</span> <span class="p">[],</span>
-        <span class="p">}</span>
-        <span class="n">has_initial_visualizations</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">initial_loaded_files</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">has_initial_files</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">initial_filenames</span><span class="p">,</span> <span class="n">initial_rois</span><span class="p">,</span> <span class="n">initial_peaks</span><span class="p">,</span> <span class="n">initial_shm_coeffs</span><span class="p">)</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">has_initial_visualizations</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_queue_loaded_visualizations</span><span class="p">(</span><span class="n">initial_loaded_files</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">has_initial_files</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_append_visualization</span><span class="p">(</span>
-                <span class="n">filenames</span><span class="o">=</span><span class="n">initial_filenames</span><span class="p">,</span>
-                <span class="n">rois</span><span class="o">=</span><span class="n">initial_rois</span><span class="p">,</span>
-                <span class="n">peaks</span><span class="o">=</span><span class="n">initial_peaks</span><span class="p">,</span>
-                <span class="n">shm_coeffs</span><span class="o">=</span><span class="n">initial_shm_coeffs</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">has_initial_visualizations</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">==</span> <span class="s2">"stealth"</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_loading_in_stealth_mode</span><span class="p">()</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">before_render</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_direct_load</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">before_render</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_direct_load</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">previous_fury_offscreen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"FURY_OFFSCREEN"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FURY_OFFSCREEN"</span><span class="p">]</span> <span class="o">=</span> <span class="n">previous_fury_offscreen</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_wait_for_loading_in_stealth_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Block until all queued and pending visualizations finish loading.</span>
@@ -2032,6 +2062,14 @@ document.write(`
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="n">Image3D</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">viz</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">viz</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span>
+                    <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="n">Peak3D</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_peak_visualizations</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">viz</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="n">ROI3D</span><span class="p">):</span>
@@ -2347,24 +2385,29 @@ document.write(`
 <span class="sd">        File path for BUAN p-values used for BUAN-based coloring of</span>
 <span class="sd">        tractograms.</span>
 <span class="sd">    stealth : bool, optional</span>
-<span class="sd">        Whether to render offscreen and save a snapshot instead of opening</span>
-<span class="sd">        an interactive window; sets ``visualizer_type`` to ``"stealth"``.</span>
+<span class="sd">        Request offscreen capture. ``DIPY_OFFSCREEN=1`` or ``true``</span>
+<span class="sd">        (case-insensitive) forces capture; otherwise, ``stealth`` controls rendering.</span>
 <span class="sd">    rgb : bool or None, optional</span>
 <span class="sd">        ``None``: auto-detect from structured NIfTI ``DT_RGB24``</span>
 <span class="sd">        dtype; show toggle for other 4D volumes with 3 or 4 channels.</span>
 <span class="sd">        ``True``: force RGB mode.  ``False``: never treat as RGB.</span>
 <span class="sd">    out_dir : str or Path, optional</span>
-<span class="sd">        Directory for the stealth-mode output image; created if missing.</span>
-<span class="sd">        Used only when ``stealth`` is True.</span>
+<span class="sd">        Directory for the offscreen output image; created if missing.</span>
 <span class="sd">    out_stealth_png : str, optional</span>
-<span class="sd">        Output image name, without extension, used as the stealth window</span>
-<span class="sd">        title. Used only when ``stealth`` is True.</span>
+<span class="sd">        Output image name used as the offscreen window title. Applies when</span>
+<span class="sd">        ``stealth`` is True or ``DIPY_OFFSCREEN`` is ``1``/``true``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Skyline</span>
 <span class="sd">        The constructed viewer, returned once construction returns from</span>
 <span class="sd">        its blocking ``self.window.start()`` call.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Window creation sets ``FURY_OFFSCREEN`` to ``1`` for stealth or removes</span>
+<span class="sd">    the key otherwise. Skyline restores its previous value or absence after</span>
+<span class="sd">    setup/start returns or raises.</span>
 <span class="sd">    """</span>
     <span class="n">visualizer_type</span> <span class="o">=</span> <span class="s2">"stealth"</span> <span class="k">if</span> <span class="n">stealth</span> <span class="k">else</span> <span class="s2">"standalone"</span>
 
@@ -2437,6 +2480,8 @@ document.write(`
 <span class="sd">          snapshots.</span>
 
 <span class="sd">        An unrecognized value logs an error and terminates the process.</span>
+<span class="sd">        ``DIPY_OFFSCREEN=1`` or ``true`` (case-insensitive) forces stealth.</span>
+<span class="sd">        Otherwise, ``visualizer_type`` controls rendering.</span>
 <span class="sd">    images : list of tuple, optional</span>
 <span class="sd">        ``(data, affine)`` or ``(data, affine, filename)`` tuples where</span>
 <span class="sd">        ``data`` is a nibabel image or ndarray and ``filename`` is a display label.</span>
@@ -2512,17 +2557,22 @@ document.write(`
 <span class="sd">        Spherical harmonic coefficient file paths loaded asynchronously</span>
 <span class="sd">        into the viewer on startup.</span>
 <span class="sd">    out_dir : str or Path, optional</span>
-<span class="sd">        Directory for the stealth-mode output image; created if missing.</span>
-<span class="sd">        Used only when ``visualizer_type`` is ``"stealth"``.</span>
+<span class="sd">        Directory for the offscreen output image; created if missing.</span>
 <span class="sd">    out_stealth_png : str, optional</span>
-<span class="sd">        Output image name, without extension, used as the stealth window</span>
-<span class="sd">        title. Used only when ``visualizer_type`` is ``"stealth"``.</span>
+<span class="sd">        Output image name used as the offscreen window title. Applies when</span>
+<span class="sd">        stealth mode is requested or ``DIPY_OFFSCREEN`` is ``1``/``true``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Skyline</span>
 <span class="sd">        The constructed viewer, returned once construction returns from</span>
 <span class="sd">        its blocking ``self.window.start()`` call.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Window creation sets ``FURY_OFFSCREEN`` to ``1`` for stealth or removes</span>
+<span class="sd">    the key otherwise. Skyline restores its previous value or absence after</span>
+<span class="sd">    setup/start returns or raises.</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">Skyline</span><span class="p">(</span>
         <span class="n">visualizer_type</span><span class="o">=</span><span class="n">visualizer_type</span><span class="p">,</span>

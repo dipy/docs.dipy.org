@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>viz &#8212; dipy 1.13.0.dev0+git20261014.1cc50bd documentation</title>
+    <title>viz &#8212; dipy 1.13.0.dev0+git20261014.57d245e documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=fe382762"></script>
+    <script src="../_static/documentation_options.js?v=246d97c9"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -4829,7 +4829,9 @@ percentiles.</p>
 <li><p>“stealth”: an offscreen window with no GUI, used for scripted
 snapshots.</p></li>
 </ul>
-<p>An unrecognized value logs an error and terminates the process.</p>
+<p>An unrecognized value logs an error and terminates the process.
+<code class="docutils literal notranslate"><span class="pre">DIPY_OFFSCREEN=1</span></code> or <code class="docutils literal notranslate"><span class="pre">true</span></code> (case-insensitive) forces stealth.
+Otherwise, <code class="docutils literal notranslate"><span class="pre">visualizer_type</span></code> controls rendering.</p>
 </dd>
 <dt><strong>images</strong><span class="classifier">list of tuple, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">(data,</span> <span class="pre">affine)</span></code> or <code class="docutils literal notranslate"><span class="pre">(data,</span> <span class="pre">affine,</span> <span class="pre">filename)</span></code> tuples where
 <code class="docutils literal notranslate"><span class="pre">data</span></code> is a nibabel image or ndarray and <code class="docutils literal notranslate"><span class="pre">filename</span></code> is a display label.</p>
@@ -4905,11 +4907,10 @@ into the Skyline viewer on startup.</p>
 <dt><strong>initial_shm_coeffs</strong><span class="classifier">list of str, optional</span></dt><dd><p>Spherical harmonic coefficient file paths loaded asynchronously
 into the viewer on startup.</p>
 </dd>
-<dt><strong>out_dir</strong><span class="classifier">str or Path, optional</span></dt><dd><p>Directory for the stealth-mode output image; created if missing.
-Used only when <code class="docutils literal notranslate"><span class="pre">visualizer_type</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;stealth&quot;</span></code>.</p>
+<dt><strong>out_dir</strong><span class="classifier">str or Path, optional</span></dt><dd><p>Directory for the offscreen output image; created if missing.</p>
 </dd>
-<dt><strong>out_stealth_png</strong><span class="classifier">str, optional</span></dt><dd><p>Output image name, without extension, used as the stealth window
-title. Used only when <code class="docutils literal notranslate"><span class="pre">visualizer_type</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;stealth&quot;</span></code>.</p>
+<dt><strong>out_stealth_png</strong><span class="classifier">str, optional</span></dt><dd><p>Output image name used as the offscreen window title. Applies when
+stealth mode is requested or <code class="docutils literal notranslate"><span class="pre">DIPY_OFFSCREEN</span></code> is <code class="docutils literal notranslate"><span class="pre">1</span></code>/<code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
 </dd>
 </dl>
 </dd>
@@ -4947,6 +4948,10 @@ title. Used only when <code class="docutils literal notranslate"><span class="pr
 </tbody>
 </table>
 </div>
+<p class="rubric">Notes</p>
+<p>Window creation sets <code class="docutils literal notranslate"><span class="pre">FURY_OFFSCREEN</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code> for stealth or removes
+the key otherwise. Skyline restores its previous value or absence after
+setup/start returns or raises.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dipy.viz.skyline.app.Skyline.before_render">
 <span class="sig-name descname"><span class="pre">before_render</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/viz/skyline/app.html#Skyline.before_render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.viz.skyline.app.Skyline.before_render" title="Link to this definition">#</a></dt>
@@ -5128,18 +5133,17 @@ distribution is used.</p>
 <dt><strong>buan_pvals</strong><span class="classifier">str, optional</span></dt><dd><p>File path for BUAN p-values used for BUAN-based coloring of
 tractograms.</p>
 </dd>
-<dt><strong>stealth</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to render offscreen and save a snapshot instead of opening
-an interactive window; sets <code class="docutils literal notranslate"><span class="pre">visualizer_type</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;stealth&quot;</span></code>.</p>
+<dt><strong>stealth</strong><span class="classifier">bool, optional</span></dt><dd><p>Request offscreen capture. <code class="docutils literal notranslate"><span class="pre">DIPY_OFFSCREEN=1</span></code> or <code class="docutils literal notranslate"><span class="pre">true</span></code>
+(case-insensitive) forces capture; otherwise, <code class="docutils literal notranslate"><span class="pre">stealth</span></code> controls rendering.</p>
 </dd>
 <dt><strong>rgb</strong><span class="classifier">bool or None, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: auto-detect from structured NIfTI <code class="docutils literal notranslate"><span class="pre">DT_RGB24</span></code>
 dtype; show toggle for other 4D volumes with 3 or 4 channels.
 <code class="docutils literal notranslate"><span class="pre">True</span></code>: force RGB mode.  <code class="docutils literal notranslate"><span class="pre">False</span></code>: never treat as RGB.</p>
 </dd>
-<dt><strong>out_dir</strong><span class="classifier">str or Path, optional</span></dt><dd><p>Directory for the stealth-mode output image; created if missing.
-Used only when <code class="docutils literal notranslate"><span class="pre">stealth</span></code> is True.</p>
+<dt><strong>out_dir</strong><span class="classifier">str or Path, optional</span></dt><dd><p>Directory for the offscreen output image; created if missing.</p>
 </dd>
-<dt><strong>out_stealth_png</strong><span class="classifier">str, optional</span></dt><dd><p>Output image name, without extension, used as the stealth window
-title. Used only when <code class="docutils literal notranslate"><span class="pre">stealth</span></code> is True.</p>
+<dt><strong>out_stealth_png</strong><span class="classifier">str, optional</span></dt><dd><p>Output image name used as the offscreen window title. Applies when
+<code class="docutils literal notranslate"><span class="pre">stealth</span></code> is True or <code class="docutils literal notranslate"><span class="pre">DIPY_OFFSCREEN</span></code> is <code class="docutils literal notranslate"><span class="pre">1</span></code>/<code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
 </dd>
 </dl>
 </dd>
@@ -5151,6 +5155,10 @@ its blocking <code class="docutils literal notranslate"><span class="pre">self.w
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Window creation sets <code class="docutils literal notranslate"><span class="pre">FURY_OFFSCREEN</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code> for stealth or removes
+the key otherwise. Skyline restores its previous value or absence after
+setup/start returns or raises.</p>
 </dd></dl>
 
 </section>
@@ -5173,7 +5181,9 @@ its blocking <code class="docutils literal notranslate"><span class="pre">self.w
 <li><p>“stealth”: an offscreen window with no GUI, used for scripted
 snapshots.</p></li>
 </ul>
-<p>An unrecognized value logs an error and terminates the process.</p>
+<p>An unrecognized value logs an error and terminates the process.
+<code class="docutils literal notranslate"><span class="pre">DIPY_OFFSCREEN=1</span></code> or <code class="docutils literal notranslate"><span class="pre">true</span></code> (case-insensitive) forces stealth.
+Otherwise, <code class="docutils literal notranslate"><span class="pre">visualizer_type</span></code> controls rendering.</p>
 </dd>
 <dt><strong>images</strong><span class="classifier">list of tuple, optional</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">(data,</span> <span class="pre">affine)</span></code> or <code class="docutils literal notranslate"><span class="pre">(data,</span> <span class="pre">affine,</span> <span class="pre">filename)</span></code> tuples where
 <code class="docutils literal notranslate"><span class="pre">data</span></code> is a nibabel image or ndarray and <code class="docutils literal notranslate"><span class="pre">filename</span></code> is a display label.</p>
@@ -5249,11 +5259,10 @@ into the Skyline viewer on startup.</p>
 <dt><strong>initial_shm_coeffs</strong><span class="classifier">list of str, optional</span></dt><dd><p>Spherical harmonic coefficient file paths loaded asynchronously
 into the viewer on startup.</p>
 </dd>
-<dt><strong>out_dir</strong><span class="classifier">str or Path, optional</span></dt><dd><p>Directory for the stealth-mode output image; created if missing.
-Used only when <code class="docutils literal notranslate"><span class="pre">visualizer_type</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;stealth&quot;</span></code>.</p>
+<dt><strong>out_dir</strong><span class="classifier">str or Path, optional</span></dt><dd><p>Directory for the offscreen output image; created if missing.</p>
 </dd>
-<dt><strong>out_stealth_png</strong><span class="classifier">str, optional</span></dt><dd><p>Output image name, without extension, used as the stealth window
-title. Used only when <code class="docutils literal notranslate"><span class="pre">visualizer_type</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;stealth&quot;</span></code>.</p>
+<dt><strong>out_stealth_png</strong><span class="classifier">str, optional</span></dt><dd><p>Output image name used as the offscreen window title. Applies when
+stealth mode is requested or <code class="docutils literal notranslate"><span class="pre">DIPY_OFFSCREEN</span></code> is <code class="docutils literal notranslate"><span class="pre">1</span></code>/<code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
 </dd>
 </dl>
 </dd>
@@ -5265,6 +5274,10 @@ its blocking <code class="docutils literal notranslate"><span class="pre">self.w
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Window creation sets <code class="docutils literal notranslate"><span class="pre">FURY_OFFSCREEN</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code> for stealth or removes
+the key otherwise. Skyline restores its previous value or absence after
+setup/start returns or raises.</p>
 </dd></dl>
 
 </section>
@@ -6029,7 +6042,7 @@ layouts in Skyline.</p>
 <li><p>“standalone”: a standalone window with full interactivity.</p></li>
 <li><p>“gui”: a Qt-based GUI window.</p></li>
 <li><p>“jupyter”: an inline Jupyter notebook visualizer.</p></li>
-<li><p>“stealth”: an offscreen visualizer without GUI.</p></li>
+<li><p>“stealth”: an offscreen visualizer without GUI or corner axes gizmo.</p></li>
 </ul>
 </dd>
 <dt><strong>size</strong><span class="classifier">tuple of int, optional</span></dt><dd><p>Window size in pixels as <code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code>.</p>
@@ -6053,6 +6066,9 @@ specified visualizer type.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">visualizer_type</span></code> is not one of the recognized values, the error is
 logged and the process exits via <code class="docutils literal notranslate"><span class="pre">sys.exit(1)</span></code> instead of raising a
 Python exception.</p>
+<p>Successful window creation sets <code class="docutils literal notranslate"><span class="pre">FURY_OFFSCREEN</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code> for stealth
+or removes the key otherwise. Direct callers must restore their own
+previous environment value or absence.</p>
 </dd></dl>
 
 </section>

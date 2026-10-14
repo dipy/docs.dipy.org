@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.renderer &#8212; dipy 1.13.0.dev0+git20261014.1cc50bd documentation</title>
+    <title>dipy.viz.skyline.render.renderer &#8212; dipy 1.13.0.dev0+git20261014.57d245e documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=fe382762"></script>
+    <script src="../../../../../_static/documentation_options.js?v=246d97c9"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -885,6 +885,7 @@ document.write(`
   <h1>Source code for dipy.viz.skyline.render.renderer</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""Shared FURY window factory and base class for Skyline visualizations."""</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
@@ -1322,7 +1323,7 @@ document.write(`
 <span class="sd">        - "standalone": a standalone window with full interactivity.</span>
 <span class="sd">        - "gui": a Qt-based GUI window.</span>
 <span class="sd">        - "jupyter": an inline Jupyter notebook visualizer.</span>
-<span class="sd">        - "stealth": an offscreen visualizer without GUI.</span>
+<span class="sd">        - "stealth": an offscreen visualizer without GUI or corner axes gizmo.</span>
 <span class="sd">    size : tuple of int, optional</span>
 <span class="sd">        Window size in pixels as ``(width, height)``.</span>
 <span class="sd">    screen_config : list, optional</span>
@@ -1342,6 +1343,10 @@ document.write(`
 <span class="sd">    If ``visualizer_type`` is not one of the recognized values, the error is</span>
 <span class="sd">    logged and the process exits via ``sys.exit(1)`` instead of raising a</span>
 <span class="sd">    Python exception.</span>
+
+<span class="sd">    Successful window creation sets ``FURY_OFFSCREEN`` to ``1`` for stealth</span>
+<span class="sd">    or removes the key otherwise. Direct callers must restore their own</span>
+<span class="sd">    previous environment value or absence.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">visualizer_type</span> <span class="o">==</span> <span class="s2">"standalone"</span><span class="p">:</span>
         <span class="n">window_type</span> <span class="o">=</span> <span class="s2">"default"</span>
@@ -1367,7 +1372,6 @@ document.write(`
             <span class="n">screen_config</span><span class="o">=</span><span class="n">screen_config</span><span class="p">,</span>
             <span class="n">imgui</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">imgui_draw_function</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">pixel_ratio</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">window_type</span> <span class="o">==</span> <span class="s2">"default"</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">LOGO_SMALL</span><span class="p">)</span> <span class="k">as</span> <span class="n">img</span><span class="p">:</span>
@@ -1375,6 +1379,11 @@ document.write(`
                 <span class="n">glfw</span><span class="o">.</span><span class="n">set_window_icon</span><span class="p">(</span><span class="n">show_m</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">_window</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[(</span><span class="n">img</span><span class="p">)])</span>
                 <span class="n">glfw</span><span class="o">.</span><span class="n">poll_events</span><span class="p">()</span>
                 <span class="n">img</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">show_m</span><span class="p">,</span> <span class="s2">"show_axes_gizmo"</span><span class="p">):</span>
+            <span class="n">show_m</span><span class="o">.</span><span class="n">show_axes_gizmo</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"R"</span><span class="p">,</span> <span class="s2">"P"</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">,</span> <span class="s2">"S"</span><span class="p">,</span> <span class="s2">"I"</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">"Created visualizer currently assumes Neurological convention for axes."</span>
+        <span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="n">show_m</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">ShowManager</span><span class="p">(</span>
@@ -1382,14 +1391,12 @@ document.write(`
             <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
             <span class="n">window_type</span><span class="o">=</span><span class="n">window_type</span><span class="p">,</span>
             <span class="n">screen_config</span><span class="o">=</span><span class="n">screen_config</span><span class="p">,</span>
-            <span class="n">pixel_ratio</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
             <span class="n">imgui</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">show_m</span><span class="p">,</span> <span class="s2">"show_axes_gizmo"</span><span class="p">):</span>
-        <span class="n">show_m</span><span class="o">.</span><span class="n">show_axes_gizmo</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"R"</span><span class="p">,</span> <span class="s2">"P"</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">,</span> <span class="s2">"S"</span><span class="p">,</span> <span class="s2">"I"</span><span class="p">])</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="s2">"Created visualizer currently assumes Neurological convention for axes."</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">visualizer_type</span> <span class="o">==</span> <span class="s2">"stealth"</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FURY_OFFSCREEN"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"1"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"FURY_OFFSCREEN"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">show_m</span></div>
 
 </pre></div>
