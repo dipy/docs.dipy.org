@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.imaffine &#8212; dipy 1.13.0.dev0+git20261013.328e0f4 documentation</title>
+    <title>dipy.align.imaffine &#8212; dipy 1.13.0.dev0+git20261014.1cc50bd documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=490c9718"></script>
+    <script src="../../../_static/documentation_options.js?v=fe382762"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1915,16 +1915,13 @@ document.write(`
 <span class="sd">            interpolation artifacts. The default is None, implying no</span>
 <span class="sd">            pre-alignment is performed.</span>
 <span class="sd">        static_mask : array, shape (S, R, C) or (R, C), optional</span>
-<span class="sd">            static image mask. Not currently supported by this metric.</span>
+<span class="sd">            static image mask that selects centers of local neighborhoods</span>
+<span class="sd">            used to calculate the cross-correlation.</span>
 <span class="sd">        moving_mask : array, shape (S', R', C') or (R', C'), optional</span>
-<span class="sd">            moving image mask. Not currently supported by this metric.</span>
+<span class="sd">            moving image mask that selects centers of local neighborhoods</span>
+<span class="sd">            used to calculate the cross-correlation.</span>
 
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="n">static_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">moving_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-                <span class="s2">"Masks are not currently supported by CrossCorrelationMetric"</span>
-            <span class="p">)</span>
-
         <span class="n">n</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">get_number_of_parameters</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -1949,6 +1946,15 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">static</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">static</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moving</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">moving</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">static_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">static_mask</span> <span class="o">=</span> <span class="n">static_mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">static_mask</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">moving_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">moving_mask</span> <span class="o">=</span> <span class="n">moving_mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">moving_mask</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">static_grid2world</span> <span class="o">=</span> <span class="n">static_grid2world</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moving_grid2world</span> <span class="o">=</span> <span class="n">moving_grid2world</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moving_world2grid</span> <span class="o">=</span> <span class="n">npl</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">moving_grid2world</span><span class="p">)</span>
@@ -1987,8 +1993,7 @@ document.write(`
         <span class="n">warped_moving</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine_map</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moving</span><span class="p">)</span>
         <span class="n">warped_moving</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">warped_moving</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="n">factors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">precompute_factors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">static</span><span class="p">,</span> <span class="n">warped_moving</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
-        <span class="n">factors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">factors</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_cross_correlation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">update_gradient</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">"""Update local cross-correlation and its affine gradient.</span>
@@ -2024,6 +2029,15 @@ document.write(`
 
         <span class="c1"># Update the local CC factors with the current joint intensities</span>
         <span class="n">factors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_factors</span><span class="p">()</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_mask</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">moving_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">moving_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine_map</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">moving_mask</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">"nearest"</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">moving_mask</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="p">((</span><span class="n">mask</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">moving_mask</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">update_gradient</span><span class="p">:</span>
             <span class="c1"># Compute the gradient of moving img. at physical points</span>
@@ -2049,9 +2063,10 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span>
                 <span class="n">static2prealigned</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">metric_grad</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_affine</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metric_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_affine</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CrossCorrelationMetric.distance">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.imaffine.CrossCorrelationMetric.distance">[docs]</a>
@@ -2296,10 +2311,10 @@ document.write(`
 <span class="sd">                Start from identity</span>
 <span class="sd">        static_mask : array, shape (S, R, C) or (R, C), optional</span>
 <span class="sd">            static image mask that defines which pixels in the static image</span>
-<span class="sd">            are used to calculate the mutual information.</span>
+<span class="sd">            are used to calculate the similarity metric.</span>
 <span class="sd">        moving_mask : array, shape (S', R', C') or (R', C'), optional</span>
 <span class="sd">            moving image mask that defines which pixels in the moving image</span>
-<span class="sd">            are used to calculate the mutual information.</span>
+<span class="sd">            are used to calculate the similarity metric.</span>
 
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">static</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -2484,10 +2499,10 @@ document.write(`
 <span class="sd">            the distance between the images.</span>
 <span class="sd">        static_mask : array, shape (S, R, C) or (R, C), optional</span>
 <span class="sd">            static image mask that defines which pixels in the static image</span>
-<span class="sd">            are used to calculate the mutual information.</span>
+<span class="sd">            are used to calculate the similarity metric.</span>
 <span class="sd">        moving_mask : array, shape (S', R', C') or (R', C'), optional</span>
 <span class="sd">            moving image mask that defines which pixels in the moving image</span>
-<span class="sd">            are used to calculate the mutual information.</span>
+<span class="sd">            are used to calculate the similarity metric.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
