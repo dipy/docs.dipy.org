@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.streamline &#8212; dipy 1.13.0.dev0+git20261014.57d245e documentation</title>
+    <title>dipy.viz.skyline.render.streamline &#8212; dipy 1.13.0.dev0+git20261014.c576a93 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=246d97c9"></script>
+    <script src="../../../../../_static/documentation_options.js?v=2ff8f5aa"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -929,7 +929,7 @@ document.write(`
 <span class="p">)</span>
 <span class="k">if</span> <span class="n">has_fury_v2</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury</span><span class="w"> </span><span class="kn">import</span> <span class="n">distinguishable_colormap</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">streamtube</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">streamtube</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.colormap</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_colors</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.ui</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextBlock2D</span>
 
@@ -1195,7 +1195,9 @@ document.write(`
 
 <div class="viewcode-block" id="create_streamline">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.create_streamline">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_streamline</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">line_type</span><span class="o">=</span><span class="s2">"Line"</span><span class="p">,</span> <span class="n">segments</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_streamline</span><span class="p">(</span>
+    <span class="n">lines</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">line_type</span><span class="o">=</span><span class="s2">"Line"</span><span class="p">,</span> <span class="n">segments</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mf">0.35</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Instantiate Fury line or tube geometry for polyline streamlines.</span>
 
 <span class="sd">    Parameters</span>
@@ -1208,6 +1210,10 @@ document.write(`
 <span class="sd">        Primitive style passed to Fury.</span>
 <span class="sd">    segments : int, optional</span>
 <span class="sd">        Tube tessellation segments when ``line_type`` is ``"Tube"``.</span>
+<span class="sd">    opacity : float, optional</span>
+<span class="sd">        Line opacity percentage in ``[0, 100]``; ignored for tubes.</span>
+<span class="sd">    thickness : float, optional</span>
+<span class="sd">        Positive finite line width in logical screen pixels; ignored for tubes.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1215,6 +1221,12 @@ document.write(`
 <span class="sd">        Fury actor (line or tube container) ready to parent under a</span>
 <span class="sd">        ``Group``, or None when ``line_type`` is neither ``"Line"`` nor</span>
 <span class="sd">        ``"Tube"``.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Lines retain depth writes at partial opacity to preserve foreground occlusion.</span>
+<span class="sd">    Zero-alpha fragments are discarded. Translucent overlaps use classic alpha</span>
+<span class="sd">    blending, not order-independent transparency.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">color</span> <span class="o">==</span> <span class="s2">"direction"</span> <span class="ow">and</span> <span class="n">lines</span><span class="p">:</span>
         <span class="n">color</span> <span class="o">=</span> <span class="n">line_colors</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
@@ -1235,22 +1247,92 @@ document.write(`
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">tubes</span>
     <span class="k">elif</span> <span class="n">line_type</span> <span class="o">==</span> <span class="s2">"Line"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">opacity</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">opacity</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"opacity must be between 0 and 100"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">thickness</span><span class="p">)</span> <span class="ow">or</span> <span class="n">thickness</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"thickness must be a positive finite number"</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
             <span class="ow">and</span> <span class="n">color</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
             <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="n">streamlines</span><span class="p">(</span>
-            <span class="n">lines</span><span class="o">=</span><span class="n">lines</span><span class="p">,</span>
-            <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
-            <span class="n">thickness</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-            <span class="n">outline_thickness</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
-            <span class="n">outline_color</span><span class="o">=</span><span class="p">(</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">),</span>
-        <span class="p">)</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">aa</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="n">lines</span></div>
+        <span class="n">actor</span> <span class="o">=</span> <span class="n">line</span><span class="p">(</span><span class="n">lines</span><span class="o">=</span><span class="n">lines</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s2">"basic"</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">_set_line_appearance</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="n">thickness</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">actor</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_line_appearance</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">opacity</span><span class="p">,</span> <span class="n">thickness</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Apply Skyline's screen-space line appearance.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actor : Actor</span>
+<span class="sd">        Line actor to update without rebuilding geometry.</span>
+<span class="sd">    opacity : float</span>
+<span class="sd">        Opacity percentage in ``[0, 100]``.</span>
+<span class="sd">    thickness : float</span>
+<span class="sd">        Positive finite width in logical screen pixels.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    A minimal positive float32 alpha-test threshold enables zero-alpha discard</span>
+<span class="sd">    without clipping visible opacity.</span>
+<span class="sd">    """</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">thickness</span><span class="p">)</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="n">opacity</span> <span class="o">/</span> <span class="mf">100.0</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">aa</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">thickness_space</span> <span class="o">=</span> <span class="s2">"screen"</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">alpha_mode</span> <span class="o">=</span> <span class="s2">"blend"</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">depth_write</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">alpha_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">tiny</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">alpha_compare</span> <span class="o">=</span> <span class="s2">"&lt;="</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_line_appearance_widgets</span><span class="p">(</span><span class="n">opacity</span><span class="p">,</span> <span class="n">thickness</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Draw the shared Line-only appearance controls.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    opacity : int</span>
+<span class="sd">        Current opacity percentage.</span>
+<span class="sd">    thickness : float</span>
+<span class="sd">        Current width in logical screen pixels.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    changed : bool</span>
+<span class="sd">        Whether either control changed.</span>
+<span class="sd">    opacity : int</span>
+<span class="sd">        Updated opacity percentage.</span>
+<span class="sd">    thickness : float</span>
+<span class="sd">        Updated line width.</span>
+<span class="sd">    """</span>
+    <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
+    <span class="n">opacity_changed</span><span class="p">,</span> <span class="n">opacity</span> <span class="o">=</span> <span class="n">thin_slider</span><span class="p">(</span>
+        <span class="s2">"Opacity"</span><span class="p">,</span>
+        <span class="n">opacity</span><span class="p">,</span>
+        <span class="mi">0</span><span class="p">,</span>
+        <span class="mi">100</span><span class="p">,</span>
+        <span class="n">value_type</span><span class="o">=</span><span class="s2">"int"</span><span class="p">,</span>
+        <span class="n">text_format</span><span class="o">=</span><span class="s2">".0f"</span><span class="p">,</span>
+        <span class="n">value_unit</span><span class="o">=</span><span class="s2">"%"</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
+    <span class="n">thickness_changed</span><span class="p">,</span> <span class="n">thickness</span> <span class="o">=</span> <span class="n">thin_slider</span><span class="p">(</span>
+        <span class="s2">"Thickness"</span><span class="p">,</span>
+        <span class="n">thickness</span><span class="p">,</span>
+        <span class="mf">0.1</span><span class="p">,</span>
+        <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">value_type</span><span class="o">=</span><span class="s2">"float"</span><span class="p">,</span>
+        <span class="n">text_format</span><span class="o">=</span><span class="s2">".2f"</span><span class="p">,</span>
+        <span class="n">value_unit</span><span class="o">=</span><span class="s2">" px"</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">opacity_changed</span> <span class="ow">or</span> <span class="n">thickness_changed</span><span class="p">,</span> <span class="n">opacity</span><span class="p">,</span> <span class="n">thickness</span>
 
 
 <div class="viewcode-block" id="Streamline3D">
@@ -1323,6 +1405,8 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_saturation_low</span> <span class="o">=</span> <span class="mf">0.2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="mf">0.8</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span> <span class="o">=</span> <span class="n">line_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span> <span class="o">=</span> <span class="mf">0.35</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buan_pvals_file</span> <span class="o">=</span> <span class="n">buan_pvals_file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buan_pvals_data</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buan_color_idx</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1343,7 +1427,18 @@ document.write(`
             <span class="n">lines</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sft</span><span class="o">.</span><span class="n">streamlines</span><span class="p">,</span>
             <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
             <span class="n">line_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span><span class="p">,</span>
+            <span class="n">opacity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span><span class="p">,</span>
+            <span class="n">thickness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span><span class="p">,</span>
         <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_line_appearance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Update the current line actor from stored appearance settings."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span> <span class="o">==</span> <span class="s2">"Line"</span><span class="p">:</span>
+            <span class="n">_set_line_appearance</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_actor</span><span class="p">,</span>
+                <span class="n">opacity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span><span class="p">,</span>
+                <span class="n">thickness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span><span class="p">,</span>
+            <span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">actor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1460,6 +1555,16 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">_loader</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">"Switching line type..."</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">line_type_dialog_state</span> <span class="o">==</span> <span class="s2">"cancel"</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_requested_line_type</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span> <span class="o">==</span> <span class="s2">"Line"</span><span class="p">:</span>
+            <span class="n">changed</span><span class="p">,</span> <span class="n">opacity</span><span class="p">,</span> <span class="n">thickness</span> <span class="o">=</span> <span class="n">_line_appearance_widgets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span> <span class="o">=</span> <span class="n">opacity</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span> <span class="o">=</span> <span class="n">thickness</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_line_appearance</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
 
         <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
         <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
@@ -1640,6 +1745,8 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span> <span class="o">=</span> <span class="n">line_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span> <span class="o">=</span> <span class="mf">0.35</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_actor</span> <span class="o">=</span> <span class="n">Group</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pending_thr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_thr_changed_at</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1812,8 +1919,21 @@ document.write(`
             <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
             <span class="n">line_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span><span class="p">,</span>
             <span class="n">segments</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">opacity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span><span class="p">,</span>
+            <span class="n">thickness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">centroid_rep</span><span class="p">,</span> <span class="n">streamline_actor</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_line_appearance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Update member lines without changing centroid or tube appearance."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span> <span class="o">==</span> <span class="s2">"Line"</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cluster_state</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="s2">"cluster_actor"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_set_line_appearance</span><span class="p">(</span>
+                        <span class="n">state</span><span class="p">[</span><span class="s2">"cluster_actor"</span><span class="p">],</span>
+                        <span class="n">opacity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span><span class="p">,</span>
+                        <span class="n">thickness</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span><span class="p">,</span>
+                    <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_selected_unexpanded_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return the centroid actors that are selected but not expanded.</span>
@@ -2047,6 +2167,16 @@ document.write(`
         <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_cluster_line_type_change</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_type</span> <span class="o">==</span> <span class="s2">"Line"</span><span class="p">:</span>
+            <span class="n">changed</span><span class="p">,</span> <span class="n">opacity</span><span class="p">,</span> <span class="n">thickness</span> <span class="o">=</span> <span class="n">_line_appearance_widgets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line_opacity</span> <span class="o">=</span> <span class="n">opacity</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line_thickness</span> <span class="o">=</span> <span class="n">thickness</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_line_appearance</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
 
         <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
         <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
