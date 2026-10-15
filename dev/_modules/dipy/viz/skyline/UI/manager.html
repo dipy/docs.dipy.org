@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.UI.manager &#8212; dipy 1.13.0.dev0+git20261014.c576a93 documentation</title>
+    <title>dipy.viz.skyline.UI.manager &#8212; dipy 1.13.0.dev0+git20261015.20cb3f4 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=2ff8f5aa"></script>
+    <script src="../../../../../_static/documentation_options.js?v=e2ad68a5"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -886,16 +886,19 @@ document.write(`
 <span></span><span class="sd">"""Skyline sidebar window: section grouping, file dialogs, and font setup."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.elements</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">color_picker</span><span class="p">,</span>
     <span class="n">colors_equal</span><span class="p">,</span>
+    <span class="n">dropdown</span><span class="p">,</span>
     <span class="n">loading</span><span class="p">,</span>
     <span class="n">render_file_dialog</span><span class="p">,</span>
     <span class="n">render_section_header</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.theme</span><span class="w"> </span><span class="kn">import</span> <span class="n">FONT</span><span class="p">,</span> <span class="n">FONT_AWESOME</span><span class="p">,</span> <span class="n">THEME</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">SH_BASES</span><span class="p">,</span> <span class="n">_validate_sh_basis</span>
 
 <span class="n">imgui_bundle</span><span class="p">,</span> <span class="n">has_imgui</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
     <span class="s2">"imgui_bundle"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"1.92.600"</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="s2">"1.92.801"</span>
@@ -914,6 +917,12 @@ document.write(`
     <span class="s2">"roi"</span><span class="p">:</span> <span class="s2">"ROIs"</span><span class="p">,</span>
     <span class="s2">"surface"</span><span class="p">:</span> <span class="s2">"Surfaces"</span><span class="p">,</span>
 <span class="p">}</span>
+<span class="n">_SH_BASIS_LABELS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"Descoteaux07"</span><span class="p">,</span>
+    <span class="s2">"Descoteaux07 (legacy)"</span><span class="p">,</span>
+    <span class="s2">"Tournier07 (MRtrix 0.2)"</span><span class="p">,</span>
+    <span class="s2">"Tournier19 (MRtrix3)"</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="UIManager">
@@ -969,6 +978,9 @@ document.write(`
 <span class="sd">        Callback invoked when background color changes.</span>
 <span class="sd">    snapshot_callback : callable, optional</span>
 <span class="sd">        Callback invoked when a snapshot path is selected.</span>
+<span class="sd">    sh_basis : str, optional</span>
+<span class="sd">        Initial input SH convention for ODF imports, selected from ``SH_BASES``.</span>
+<span class="sd">        Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -984,6 +996,7 @@ document.write(`
         <span class="n">file_dialog_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">bg_color_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">snapshot_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sh_basis</span><span class="o">=</span><span class="s2">"descoteaux07"</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Initialize the sidebar window.</span>
 
@@ -1009,7 +1022,11 @@ document.write(`
 <span class="sd">            Callback invoked when background color changes.</span>
 <span class="sd">        snapshot_callback : callable, optional</span>
 <span class="sd">            Callback invoked when a snapshot path is selected.</span>
+<span class="sd">        sh_basis : str, optional</span>
+<span class="sd">            Initial input SH convention for ODF imports, selected from ``SH_BASES``.</span>
+<span class="sd">            Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span> <span class="o">=</span> <span class="n">_validate_sh_basis</span><span class="p">(</span><span class="n">sh_basis</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_open</span> <span class="o">=</span> <span class="n">default_open</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flags</span> <span class="o">=</span> <span class="n">flags</span>
@@ -1190,16 +1207,28 @@ document.write(`
                     <span class="nb">type</span><span class="o">=</span><span class="s2">"peak"</span><span class="p">,</span>
                 <span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">imgui</span><span class="o">.</span><span class="n">menu_item</span><span class="p">(</span><span class="s2">"ODFs"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_is_dialog_open</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">render_file_dialog</span><span class="p">(</span>
-                    <span class="n">title</span><span class="o">=</span><span class="s2">"Select Spherical Harmonics ODFs File(s)"</span><span class="p">,</span>
-                    <span class="n">name</span><span class="o">=</span><span class="s2">"ODFs Files (*.pam5 *.nii *.nii.gz)"</span><span class="p">,</span>
-                    <span class="n">extensions</span><span class="o">=</span><span class="s2">"*.pam5 *.nii *.gz"</span><span class="p">,</span>
-                    <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_dialog_closed</span><span class="p">,</span>
-                    <span class="nb">type</span><span class="o">=</span><span class="s2">"shm_coeff"</span><span class="p">,</span>
+            <span class="k">if</span> <span class="n">imgui</span><span class="o">.</span><span class="n">begin_menu</span><span class="p">(</span><span class="s2">"ODFs"</span><span class="p">):</span>
+                <span class="n">current_label</span> <span class="o">=</span> <span class="n">_SH_BASIS_LABELS</span><span class="p">[</span><span class="n">SH_BASES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span><span class="p">)]</span>
+                <span class="n">changed</span><span class="p">,</span> <span class="n">selected_label</span> <span class="o">=</span> <span class="n">dropdown</span><span class="p">(</span>
+                    <span class="s2">"Input SH basis"</span><span class="p">,</span> <span class="n">_SH_BASIS_LABELS</span><span class="p">,</span> <span class="n">current_label</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">220</span>
                 <span class="p">)</span>
+                <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span> <span class="o">=</span> <span class="n">SH_BASES</span><span class="p">[</span><span class="n">_SH_BASIS_LABELS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">selected_label</span><span class="p">)]</span>
+                <span class="n">imgui</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">"Converted to Fury standard for display."</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">imgui</span><span class="o">.</span><span class="n">menu_item</span><span class="p">(</span><span class="s2">"Select files..."</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_is_dialog_open</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">selected_basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span>
+                    <span class="n">render_file_dialog</span><span class="p">(</span>
+                        <span class="n">title</span><span class="o">=</span><span class="s2">"Select Spherical Harmonics ODFs File(s)"</span><span class="p">,</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s2">"ODFs Files (*.pam5 *.nii *.nii.gz)"</span><span class="p">,</span>
+                        <span class="n">extensions</span><span class="o">=</span><span class="s2">"*.pam5 *.nii *.gz"</span><span class="p">,</span>
+                        <span class="n">callback</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_file_dialog_closed</span><span class="p">,</span> <span class="n">sh_basis</span><span class="o">=</span><span class="n">selected_basis</span>
+                        <span class="p">),</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">"shm_coeff"</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="n">imgui</span><span class="o">.</span><span class="n">end_menu</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="n">imgui</span><span class="o">.</span><span class="n">menu_item</span><span class="p">(</span><span class="s2">"Surfaces"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1385,7 +1414,7 @@ document.write(`
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_section_open</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_file_dialog_closed</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sh_basis</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Forward dialog results to :attr:`file_dialog_callback` if present.</span>
 
@@ -1399,12 +1428,22 @@ document.write(`
 <span class="sd">            Selected peak paths.</span>
 <span class="sd">        shm_coeffs : list or None, optional</span>
 <span class="sd">            Selected SH coefficient paths.</span>
+<span class="sd">        sh_basis : str or None, optional</span>
+<span class="sd">            Input convention captured when the ODF picker opened.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_dialog_open</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">((</span><span class="n">filenames</span><span class="p">,</span> <span class="n">rois</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="p">)):</span>
+            <span class="k">return</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_dialog_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">file_dialog_callback</span><span class="p">(</span>
-                <span class="n">filenames</span><span class="o">=</span><span class="n">filenames</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="n">rois</span><span class="p">,</span> <span class="n">peaks</span><span class="o">=</span><span class="n">peaks</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="n">shm_coeffs</span>
-            <span class="p">)</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"filenames"</span><span class="p">:</span> <span class="n">filenames</span><span class="p">,</span>
+                <span class="s2">"rois"</span><span class="p">:</span> <span class="n">rois</span><span class="p">,</span>
+                <span class="s2">"peaks"</span><span class="p">:</span> <span class="n">peaks</span><span class="p">,</span>
+                <span class="s2">"shm_coeffs"</span><span class="p">:</span> <span class="n">shm_coeffs</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="n">shm_coeffs</span><span class="p">:</span>
+                <span class="n">selection</span><span class="p">[</span><span class="s2">"sh_basis"</span><span class="p">]</span> <span class="o">=</span> <span class="n">sh_basis</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_dialog_callback</span><span class="p">(</span><span class="o">**</span><span class="n">selection</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_bg_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_color</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Store the sidebar's background picker color and notify the host scene.</span>

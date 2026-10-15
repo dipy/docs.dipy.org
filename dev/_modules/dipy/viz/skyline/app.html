@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261014.c576a93 documentation</title>
+    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261015.20cb3f4 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=2ff8f5aa"></script>
+    <script src="../../../../_static/documentation_options.js?v=e2ad68a5"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -900,7 +900,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">UIWindow</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.theme</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGO_SMALL</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.compute</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_async_callbacks</span><span class="p">,</span> <span class="n">run_async</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">SH_BASES</span><span class="p">,</span> <span class="n">load_files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">_valid_shm_coeffs</span><span class="p">,</span> <span class="n">_validate_sh_basis</span><span class="p">,</span> <span class="n">load_files</span>
 
 <span class="n">fury_trip_msg</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">"Skyline requires Fury version 2.0.0 or higher."</span>
@@ -974,10 +974,15 @@ document.write(`
 <span class="sd">        Already-loaded spherical harmonic coefficient data to show at</span>
 <span class="sd">        startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
 <span class="sd">        ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
-<span class="sd">        be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
+<span class="sd">        be a 4D ndarray with a symmetric SH count, or a full SH count when the</span>
+<span class="sd">        fourth tuple element is ``"standard"``. Invalid entries are logged</span>
+<span class="sd">        and skipped.</span>
 <span class="sd">    sh_basis : str, optional</span>
-<span class="sd">        SH basis of NIfTI ODFs: ``"descoteaux07"`` (DIPY legacy) or</span>
-<span class="sd">        ``"tournier07"`` (MRtrix3).</span>
+<span class="sd">        Input convention for ODF files and unlabelled arrays: ``"descoteaux07"``</span>
+<span class="sd">        (latest), ``"descoteaux07_legacy"`` (old DIPY), ``"tournier07"``</span>
+<span class="sd">        (MRtrix 0.2), or ``"tournier19"`` (MRtrix3). A fourth tuple element</span>
+<span class="sd">        overrides this selection.</span>
+<span class="sd">        Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">    is_cluster : bool, optional</span>
 <span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>
@@ -1108,10 +1113,15 @@ document.write(`
 <span class="sd">            Already-loaded spherical harmonic coefficient data to show at</span>
 <span class="sd">            startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
 <span class="sd">            ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
-<span class="sd">            be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
+<span class="sd">            be a 4D ndarray with a symmetric SH count, or a full SH count when the</span>
+<span class="sd">            fourth tuple element is ``"standard"``. Invalid entries are logged</span>
+<span class="sd">            and skipped.</span>
 <span class="sd">        sh_basis : str, optional</span>
-<span class="sd">            SH basis of NIfTI ODFs: ``"descoteaux07"`` (DIPY legacy) or</span>
-<span class="sd">            ``"tournier07"`` (MRtrix3).</span>
+<span class="sd">            Input convention for ODF files and unlabelled arrays: ``"descoteaux07"``</span>
+<span class="sd">            (latest), ``"descoteaux07_legacy"`` (old DIPY), ``"tournier07"``</span>
+<span class="sd">            (MRtrix 0.2), or ``"tournier19"`` (MRtrix3). A fourth tuple element</span>
+<span class="sd">            overrides this selection.</span>
+<span class="sd">            Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">        is_cluster : bool, optional</span>
 <span class="sd">            Whether to cluster the tractograms.</span>
 <span class="sd">        is_light_version : bool, optional</span>
@@ -1173,8 +1183,7 @@ document.write(`
 <span class="sd">        the key otherwise. Skyline restores its previous value or absence after</span>
 <span class="sd">        setup/start returns or raises.</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="n">sh_basis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SH_BASES</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sh_basis must be one of </span><span class="si">{</span><span class="n">SH_BASES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">sh_basis</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+        <span class="n">sh_basis</span> <span class="o">=</span> <span class="n">_validate_sh_basis</span><span class="p">(</span><span class="n">sh_basis</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ui_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">dipy_offscreen_requested</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DIPY_OFFSCREEN"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span>
@@ -1265,6 +1274,7 @@ document.write(`
                     <span class="n">file_dialog_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_append_visualization</span><span class="p">,</span>
                     <span class="n">bg_color_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_background_color</span><span class="p">,</span>
                     <span class="n">snapshot_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_snapshot</span><span class="p">,</span>
+                    <span class="n">sh_basis</span><span class="o">=</span><span class="n">sh_basis</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">_imgui</span><span class="o">.</span><span class="n">set_gui</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">draw_ui</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1851,7 +1861,9 @@ document.write(`
 <span class="sd">            Loaded spherical harmonic coefficient data, as</span>
 <span class="sd">            ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
 <span class="sd">            ``(coeffs, affine, filename, basis_type)`` tuples. Entries whose</span>
-<span class="sd">            ``coeffs`` is not a 4D ndarray are skipped with a warning.</span>
+<span class="sd">            ``coeffs`` is not a 4D ndarray with a valid SH count are logged and</span>
+<span class="sd">            skipped. Explicit ``"standard"`` tuples use a full SH count;</span>
+<span class="sd">            other inputs use a symmetric count.</span>
 <span class="sd">        is_cluster : bool, optional</span>
 <span class="sd">            Overrides ``self._is_cluster`` for the tractograms in this batch.</span>
 <span class="sd">        async_clustering : bool, optional</span>
@@ -1935,11 +1947,8 @@ document.write(`
                 <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"ODFs </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
                     <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">coeffs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"The provide file: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> does not "</span>
-                        <span class="s2">"contain any SH coefficients or is not a 4D array."</span>
-                    <span class="p">)</span>
+                <span class="n">full_basis</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="nb">input</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"standard"</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">_valid_shm_coeffs</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">):</span>
                     <span class="k">continue</span>
             <span class="n">sh3d</span> <span class="o">=</span> <span class="n">create_shm_visualization</span><span class="p">(</span>
                 <span class="nb">input</span><span class="p">,</span>
@@ -1947,6 +1956,7 @@ document.write(`
                 <span class="n">render_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_refresh</span><span class="p">,</span>
                 <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                 <span class="n">l_max</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                <span class="n">basis_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span><span class="p">,</span>
                 <span class="n">sync_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_synchronize_visualizations</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_add_visualization</span><span class="p">(</span><span class="n">sh3d</span><span class="p">)</span>
@@ -1960,7 +1970,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_append_visualization</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rois</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shm_coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sh_basis</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Load files from disk asynchronously and queue them for display.</span>
 
@@ -1979,7 +1989,12 @@ document.write(`
 <span class="sd">            List of ``.pam5`` or NIfTI (.nii, .nii.gz) peak file paths.</span>
 <span class="sd">        shm_coeffs : list of str, optional</span>
 <span class="sd">            Paths to spherical harmonic coefficient files to load.</span>
+<span class="sd">        sh_basis : str or None, optional</span>
+<span class="sd">            Source convention for this batch, or the viewer's input default.</span>
+<span class="sd">            Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">        """</span>
+        <span class="n">batch_sh_basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span> <span class="k">if</span> <span class="n">sh_basis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">sh_basis</span>
+        <span class="n">batch_sh_basis</span> <span class="o">=</span> <span class="n">_validate_sh_basis</span><span class="p">(</span><span class="n">batch_sh_basis</span><span class="p">)</span>
         <span class="n">total_files</span> <span class="o">=</span> <span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span> <span class="ow">or</span> <span class="p">[])</span>
             <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">rois</span> <span class="ow">or</span> <span class="p">[])</span>
@@ -1998,7 +2013,7 @@ document.write(`
                 <span class="n">rois</span><span class="o">=</span><span class="n">rois</span><span class="p">,</span>
                 <span class="n">peaks</span><span class="o">=</span><span class="n">peaks</span><span class="p">,</span>
                 <span class="n">shm_coeffs</span><span class="o">=</span><span class="n">shm_coeffs</span><span class="p">,</span>
-                <span class="n">sh_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span><span class="p">,</span>
+                <span class="n">sh_basis</span><span class="o">=</span><span class="n">batch_sh_basis</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">on_files_loaded</span><span class="p">(</span><span class="n">loaded_files</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
@@ -2345,12 +2360,13 @@ document.write(`
 <span class="sd">        Tuple of path for each peaks file (.pam5, or NIfTI with shape</span>
 <span class="sd">        (X, Y, Z, 3*N) or (X, Y, Z, N, 3)) to be added to the Skyline viewer.</span>
 <span class="sd">    shm_coeffs : list of str, optional</span>
-<span class="sd">        File paths for spherical harmonics coefficients to be loaded into</span>
-<span class="sd">        the Skyline viewer. Only ``.pam5`` files are supported; other</span>
-<span class="sd">        extensions are silently skipped.</span>
+<span class="sd">        File paths for spherical harmonics coefficients (``.pam5``, ``.nii``,</span>
+<span class="sd">        or ``.nii.gz``). Unsupported extensions are logged and skipped.</span>
 <span class="sd">    sh_basis : str, optional</span>
-<span class="sd">        SH basis of NIfTI ODFs: 'descoteaux07' (DIPY legacy) or 'tournier07'</span>
-<span class="sd">        (MRtrix3).</span>
+<span class="sd">        Input convention for PAM and NIfTI ODFs: ``"descoteaux07"`` (latest),</span>
+<span class="sd">        ``"descoteaux07_legacy"`` (old DIPY), ``"tournier07"`` (MRtrix 0.2),</span>
+<span class="sd">        or ``"tournier19"`` (MRtrix3).</span>
+<span class="sd">        Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">    is_cluster : bool, optional</span>
 <span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>
@@ -2503,10 +2519,15 @@ document.write(`
 <span class="sd">        Already-loaded spherical harmonic coefficient data to show at</span>
 <span class="sd">        startup, as ``(coeffs, affine)``, ``(coeffs, affine, filename)`` or</span>
 <span class="sd">        ``(coeffs, affine, filename, basis_type)`` tuples. ``coeffs`` must</span>
-<span class="sd">        be a 4D ndarray, otherwise the entry is skipped with a warning.</span>
+<span class="sd">        be a 4D ndarray with a symmetric SH count, or a full SH count when the</span>
+<span class="sd">        fourth tuple element is ``"standard"``. Invalid entries are logged</span>
+<span class="sd">        and skipped.</span>
 <span class="sd">    sh_basis : str, optional</span>
-<span class="sd">        SH basis of NIfTI ODFs: 'descoteaux07' (DIPY legacy) or 'tournier07'</span>
-<span class="sd">        (MRtrix3).</span>
+<span class="sd">        Input convention for ODF files and unlabelled arrays: ``"descoteaux07"``</span>
+<span class="sd">        (latest), ``"descoteaux07_legacy"`` (old DIPY), ``"tournier07"``</span>
+<span class="sd">        (MRtrix 0.2), or ``"tournier19"`` (MRtrix3). A fourth tuple element</span>
+<span class="sd">        overrides this selection.</span>
+<span class="sd">        Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">    is_cluster : bool, optional</span>
 <span class="sd">        Whether to cluster the tractograms.</span>
 <span class="sd">    is_light_version : bool, optional</span>

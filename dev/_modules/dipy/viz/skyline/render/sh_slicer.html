@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.sh_slicer &#8212; dipy 1.13.0.dev0+git20261014.c576a93 documentation</title>
+    <title>dipy.viz.skyline.render.sh_slicer &#8212; dipy 1.13.0.dev0+git20261015.20cb3f4 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=2ff8f5aa"></script>
+    <script src="../../../../../_static/documentation_options.js?v=e2ad68a5"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -897,7 +897,13 @@ document.write(`
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_max_order</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">calculate_max_order</span><span class="p">,</span>
+    <span class="n">convert_sh_descoteaux_tournier</span><span class="p">,</span>
+    <span class="n">convert_sh_from_legacy</span><span class="p">,</span>
+    <span class="n">convert_sh_to_legacy</span><span class="p">,</span>
+    <span class="n">sph_harm_ind_list</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.elements</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">create_numeric_input</span><span class="p">,</span>
@@ -905,6 +911,7 @@ document.write(`
     <span class="n">thin_slider</span><span class="p">,</span>
     <span class="n">toggle_button</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">_validate_sh_basis</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.renderer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Visualization</span><span class="p">,</span>
     <span class="n">affine_voxel_sizes</span><span class="p">,</span>
@@ -1024,39 +1031,28 @@ document.write(`
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_descoteaux_to_fury_standard</span><span class="p">(</span><span class="n">coeffs_4d</span><span class="p">,</span> <span class="n">sh_order</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Convert even-order descoteaux07 SH coefficients to Fury's standard basis.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sh_to_fury_standard</span><span class="p">(</span><span class="n">coeffs_4d</span><span class="p">,</span> <span class="n">sh_order</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">basis_type</span><span class="o">=</span><span class="s2">"descoteaux07"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert the declared source to MRtrix3 harmonics and pad odd orders.</span>
 
-<span class="sd">    The legacy descoteaux07 basis uses Im(Y) for m&gt;0 and Re(Y) for m&lt;0, while</span>
-<span class="sd">    FURY uses cos(mφ) for m&gt;0 and sin(|m|φ) for m&lt;0. Coefficients satisfy</span>
-<span class="sd">    ``c_fury(l, m) = c_desc(l, -m)``.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    coeffs_4d : ndarray</span>
-<span class="sd">        Volume storing descoteaux07 coefficients along the last axis.</span>
-<span class="sd">    sh_order : int</span>
-<span class="sd">        Maximum even spherical harmonic order present in the volume.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    ndarray</span>
-<span class="sd">        Array with the same leading shape as ``coeffs_4d`` and</span>
-<span class="sd">        ``(sh_order + 1) ** 2`` standard-basis coefficients on the last axis.</span>
+<span class="sd">    Fury's standard basis is nonlegacy Tournier (MRtrix3), in full ordering.</span>
 <span class="sd">    """</span>
-    <span class="n">n_std</span> <span class="o">=</span> <span class="p">(</span><span class="n">sh_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coeffs_4d</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_std</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">coeffs_4d</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">orders</span> <span class="o">=</span> <span class="n">sph_harm_ind_list</span><span class="p">(</span><span class="n">sh_order</span><span class="p">,</span> <span class="n">full_basis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">even_orders</span> <span class="o">=</span> <span class="n">orders</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">output_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">result_type</span><span class="p">(</span><span class="n">coeffs_4d</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs_4d</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">even_orders</span><span class="p">)]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+        <span class="n">output_dtype</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
 
-    <span class="n">desc_idx</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">l_val</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sh_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">l_val</span><span class="p">,</span> <span class="n">l_val</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="n">fury_m</span> <span class="o">=</span> <span class="o">-</span><span class="n">m</span>
-            <span class="n">fury_idx</span> <span class="o">=</span> <span class="n">l_val</span> <span class="o">*</span> <span class="n">l_val</span> <span class="o">+</span> <span class="n">l_val</span> <span class="o">+</span> <span class="n">fury_m</span>
+    <span class="k">if</span> <span class="n">basis_type</span> <span class="o">==</span> <span class="s2">"descoteaux07"</span><span class="p">:</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">convert_sh_to_legacy</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="s2">"descoteaux07"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">basis_type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"descoteaux07"</span><span class="p">,</span> <span class="s2">"descoteaux07_legacy"</span><span class="p">):</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">convert_sh_descoteaux_tournier</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">basis_type</span> <span class="o">==</span> <span class="s2">"tournier07"</span><span class="p">:</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">convert_sh_from_legacy</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="s2">"tournier07"</span><span class="p">)</span>
 
-            <span class="n">out</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">fury_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeffs_4d</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">desc_idx</span><span class="p">]</span>
-            <span class="n">desc_idx</span> <span class="o">+=</span> <span class="mi">1</span>
-
-    <span class="k">return</span> <span class="n">out</span>
+    <span class="n">full_coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coeffs_4d</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">orders</span><span class="o">.</span><span class="n">size</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">output_dtype</span><span class="p">)</span>
+    <span class="n">full_coeffs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">even_orders</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeffs</span>
+    <span class="k">return</span> <span class="n">full_coeffs</span>
 
 
 <div class="viewcode-block" id="SHSlicer">
@@ -1069,16 +1065,19 @@ document.write(`
 <span class="sd">    and forwards per-axis slice/visibility/scale/opacity changes to that</span>
 <span class="sd">    actor's material without ever rebuilding the geometry.</span>
 
+<span class="sd">    ``input_basis_type`` retains the resolved source convention;</span>
+<span class="sd">    ``basis_type`` identifies the standard rendering backend.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    coeffs_4d : ndarray, shape (X, Y, Z, C)</span>
-<span class="sd">        SH coefficients per voxel.  Converted from ``descoteaux07`` to</span>
-<span class="sd">        Fury's standard basis on construction if needed.</span>
+<span class="sd">        SH coefficients per voxel, converted from the declared source to</span>
+<span class="sd">        Fury's standard basis on construction unless already standard.</span>
 <span class="sd">    scale : float, optional</span>
 <span class="sd">        Uniform billboard size multiplier relative to estimated SH radii.</span>
 <span class="sd">    l_max : int, optional</span>
-<span class="sd">        Maximum SH order to shade.  For ``descoteaux``/``descoteaux07``</span>
-<span class="sd">        input, capped to the order implied by ``coeffs_4d``'s last axis</span>
+<span class="sd">        Maximum SH order to shade. For symmetric Skyline input,</span>
+<span class="sd">        capped to the order implied by ``coeffs_4d``'s last axis</span>
 <span class="sd">        when that is lower; for ``standard`` input it must not exceed that</span>
 <span class="sd">        order (raises ``ValueError`` downstream otherwise).</span>
 <span class="sd">    lut_res : int, optional</span>
@@ -1086,8 +1085,11 @@ document.write(`
 <span class="sd">    mask : ndarray of bool, shape (X, Y, Z), optional</span>
 <span class="sd">        When given, voxels outside the mask are excluded even if their</span>
 <span class="sd">        coefficients are non-zero.</span>
-<span class="sd">    basis_type : {"standard", "descoteaux", "descoteaux07"}, optional</span>
-<span class="sd">        SH basis convention of ``coeffs_4d``.</span>
+<span class="sd">    basis_type : str, optional</span>
+<span class="sd">        ``"standard"`` for Fury's full basis, otherwise a Skyline input label:</span>
+<span class="sd">        ``"descoteaux07"``, ``"descoteaux07_legacy"``, ``"tournier07"``</span>
+<span class="sd">        (MRtrix 0.2), or ``"tournier19"`` (MRtrix3).</span>
+<span class="sd">        Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">    color_type : {"orientation", "sign"}, optional</span>
 <span class="sd">        Glyph coloring: direction-mapped hue, or a two-color sign split.</span>
 <span class="sd">    """</span>
@@ -1108,13 +1110,13 @@ document.write(`
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        coeffs_4d : ndarray, shape (X, Y, Z, C)</span>
-<span class="sd">            SH coefficients per voxel.  Converted from ``descoteaux07`` to</span>
-<span class="sd">            Fury's standard basis on construction if needed.</span>
+<span class="sd">            SH coefficients per voxel, converted from the declared source to</span>
+<span class="sd">            Fury's standard basis on construction unless already standard.</span>
 <span class="sd">        scale : float, optional</span>
 <span class="sd">            Uniform billboard size multiplier relative to estimated SH radii.</span>
 <span class="sd">        l_max : int, optional</span>
-<span class="sd">            Maximum SH order to shade.  For ``descoteaux``/``descoteaux07``</span>
-<span class="sd">            input, capped to the order implied by ``coeffs_4d``'s last axis</span>
+<span class="sd">            Maximum SH order to shade. For symmetric Skyline input,</span>
+<span class="sd">            capped to the order implied by ``coeffs_4d``'s last axis</span>
 <span class="sd">            when that is lower; for ``standard`` input it must not exceed</span>
 <span class="sd">            that order (raises ``ValueError`` downstream otherwise).</span>
 <span class="sd">        lut_res : int, optional</span>
@@ -1122,16 +1124,24 @@ document.write(`
 <span class="sd">        mask : ndarray of bool, shape (X, Y, Z), optional</span>
 <span class="sd">            When given, voxels outside the mask are excluded even if their</span>
 <span class="sd">            coefficients are non-zero.</span>
-<span class="sd">        basis_type : {"standard", "descoteaux", "descoteaux07"}, optional</span>
-<span class="sd">            SH basis convention of ``coeffs_4d``.</span>
+<span class="sd">        basis_type : str, optional</span>
+<span class="sd">            ``"standard"`` for Fury's full basis, otherwise a Skyline input label:</span>
+<span class="sd">            ``"descoteaux07"``, ``"descoteaux07_legacy"``, ``"tournier07"``</span>
+<span class="sd">            (MRtrix 0.2), or ``"tournier19"`` (MRtrix3).</span>
+<span class="sd">            Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">        color_type : {"orientation", "sign"}, optional</span>
 <span class="sd">            Glyph coloring: direction-mapped hue, or a two-color sign split.</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="n">basis_type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"descoteaux"</span><span class="p">,</span> <span class="s2">"descoteaux07"</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_basis_type</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">"standard"</span> <span class="k">if</span> <span class="n">basis_type</span> <span class="o">==</span> <span class="s2">"standard"</span> <span class="k">else</span> <span class="n">_validate_sh_basis</span><span class="p">(</span><span class="n">basis_type</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_basis_type</span> <span class="o">!=</span> <span class="s2">"standard"</span><span class="p">:</span>
             <span class="n">data_sh_order</span> <span class="o">=</span> <span class="n">calculate_max_order</span><span class="p">(</span><span class="n">coeffs_4d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
             <span class="n">l_max</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">l_max</span><span class="p">,</span> <span class="n">data_sh_order</span><span class="p">)</span>
-            <span class="n">coeffs_4d</span> <span class="o">=</span> <span class="n">_descoteaux_to_fury_standard</span><span class="p">(</span><span class="n">coeffs_4d</span><span class="p">,</span> <span class="n">l_max</span><span class="p">)</span>
-            <span class="n">basis_type</span> <span class="o">=</span> <span class="s2">"standard"</span>
+            <span class="n">coeffs_4d</span> <span class="o">=</span> <span class="n">_sh_to_fury_standard</span><span class="p">(</span>
+                <span class="n">coeffs_4d</span><span class="p">,</span> <span class="n">l_max</span><span class="p">,</span> <span class="n">basis_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_basis_type</span>
+            <span class="p">)</span>
+        <span class="n">basis_type</span> <span class="o">=</span> <span class="s2">"standard"</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">coeffs_4d</span> <span class="o">=</span> <span class="n">coeffs_4d</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">coeffs_4d</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
@@ -1336,8 +1346,11 @@ document.write(`
 <span class="sd">        Maximum SH order to shade.</span>
 <span class="sd">    lut_res : int, optional</span>
 <span class="sd">        Cube-map Hermite LUT resolution per face edge.</span>
-<span class="sd">    basis_type : {"standard", "descoteaux", "descoteaux07"}, optional</span>
-<span class="sd">        SH basis convention of ``coeffs``.</span>
+<span class="sd">    basis_type : str, optional</span>
+<span class="sd">        ``"standard"`` for Fury's full basis, otherwise a Skyline input label:</span>
+<span class="sd">        ``"descoteaux07"``, ``"descoteaux07_legacy"``, ``"tournier07"``</span>
+<span class="sd">        (MRtrix 0.2), or ``"tournier19"`` (MRtrix3).</span>
+<span class="sd">        Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">    color_type : {"orientation", "sign"}, optional</span>
 <span class="sd">        Glyph coloring: direction-mapped hue, or a two-color sign split.</span>
 <span class="sd">    mask : ndarray of bool, optional</span>
@@ -1382,8 +1395,11 @@ document.write(`
 <span class="sd">            Maximum SH order to shade.</span>
 <span class="sd">        lut_res : int, optional</span>
 <span class="sd">            Cube-map Hermite LUT resolution per face edge.</span>
-<span class="sd">        basis_type : {"standard", "descoteaux", "descoteaux07"}, optional</span>
-<span class="sd">            SH basis convention of ``coeffs``.</span>
+<span class="sd">        basis_type : str, optional</span>
+<span class="sd">            ``"standard"`` for Fury's full basis, otherwise a Skyline input label:</span>
+<span class="sd">            ``"descoteaux07"``, ``"descoteaux07_legacy"``, ``"tournier07"``</span>
+<span class="sd">            (MRtrix 0.2), or ``"tournier19"`` (MRtrix3).</span>
+<span class="sd">            Unsupported values are logged and use latest Descoteaux07.</span>
 <span class="sd">        color_type : {"orientation", "sign"}, optional</span>
 <span class="sd">            Glyph coloring: direction-mapped hue, or a two-color sign split.</span>
 <span class="sd">        mask : ndarray of bool, optional</span>
@@ -1446,17 +1462,18 @@ document.write(`
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span><span class="o">.</span><span class="n">actor</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_populate_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Build the multi-line summary shown in the info panel.</span>
+<span class="w">        </span><span class="sd">"""Build the multi-line summary shown in the Info hover tooltip.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            Dimensions, SH coefficient count and order, plus voxel sizes,</span>
-<span class="sd">            voxel order, and affine when an affine is available.</span>
+<span class="sd">            Dimensions, render coefficient count/order, input convention</span>
+<span class="sd">            and affine information.</span>
 <span class="sd">        """</span>
         <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Dimensions: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span>
         <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">SH Coefficients: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span><span class="o">.</span><span class="n">n_coeffs</span><span class="si">}</span><span class="s2">"</span>
         <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">SH Order: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span><span class="o">.</span><span class="n">l_max</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Input SH basis: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span><span class="o">.</span><span class="n">input_basis_type</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">info</span> <span class="o">+=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="n">format_affine_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
 

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.io &#8212; dipy 1.13.0.dev0+git20261014.c576a93 documentation</title>
+    <title>dipy.viz.skyline.io &#8212; dipy 1.13.0.dev0+git20261015.20cb3f4 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=2ff8f5aa"></script>
+    <script src="../../../../_static/documentation_options.js?v=e2ad68a5"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -896,7 +896,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_tractogram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.surface</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_gifti</span><span class="p">,</span> <span class="n">load_pial</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_nifti_header</span><span class="p">,</span> <span class="n">split_filename_extension</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_max_order</span><span class="p">,</span> <span class="n">convert_sh_descoteaux_tournier</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_max_order</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 
 <span class="n">mni_2009c</span> <span class="o">=</span> <span class="p">{</span>
@@ -915,16 +915,93 @@ document.write(`
 <span class="n">EMERGENCY_REF</span> <span class="o">=</span> <span class="n">create_nifti_header</span><span class="p">(</span>
     <span class="n">mni_2009c</span><span class="p">[</span><span class="s2">"affine"</span><span class="p">],</span> <span class="n">mni_2009c</span><span class="p">[</span><span class="s2">"dims"</span><span class="p">],</span> <span class="n">mni_2009c</span><span class="p">[</span><span class="s2">"vox_size"</span><span class="p">]</span>
 <span class="p">)</span>
-<span class="n">SH_BASES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"descoteaux07"</span><span class="p">,</span> <span class="s2">"tournier07"</span><span class="p">)</span>
+<span class="n">SH_BASES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"descoteaux07"</span><span class="p">,</span> <span class="s2">"descoteaux07_legacy"</span><span class="p">,</span> <span class="s2">"tournier07"</span><span class="p">,</span> <span class="s2">"tournier19"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_sh_basis</span><span class="p">(</span><span class="n">sh_basis</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a supported input basis, logging invalid declarations.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sh_basis : str</span>
+<span class="sd">        Input SH convention selected by the caller.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Supported input convention, or ``"descoteaux07"`` for an invalid</span>
+<span class="sd">        declaration, which is logged.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">sh_basis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SH_BASES</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"sh_basis must be one of </span><span class="si">{</span><span class="n">SH_BASES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">sh_basis</span><span class="si">!r}</span><span class="s2">. "</span>
+            <span class="s2">"Using 'descoteaux07'."</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="s2">"descoteaux07"</span>
+    <span class="k">return</span> <span class="n">sh_basis</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_valid_shm_coeffs</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">full_basis</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Check SH volume shape and coefficient count, logging invalid inputs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coeffs : ndarray or None</span>
+<span class="sd">        Candidate 4D SH coefficient volume to validate.</span>
+<span class="sd">    fname : str</span>
+<span class="sd">        Source filename or display name used in validation errors.</span>
+<span class="sd">    full_basis : bool, optional</span>
+<span class="sd">        Whether the coefficient axis includes both even and odd SH orders.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True for a 4D array with a valid SH coefficient count, otherwise False.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">calculate_max_order</span><span class="p">(</span><span class="n">coeffs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">coefficient_layout</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"full SH coefficient count (1, 4, 9, 16, ...)"</span>
+        <span class="k">if</span> <span class="n">full_basis</span>
+        <span class="k">else</span> <span class="s2">"symmetric SH coefficient count (1, 6, 15, 28, 45, ...)"</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> does not contain SH coefficients: expected a 4D volume with "</span>
+        <span class="sa">f</span><span class="s2">"a </span><span class="si">{</span><span class="n">coefficient_layout</span><span class="si">}</span><span class="s2">, got shape </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">."</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reference_from_image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Build a NIfTI header usable as a tractogram spatial reference.</span>
+
+<span class="sd">    Formats without an embedded header (``.tck``, ``.vtk``, ``.dpy``, ...) need</span>
+<span class="sd">    a full reference, not just an affine.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        Volume the reference geometry is taken from.</span>
+<span class="sd">    affine : ndarray, shape (4, 4)</span>
+<span class="sd">        Voxel-to-world transform of ``data``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    nibabel.nifti1.Nifti1Header</span>
+<span class="sd">        Header carrying the volume's affine, dimensions and voxel sizes.</span>
+<span class="sd">    """</span>
+    <span class="n">vox_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">create_nifti_header</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">vox_size</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_peaks_from_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Load peak directions from a NIfTI peaks volume.</span>
-
-<span class="sd">    Accepts the two layouts Skyline recognizes: ``(X, Y, Z, N, 3)``, written</span>
-<span class="sd">    by ``pam_to_niftis(..., reshape_dirs=False)``, and ``(X, Y, Z, 3*N)``,</span>
-<span class="sd">    written by ``pam_to_niftis(..., reshape_dirs=True)`` and by MRtrix3</span>
-<span class="sd">    ``sh2peaks``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -936,6 +1013,13 @@ document.write(`
 <span class="sd">    tuple or None</span>
 <span class="sd">        ``(peak_dirs, affine)`` with ``peak_dirs`` of shape (X, Y, Z, N, 3),</span>
 <span class="sd">        or None if ``fname`` does not hold a recognized peaks layout.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Accepts the two layouts Skyline recognizes: ``(X, Y, Z, N, 3)``, written</span>
+<span class="sd">    by ``pam_to_niftis(..., reshape_dirs=False)``, and ``(X, Y, Z, 3*N)``,</span>
+<span class="sd">    written by ``pam_to_niftis(..., reshape_dirs=True)`` and by MRtrix3</span>
+<span class="sd">    ``sh2peaks``.</span>
 <span class="sd">    """</span>
     <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -948,41 +1032,6 @@ document.write(`
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">affine</span>
 
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_shm_from_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">sh_basis</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Load SH coefficients from a 4D NIfTI ODF volume.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    fname : str</span>
-<span class="sd">        Path of the NIfTI SH coefficients file.</span>
-<span class="sd">    sh_basis : str</span>
-<span class="sd">        SH basis of ``fname``: ``"descoteaux07"`` or ``"tournier07"``. Any</span>
-<span class="sd">        value other than ``"tournier07"`` is treated as ``"descoteaux07"``.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    tuple or None</span>
-<span class="sd">        ``(coeffs, affine)`` with ``coeffs`` converted to legacy</span>
-<span class="sd">        descoteaux07, or None if ``fname`` does not hold a symmetric SH</span>
-<span class="sd">        coefficient volume.</span>
-<span class="sd">    """</span>
-    <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">calculate_max_order</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">coeffs</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">sh_basis</span> <span class="o">==</span> <span class="s2">"tournier07"</span><span class="p">:</span>
-                <span class="n">coeffs</span> <span class="o">=</span> <span class="n">convert_sh_descoteaux_tournier</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">affine</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> does not contain SH coefficients: expected a 4D volume with "</span>
-        <span class="sa">f</span><span class="s2">"a symmetric SH coefficient count (1, 6, 15, 28, 45, ...), got shape "</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">."</span>
-    <span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span>
 
 
@@ -1009,13 +1058,14 @@ document.write(`
 <span class="sd">        Paths to ROI images (``.nii`` or ``.nii.gz``); other extensions</span>
 <span class="sd">        are logged and skipped.</span>
 <span class="sd">    peaks : list of str, optional</span>
-<span class="sd">        Paths of the peak files.</span>
+<span class="sd">        Paths to PAM or NIfTI peak-direction files.</span>
 <span class="sd">    shm_coeffs : list of str, optional</span>
-<span class="sd">        Paths to spherical-harmonic coefficient files (``.pam5``); other</span>
-<span class="sd">        extensions are silently skipped.</span>
+<span class="sd">        Paths to spherical-harmonic coefficient files (``.pam5``, ``.nii``,</span>
+<span class="sd">        or ``.nii.gz``); unsupported extensions are logged and skipped.</span>
 <span class="sd">    sh_basis : str, optional</span>
-<span class="sd">        SH basis of NIfTI ODFs in ``shm_coeffs``: ``"descoteaux07"`` or</span>
-<span class="sd">        ``"tournier07"``.</span>
+<span class="sd">        Input convention for PAM and NIfTI ODFs: ``"descoteaux07"`` (latest),</span>
+<span class="sd">        ``"descoteaux07_legacy"`` (old DIPY), ``"tournier07"`` (MRtrix 0.2),</span>
+<span class="sd">        or ``"tournier19"`` (MRtrix3).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1024,27 +1074,20 @@ document.write(`
 <span class="sd">        ``"surfaces"``, ``"tractograms"``, ``"shm_coeffs"``, each a list</span>
 <span class="sd">        of tuples for the matching ``create_*_visualization`` function:</span>
 
-<span class="sd">        - images : ``(img, affine, fname)`` with a nibabel image object</span>
+<span class="sd">        - images : ``(img, affine, fname)`` with a lazily loaded nibabel image</span>
+<span class="sd">          whose voxel data is materialized by ``render.image.Image3D``.</span>
 <span class="sd">        - rois : ``(data, affine, fname)`` with an ndarray</span>
-<span class="sd">        - peaks : ``(pam, fname)``</span>
+<span class="sd">        - peaks : ``(peak_dirs, affine, fname, peak_values)``; NIfTI files</span>
+<span class="sd">          have ``peak_values=None``.</span>
 <span class="sd">        - surfaces : ``(vertices, faces, fname)``</span>
 <span class="sd">        - tractograms : ``(sft, fname)``</span>
-<span class="sd">        - shm_coeffs : ``(coeffs, affine, fname, "descoteaux")``</span>
+<span class="sd">        - shm_coeffs : ``(coeffs, affine, fname, sh_basis)``</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    NIfTI peak files (``.nii``, ``.nii.gz``) are accepted in two layouts:</span>
-<span class="sd">    ``(X, Y, Z, N, 3)``, as written by</span>
-<span class="sd">    ``dipy.io.peaks.pam_to_niftis(..., reshape_dirs=False)``, and</span>
-<span class="sd">    ``(X, Y, Z, 3*N)``, as written with ``reshape_dirs=True`` and by MRtrix3</span>
-<span class="sd">    ``sh2peaks``. Each ``"peaks"`` entry is a</span>
-<span class="sd">    ``(peak_dirs, affine, filename, peak_values)`` tuple; ``peak_values`` is</span>
-<span class="sd">    None for NIfTI peaks, since a NIfTI peaks file carries no magnitude</span>
-<span class="sd">    information.</span>
-
-<span class="sd">    NIfTI ODF files must be a 4D volume whose last dimension is a symmetric</span>
-<span class="sd">    SH coefficient count (1, 6, 15, 28, 45, ...). Coefficients in the</span>
-<span class="sd">    ``tournier07`` (MRtrix3) basis are converted to legacy ``descoteaux07``.</span>
+<span class="sd">    SH coefficients remain in the declared input basis; only rendering converts</span>
+<span class="sd">    them. The convention is not inferred. Unsupported names are logged and use</span>
+<span class="sd">    ``"descoteaux07"``.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">fnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fnames</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1098,7 +1141,7 @@ document.write(`
             <span class="k">if</span> <span class="n">skyline_images</span><span class="p">:</span>
                 <span class="n">sft</span> <span class="o">=</span> <span class="n">load_tractogram</span><span class="p">(</span>
                     <span class="n">fname</span><span class="p">,</span>
-                    <span class="n">skyline_images</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">_reference_from_image</span><span class="p">(</span><span class="o">*</span><span class="n">skyline_images</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">2</span><span class="p">]),</span>
                     <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1142,13 +1185,15 @@ document.write(`
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading file ... </span><span class="se">\n</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">split_filename_extension</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">".pam5"</span><span class="p">:</span>
-            <span class="n">pam</span> <span class="o">=</span> <span class="n">load_pam</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-            <span class="n">skyline_shm_coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="s2">"descoteaux"</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">".nii.gz"</span><span class="p">,</span> <span class="s2">".nii"</span><span class="p">]:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">_shm_from_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">sh_basis</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">skyline_shm_coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="o">*</span><span class="n">result</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="s2">"descoteaux"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">".nii.gz"</span><span class="p">,</span> <span class="s2">".nii"</span><span class="p">,</span> <span class="s2">".pam5"</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">".pam5"</span><span class="p">:</span>
+                <span class="n">pam</span> <span class="o">=</span> <span class="n">load_pam</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">affine</span>
+            <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">".nii.gz"</span><span class="p">,</span> <span class="s2">".nii"</span><span class="p">]:</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">_valid_shm_coeffs</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+                <span class="n">input_basis</span> <span class="o">=</span> <span class="n">_validate_sh_basis</span><span class="p">(</span><span class="n">sh_basis</span><span class="p">)</span>
+                <span class="n">skyline_shm_coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">input_basis</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"File extension '</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">' is not supported for ODFs in Skyline."</span>
