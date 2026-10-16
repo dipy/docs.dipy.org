@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dipy_auto &#8212; dipy 1.13.0.dev0+git20261015.20cb3f4 documentation</title>
+    <title>dipy_auto &#8212; dipy 1.13.0.dev0+git20261016.e2a988f documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=e2ad68a5"></script>
+    <script src="../_static/documentation_options.js?v=f4aadbf9"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -986,6 +986,8 @@ automatically from their extensions (case-insensitive):</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">*report*.html</span></code> — HTML report; all other inputs are ignored
 and the report is served via a local HTTP server.</p></li>
 </ul>
+<p>With <code class="docutils literal notranslate"><span class="pre">--bids</span></code>, the arguments follow the BIDS-App convention
+instead: <code class="docutils literal notranslate"><span class="pre">dipy_auto</span> <span class="pre">&lt;bids_dir&gt;</span> <span class="pre">[&lt;output_dir&gt;]</span> <span class="pre">[participant]</span></code>.</p>
 </li>
 </ul>
 </section>
@@ -993,7 +995,7 @@ and the report is served via a local HTTP server.</p></li>
 <h2>General Options<a class="headerlink" href="#general-options" title="Link to this heading">#</a></h2>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">--t1_file</span></code></p>
-<p>Path to the T1 file.
+<p>Path to the T1 file. Resolved from the dataset with <code class="docutils literal notranslate"><span class="pre">--bids</span></code>.
 (default: None)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--mask_file</span></code></p>
@@ -1002,11 +1004,40 @@ and the report is served via a local HTTP server.</p></li>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--dwi_opp_phase_file</span></code></p>
 <p>Path to the opposite phase DWI file (for phase correction).
+Resolved from the fieldmaps of the dataset with <code class="docutils literal notranslate"><span class="pre">--bids</span></code>.
 (default: None)</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--bids</span></code></p>
+<p>Treat the inputs as a BIDS dataset and run the pipeline on every
+diffusion acquisition it contains, writing BIDS derivatives.
+(default: False)</p>
+</li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--bids_folder</span></code></p>
-<p>Path to the BIDS folder (reserved for future use).
+<p>Path to the BIDS dataset root, as an alternative to passing it
+positionally. Requires <code class="docutils literal notranslate"><span class="pre">--bids</span></code>.
 (default: None)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--participant_label</span></code></p>
+<p>Subject labels to process, with or without the <code class="docutils literal notranslate"><span class="pre">sub-</span></code> prefix.
+All subjects are processed when omitted.
+(default: None)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--session_label</span></code></p>
+<p>Session labels to process, with or without the <code class="docutils literal notranslate"><span class="pre">ses-</span></code> prefix.
+(default: None)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--acquisition_label</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">acq-</span></code> labels to process.
+(default: None)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--run_label</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">run-</span></code> labels to process.
+(default: None)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--stop_on_error</span></code></p>
+<p>Stop a BIDS batch at the first acquisition that fails instead of
+reporting it and carrying on.
+(default: False)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--atlas_tractogram</span></code></p>
 <p>Path to atlas tractogram for registration (dipy_slr).
@@ -1025,8 +1056,9 @@ will auto-download HCP 30-bundle atlas.
 (default: False)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--pipeline_type</span></code></p>
-<p>Predefined pipeline type (e.g., ‘denoise’, ‘preprocessing’, ‘dti_only’).
-Use –list-pipelines to see all available pipelines.
+<p>Predefined pipeline type: ‘preprocessing’, ‘dti_only’,
+‘tractography’ or ‘full’. Use –list-pipelines to see all available
+pipelines.
 (default: None)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--start</span></code></p>
@@ -1049,7 +1081,10 @@ pipeline or re-run later stages with different parameters.
 <h2>Output Options<a class="headerlink" href="#output-options" title="Link to this heading">#</a></h2>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">--out_dir</span></code></p>
-<p>Output directory.
+<p>Output directory. When omitted, the <code class="docutils literal notranslate"><span class="pre">out_dir</span></code> of the <code class="docutils literal notranslate"><span class="pre">[io]</span></code>
+section of the configuration, or the current directory. With
+<code class="docutils literal notranslate"><span class="pre">--bids</span></code>, the root of the derivative dataset, defaulting to
+<code class="docutils literal notranslate"><span class="pre">&lt;bids_dir&gt;/derivatives/dipy</span></code>.
 (default:  current directory)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--out_report</span></code></p>

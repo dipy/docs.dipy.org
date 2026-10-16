@@ -32,13 +32,16 @@ Input Parameters
   - ``.bvec`` / ``.bvecs`` — b-vectors file.
   - ``*report*.html`` — HTML report; all other inputs are ignored
     and the report is served via a local HTTP server.
+  
+  With ``--bids``, the arguments follow the BIDS-App convention
+  instead: ``dipy_auto <bids_dir> [<output_dir>] [participant]``.
 
 General Options
 ---------------
 
 * ``--t1_file``
 
-  Path to the T1 file.
+  Path to the T1 file. Resolved from the dataset with ``--bids``.
   (default: None)
 
 * ``--mask_file``
@@ -49,12 +52,47 @@ General Options
 * ``--dwi_opp_phase_file``
 
   Path to the opposite phase DWI file (for phase correction).
+  Resolved from the fieldmaps of the dataset with ``--bids``.
   (default: None)
+
+* ``--bids``
+
+  Treat the inputs as a BIDS dataset and run the pipeline on every
+  diffusion acquisition it contains, writing BIDS derivatives.
+  (default: False)
 
 * ``--bids_folder``
 
-  Path to the BIDS folder (reserved for future use).
+  Path to the BIDS dataset root, as an alternative to passing it
+  positionally. Requires ``--bids``.
   (default: None)
+
+* ``--participant_label``
+
+  Subject labels to process, with or without the ``sub-`` prefix.
+  All subjects are processed when omitted.
+  (default: None)
+
+* ``--session_label``
+
+  Session labels to process, with or without the ``ses-`` prefix.
+  (default: None)
+
+* ``--acquisition_label``
+
+  ``acq-`` labels to process.
+  (default: None)
+
+* ``--run_label``
+
+  ``run-`` labels to process.
+  (default: None)
+
+* ``--stop_on_error``
+
+  Stop a BIDS batch at the first acquisition that fails instead of
+  reporting it and carrying on.
+  (default: False)
 
 * ``--atlas_tractogram``
 
@@ -77,8 +115,9 @@ General Options
 
 * ``--pipeline_type``
 
-  Predefined pipeline type (e.g., 'denoise', 'preprocessing', 'dti_only').
-  Use --list-pipelines to see all available pipelines.
+  Predefined pipeline type: 'preprocessing', 'dti_only',
+  'tractography' or 'full'. Use --list-pipelines to see all available
+  pipelines.
   (default: None)
 
 * ``--start``
@@ -103,7 +142,10 @@ Output Options
 
 * ``--out_dir``
 
-  Output directory.
+  Output directory. When omitted, the ``out_dir`` of the ``[io]``
+  section of the configuration, or the current directory. With
+  ``--bids``, the root of the derivative dataset, defaulting to
+  ``<bids_dir>/derivatives/dipy``.
   (default:  current directory)
 
 * ``--out_report``

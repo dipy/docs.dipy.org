@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.templates &#8212; dipy 1.13.0.dev0+git20261015.20cb3f4 documentation</title>
+    <title>dipy.workflows.templates &#8212; dipy 1.13.0.dev0+git20261016.e2a988f documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e2ad68a5"></script>
+    <script src="../../../_static/documentation_options.js?v=f4aadbf9"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -889,84 +889,7 @@ document.write(`
 <span class="sd">specification with [[pipeline]] sections and automatic DAG-based wiring.</span>
 <span class="sd">"""</span>
 
-<span class="c1"># =============================================================================</span>
-<span class="c1"># Denoise Pipeline - Simple denoising example</span>
-<span class="c1"># =============================================================================</span>
-
-<span class="n">DENOISE_PIPELINE</span> <span class="o">=</span> <span class="s2">"""</span>
-<span class="s2">[General]</span>
-<span class="s2">name = "denoise_pipeline"</span>
-<span class="s2">description = "Simple denoising pipeline with masking and info"</span>
-<span class="s2">version = "1.0.0"</span>
-<span class="s2">author = "DIPY Developers"</span>
-
-<span class="s2">[io]</span>
-<span class="s2">dwi = ""</span>
-<span class="s2">bvals = ""</span>
-<span class="s2">bvecs = ""</span>
-<span class="s2">t1w = ""</span>
-<span class="s2">bids_folder = ""</span>
-<span class="s2">out_dir = "."</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_nlmeans"</span>
-<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "mask"</span>
-<span class="s2">cli = "dipy_mask"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">lb = 15</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "info"</span>
-<span class="s2">cli = "dipy_info"</span>
-<span class="s2">input_files = "$</span><span class="si">{mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">"""</span>
-
-<span class="c1"># =============================================================================</span>
-<span class="c1"># Basic Pipeline - Minimal preprocessing</span>
-<span class="c1"># =============================================================================</span>
-
-<span class="n">BASIC_PIPELINE</span> <span class="o">=</span> <span class="s2">"""</span>
-<span class="s2">[General]</span>
-<span class="s2">name = "basic_pipeline"</span>
-<span class="s2">description = "Basic preprocessing: denoise + brain extraction + info"</span>
-<span class="s2">version = "1.0.0"</span>
-<span class="s2">author = "DIPY Developers"</span>
-
-<span class="s2">[io]</span>
-<span class="s2">dwi = ""</span>
-<span class="s2">bvals = ""</span>
-<span class="s2">bvecs = ""</span>
-<span class="s2">t1w = ""</span>
-<span class="s2">bids_folder = ""</span>
-<span class="s2">out_dir = "."</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_nlmeans"</span>
-<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "brain_extraction"</span>
-<span class="s2">cli = "dipy_median_otsu"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">save_masked = true</span>
-<span class="s2">vol_idx = "0, 1"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "mask"</span>
-<span class="s2">cli = "dipy_mask"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">lb = 15</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "info"</span>
-<span class="s2">cli = "dipy_info"</span>
-<span class="s2">input_files = "$</span><span class="si">{mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">"""</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="c1"># =============================================================================</span>
 <span class="c1"># Preprocessing Pipeline - Complete preprocessing chain</span>
@@ -975,7 +898,7 @@ document.write(`
 <span class="n">PREPROCESSING_PIPELINE</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">[General]</span>
 <span class="s2">name = "preprocessing_pipeline"</span>
-<span class="s2">description = "Full preprocessing: b0 → brain → Gibbs → motion → denoise"</span>
+<span class="s2">description = "Full preprocessing: denoise → Gibbs → motion → bias → reslice → mask"</span>
 <span class="s2">version = "1.0.0"</span>
 <span class="s2">author = "DIPY Developers"</span>
 
@@ -985,28 +908,28 @@ document.write(`
 <span class="s2">bvecs = ""</span>
 <span class="s2">t1w = ""</span>
 <span class="s2">bids_folder = ""</span>
+<span class="s2">dwi_opp_phase = ""</span>
+<span class="s2">pe_dir = ""</span>
+<span class="s2">total_readout_time = ""</span>
+<span class="s2">effective_echo_spacing = ""</span>
+<span class="s2">echo_time = ""</span>
+<span class="s2">repetition_time = ""</span>
 <span class="s2">out_dir = "."</span>
 
+<span class="s2"># Same chain, in the same order, as the preprocessing of the full pipeline;</span>
+<span class="s2"># see the comments there for the constraints that fix this order.</span>
 <span class="s2">[[pipeline]]</span>
-<span class="s2">name = "b0_extraction"</span>
-<span class="s2">cli = "dipy_extract_b0"</span>
+<span class="s2">name = "denoise"</span>
+<span class="s2">cli = "dipy_denoise"</span>
 <span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
 <span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">b0_threshold = 50</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "brain_mask"</span>
-<span class="s2">cli = "dipy_median_otsu"</span>
-<span class="s2">input_files = "$</span><span class="si">{b0_extraction.out_b0}</span><span class="s2">"</span>
-<span class="s2">median_radius = 2</span>
-<span class="s2">numpass = 5</span>
 
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "gibbs"</span>
 <span class="s2">cli = "dipy_gibbs_ringing"</span>
-<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
+<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
 <span class="s2">slice_axis = 2</span>
-<span class="s2">n_points = 3</span>
+<span class="s2">num_processes = -1</span>
 
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "motion_correction"</span>
@@ -1016,9 +939,35 @@ document.write(`
 <span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
 
 <span class="s2">[[pipeline]]</span>
-<span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_mppca"</span>
+<span class="s2">name = "bias_correction"</span>
+<span class="s2">cli = "dipy_correct_biasfield"</span>
 <span class="s2">input_files = "$</span><span class="si">{motion_correction.out_moved}</span><span class="s2">"</span>
+<span class="s2">bval = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
+<span class="s2">bvec = "$</span><span class="si">{motion_correction.out_bvecs}</span><span class="s2">"</span>
+<span class="s2">method = "bspline"</span>
+
+<span class="s2">[[pipeline]]</span>
+<span class="s2">name = "reslice"</span>
+<span class="s2">cli = "dipy_reslice"</span>
+<span class="s2">input_files = "$</span><span class="si">{bias_correction.out_corrected}</span><span class="s2">"</span>
+<span class="s2">order = "lanczos2"</span>
+
+<span class="s2">[[pipeline]]</span>
+<span class="s2">name = "b0_extraction"</span>
+<span class="s2">cli = "dipy_extract_b0"</span>
+<span class="s2">input_files = "$</span><span class="si">{reslice.out_resliced}</span><span class="s2">"</span>
+<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
+<span class="s2">b0_threshold = 50</span>
+
+<span class="s2">[[pipeline]]</span>
+<span class="s2">name = "brain_mask"</span>
+<span class="s2">cli = "dipy_brain_mask"</span>
+<span class="s2">input_files = "$</span><span class="si">{reslice.out_resliced}</span><span class="s2">"</span>
+<span class="s2">bvalues_files = ["$</span><span class="si">{io.bvals}</span><span class="s2">"]</span>
+<span class="s2">median_radius = 2</span>
+<span class="s2">numpass = 5</span>
+<span class="s2">finalize_mask = true</span>
+<span class="s2">save_masked = true</span>
 <span class="s2">"""</span>
 
 <span class="c1"># =============================================================================</span>
@@ -1038,17 +987,25 @@ document.write(`
 <span class="s2">bvecs = ""</span>
 <span class="s2">t1w = ""</span>
 <span class="s2">bids_folder = ""</span>
+<span class="s2">dwi_opp_phase = ""</span>
+<span class="s2">pe_dir = ""</span>
+<span class="s2">total_readout_time = ""</span>
+<span class="s2">effective_echo_spacing = ""</span>
+<span class="s2">echo_time = ""</span>
+<span class="s2">repetition_time = ""</span>
 <span class="s2">out_dir = "."</span>
 
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_nlmeans"</span>
+<span class="s2">cli = "dipy_denoise"</span>
 <span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
+<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
 
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "brain_mask"</span>
 <span class="s2">cli = "dipy_median_otsu"</span>
 <span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
+<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
 <span class="s2">median_radius = 2</span>
 <span class="s2">numpass = 5</span>
 
@@ -1061,85 +1018,6 @@ document.write(`
 <span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
 <span class="s2">fit_method = "WLS"</span>
 <span class="s2">b0_threshold = 50</span>
-<span class="s2">"""</span>
-
-<span class="c1"># =============================================================================</span>
-<span class="c1"># Multi-shell Pipeline - Multiple reconstruction methods</span>
-<span class="c1"># =============================================================================</span>
-
-<span class="n">MULTI_SHELL_PIPELINE</span> <span class="o">=</span> <span class="s2">"""</span>
-<span class="s2">[General]</span>
-<span class="s2">name = "multi_shell_pipeline"</span>
-<span class="s2">description = "Preprocessing + multi-method (DTI, DKI, CSD, CSA, GQI, MAPMRI)"</span>
-<span class="s2">version = "1.0.0"</span>
-<span class="s2">author = "DIPY Developers"</span>
-
-<span class="s2">[io]</span>
-<span class="s2">dwi = ""</span>
-<span class="s2">bvals = ""</span>
-<span class="s2">bvecs = ""</span>
-<span class="s2">t1w = ""</span>
-<span class="s2">bids_folder = ""</span>
-<span class="s2">out_dir = "."</span>
-
-<span class="s2"># Preprocessing stages</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_mppca"</span>
-<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "brain_mask"</span>
-<span class="s2">cli = "dipy_median_otsu"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">median_radius = 2</span>
-<span class="s2">numpass = 5</span>
-
-<span class="s2"># Reconstruction stages - run in parallel (no dependencies between them)</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "dti_fit"</span>
-<span class="s2">cli = "dipy_fit_dti"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">fit_method = "WLS"</span>
-<span class="s2">b0_threshold = 50</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "dki_fit"</span>
-<span class="s2">cli = "dipy_fit_dki"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">b0_threshold = 50</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "csd_fit"</span>
-<span class="s2">cli = "dipy_fit_csd"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">b0_threshold = 50</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "csa_fit"</span>
-<span class="s2">cli = "dipy_fit_csa"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">sh_order = 8</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "gqi_fit"</span>
-<span class="s2">cli = "dipy_fit_gqi"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
 <span class="s2">"""</span>
 
 <span class="c1"># =============================================================================</span>
@@ -1159,18 +1037,26 @@ document.write(`
 <span class="s2">bvecs = ""</span>
 <span class="s2">t1w = ""</span>
 <span class="s2">bids_folder = ""</span>
+<span class="s2">dwi_opp_phase = ""</span>
+<span class="s2">pe_dir = ""</span>
+<span class="s2">total_readout_time = ""</span>
+<span class="s2">effective_echo_spacing = ""</span>
+<span class="s2">echo_time = ""</span>
+<span class="s2">repetition_time = ""</span>
 <span class="s2">out_dir = "."</span>
 
 <span class="s2"># Preprocessing</span>
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_mppca"</span>
+<span class="s2">cli = "dipy_denoise"</span>
 <span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
+<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
 
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "brain_mask"</span>
 <span class="s2">cli = "dipy_median_otsu"</span>
 <span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
+<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
 <span class="s2">median_radius = 2</span>
 <span class="s2">numpass = 5</span>
 
@@ -1215,7 +1101,7 @@ document.write(`
 <span class="n">FULL_PIPELINE</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">[General]</span>
 <span class="s2">name = "full_pipeline"</span>
-<span class="s2">description = "Full pipeline: preprocessing + reconstruction + tracking + SLR + bundles"</span>
+<span class="s2">description = "Full pipeline: preprocessing with motion correction + T1 registration + reconstruction + tracking + SLR + bundles"</span>
 <span class="s2">version = "1.0.0"</span>
 <span class="s2">author = "DIPY Developers"</span>
 
@@ -1225,15 +1111,66 @@ document.write(`
 <span class="s2">bvecs = ""</span>
 <span class="s2">t1w = ""</span>
 <span class="s2">bids_folder = ""</span>
+<span class="s2">dwi_opp_phase = ""</span>
+<span class="s2">pe_dir = ""</span>
+<span class="s2">total_readout_time = ""</span>
+<span class="s2">effective_echo_spacing = ""</span>
+<span class="s2">echo_time = ""</span>
+<span class="s2">repetition_time = ""</span>
 <span class="s2">out_dir = "."</span>
 <span class="s2">atlas_tractogram = ""</span>
 <span class="s2">bundle_atlas_dir = ""</span>
 
-<span class="s2"># Full preprocessing chain</span>
+<span class="s2"># Full preprocessing chain.</span>
+<span class="s2">#</span>
+<span class="s2"># Stage order is constrained, in decreasing strictness:</span>
+<span class="s2">#   1. Denoising and Gibbs unringing both exploit properties of the data as it</span>
+<span class="s2">#      came off the scanner, so every stage that interpolates (reslice, motion</span>
+<span class="s2">#      and eddy correction, registration) has to run after them.</span>
+<span class="s2">#   2. Denoising comes first. Gibbs unringing selects its subvoxel shift by</span>
+<span class="s2">#      minimising local total variation, and noise corrupts that choice. The</span>
+<span class="s2">#      ordering is a hard requirement for MP-PCA, whose noise-level estimate</span>
+<span class="s2">#      assumes spatially white noise that unringing would correlate.</span>
+<span class="s2">#   3. Gibbs unringing is FFT-based and needs the full field of view. Handing</span>
+<span class="s2">#      it a skull-stripped volume puts a hard edge at the mask boundary, which</span>
+<span class="s2">#      is itself a source of ringing.</span>
+<span class="s2">#   4. The brain mask is thresholded on intensity, so it is computed last: on</span>
+<span class="s2">#      denoised, unrung, bias-corrected data, and on the final grid.</span>
+<span class="s2">#   5. Motion correction rotates the b-vectors; every later stage reads the</span>
+<span class="s2">#      rotated ones.</span>
+<span class="s2">[[pipeline]]</span>
+<span class="s2">name = "denoise"</span>
+<span class="s2">cli = "dipy_denoise"</span>
+<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
+<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
+
+<span class="s2">[[pipeline]]</span>
+<span class="s2">name = "gibbs"</span>
+<span class="s2">cli = "dipy_gibbs_ringing"</span>
+<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
+<span class="s2">slice_axis = 2</span>
+<span class="s2">num_processes = -1</span>
+
+<span class="s2">[[pipeline]]</span>
+<span class="s2">name = "motion_correction"</span>
+<span class="s2">cli = "dipy_correct_motion"</span>
+<span class="s2">input_files = "$</span><span class="si">{gibbs.out_unring}</span><span class="s2">"</span>
+<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
+<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
+
+<span class="s2">[[pipeline]]</span>
+<span class="s2">name = "bias_correction"</span>
+<span class="s2">cli = "dipy_correct_biasfield"</span>
+<span class="s2">input_files = "$</span><span class="si">{motion_correction.out_moved}</span><span class="s2">"</span>
+<span class="s2">bval = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
+<span class="s2">bvec = "$</span><span class="si">{motion_correction.out_bvecs}</span><span class="s2">"</span>
+<span class="s2">method = "bspline"</span>
+
+<span class="s2"># Resampling. Everything below this point works on the resliced grid.</span>
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "reslice"</span>
 <span class="s2">cli = "dipy_reslice"</span>
-<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
+<span class="s2">input_files = "$</span><span class="si">{bias_correction.out_corrected}</span><span class="s2">"</span>
 <span class="s2">order = "lanczos2"</span>
 
 <span class="s2">[[pipeline]]</span>
@@ -1253,37 +1190,24 @@ document.write(`
 <span class="s2">finalize_mask = true</span>
 <span class="s2">save_masked = true</span>
 
+<span class="s2"># T1 to diffusion space, skipped when no T1 image is given.</span>
 <span class="s2">[[pipeline]]</span>
-<span class="s2">name = "gibbs"</span>
-<span class="s2">cli = "dipy_gibbs_ringing"</span>
-<span class="s2">input_files = "$</span><span class="si">{brain_mask.out_masked}</span><span class="s2">"</span>
-<span class="s2">slice_axis = 2</span>
-<span class="s2">num_processes = -1</span>
-
-<span class="s2"># Step 4: Bias field correction (using median_otsu on b0)</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "bias_correction"</span>
-<span class="s2">cli = "dipy_correct_biasfield"</span>
-<span class="s2">input_files = "$</span><span class="si">{gibbs.out_unring}</span><span class="s2">"</span>
-<span class="s2">bval = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvec = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">method = "auto"</span>
-
-<span class="s2"># Step 5: Denoising with Patch2Self</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_patch2self"</span>
-<span class="s2">input_files = "$</span><span class="si">{bias_correction.out_corrected}</span><span class="s2">"</span>
-<span class="s2">bval_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">verbose = true</span>
+<span class="s2">name = "t1_registration"</span>
+<span class="s2">cli = "dipy_align_affine"</span>
+<span class="s2">static_image_files = "$</span><span class="si">{b0_extraction.out_b0}</span><span class="s2">"</span>
+<span class="s2">moving_image_files = "$</span><span class="si">{io.t1w}</span><span class="s2">"</span>
+<span class="s2">transform = "rigid"</span>
+<span class="s2">out_moved = "t1w_dwispace.nii.gz"</span>
+<span class="s2">out_affine = "t1w_to_dwi_affine.txt"</span>
+<span class="s2">optional = true</span>
 
 <span class="s2"># Multiple reconstructions</span>
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "dti_fit"</span>
 <span class="s2">cli = "dipy_fit_dti"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
+<span class="s2">input_files = "$</span><span class="si">{reslice.out_resliced}</span><span class="s2">"</span>
 <span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
+<span class="s2">bvectors_files = "$</span><span class="si">{motion_correction.out_bvecs}</span><span class="s2">"</span>
 <span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
 <span class="s2">fit_method = "WLS"</span>
 <span class="s2">extract_pam_values = true</span>
@@ -1292,9 +1216,9 @@ document.write(`
 <span class="s2">[[pipeline]]</span>
 <span class="s2">name = "force_fit"</span>
 <span class="s2">cli = "dipy_fit_force"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
+<span class="s2">input_files = "$</span><span class="si">{reslice.out_resliced}</span><span class="s2">"</span>
 <span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
+<span class="s2">bvectors_files = "$</span><span class="si">{motion_correction.out_bvecs}</span><span class="s2">"</span>
 <span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
 <span class="s2">compute_kurtosis = true</span>
 <span class="s2">engine = "ray"</span>
@@ -1345,470 +1269,19 @@ document.write(`
 <span class="s2">orig_bundle_folder= "$</span><span class="si">{label_bundles.out_dir}</span><span class="s2">"</span>
 <span class="s2">out_dir = "$</span><span class="si">{io.out_dir}</span><span class="s2">/buan_profiles"</span>
 <span class="s2">"""</span>
-
-<span class="c1"># =============================================================================</span>
-<span class="c1"># Full Pipeline with Motion Correction - Complete analysis</span>
-<span class="c1"># =============================================================================</span>
-
-<span class="n">FULL_PIPELINE_WITH_MOTION</span> <span class="o">=</span> <span class="s2">"""</span>
-<span class="s2">[General]</span>
-<span class="s2">name = "full_pipeline_with_motion"</span>
-<span class="s2">description = "Full pipeline: preprocessing + reconstruction + tracking + SLR + bundles"</span>
-<span class="s2">version = "1.0.0"</span>
-<span class="s2">author = "DIPY Developers"</span>
-
-<span class="s2">[io]</span>
-<span class="s2">dwi = ""</span>
-<span class="s2">bvals = ""</span>
-<span class="s2">bvecs = ""</span>
-<span class="s2">t1w = ""</span>
-<span class="s2">bids_folder = ""</span>
-<span class="s2">out_dir = "."</span>
-<span class="s2">atlas_tractogram = ""</span>
-<span class="s2">bundle_atlas_dir = ""</span>
-
-<span class="s2"># Full preprocessing chain</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "reslice"</span>
-<span class="s2">cli = "dipy_reslice"</span>
-<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
-<span class="s2">order = "lanczos2"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "b0_extraction"</span>
-<span class="s2">cli = "dipy_extract_b0"</span>
-<span class="s2">input_files = "$</span><span class="si">{reslice.out_resliced}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">b0_threshold = 50</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "brain_mask"</span>
-<span class="s2">cli = "dipy_brain_mask"</span>
-<span class="s2">input_files = "$</span><span class="si">{reslice.out_resliced}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = ["$</span><span class="si">{io.bvals}</span><span class="s2">"]</span>
-<span class="s2">median_radius = 2</span>
-<span class="s2">numpass = 5</span>
-<span class="s2">finalize_mask = true</span>
-<span class="s2">save_masked = true</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "gibbs"</span>
-<span class="s2">cli = "dipy_gibbs_ringing"</span>
-<span class="s2">input_files = "$</span><span class="si">{brain_mask.out_masked}</span><span class="s2">"</span>
-<span class="s2">slice_axis = 2</span>
-<span class="s2">num_processes = -1</span>
-
-<span class="s2"># Step 3: Motion correction</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "motion_correction"</span>
-<span class="s2">cli = "dipy_correct_motion"</span>
-<span class="s2">input_files = "$</span><span class="si">{gibbs.out_unring}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-
-<span class="s2"># Step 4: Bias field correction (using median_otsu on b0)</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "bias_correction"</span>
-<span class="s2">cli = "dipy_correct_biasfield"</span>
-<span class="s2">input_files = "$</span><span class="si">{motion_correction.out_moved}</span><span class="s2">"</span>
-<span class="s2">bval = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvec = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">method = "auto"</span>
-
-<span class="s2"># Step 5: Denoising with Patch2Self</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_patch2self"</span>
-<span class="s2">input_files = "$</span><span class="si">{bias_correction.out_corrected}</span><span class="s2">"</span>
-<span class="s2">bval_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">verbose = true</span>
-
-<span class="s2"># Multiple reconstructions</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "dti_fit"</span>
-<span class="s2">cli = "dipy_fit_dti"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">fit_method = "WLS"</span>
-<span class="s2">extract_pam_values = true</span>
-<span class="s2">out_dir = "$</span><span class="si">{io.out_dir}</span><span class="s2">/dti"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "force_fit"</span>
-<span class="s2">cli = "dipy_fit_force"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">compute_kurtosis = true</span>
-<span class="s2">engine = "ray"</span>
-<span class="s2">out_dir = "$</span><span class="si">{io.out_dir}</span><span class="s2">/force"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "csd_fit"</span>
-<span class="s2">cli = "dipy_fit_csd"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">extract_pam_values = true</span>
-<span class="s2">out_dir = "$</span><span class="si">{io.out_dir}</span><span class="s2">/csd"</span>
-
-<span class="s2"># Tractography</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "tracking"</span>
-<span class="s2">cli = "dipy_track"</span>
-<span class="s2">pam_files = "$</span><span class="si">{force_fit.out_pam}</span><span class="s2">"</span>
-<span class="s2">stopping_files = "$</span><span class="si">{force_fit.out_fa}</span><span class="s2">"</span>
-<span class="s2">seeding_files = "$</span><span class="si">{brain_mask.out_mask}</span><span class="s2">"</span>
-<span class="s2">seed_density = 2</span>
-
-<span class="s2"># Registration (SLR)</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "register"</span>
-<span class="s2">cli = "dipy_slr"</span>
-<span class="s2">moving_files = "$</span><span class="si">{tracking.out_tractogram}</span><span class="s2">"</span>
-<span class="s2">static_files = "$</span><span class="si">{io.atlas_tractogram}</span><span class="s2">"</span>
-<span class="s2">bbox_valid_check = false</span>
-
-<span class="s2"># Bundle segmentation (RecoBundles)</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "segment_bundles"</span>
-<span class="s2">cli = "dipy_recobundles"</span>
-<span class="s2">streamline_files = "$</span><span class="si">{register.out_moved}</span><span class="s2">"</span>
-<span class="s2">model_bundle_files = "$</span><span class="si">{io.bundle_atlas_dir}</span><span class="s2">/*.trk"</span>
-<span class="s2">mix_names = true</span>
-<span class="s2">out_dir = "$</span><span class="si">{io.out_dir}</span><span class="s2">/rec_bundles"</span>
-
-<span class="s2"># Label bundles</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "label_bundles"</span>
-<span class="s2">cli = "dipy_labelsbundles"</span>
-<span class="s2">streamline_files = "$</span><span class="si">{tracking.out_tractogram}</span><span class="s2">"</span>
-<span class="s2">labels_files = "$</span><span class="si">{segment_bundles.out_dir}</span><span class="s2">/*_labels.npy"</span>
-<span class="s2">mix_names = true</span>
-<span class="s2">out_dir = "$</span><span class="si">{io.out_dir}</span><span class="s2">/org_bundles"</span>
-
-<span class="s2"># Buan profiles</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "buan_profiles"</span>
-<span class="s2">cli = "dipy_buan_profiles"</span>
-<span class="s2">model_bundle_folder = "$</span><span class="si">{io.bundle_atlas_dir}</span><span class="s2">"</span>
-<span class="s2">subject_folder = "$</span><span class="si">{io.out_dir}</span><span class="s2">"</span>
-<span class="s2">metric_folder= "$</span><span class="si">{dti_fit.out_dir}</span><span class="s2">"</span>
-<span class="s2">orig_bundle_folder= "$</span><span class="si">{label_bundles.out_dir}</span><span class="s2">"</span>
-<span class="s2">out_dir = "$</span><span class="si">{io.out_dir}</span><span class="s2">/buan_profiles"</span>
-<span class="s2">"""</span>
-
-<span class="c1"># =============================================================================</span>
-<span class="c1"># Comprehensive Pipeline - Complete end-to-end analysis</span>
-<span class="c1"># =============================================================================</span>
-
-<span class="n">COMPREHENSIVE_PIPELINE</span> <span class="o">=</span> <span class="s2">"""</span>
-<span class="s2">[General]</span>
-<span class="s2">name = "comprehensive_pipeline"</span>
-<span class="s2">description = "Complete end-to-end with all preprocessing and 6 methods"</span>
-<span class="s2">version = "1.0.0"</span>
-<span class="s2">author = "DIPY Developers"</span>
-
-<span class="s2">[io]</span>
-<span class="s2">dwi = ""</span>
-<span class="s2">bvals = ""</span>
-<span class="s2">bvecs = ""</span>
-<span class="s2">t1w = ""</span>
-<span class="s2">bids_folder = ""</span>
-<span class="s2">out_dir = "."</span>
-<span class="s2">atlas_tractogram = ""</span>
-<span class="s2">bundle_atlas_dir = ""</span>
-
-<span class="s2"># Step 0: B0 extraction</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "b0_extraction"</span>
-<span class="s2">cli = "dipy_extract_b0"</span>
-<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">b0_threshold = 50</span>
-
-<span class="s2"># Step 1: Brain extraction</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "brain_extraction"</span>
-<span class="s2">cli = "dipy_median_otsu"</span>
-<span class="s2">input_files = "$</span><span class="si">{b0_extraction.out_b0}</span><span class="s2">"</span>
-<span class="s2">median_radius = 2</span>
-<span class="s2">numpass = 5</span>
-<span class="s2">save_masked = true</span>
-
-<span class="s2"># Apply mask to full DWI</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "mask_dwi"</span>
-<span class="s2">cli = "dipy_mask"</span>
-<span class="s2">input_files = "$</span><span class="si">{io.dwi}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-
-<span class="s2"># Step 2: Gibbs ringing correction</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "gibbs"</span>
-<span class="s2">cli = "dipy_gibbs_ringing"</span>
-<span class="s2">input_files = "$</span><span class="si">{mask_dwi.out_masked}</span><span class="s2">"</span>
-<span class="s2">slice_axis = 2</span>
-<span class="s2">n_points = 3</span>
-
-<span class="s2"># Step 3: Motion correction</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "motion_correction"</span>
-<span class="s2">cli = "dipy_correct_motion"</span>
-<span class="s2">input_files = "$</span><span class="si">{gibbs.out_unring}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-
-<span class="s2"># Step 4: Bias field correction (using median_otsu on b0)</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "bias_correction"</span>
-<span class="s2">cli = "dipy_median_otsu"</span>
-<span class="s2">input_files = "$</span><span class="si">{motion_correction.out_moved}</span><span class="s2">"</span>
-
-<span class="s2"># Step 5: Denoising with Patch2Self</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "denoise"</span>
-<span class="s2">cli = "dipy_denoise_patch2self"</span>
-<span class="s2">input_files = "$</span><span class="si">{bias_correction.out_corrected}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-
-<span class="s2"># Step 6: S0 replacement using DTI prediction</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "s0_replacement"</span>
-<span class="s2">cli = "dipy_fit_dti"</span>
-<span class="s2">input_files = "$</span><span class="si">{denoise.out_denoised}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">b0_threshold = 50</span>
-<span class="s2">predict_s0 = true</span>
-
-<span class="s2"># Step 7: Multi-method reconstruction</span>
-<span class="s2"># DTI</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "dti_fit"</span>
-<span class="s2">cli = "dipy_fit_dti"</span>
-<span class="s2">input_files = "$</span><span class="si">{s0_replacement.out_s0}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">fit_method = "WLS"</span>
-<span class="s2">b0_threshold = 50</span>
-<span class="s2">extract_pam_values = true</span>
-
-<span class="s2"># DKI</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "dki_fit"</span>
-<span class="s2">cli = "dipy_fit_dki"</span>
-<span class="s2">input_files = "$</span><span class="si">{s0_replacement.out_s0}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">b0_threshold = 50</span>
-<span class="s2">extract_pam_values = true</span>
-
-<span class="s2"># CSD</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "csd_fit"</span>
-<span class="s2">cli = "dipy_fit_csd"</span>
-<span class="s2">input_files = "$</span><span class="si">{s0_replacement.out_s0}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">b0_threshold = 50</span>
-<span class="s2">extract_pam_values = true</span>
-
-<span class="s2"># CSA</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "csa_fit"</span>
-<span class="s2">cli = "dipy_fit_csa"</span>
-<span class="s2">input_files = "$</span><span class="si">{s0_replacement.out_s0}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">sh_order = 8</span>
-<span class="s2">extract_pam_values = true</span>
-
-<span class="s2"># GQI</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "gqi_fit"</span>
-<span class="s2">cli = "dipy_fit_gqi"</span>
-<span class="s2">input_files = "$</span><span class="si">{s0_replacement.out_s0}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">extract_pam_values = true</span>
-
-<span class="s2"># MAPMRI</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "mapmri_fit"</span>
-<span class="s2">cli = "dipy_fit_mapmri"</span>
-<span class="s2">input_files = "$</span><span class="si">{s0_replacement.out_s0}</span><span class="s2">"</span>
-<span class="s2">bvalues_files = "$</span><span class="si">{io.bvals}</span><span class="s2">"</span>
-<span class="s2">bvectors_files = "$</span><span class="si">{io.bvecs}</span><span class="s2">"</span>
-<span class="s2">mask_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">extract_pam_values = true</span>
-
-<span class="s2"># Step 8: Multi-method fiber tracking</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "track_dti"</span>
-<span class="s2">cli = "dipy_track"</span>
-<span class="s2">pam_files = "$</span><span class="si">{dti_fit.out_pam}</span><span class="s2">"</span>
-<span class="s2">stopping_files = "$</span><span class="si">{dti_fit.out_fa}</span><span class="s2">"</span>
-<span class="s2">seeding_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">seed_density = 2</span>
-<span class="s2">step_size = 0.5</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "track_dki"</span>
-<span class="s2">cli = "dipy_track"</span>
-<span class="s2">pam_files = "$</span><span class="si">{dki_fit.out_pam}</span><span class="s2">"</span>
-<span class="s2">stopping_files = "$</span><span class="si">{dti_fit.out_fa}</span><span class="s2">"</span>
-<span class="s2">seeding_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">seed_density = 2</span>
-<span class="s2">step_size = 0.5</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "track_csd"</span>
-<span class="s2">cli = "dipy_track"</span>
-<span class="s2">pam_files = "$</span><span class="si">{csd_fit.out_pam}</span><span class="s2">"</span>
-<span class="s2">stopping_files = "$</span><span class="si">{dti_fit.out_fa}</span><span class="s2">"</span>
-<span class="s2">seeding_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">seed_density = 2</span>
-<span class="s2">step_size = 0.5</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "track_csa"</span>
-<span class="s2">cli = "dipy_track"</span>
-<span class="s2">pam_files = "$</span><span class="si">{csa_fit.out_pam}</span><span class="s2">"</span>
-<span class="s2">stopping_files = "$</span><span class="si">{dti_fit.out_fa}</span><span class="s2">"</span>
-<span class="s2">seeding_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">seed_density = 2</span>
-<span class="s2">step_size = 0.5</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "track_gqi"</span>
-<span class="s2">cli = "dipy_track"</span>
-<span class="s2">pam_files = "$</span><span class="si">{gqi_fit.out_pam}</span><span class="s2">"</span>
-<span class="s2">stopping_files = "$</span><span class="si">{dti_fit.out_fa}</span><span class="s2">"</span>
-<span class="s2">seeding_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">seed_density = 2</span>
-<span class="s2">step_size = 0.5</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "track_mapmri"</span>
-<span class="s2">cli = "dipy_track"</span>
-<span class="s2">pam_files = "$</span><span class="si">{mapmri_fit.out_pam}</span><span class="s2">"</span>
-<span class="s2">stopping_files = "$</span><span class="si">{dti_fit.out_fa}</span><span class="s2">"</span>
-<span class="s2">seeding_files = "$</span><span class="si">{brain_extraction.out_mask}</span><span class="s2">"</span>
-<span class="s2">seed_density = 2</span>
-<span class="s2">step_size = 0.5</span>
-
-<span class="s2"># Step 9: Multi-method registration (SLR to atlas)</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "register_dti"</span>
-<span class="s2">cli = "dipy_slr"</span>
-<span class="s2">moving_files = "$</span><span class="si">{track_dti.out_tractogram}</span><span class="s2">"</span>
-<span class="s2">static_files = "$</span><span class="si">{io.atlas_tractogram}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "register_dki"</span>
-<span class="s2">cli = "dipy_slr"</span>
-<span class="s2">moving_files = "$</span><span class="si">{track_dki.out_tractogram}</span><span class="s2">"</span>
-<span class="s2">static_files = "$</span><span class="si">{io.atlas_tractogram}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "register_csd"</span>
-<span class="s2">cli = "dipy_slr"</span>
-<span class="s2">moving_files = "$</span><span class="si">{track_csd.out_tractogram}</span><span class="s2">"</span>
-<span class="s2">static_files = "$</span><span class="si">{io.atlas_tractogram}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "register_csa"</span>
-<span class="s2">cli = "dipy_slr"</span>
-<span class="s2">moving_files = "$</span><span class="si">{track_csa.out_tractogram}</span><span class="s2">"</span>
-<span class="s2">static_files = "$</span><span class="si">{io.atlas_tractogram}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "register_gqi"</span>
-<span class="s2">cli = "dipy_slr"</span>
-<span class="s2">moving_files = "$</span><span class="si">{track_gqi.out_tractogram}</span><span class="s2">"</span>
-<span class="s2">static_files = "$</span><span class="si">{io.atlas_tractogram}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "register_mapmri"</span>
-<span class="s2">cli = "dipy_slr"</span>
-<span class="s2">moving_files = "$</span><span class="si">{track_mapmri.out_tractogram}</span><span class="s2">"</span>
-<span class="s2">static_files = "$</span><span class="si">{io.atlas_tractogram}</span><span class="s2">"</span>
-
-<span class="s2"># Step 10: Multi-method segmentation (Recobundles)</span>
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "segment_dti"</span>
-<span class="s2">cli = "dipy_recobundles"</span>
-<span class="s2">tractogram_files = "$</span><span class="si">{register_dti.out_moved}</span><span class="s2">"</span>
-<span class="s2">atlas_dir = "$</span><span class="si">{io.bundle_atlas_dir}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "segment_dki"</span>
-<span class="s2">cli = "dipy_recobundles"</span>
-<span class="s2">tractogram_files = "$</span><span class="si">{register_dki.out_moved}</span><span class="s2">"</span>
-<span class="s2">atlas_dir = "$</span><span class="si">{io.bundle_atlas_dir}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "segment_csd"</span>
-<span class="s2">cli = "dipy_recobundles"</span>
-<span class="s2">tractogram_files = "$</span><span class="si">{register_csd.out_moved}</span><span class="s2">"</span>
-<span class="s2">atlas_dir = "$</span><span class="si">{io.bundle_atlas_dir}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "segment_csa"</span>
-<span class="s2">cli = "dipy_recobundles"</span>
-<span class="s2">tractogram_files = "$</span><span class="si">{register_csa.out_moved}</span><span class="s2">"</span>
-<span class="s2">atlas_dir = "$</span><span class="si">{io.bundle_atlas_dir}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "segment_gqi"</span>
-<span class="s2">cli = "dipy_recobundles"</span>
-<span class="s2">tractogram_files = "$</span><span class="si">{register_gqi.out_moved}</span><span class="s2">"</span>
-<span class="s2">atlas_dir = "$</span><span class="si">{io.bundle_atlas_dir}</span><span class="s2">"</span>
-
-<span class="s2">[[pipeline]]</span>
-<span class="s2">name = "segment_mapmri"</span>
-<span class="s2">cli = "dipy_recobundles"</span>
-<span class="s2">tractogram_files = "$</span><span class="si">{register_mapmri.out_moved}</span><span class="s2">"</span>
-<span class="s2">atlas_dir = "$</span><span class="si">{io.bundle_atlas_dir}</span><span class="s2">"</span>
-<span class="s2">"""</span>
-
 
 <span class="c1"># =============================================================================</span>
 <span class="c1"># Pipeline Dictionary and Helper Functions</span>
 <span class="c1"># =============================================================================</span>
 
 <span class="n">PREDEFINED_PIPELINES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"denoise"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Simple denoising: nlmeans + mask + info"</span><span class="p">,</span>
-        <span class="s2">"config"</span><span class="p">:</span> <span class="n">DENOISE_PIPELINE</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s2">"basic"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Basic preprocessing: denoise + brain extraction + mask + info"</span><span class="p">,</span>
-        <span class="s2">"config"</span><span class="p">:</span> <span class="n">BASIC_PIPELINE</span><span class="p">,</span>
-    <span class="p">},</span>
     <span class="s2">"preprocessing"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Full preprocessing: b0 → brain → Gibbs → motion → denoise"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Full preprocessing: denoise → Gibbs → motion → bias → reslice → mask"</span><span class="p">,</span>
         <span class="s2">"config"</span><span class="p">:</span> <span class="n">PREPROCESSING_PIPELINE</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">"dti_only"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Preprocessing + DTI reconstruction with tensor metrics"</span><span class="p">,</span>
         <span class="s2">"config"</span><span class="p">:</span> <span class="n">DTI_ONLY_PIPELINE</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s2">"multi_shell"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Multi-method: DTI, DKI, CSD, CSA, GQI (parallel)"</span><span class="p">,</span>
-        <span class="s2">"config"</span><span class="p">:</span> <span class="n">MULTI_SHELL_PIPELINE</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">"tractography"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Preprocessing + DTI + CSD + fiber tracking"</span><span class="p">,</span>
@@ -1816,20 +1289,10 @@ document.write(`
     <span class="p">},</span>
     <span class="s2">"full"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"description"</span><span class="p">:</span> <span class="p">(</span>
-            <span class="s2">"Full pipeline: preprocessing + reconstruction + tracking + SLR + bundles"</span>
+            <span class="s2">"Full pipeline: preprocessing with motion correction + T1 registration"</span>
+            <span class="s2">" + reconstruction + tracking + SLR + bundles"</span>
         <span class="p">),</span>
         <span class="s2">"config"</span><span class="p">:</span> <span class="n">FULL_PIPELINE</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s2">"full_with_motion"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"description"</span><span class="p">:</span> <span class="p">(</span>
-            <span class="s2">"Full pipeline with motion correction: preprocessing + reconstruction"</span>
-            <span class="s2">" + tracking + SLR + bundles"</span>
-        <span class="p">),</span>
-        <span class="s2">"config"</span><span class="p">:</span> <span class="n">FULL_PIPELINE_WITH_MOTION</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s2">"comprehensive"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Complete: preprocessing + 6 methods + tracking + SLR + bundles"</span><span class="p">,</span>
-        <span class="s2">"config"</span><span class="p">:</span> <span class="n">COMPREHENSIVE_PIPELINE</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -1908,8 +1371,6 @@ document.write(`
 <span class="sd">    list</span>
 <span class="sd">        List of pipeline names.</span>
 <span class="sd">    """</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-
     <span class="n">all_pipelines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">PREDEFINED_PIPELINES</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
     <span class="c1"># If log_level is provided and it's not DEBUG, filter to show only "full"</span>
