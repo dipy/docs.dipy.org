@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.plotting &#8212; dipy 1.13.0.dev0+git20261016.e2a988f documentation</title>
+    <title>dipy.viz.plotting &#8212; dipy 1.13.0.dev0+git20261016.0c04345 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=f4aadbf9"></script>
+    <script src="../../../_static/documentation_options.js?v=76cd329b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -891,10 +891,197 @@ document.write(`
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">GradientTable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_filename_extension</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
+<span class="n">fury</span><span class="p">,</span> <span class="n">has_fury_v2</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"fury"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">has_fury_v2</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury</span><span class="w"> </span><span class="kn">import</span> <span class="n">actor</span><span class="p">,</span> <span class="n">window</span>
+
 <span class="n">plt</span><span class="p">,</span> <span class="n">have_plt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"matplotlib.pyplot"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_shells">
+<a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.plotting.create_shells">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_shells</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Create a FURY point actor for an acquisition's gradient shells.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gtab : GradientTable</span>
+<span class="sd">        Gradient scheme to render.</span>
+<span class="sd">    colors : tuple or ndarray, optional</span>
+<span class="sd">        One RGB color or one RGB color for every plotted point.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    shell_actor : fury actor</span>
+<span class="sd">        Point glyphs, ready to add to a scene.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Gradient radii are proportional to b-values normalized by the largest value.</span>
+<span class="sd">    Default colors are black for b0 and interpolate from blue to cyan across</span>
+<span class="sd">    shells. Single-shell directions are blue.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``gtab`` is not a gradient table.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If FURY is unavailable or non-b0 b-values are not finite and positive.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_fury_v2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"fury package needed for visualization."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gtab</span><span class="p">,</span> <span class="n">GradientTable</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"gtab must be a GradientTable."</span><span class="p">)</span>
+
+    <span class="n">non_b0_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">gtab</span><span class="o">.</span><span class="n">b0s_mask</span>
+    <span class="n">non_b0_bvals</span> <span class="o">=</span> <span class="n">gtab</span><span class="o">.</span><span class="n">bvals</span><span class="p">[</span><span class="n">non_b0_mask</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">non_b0_bvals</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">non_b0_bvals</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">non_b0_bvals</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"Gradient table must contain finite, positive non-b0 b-values."</span>
+        <span class="p">)</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">gtab</span><span class="o">.</span><span class="n">gradients</span> <span class="o">/</span> <span class="n">non_b0_bvals</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">colors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">colors</span><span class="p">[</span><span class="n">non_b0_mask</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">shell_span</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ptp</span><span class="p">(</span><span class="n">non_b0_bvals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">shell_span</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">colors</span><span class="p">[</span><span class="n">non_b0_mask</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">non_b0_bvals</span> <span class="o">-</span> <span class="n">non_b0_bvals</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="n">shell_span</span>
+    <span class="k">return</span> <span class="n">actor</span><span class="o">.</span><span class="n">marker</span><span class="p">(</span>
+        <span class="n">points</span><span class="p">,</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+        <span class="n">size</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">"circle"</span><span class="p">,</span>
+        <span class="n">edge_color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span>
+        <span class="n">edge_width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_gradient_sphere">
+<a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.plotting.create_gradient_sphere">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_gradient_sphere</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Create a FURY point actor for gradients or unit-sphere vertices.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : GradientTable or Sphere</span>
+<span class="sd">        Gradient scheme or unit-sphere vertices to render.</span>
+<span class="sd">    colors : tuple or ndarray, optional</span>
+<span class="sd">        One RGB color or one RGB color for every plotted point.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sphere_actor : fury actor</span>
+<span class="sd">        Point glyphs, ready to add to a scene.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Gradient tables use :func:`create_shells`. Sphere vertices are green unless</span>
+<span class="sd">    colors are supplied.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``data`` is neither a gradient table nor a sphere.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If FURY is unavailable or non-b0 b-values are not finite and positive.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">GradientTable</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">create_shells</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_fury_v2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"fury package needed for visualization."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Sphere</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"data must be a GradientTable or Sphere."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">colors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">actor</span><span class="o">.</span><span class="n">marker</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+        <span class="n">size</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">"circle"</span><span class="p">,</span>
+        <span class="n">edge_color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span>
+        <span class="n">edge_width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plot_gradient_sphere">
+<a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.plotting.plot_gradient_sphere">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_gradient_sphere</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">scene</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Add gradient or sphere glyphs to a scene, optionally saving or showing it.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : GradientTable or Sphere</span>
+<span class="sd">        Gradient scheme or unit-sphere vertices to render.</span>
+<span class="sd">    scene : fury.window.Scene, optional</span>
+<span class="sd">        Existing scene to add glyphs to; otherwise a white scene is created.</span>
+<span class="sd">    colors : tuple or ndarray, optional</span>
+<span class="sd">        One RGB color or one RGB color for every plotted point.</span>
+<span class="sd">    filename : str or Path, optional</span>
+<span class="sd">        Output image path.</span>
+<span class="sd">    show : bool, optional</span>
+<span class="sd">        Display the scene for interactive rotation. The filename basename is</span>
+<span class="sd">        used as the window title when supplied.</span>
+<span class="sd">    size : tuple of int, optional</span>
+<span class="sd">        Window and saved-image dimensions as (width, height) in pixels.</span>
+<span class="sd">        If None, use FURY's native size and pixel ratio.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    scene : fury.window.Scene or None</span>
+<span class="sd">        Scene containing the rendered glyphs when ``show=False``; otherwise None.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    create_gradient_sphere : Create the glyph actor without a scene.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Glyphs are unlit circular markers with a diameter of 8 logical pixels and a</span>
+<span class="sd">    1-pixel black outline, independent of camera distance. Saving and showing do</span>
+<span class="sd">    not add a camera light.</span>
+<span class="sd">    """</span>
+    <span class="n">sphere_actor</span> <span class="o">=</span> <span class="n">create_gradient_sphere</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scene</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scene</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">Scene</span><span class="p">(</span><span class="n">background</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sphere_actor</span><span class="p">)</span>
+    <span class="n">size_options</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{</span><span class="s2">"size"</span><span class="p">:</span> <span class="n">size</span><span class="p">,</span> <span class="s2">"pixel_ratio"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">snapshot_manager</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">ShowManager</span><span class="p">(</span>
+            <span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span> <span class="n">window_type</span><span class="o">=</span><span class="s2">"offscreen"</span><span class="p">,</span> <span class="o">**</span><span class="n">size_options</span>
+        <span class="p">)</span>
+        <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">snapshot_manager</span><span class="o">.</span><span class="n">screens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">camera</span><span class="p">)</span>
+        <span class="n">snapshot_manager</span><span class="o">.</span><span class="n">screens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">show_object</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">main_scene</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">snapshot_manager</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+            <span class="n">snapshot_manager</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+            <span class="n">snapshot_manager</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">snapshot_manager</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">split_filename_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"DIPY"</span>
+        <span class="p">)</span>
+        <span class="n">show_manager</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">ShowManager</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="o">**</span><span class="n">size_options</span><span class="p">)</span>
+        <span class="n">scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">show_manager</span><span class="o">.</span><span class="n">screens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">camera</span><span class="p">)</span>
+        <span class="n">show_manager</span><span class="o">.</span><span class="n">screens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">show_object</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">main_scene</span><span class="p">)</span>
+        <span class="n">show_manager</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">scene</span></div>
+
 
 
 <div class="viewcode-block" id="compare_maps">
