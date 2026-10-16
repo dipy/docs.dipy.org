@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261016.0c04345 documentation</title>
+    <title>dipy.viz.skyline.app &#8212; dipy 1.13.0.dev0+git20261016.08e3896 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../_static/documentation_options.js?v=76cd329b"></script>
+    <script src="../../../../_static/documentation_options.js?v=60e97396"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -919,7 +919,12 @@ document.write(`
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image3D</span><span class="p">,</span> <span class="n">create_image_visualization</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.peak</span><span class="w"> </span><span class="kn">import</span> <span class="n">Peak3D</span><span class="p">,</span> <span class="n">create_peak_visualization</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.renderer</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_window</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.renderer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">create_window</span><span class="p">,</span>
+        <span class="n">slice_slider_bounds</span><span class="p">,</span>
+        <span class="n">slice_slider_values_from_state</span><span class="p">,</span>
+        <span class="n">slice_state_from_slider_values</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.roi</span><span class="w"> </span><span class="kn">import</span> <span class="n">ROI3D</span><span class="p">,</span> <span class="n">create_roi_visualization</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.sh_slicer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SHGlyph3D</span><span class="p">,</span> <span class="n">create_shm_visualization</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -1275,6 +1280,9 @@ document.write(`
                     <span class="n">bg_color_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_background_color</span><span class="p">,</span>
                     <span class="n">snapshot_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_snapshot</span><span class="p">,</span>
                     <span class="n">sh_basis</span><span class="o">=</span><span class="n">sh_basis</span><span class="p">,</span>
+                    <span class="n">slice_controls_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_global_slice_controls</span><span class="p">,</span>
+                    <span class="n">slice_position_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_global_slice_position</span><span class="p">,</span>
+                    <span class="n">slice_visibility_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_global_slice_visibility</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">_imgui</span><span class="o">.</span><span class="n">set_gui</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">draw_ui</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1606,6 +1614,89 @@ document.write(`
                 <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_requested</span> <span class="o">=</span> <span class="kc">True</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_global_slice_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the registered synchronized slice reference."""</span>
+        <span class="n">eligible</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">viz</span>
+            <span class="k">for</span> <span class="n">viz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">visualizations</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="p">(</span><span class="n">Image3D</span><span class="p">,</span> <span class="n">Peak3D</span><span class="p">,</span> <span class="n">SHGlyph3D</span><span class="p">))</span> <span class="ow">and</span> <span class="n">viz</span><span class="o">.</span><span class="n">_synchronize</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span> <span class="ow">in</span> <span class="n">eligible</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span> <span class="ow">in</span> <span class="n">eligible</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span>
+        <span class="k">return</span> <span class="n">eligible</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">eligible</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_global_slice_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the reference, slider values, bounds, and visibility."""</span>
+        <span class="n">datasets</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_visualizations</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sh_glyph_visualizations</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">datasets</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">visibility</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">any</span><span class="p">(</span><span class="n">viz</span><span class="o">.</span><span class="n">_slice_visibility</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="k">for</span> <span class="n">viz</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">)</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_global_slice_reference</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">reference</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">visibility</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">Image3D</span><span class="p">):</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">dwi</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">Peak3D</span><span class="p">):</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">peaks</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">slice_slider_values_from_state</span><span class="p">(</span>
+            <span class="n">reference</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">affine</span>
+        <span class="p">)</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">slice_slider_bounds</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reference</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">visibility</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_global_slice_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Move synchronized slices in the reference's slider coordinates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        axis : int</span>
+<span class="sd">            X/Y/Z axis index.</span>
+<span class="sd">        value : float</span>
+<span class="sd">            Slice slider coordinate.</span>
+<span class="sd">        """</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_global_slice_reference</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">reference</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">slice_slider_values_from_state</span><span class="p">(</span>
+            <span class="n">reference</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">affine</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">values</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">new_state</span> <span class="o">=</span> <span class="n">slice_state_from_slider_values</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
+        <span class="n">reference</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">new_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_synchronize_visualizations</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">new_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_refresh</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_global_slice_visibility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">visible</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Set one slice axis across all datasets, regardless of synchronization.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        axis : int</span>
+<span class="sd">            X/Y/Z axis index.</span>
+<span class="sd">        visible : bool</span>
+<span class="sd">            Whether to show this axis.</span>
+<span class="sd">        """</span>
+        <span class="k">for</span> <span class="n">viz</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_visualizations</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sh_glyph_visualizations</span>
+        <span class="p">):</span>
+            <span class="n">visibility</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">_slice_visibility</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">visibility</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">visible</span>
+            <span class="k">if</span> <span class="n">visibility</span> <span class="o">!=</span> <span class="n">viz</span><span class="o">.</span><span class="n">_slice_visibility</span><span class="p">:</span>
+                <span class="n">viz</span><span class="o">.</span><span class="n">set_slice_visibility</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_refresh</span><span class="p">()</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_reference_slice_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return a snapshot of the current slice pose for load-time alignment.</span>
 
@@ -1687,6 +1778,7 @@ document.write(`
             <span class="n">n_peak_before</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_peak_visualizations</span><span class="p">)</span>
             <span class="n">n_sh_before</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sh_glyph_visualizations</span><span class="p">)</span>
             <span class="n">reference_slice_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reference_slice_state</span><span class="p">()</span>
+            <span class="n">global_slice_controls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_global_slice_controls</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_load_visualiations</span><span class="p">(</span>
                 <span class="n">loaded_files</span><span class="p">[</span><span class="s2">"images"</span><span class="p">],</span>
                 <span class="n">loaded_files</span><span class="p">[</span><span class="s2">"peaks"</span><span class="p">],</span>
@@ -1703,6 +1795,14 @@ document.write(`
                 <span class="n">n_peak_before</span><span class="p">,</span>
                 <span class="n">n_sh_before</span><span class="p">,</span>
             <span class="p">)</span>
+            <span class="k">if</span> <span class="n">global_slice_controls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">visibility</span> <span class="o">=</span> <span class="n">global_slice_controls</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">viz</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span><span class="p">[</span><span class="n">n_img_before</span><span class="p">:]</span>
+                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_visualizations</span><span class="p">[</span><span class="n">n_peak_before</span><span class="p">:]</span>
+                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sh_glyph_visualizations</span><span class="p">[</span><span class="n">n_sh_before</span><span class="p">:]</span>
+                <span class="p">):</span>
+                    <span class="n">viz</span><span class="o">.</span><span class="n">set_slice_visibility</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizer_type</span> <span class="o">!=</span> <span class="s2">"stealth"</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_update_tractogram_helper</span><span class="p">()</span>
@@ -2100,6 +2200,12 @@ document.write(`
 
         <span class="k">if</span> <span class="n">viz</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_slice_focus_viz</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">viz</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_visualizations</span><span class="p">:</span>
+                <span class="n">image</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="n">image</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_image</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visualizations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">UI_window</span><span class="o">.</span><span class="n">request_file_dialog</span> <span class="o">=</span> <span class="kc">True</span>
@@ -2594,6 +2700,10 @@ document.write(`
 <span class="sd">    Window creation sets ``FURY_OFFSCREEN`` to ``1`` for stealth or removes</span>
 <span class="sd">    the key otherwise. Skyline restores its previous value or absence after</span>
 <span class="sd">    setup/start returns or raises.</span>
+
+<span class="sd">    Global visibility affects all slice datasets; positions affect synchronized</span>
+<span class="sd">    datasets only. Individual visibility changes remain local.</span>
+<span class="sd">    Titles select layers; trailing arrows toggle expansion.</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">Skyline</span><span class="p">(</span>
         <span class="n">visualizer_type</span><span class="o">=</span><span class="n">visualizer_type</span><span class="p">,</span>

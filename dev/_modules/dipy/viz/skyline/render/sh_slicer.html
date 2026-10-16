@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.sh_slicer &#8212; dipy 1.13.0.dev0+git20261016.0c04345 documentation</title>
+    <title>dipy.viz.skyline.render.sh_slicer &#8212; dipy 1.13.0.dev0+git20261016.08e3896 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=76cd329b"></script>
+    <script src="../../../../../_static/documentation_options.js?v=60e97396"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1546,16 +1546,27 @@ document.write(`
 
 <div class="viewcode-block" id="SHGlyph3D.set_slice_visibility">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.set_slice_visibility">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_slice_visibility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Show/hide each axis's slice per :attr:`_slice_visibility`."""</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_slice_visibility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visibility</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Set X/Y/Z slice visibility independently of slice synchronization.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        visibility : sequence of bool</span>
+<span class="sd">            Three per-axis visibility flags.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_visibility</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_slice_visibility</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_slice_visibility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Apply the current visibility to each axis's slice uniform."""</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_visibility</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span><span class="o">.</span><span class="n">show_axis</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_slicer</span><span class="o">.</span><span class="n">hide_axis</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span></div>
-
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
 <div class="viewcode-block" id="SHGlyph3D.render_widgets">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.sh_slicer.SHGlyph3D.render_widgets">[docs]</a>
@@ -1613,6 +1624,7 @@ document.write(`
                 <span class="p">)</span>
             <span class="p">)</span>
         <span class="n">render_data</span> <span class="o">=</span> <span class="n">render_group</span><span class="p">(</span><span class="s2">"Slice"</span><span class="p">,</span> <span class="n">slicers</span><span class="p">)</span>
+        <span class="n">visibility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_visibility</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">changed</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">toggle</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">render_data</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
                 <span class="n">slider_state</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
@@ -1622,9 +1634,9 @@ document.write(`
                 <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_slices</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_synchronize</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_sync_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_slice_visibility</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">toggle</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">apply_scene_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_slice_visibility</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">visibility</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">toggle</span>
+        <span class="k">if</span> <span class="n">visibility</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_visibility</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_slice_visibility</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
 
         <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span></div>
 </div>

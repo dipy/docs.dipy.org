@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.UI.manager &#8212; dipy 1.13.0.dev0+git20261016.0c04345 documentation</title>
+    <title>dipy.viz.skyline.UI.manager &#8212; dipy 1.13.0.dev0+git20261016.08e3896 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=76cd329b"></script>
+    <script src="../../../../../_static/documentation_options.js?v=60e97396"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -896,6 +896,8 @@ document.write(`
     <span class="n">loading</span><span class="p">,</span>
     <span class="n">render_file_dialog</span><span class="p">,</span>
     <span class="n">render_section_header</span><span class="p">,</span>
+    <span class="n">thin_slider</span><span class="p">,</span>
+    <span class="n">toggle_button</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.theme</span><span class="w"> </span><span class="kn">import</span> <span class="n">FONT</span><span class="p">,</span> <span class="n">FONT_AWESOME</span><span class="p">,</span> <span class="n">THEME</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">SH_BASES</span><span class="p">,</span> <span class="n">_validate_sh_basis</span>
@@ -981,6 +983,12 @@ document.write(`
 <span class="sd">    sh_basis : str, optional</span>
 <span class="sd">        Initial input SH convention for ODF imports, selected from ``SH_BASES``.</span>
 <span class="sd">        Unsupported values are logged and use latest Descoteaux07.</span>
+<span class="sd">    slice_controls_callback : callable, optional</span>
+<span class="sd">        Getter for the global slice reference, coordinates, bounds, and visibility.</span>
+<span class="sd">    slice_position_callback : callable, optional</span>
+<span class="sd">        Command accepting a slice axis index and slider coordinate.</span>
+<span class="sd">    slice_visibility_callback : callable, optional</span>
+<span class="sd">        Command accepting a slice axis index and visibility flag.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -997,6 +1005,9 @@ document.write(`
         <span class="n">bg_color_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">snapshot_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">sh_basis</span><span class="o">=</span><span class="s2">"descoteaux07"</span><span class="p">,</span>
+        <span class="n">slice_controls_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">slice_position_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">slice_visibility_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Initialize the sidebar window.</span>
 
@@ -1025,6 +1036,12 @@ document.write(`
 <span class="sd">        sh_basis : str, optional</span>
 <span class="sd">            Initial input SH convention for ODF imports, selected from ``SH_BASES``.</span>
 <span class="sd">            Unsupported values are logged and use latest Descoteaux07.</span>
+<span class="sd">        slice_controls_callback : callable, optional</span>
+<span class="sd">            Getter for global slice controls.</span>
+<span class="sd">        slice_position_callback : callable, optional</span>
+<span class="sd">            Command accepting a slice axis index and slider coordinate.</span>
+<span class="sd">        slice_visibility_callback : callable, optional</span>
+<span class="sd">            Command accepting a slice axis index and visibility flag.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sh_basis</span> <span class="o">=</span> <span class="n">_validate_sh_basis</span><span class="p">(</span><span class="n">sh_basis</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span>
@@ -1037,6 +1054,9 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_group_open</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_group_visible</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_render_callback</span> <span class="o">=</span> <span class="n">render_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_controls_callback</span> <span class="o">=</span> <span class="n">slice_controls_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_position_callback</span> <span class="o">=</span> <span class="n">slice_position_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_visibility_callback</span> <span class="o">=</span> <span class="n">slice_visibility_callback</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logo_tex_ref</span> <span class="o">=</span> <span class="n">logo_tex_ref</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logo_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_title_text</span> <span class="o">=</span> <span class="s2">"DIPY SKYLINE"</span>
@@ -1303,6 +1323,7 @@ document.write(`
         <span class="n">imgui</span><span class="o">.</span><span class="n">set_cursor_screen_pos</span><span class="p">(</span><span class="n">org_start</span><span class="p">)</span>
         <span class="n">imgui</span><span class="o">.</span><span class="n">dummy</span><span class="p">((</span><span class="n">available_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logo_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">spacing</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">imgui</span><span class="o">.</span><span class="n">pop_id</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_render_global_slice_controls</span><span class="p">()</span>
 
         <span class="n">imgui</span><span class="o">.</span><span class="n">begin_child</span><span class="p">(</span>
             <span class="s2">"sections"</span><span class="p">,</span>
@@ -1390,6 +1411,56 @@ document.write(`
             <span class="n">imgui</span><span class="o">.</span><span class="n">open_popup</span><span class="p">(</span><span class="s2">"LoadingOverlay"</span><span class="p">)</span>
         <span class="n">loading</span><span class="p">(</span><span class="s2">"LoadingOverlay"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_message</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_show_loader</span><span class="p">)</span></div>
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_render_global_slice_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Draw global axis controls outside the scrolling dataset list."""</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_slice_controls_callback</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_position_callback</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_visibility_callback</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">controls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_controls_callback</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">controls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">reference_name</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">visibility</span> <span class="o">=</span> <span class="n">controls</span>
+        <span class="n">has_reference</span> <span class="o">=</span> <span class="n">reference_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">imgui</span><span class="o">.</span><span class="n">push_id</span><span class="p">(</span><span class="s2">"global_slices"</span><span class="p">)</span>
+        <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
+        <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
+        <span class="n">slice_icon</span> <span class="o">=</span> <span class="n">icons_fontawesome_6</span><span class="o">.</span><span class="n">ICON_FA_SLIDERS</span>
+        <span class="n">imgui</span><span class="o">.</span><span class="n">text_colored</span><span class="p">(</span><span class="n">THEME</span><span class="p">[</span><span class="s2">"primary"</span><span class="p">],</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slice_icon</span><span class="si">}</span><span class="s2"> Global Slices"</span><span class="p">)</span>
+        <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">has_reference</span><span class="p">:</span>
+            <span class="n">reference_icon</span> <span class="o">=</span> <span class="n">icons_fontawesome_6</span><span class="o">.</span><span class="n">ICON_FA_CROSSHAIRS</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">push_style_color</span><span class="p">(</span><span class="n">imgui</span><span class="o">.</span><span class="n">Col_</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">THEME</span><span class="p">[</span><span class="s2">"secondary"</span><span class="p">])</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">text_wrapped</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">reference_icon</span><span class="si">}</span><span class="s2"> Reference: </span><span class="si">{</span><span class="n">reference_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">pop_style_color</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">text_wrapped</span><span class="p">(</span><span class="s2">"Enable Synchronize Slices to adjust positions."</span><span class="p">)</span>
+        <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s2">"X"</span><span class="p">,</span> <span class="s2">"Y"</span><span class="p">,</span> <span class="s2">"Z"</span><span class="p">)):</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">push_id</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+            <span class="n">changed</span><span class="p">,</span> <span class="n">visible</span> <span class="o">=</span> <span class="n">toggle_button</span><span class="p">(</span><span class="n">visibility</span><span class="p">[</span><span class="n">axis</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_slice_visibility_callback</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">visible</span><span class="p">)</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">same_line</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">begin_disabled</span><span class="p">(</span><span class="ow">not</span> <span class="n">has_reference</span><span class="p">)</span>
+            <span class="n">changed</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">thin_slider</span><span class="p">(</span>
+                <span class="n">label</span><span class="p">,</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">axis</span><span class="p">])</span> <span class="k">if</span> <span class="n">has_reference</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">bounds</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">has_reference</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">bounds</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">has_reference</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">text_format</span><span class="o">=</span><span class="s2">".0f"</span><span class="p">,</span>
+                <span class="n">value_type</span><span class="o">=</span><span class="s2">"float"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">end_disabled</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_slice_position_callback</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="n">imgui</span><span class="o">.</span><span class="n">pop_id</span><span class="p">()</span>
+        <span class="n">imgui</span><span class="o">.</span><span class="n">pop_id</span><span class="p">()</span>
+        <span class="n">imgui</span><span class="o">.</span><span class="n">spacing</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">sections</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
