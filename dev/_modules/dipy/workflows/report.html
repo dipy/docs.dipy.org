@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.report &#8212; dipy 1.13.0.dev0+git20261026.17b936a documentation</title>
+    <title>dipy.workflows.report &#8212; dipy 1.13.0.dev0+git20261027.62762cb documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=c665b748"></script>
+    <script src="../../../_static/documentation_options.js?v=e0faf9f8"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1800,6 +1800,80 @@ document.write(`
 
 
 
+<div class="viewcode-block" id="served_root">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.report.served_root">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">served_root</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">page_dir</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Directory a report server is rooted at to serve a page of ``page_dir``.</span>
+
+<span class="sd">    A stage page under ``reports/`` is served from the pipeline output</span>
+<span class="sd">    directory above it, so that it can still reach the outputs it links to.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    page_dir : str or Path</span>
+<span class="sd">        Directory of the page.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Path</span>
+<span class="sd">        Absolute directory.</span>
+<span class="sd">    """</span>
+    <span class="n">page_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">page_dir</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">page_dir</span><span class="o">.</span><span class="n">parent</span> <span class="k">if</span> <span class="n">page_dir</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"reports"</span> <span class="k">else</span> <span class="n">page_dir</span></div>
+
+
+
+<div class="viewcode-block" id="skyline_key">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.report.skyline_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">skyline_key</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">page_dir</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Key under which the report server knows a file it can open in Skyline.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str or Path</span>
+<span class="sd">        File to open.</span>
+<span class="sd">    page_dir : str or Path</span>
+<span class="sd">        Directory of the page holding the button.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Path of the file relative to the served root, with forward slashes.</span>
+<span class="sd">        A file outside that root keeps its absolute path, which the server</span>
+<span class="sd">        never accepts.</span>
+<span class="sd">    """</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">served_root</span><span class="p">(</span><span class="n">page_dir</span><span class="o">=</span><span class="n">page_dir</span><span class="p">))</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="skyline_files">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.report.skyline_files">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">skyline_files</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Files under ``root`` that the report server may open in Skyline.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    root : str or Path</span>
+<span class="sd">        Directory the report is served from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Mapping of :func:`skyline_key` to file path.</span>
+<span class="sd">    """</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">():</span> <span class="n">path</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SKYLINE_FORMATS</span><span class="p">)</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+    <span class="p">}</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_output_items</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">page_dir</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Output list of a stage, each file with a button that opens it.</span>
 
@@ -1822,12 +1896,13 @@ document.write(`
     <span class="n">items</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">outputs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">"out_dir"</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">"out_dir"</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">button</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SKYLINE_FORMATS</span><span class="p">):</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">skyline_key</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">page_dir</span><span class="o">=</span><span class="n">page_dir</span><span class="p">)</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="n">skyline_command</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">())</span>
             <span class="n">arguments</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">skyline_command</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="n">quote</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">quote</span><span class="o">=</span><span class="kc">True</span>
             <span class="p">)</span>
             <span class="n">button</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="sa">f</span><span class="s1">'&lt;button class="qc-open" onclick="qcOpen(</span><span class="si">{</span><span class="n">arguments</span><span class="si">}</span><span class="s1">)"&gt;'</span>

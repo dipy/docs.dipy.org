@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.combined_workflow &#8212; dipy 1.13.0.dev0+git20261026.17b936a documentation</title>
+    <title>dipy.workflows.combined_workflow &#8212; dipy 1.13.0.dev0+git20261027.62762cb documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=c665b748"></script>
+    <script src="../../../_static/documentation_options.js?v=e0faf9f8"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -3907,8 +3907,9 @@ document.write(`
 <span class="sd">    HTML pages are served with a ``&lt;meta name="dipy-qc-token"&gt;`` tag holding</span>
 <span class="sd">    the server token, which their buttons send back with the file to open in</span>
 <span class="sd">    a ``POST /qc-open`` request. A launch requires that token, so that no</span>
-<span class="sd">    other web page can trigger one, and only opens files under the served</span>
-<span class="sd">    directory. The response body is the message the page shows when the</span>
+<span class="sd">    other web page can trigger one. The request names the file by its</span>
+<span class="sd">    :func:`~dipy.workflows.report.skyline_key`, and only files Skyline can</span>
+<span class="sd">    display under the served directory are known. The response body is the message the page shows when the</span>
 <span class="sd">    launch fails. Anything else is served statically.</span>
 
 <span class="sd">    Parameters</span>
@@ -3955,8 +3956,6 @@ document.write(`
         <span class="n">token</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"token"</span><span class="p">,</span> <span class="p">[</span><span class="s2">""</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">,</span> <span class="p">[</span><span class="s2">""</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">host</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Host"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="p">(</span>
             <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span>
@@ -3964,7 +3963,8 @@ document.write(`
             <span class="ow">or</span> <span class="n">host</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"127.0.0.1"</span><span class="p">,</span> <span class="s2">"localhost"</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s2">"This request does not come from a page of this report."</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">or</span> <span class="n">root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+        <span class="c1"># A lookup, so that no file path is ever built from the request.</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">path</span> <span class="o">:=</span> <span class="n">report</span><span class="o">.</span><span class="n">skyline_files</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2">' is not a file served by this report."</span><span class="p">)</span>
         <span class="k">elif</span> <span class="p">(</span><span class="n">skyline</span> <span class="o">:=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"dipy_skyline"</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span>
@@ -4020,9 +4020,7 @@ document.write(`
 <span class="sd">        Path to the HTML report file (e.g., ``pipeline_report.html``).</span>
 <span class="sd">    """</span>
     <span class="n">report_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">report_path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-    <span class="n">root</span> <span class="o">=</span> <span class="n">report_path</span><span class="o">.</span><span class="n">parent</span>
-    <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"reports"</span><span class="p">:</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">parent</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">served_root</span><span class="p">(</span><span class="n">page_dir</span><span class="o">=</span><span class="n">report_path</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
     <span class="n">report_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
     <span class="n">report_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">report_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
 
