@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.actor &#8212; dipy 1.13.0.dev0+git20261028.57ae6da documentation</title>
+    <title>dipy.viz.actor &#8212; dipy 1.13.0.dev0+git20261029.12aa528 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=93b41f82"></script>
+    <script src="../../../_static/documentation_options.js?v=da199f68"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -905,11 +905,11 @@ document.write(`
 <span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">create_axes_helper</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventType</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventType</span><span class="p">,</span> <span class="n">PointerEvent</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_transformation</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.window</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_camera</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">Group</span> <span class="o">=</span> <span class="n">create_axes_helper</span> <span class="o">=</span> <span class="n">EventType</span> <span class="o">=</span> <span class="n">fury</span>
+    <span class="n">Group</span> <span class="o">=</span> <span class="n">create_axes_helper</span> <span class="o">=</span> <span class="n">EventType</span> <span class="o">=</span> <span class="n">PointerEvent</span> <span class="o">=</span> <span class="n">fury</span>
     <span class="n">apply_transformation</span> <span class="o">=</span> <span class="n">update_camera</span> <span class="o">=</span> <span class="n">fury</span>
 
 
@@ -1196,7 +1196,8 @@ document.write(`
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    anchor : fury.actor.Group</span>
-<span class="sd">        The gizmo actor, hosted in the screen's UI scene.</span>
+<span class="sd">        The gizmo actor, hosted in the screen's UI scene. Its ``endpoints``</span>
+<span class="sd">        attribute maps each label to its clickable disk.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -1226,12 +1227,49 @@ document.write(`
         <span class="n">disk</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">EventType</span><span class="o">.</span><span class="n">POINTER_DOWN</span><span class="p">)</span>
         <span class="n">label</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">EventType</span><span class="o">.</span><span class="n">POINTER_DOWN</span><span class="p">)</span>
 
+    <span class="n">anchor</span><span class="o">.</span><span class="n">endpoints</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">parts</span><span class="p">[</span><span class="s2">"disks"</span><span class="p">]))</span>
     <span class="n">target_screen</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">ui_scene</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">anchor</span><span class="p">)</span>
     <span class="n">_sync_gizmo</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">target_screen</span><span class="o">.</span><span class="n">camera</span><span class="p">)</span>
     <span class="n">show_manager</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span>
         <span class="n">_sync_gizmo</span><span class="p">,</span> <span class="mf">0.016</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parts</span><span class="p">,</span> <span class="n">target_screen</span><span class="o">.</span><span class="n">camera</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">anchor</span></div>
+
+
+
+<div class="viewcode-block" id="click_gizmo">
+<a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.actor.click_gizmo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">click_gizmo</span><span class="p">(</span><span class="n">show_manager</span><span class="p">,</span> <span class="n">gizmo_actor</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Simulate a left click on a gizmo axis label.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    show_manager : fury.window.ShowManager</span>
+<span class="sd">        Window hosting the gizmo.</span>
+<span class="sd">    gizmo_actor : fury.actor.Group</span>
+<span class="sd">        Gizmo returned by :func:`gizmo`.</span>
+<span class="sd">    label : str</span>
+<span class="sd">        Label of the clicked axis, one of the labels given to :func:`gizmo`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Useful to snap the camera in scripts and offscreen renders, where no mouse</span>
+<span class="sd">    is available.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gizmo_actor</span><span class="o">.</span><span class="n">endpoints</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Unknown gizmo label </span><span class="si">{</span><span class="n">label</span><span class="si">!r}</span><span class="s2">; expected one of "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">gizmo_actor</span><span class="o">.</span><span class="n">endpoints</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+        <span class="p">)</span>
+    <span class="n">show_manager</span><span class="o">.</span><span class="n">renderer</span><span class="o">.</span><span class="n">dispatch_event</span><span class="p">(</span>
+        <span class="n">PointerEvent</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s2">"pointer_down"</span><span class="p">,</span>
+            <span class="n">button</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">gizmo_actor</span><span class="o">.</span><span class="n">endpoints</span><span class="p">[</span><span class="n">label</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 
