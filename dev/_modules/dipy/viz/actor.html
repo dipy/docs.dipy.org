@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.actor &#8212; dipy 1.13.0.dev0+git20261030.5c8a04a documentation</title>
+    <title>dipy.viz.actor &#8212; dipy 1.13.0.dev0+git20261030.3e838b0 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=9056a781"></script>
+    <script src="../../../_static/documentation_options.js?v=84375016"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -887,7 +887,9 @@ document.write(`
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">sparse</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_sphere</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -904,13 +906,16 @@ document.write(`
 <span class="n">fury</span><span class="p">,</span> <span class="n">has_fury</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"fury"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.1.0"</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">create_axes_helper</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">create_axes_helper</span><span class="p">,</span> <span class="n">surface</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.colormap</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_colors</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventType</span><span class="p">,</span> <span class="n">PointerEvent</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_transformation</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">voxel_mesh_by_object</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.window</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_camera</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">Group</span> <span class="o">=</span> <span class="n">create_axes_helper</span> <span class="o">=</span> <span class="n">EventType</span> <span class="o">=</span> <span class="n">PointerEvent</span> <span class="o">=</span> <span class="n">fury</span>
-    <span class="n">apply_transformation</span> <span class="o">=</span> <span class="n">update_camera</span> <span class="o">=</span> <span class="n">fury</span>
+    <span class="n">Group</span> <span class="o">=</span> <span class="n">create_axes_helper</span> <span class="o">=</span> <span class="n">surface</span> <span class="o">=</span> <span class="n">EventType</span> <span class="o">=</span> <span class="n">PointerEvent</span> <span class="o">=</span> <span class="n">fury</span>
+    <span class="n">apply_transformation</span> <span class="o">=</span> <span class="n">update_camera</span> <span class="o">=</span> <span class="n">normalize_colors</span> <span class="o">=</span> <span class="n">fury</span>
+    <span class="n">voxel_mesh_by_object</span> <span class="o">=</span> <span class="n">fury</span>
 
 
 <span class="n">_SH_BASIS_FUNCTIONS</span> <span class="o">=</span> <span class="p">{</span>
@@ -1270,6 +1275,88 @@ document.write(`
             <span class="n">target</span><span class="o">=</span><span class="n">gizmo_actor</span><span class="o">.</span><span class="n">endpoints</span><span class="p">[</span><span class="n">label</span><span class="p">],</span>
         <span class="p">)</span>
     <span class="p">)</span></div>
+
+
+
+<span class="c1"># TODO: Move `_taubin_smooth` and `smooth_contour_from_roi` to FURY and remove them</span>
+<span class="c1"># from DIPY once https://github.com/fury-gl/fury/issues/1390 is closed</span>
+<span class="c1"># (smooth option for `contour_from_roi` and `contour_from_label`).</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_taubin_smooth</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">iterations</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mu</span><span class="o">=-</span><span class="mf">0.53</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Smooth a triangle mesh with Taubin (shrink-free) Laplacian smoothing.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vertices : ndarray, shape (N, 3)</span>
+<span class="sd">        Mesh vertices.</span>
+<span class="sd">    faces : ndarray, shape (M, 3)</span>
+<span class="sd">        Triangle vertex indices.</span>
+<span class="sd">    iterations : int</span>
+<span class="sd">        Number of smoothing passes.</span>
+<span class="sd">    lam : float, optional</span>
+<span class="sd">        Positive (shrinking) step.</span>
+<span class="sd">    mu : float, optional</span>
+<span class="sd">        Negative (inflating) step, slightly larger in magnitude than ``lam``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray, shape (N, 3)</span>
+<span class="sd">        Smoothed vertices.</span>
+<span class="sd">    """</span>
+    <span class="n">n_vertices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">faces</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">faces</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">adjacency</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)),</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)),</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n_vertices</span><span class="p">,</span> <span class="n">n_vertices</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
+    <span class="n">adjacency</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">neighbor_mean</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">adjacency</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)))</span> <span class="o">@</span> <span class="n">adjacency</span>
+
+    <span class="n">smoothed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+        <span class="n">smoothed</span> <span class="o">+=</span> <span class="n">lam</span> <span class="o">*</span> <span class="p">(</span><span class="n">neighbor_mean</span> <span class="o">@</span> <span class="n">smoothed</span> <span class="o">-</span> <span class="n">smoothed</span><span class="p">)</span>
+        <span class="n">smoothed</span> <span class="o">+=</span> <span class="n">mu</span> <span class="o">*</span> <span class="p">(</span><span class="n">neighbor_mean</span> <span class="o">@</span> <span class="n">smoothed</span> <span class="o">-</span> <span class="n">smoothed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">smoothed</span>
+
+
+<div class="viewcode-block" id="smooth_contour_from_roi">
+<a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.actor.smooth_contour_from_roi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">smooth_contour_from_roi</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">20</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Generate a smooth surface actor from a binary ROI.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray, shape (X, Y, Z)</span>
+<span class="sd">        ROI volume; voxels with a value above zero are displayed.</span>
+<span class="sd">    affine : ndarray, shape (4, 4), optional</span>
+<span class="sd">        Affine mapping voxel coordinates to world coordinates.</span>
+<span class="sd">    color : str, tuple, list or ndarray, optional</span>
+<span class="sd">        Contour color (hex string, RGB in [0, 1] or in [0, 255]).</span>
+<span class="sd">    opacity : float, optional</span>
+<span class="sd">        Opacity from 0 (transparent) to 1 (opaque).</span>
+<span class="sd">    iterations : int, optional</span>
+<span class="sd">        Number of smoothing passes. Use 0 to keep the blocky voxel surface.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Group</span>
+<span class="sd">        One surface actor per connected object of the ROI.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    :func:`fury.actor.contour_from_roi` draws the voxel faces, which looks</span>
+<span class="sd">    staircased on anatomical ROIs. This function smooths that surface with</span>
+<span class="sd">    Taubin smoothing, which does not shrink the ROI.</span>
+<span class="sd">    """</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="n">normalize_colors</span><span class="p">(</span><span class="n">color</span><span class="p">)[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">contour</span> <span class="o">=</span> <span class="n">Group</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">voxel_mesh_by_object</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">triangulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="n">_taubin_smooth</span><span class="p">(</span><span class="n">mesh</span><span class="p">[</span><span class="s2">"verts"</span><span class="p">],</span> <span class="n">mesh</span><span class="p">[</span><span class="s2">"faces"</span><span class="p">],</span> <span class="n">iterations</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vertices</span> <span class="o">=</span> <span class="n">apply_affine</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
+        <span class="n">contour</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">surface</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">mesh</span><span class="p">[</span><span class="s2">"faces"</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">contour</span></div>
 
 </pre></div>
 
