@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.core.geometry &#8212; dipy 1.13.0.dev0+git20261030.f540173 documentation</title>
+    <title>dipy.core.geometry &#8212; dipy 1.13.0.dev0+git20261030.0546d82 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=55eeed65"></script>
+    <script src="../../../_static/documentation_options.js?v=9a064be5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1174,23 +1174,24 @@ document.write(`
 
 <span class="sd">    where :math:`n = r / ||r||`</span>
 
-<span class="sd">    In case the angle :math:`||r||` is very small, the above formula may lead</span>
+<span class="sd">    In case the angle :math:`\theta` is very small, the above formula may lead</span>
 <span class="sd">    to numerical instabilities. We instead use a Taylor expansion</span>
-<span class="sd">    around :math:`theta=0`:</span>
+<span class="sd">    around :math:`\theta=0`, with the skew-symmetric matrix of</span>
+<span class="sd">    :math:`\theta n`:</span>
 
 <span class="sd">    .. math::</span>
 <span class="sd">        :nowrap:</span>
 
-<span class="sd">        R = I + \sin(\theta)/\theta \mathbf{S}_r +</span>
-<span class="sd">        (1-\cos(\theta))/\theta^2 \mathbf{S}_r^2</span>
+<span class="sd">        R = I + \sin(\theta)/\theta \mathbf{S}_{\theta n} +</span>
+<span class="sd">        (1-\cos(\theta))/\theta^2 \mathbf{S}_{\theta n}^2</span>
 
 <span class="sd">    leading to:</span>
 
 <span class="sd">    .. math::</span>
 <span class="sd">        :nowrap:</span>
 
-<span class="sd">        R = \mathbf{I} + (1-\theta^2/6)*\mathbf{S}_r +</span>
-<span class="sd">        (\frac{1}{2}-\theta^2/24)*\mathbf{S}_r^2</span>
+<span class="sd">        R = \mathbf{I} + (1-\theta^2/6)*\mathbf{S}_{\theta n} +</span>
+<span class="sd">        (\frac{1}{2}-\theta^2/24)*\mathbf{S}_{\theta n}^2</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1217,11 +1218,17 @@ document.write(`
 
 <span class="sd">    """</span>
     <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">theta</span> <span class="o">&gt;</span> <span class="mf">1e-30</span><span class="p">:</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="n">r</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">theta</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">norm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Rotation axis must be non-zero"</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">r</span> <span class="o">/</span> <span class="n">norm</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-30</span><span class="p">:</span>
         <span class="n">Sn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">n</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">n</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">]])</span>
         <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">Sn</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Sn</span><span class="p">,</span> <span class="n">Sn</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">n</span>
         <span class="n">Sr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">]])</span>
         <span class="n">theta2</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">theta</span>
         <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">theta2</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">Sr</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">-</span> <span class="n">theta2</span> <span class="o">/</span> <span class="mf">24.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Sr</span><span class="p">,</span> <span class="n">Sr</span><span class="p">)</span>
