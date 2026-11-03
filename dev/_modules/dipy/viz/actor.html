@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.actor &#8212; dipy 1.13.0.dev0+git20261103.2f92532 documentation</title>
+    <title>dipy.viz.actor &#8212; dipy 1.13.0.dev0+git20261103.4a18e9a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=e888ef6e"></script>
+    <script src="../../../_static/documentation_options.js?v=5157f1bc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -887,7 +887,6 @@ document.write(`
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">sparse</span>
 
@@ -899,6 +898,7 @@ document.write(`
     <span class="n">sf_to_sh</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.colormap</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_colormap</span><span class="p">,</span> <span class="n">map_scalars_to_lut</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">_validate_sh_basis</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.renderer</span><span class="w"> </span><span class="kn">import</span> <span class="n">affine_voxel_sizes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.render.sh_slicer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SHSlicer</span>
@@ -906,17 +906,21 @@ document.write(`
 <span class="n">fury</span><span class="p">,</span> <span class="n">has_fury</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"fury"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.1.0"</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">create_axes_helper</span><span class="p">,</span> <span class="n">surface</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.actor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">create_axes_helper</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">surface</span><span class="p">,</span> <span class="n">text</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.colormap</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_colors</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventType</span><span class="p">,</span> <span class="n">PointerEvent</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_transformation</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">voxel_mesh_by_object</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fury.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span><span class="p">,</span> <span class="n">voxel_mesh_by_object</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">fury.window</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_camera</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">Group</span> <span class="o">=</span> <span class="n">create_axes_helper</span> <span class="o">=</span> <span class="n">surface</span> <span class="o">=</span> <span class="n">EventType</span> <span class="o">=</span> <span class="n">PointerEvent</span> <span class="o">=</span> <span class="n">fury</span>
+    <span class="n">Group</span> <span class="o">=</span> <span class="n">create_axes_helper</span> <span class="o">=</span> <span class="n">surface</span> <span class="o">=</span> <span class="n">image</span> <span class="o">=</span> <span class="n">text</span> <span class="o">=</span> <span class="n">EventType</span> <span class="o">=</span> <span class="n">PointerEvent</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">fury</span>
+    <span class="p">)</span>
     <span class="n">apply_transformation</span> <span class="o">=</span> <span class="n">update_camera</span> <span class="o">=</span> <span class="n">normalize_colors</span> <span class="o">=</span> <span class="n">fury</span>
-    <span class="n">voxel_mesh_by_object</span> <span class="o">=</span> <span class="n">fury</span>
+    <span class="n">voxel_mesh_by_object</span> <span class="o">=</span> <span class="n">apply_affine</span> <span class="o">=</span> <span class="n">fury</span>
 
+
+<span class="n">_SCALAR_BAR_SAMPLES</span> <span class="o">=</span> <span class="mi">256</span>
 
 <span class="n">_SH_BASIS_FUNCTIONS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"descoteaux07"</span><span class="p">:</span> <span class="p">(</span><span class="n">real_sh_descoteaux</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
@@ -1357,6 +1361,142 @@ document.write(`
             <span class="n">vertices</span> <span class="o">=</span> <span class="n">apply_affine</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
         <span class="n">contour</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">surface</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">mesh</span><span class="p">[</span><span class="s2">"faces"</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">contour</span></div>
+
+
+
+<span class="c1"># TODO(fury#1392): FURY v2 has no scalar bar / colorbar actor. Remove</span>
+<span class="c1"># ``scalar_bar`` and use the FURY actor once</span>
+<span class="c1"># https://github.com/fury-gl/fury/issues/1392 is resolved.</span>
+<div class="viewcode-block" id="scalar_bar">
+<a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.actor.scalar_bar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">scalar_bar</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">clim</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="s2">"plasma"</span><span class="p">,</span>
+    <span class="n">hsv_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">orientation</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">length</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+    <span class="n">thickness</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">num_ticks</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">tick_format</span><span class="o">=</span><span class="s2">".3g"</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">font_size</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Create a color bar showing how scalar values map to colors.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    clim : tuple of float, optional</span>
+<span class="sd">        Scalar values ``(low, high)`` mapped to the first and last colors.</span>
+<span class="sd">    cmap : str, optional</span>
+<span class="sd">        Name of the colormap, as accepted by ``fury.colormap.create_colormap``.</span>
+<span class="sd">    hsv_range : tuple of three (low, high) pairs, optional</span>
+<span class="sd">        Hue, saturation and value ramps, each in [0, 1], from the first to the</span>
+<span class="sd">        last color. Replaces ``cmap`` when given.</span>
+<span class="sd">    orientation : {"horizontal", "vertical"}, optional</span>
+<span class="sd">        Bar orientation. Low values are on the left or at the bottom.</span>
+<span class="sd">    length : float, optional</span>
+<span class="sd">        Bar length in pixels.</span>
+<span class="sd">    thickness : float, optional</span>
+<span class="sd">        Bar thickness in pixels.</span>
+<span class="sd">    num_ticks : int, optional</span>
+<span class="sd">        Number of evenly spaced tick labels, including both ends.</span>
+<span class="sd">    tick_format : str, optional</span>
+<span class="sd">        Format specification applied to each tick value.</span>
+<span class="sd">    title : str, optional</span>
+<span class="sd">        Text drawn above the bar.</span>
+<span class="sd">    font_size : float, optional</span>
+<span class="sd">        Font size of the labels in pixels.</span>
+<span class="sd">    color : tuple of float, optional</span>
+<span class="sd">        RGB color of the labels.</span>
+<span class="sd">    position : tuple of float, optional</span>
+<span class="sd">        Bottom-left corner of the bar in pixels from the bottom-left of the</span>
+<span class="sd">        screen viewport.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bar : fury.actor.Group</span>
+<span class="sd">        The color bar actor, to be added to a screen's UI scene. Its</span>
+<span class="sd">        ``map_values`` attribute maps scalar values to the RGB colors of the</span>
+<span class="sd">        bar, clipping values outside ``clim``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``orientation`` is not ``"horizontal"`` or ``"vertical"``, if</span>
+<span class="sd">        ``clim`` is not finite with ``low &lt; high``, if ``num_ticks`` is lower</span>
+<span class="sd">        than 2, or if ``hsv_range`` does not have three (low, high) pairs.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Add it with ``show_manager.screens[0].scene.ui_scene.add(bar)``. Temporary</span>
+<span class="sd">    until FURY provides one (https://github.com/fury-gl/fury/issues/1392).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">orientation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"horizontal"</span><span class="p">,</span> <span class="s2">"vertical"</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"orientation must be 'horizontal' or 'vertical', got </span><span class="si">{</span><span class="n">orientation</span><span class="si">!r}</span><span class="s2">."</span>
+        <span class="p">)</span>
+    <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="n">clim</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">clim</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">and</span> <span class="n">low</span> <span class="o">&lt;</span> <span class="n">high</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"clim must be finite with low &lt; high, got </span><span class="si">{</span><span class="n">clim</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_ticks</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"num_ticks must be at least 2, got </span><span class="si">{</span><span class="n">num_ticks</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+
+    <span class="n">horizontal</span> <span class="o">=</span> <span class="n">orientation</span> <span class="o">==</span> <span class="s2">"horizontal"</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">create_colormap</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">_SCALAR_BAR_SAMPLES</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+        <span class="n">auto</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">hsv_range</span><span class="o">=</span><span class="n">hsv_range</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">num_colors</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
+    <span class="n">gradient</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="k">if</span> <span class="n">horizontal</span> <span class="k">else</span> <span class="n">colors</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">texel_size</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">length</span> <span class="o">/</span> <span class="n">num_colors</span> <span class="k">if</span> <span class="n">horizontal</span> <span class="k">else</span> <span class="n">thickness</span><span class="p">,</span>
+        <span class="n">thickness</span> <span class="k">if</span> <span class="n">horizontal</span> <span class="k">else</span> <span class="n">length</span> <span class="o">/</span> <span class="n">num_colors</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">gradient_actor</span> <span class="o">=</span> <span class="n">image</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">)</span>
+    <span class="n">gradient_actor</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">texel_size</span>
+    <span class="c1"># Image texels are centered on integer coordinates; shift the first one</span>
+    <span class="c1"># so the bar starts exactly at the group origin.</span>
+    <span class="n">gradient_actor</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">texel_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">texel_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"DIPY Scalar Bar"</span><span class="p">)</span>
+    <span class="n">bar</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">[</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">bar</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">gradient_actor</span><span class="p">)</span>
+
+    <span class="n">margin</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">num_ticks</span><span class="p">)</span>
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">num_ticks</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">value</span><span class="p">,</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">offsets</span><span class="p">):</span>
+        <span class="n">label_position</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="o">-</span><span class="n">margin</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">horizontal</span> <span class="k">else</span> <span class="p">(</span><span class="n">thickness</span> <span class="o">+</span> <span class="n">margin</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">bar</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span>
+                <span class="nb">format</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">tick_format</span><span class="p">),</span>
+                <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">position</span><span class="o">=</span><span class="n">label_position</span><span class="p">,</span>
+                <span class="n">font_size</span><span class="o">=</span><span class="n">font_size</span><span class="p">,</span>
+                <span class="n">anchor</span><span class="o">=</span><span class="s2">"top-center"</span> <span class="k">if</span> <span class="n">horizontal</span> <span class="k">else</span> <span class="s2">"middle-left"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title_y</span> <span class="o">=</span> <span class="n">thickness</span> <span class="o">+</span> <span class="n">margin</span> <span class="k">if</span> <span class="n">horizontal</span> <span class="k">else</span> <span class="n">length</span> <span class="o">+</span> <span class="n">margin</span>
+        <span class="n">bar</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span>
+                <span class="n">title</span><span class="p">,</span>
+                <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">title_y</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">font_size</span><span class="o">=</span><span class="n">font_size</span><span class="p">,</span>
+                <span class="n">anchor</span><span class="o">=</span><span class="s2">"bottom-left"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">bar</span><span class="o">.</span><span class="n">map_values</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">map_scalars_to_lut</span><span class="p">,</span> <span class="n">clim</span><span class="o">=</span><span class="n">clim</span><span class="p">,</span> <span class="n">lut</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bar</span></div>
 
 </pre></div>
 

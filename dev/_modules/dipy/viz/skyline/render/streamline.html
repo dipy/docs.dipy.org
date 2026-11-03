@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.streamline &#8212; dipy 1.13.0.dev0+git20261103.2f92532 documentation</title>
+    <title>dipy.viz.skyline.render.streamline &#8212; dipy 1.13.0.dev0+git20261103.4a18e9a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=e888ef6e"></script>
+    <script src="../../../../../_static/documentation_options.js?v=5157f1bc"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -885,7 +885,6 @@ document.write(`
   <h1>Source code for dipy.viz.skyline.render.streamline</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""Tractography layers, clustering, and BUAN coloring for Skyline."""</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">colorsys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
@@ -901,6 +900,7 @@ document.write(`
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.colormap</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_colormap</span><span class="p">,</span> <span class="n">scalars_to_lut_indices</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz.skyline.UI.elements</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">color_picker</span><span class="p">,</span>
     <span class="n">colors_equal</span><span class="p">,</span>
@@ -944,37 +944,6 @@ document.write(`
     <span class="n">icons_fontawesome_6</span> <span class="o">=</span> <span class="n">imgui_bundle</span><span class="o">.</span><span class="n">icons_fontawesome_6</span>
 
 
-<div class="viewcode-block" id="create_colormap">
-<a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.create_colormap">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_colormap</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">saturation</span><span class="o">=</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Build an RGB lookup table sampled along HSV space.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    n : int</span>
-<span class="sd">        Number of discrete colors.</span>
-<span class="sd">    hue : tuple of float, optional</span>
-<span class="sd">        Hue endpoints passed through ``np.interp`` over the LUT indices.</span>
-<span class="sd">    saturation : tuple of float, optional</span>
-<span class="sd">        Saturation endpoints interpolated like ``hue``.</span>
-<span class="sd">    value : float, optional</span>
-<span class="sd">        Fixed HSV value (brightness) for every entry.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    ndarray, shape (n, 3)</span>
-<span class="sd">        Float32 RGB colors in ``[0, 1]``.</span>
-<span class="sd">    """</span>
-    <span class="n">lut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">hue</span><span class="p">)</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">saturation</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-        <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
-        <span class="n">lut</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">lut</span></div>
-
-
-
 <div class="viewcode-block" id="apply_buan_colors">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.streamline.apply_buan_colors">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">apply_buan_colors</span><span class="p">(</span>
@@ -996,11 +965,11 @@ document.write(`
 <span class="sd">    buan_pvals : ndarray</span>
 <span class="sd">        Scalar p-values (or statistics) sampled per correspondence bin.</span>
 <span class="sd">    hue : tuple of float, optional</span>
-<span class="sd">        Passed to :func:`create_colormap`.</span>
+<span class="sd">        Hue ramp of the lookup table, passed to :func:`create_colormap`.</span>
 <span class="sd">    saturation : tuple of float, optional</span>
-<span class="sd">        Passed to :func:`create_colormap`.</span>
+<span class="sd">        Saturation ramp of the lookup table, passed to :func:`create_colormap`.</span>
 <span class="sd">    value : float, optional</span>
-<span class="sd">        Passed to :func:`create_colormap`.</span>
+<span class="sd">        Fixed HSV value (brightness) of every lookup-table entry.</span>
 <span class="sd">    buan_color_idx : ndarray or None, optional</span>
 <span class="sd">        Precomputed indices into the LUT; if None, computed via ``assignment_map``.</span>
 
@@ -1018,11 +987,15 @@ document.write(`
     <span class="k">if</span> <span class="n">buan_color_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">indx</span> <span class="o">=</span> <span class="n">assignment_map</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
         <span class="n">buan_color_pvals</span> <span class="o">=</span> <span class="n">buan_pvals</span><span class="p">[</span><span class="n">indx</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-        <span class="n">buan_color_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span>
-            <span class="n">buan_color_pvals</span><span class="p">,</span> <span class="p">[</span><span class="n">buan_pvals</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">buan_pvals</span><span class="o">.</span><span class="n">max</span><span class="p">()],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">buan_color_idx</span> <span class="o">=</span> <span class="n">scalars_to_lut_indices</span><span class="p">(</span>
+            <span class="n">buan_color_pvals</span><span class="p">,</span> <span class="p">(</span><span class="n">buan_pvals</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">buan_pvals</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="n">n</span>
+        <span class="p">)</span>
 
-    <span class="n">lut</span> <span class="o">=</span> <span class="n">create_colormap</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="n">hue</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=</span><span class="n">saturation</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">lut</span> <span class="o">=</span> <span class="n">create_colormap</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span>
+        <span class="n">auto</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">hsv_range</span><span class="o">=</span><span class="p">(</span><span class="n">hue</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">)),</span>
+    <span class="p">)</span>
 
     <span class="n">buan_colors</span> <span class="o">=</span> <span class="n">lut</span><span class="p">[</span><span class="n">buan_color_idx</span><span class="p">]</span>
 
