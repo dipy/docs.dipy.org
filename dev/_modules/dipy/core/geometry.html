@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.core.geometry &#8212; dipy 1.13.0.dev0+git20261102.113e66d documentation</title>
+    <title>dipy.core.geometry &#8212; dipy 1.13.0.dev0+git20261103.2f92532 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=486ea76b"></script>
+    <script src="../../../_static/documentation_options.js?v=e888ef6e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1328,6 +1328,12 @@ document.write(`
 <span class="sd">       Distances between corresponding points in `pts1` and `pts2`</span>
 <span class="sd">       across the spherical surface, i.e. the great circle distance</span>
 
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">       If a point vector has zero length, or the radii do not match when</span>
+<span class="sd">       `check_radius` is True.</span>
+
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    cart_distance : cartesian distance between points</span>
@@ -1350,9 +1356,7 @@ document.write(`
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">lens1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">lens2</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Radii do not match sphere surface"</span><span class="p">)</span>
     <span class="c1"># Get angle with vector cosine</span>
-    <span class="n">dots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">pts1</span><span class="p">,</span> <span class="n">pts2</span><span class="p">)</span>
-    <span class="n">lens</span> <span class="o">=</span> <span class="n">lens1</span> <span class="o">*</span> <span class="n">lens2</span>
-    <span class="n">angle_cos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">dots</span> <span class="o">/</span> <span class="n">lens</span><span class="p">)</span>
+    <span class="n">angle_cos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">vector_cosine</span><span class="p">(</span><span class="n">pts1</span><span class="p">,</span> <span class="n">pts2</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">angle_cos</span> <span class="o">*</span> <span class="n">radius</span></div>
 
 
@@ -1422,6 +1426,11 @@ document.write(`
 <span class="sd">    vcos : (N,) or (0,) array</span>
 <span class="sd">       Vector cosines.  To get the angles you will need ``np.arccos``</span>
 
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">       If either input contains a zero-length vector, whose angle is undefined.</span>
+
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    The vector cosine will be the same as the correlation only if all</span>
@@ -1432,8 +1441,12 @@ document.write(`
     <span class="n">vecs2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vecs2</span><span class="p">)</span>
     <span class="n">lens1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vecs1</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">lens2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vecs2</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
-    <span class="n">dots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="n">vecs2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">vecs1</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">and</span> <span class="n">vecs2</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">and</span> <span class="n">vecs1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">vecs2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"shapes </span><span class="si">{</span><span class="n">vecs1</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">vecs2</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> not aligned"</span><span class="p">)</span>
+    <span class="n">dots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vecs1</span> <span class="o">*</span> <span class="n">vecs2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">lens</span> <span class="o">=</span> <span class="n">lens1</span> <span class="o">*</span> <span class="n">lens2</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">lens</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Cannot compute cosine with a zero-length vector"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dots</span> <span class="o">/</span> <span class="n">lens</span></div>
 
 
