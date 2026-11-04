@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>BUndle ANalytics (BUAN) framework &#8212; dipy 1.13.0.dev0+git20261104.138379e documentation</title>
+    <title>BUndle ANalytics (BUAN) framework &#8212; dipy 1.13.0.dev0+git20261104.4ce8d8e documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=7054ed7e"></script>
+    <script src="../_static/documentation_options.js?v=8908dbe6"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -850,7 +850,7 @@ document.write(`
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">BUndle ANalytics (BUAN) framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bundle_segmentation_flow.html">White Matter Bundle Segmentation with RecoBundles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bundlewarp_registration_flow.html">Nonrigid White Matter Bundle Registration with BundleWarp</a></li>
-<li class="toctree-l1"><a class="reference internal" href="viz_flow.html">dMRI Visualization with Horizon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="viz_flow.html">dMRI Visualization with Skyline</a></li>
 </ul>
 </div>
 </nav></div>
@@ -1088,12 +1088,11 @@ Plots will look like the following example:</p>
 <p><span class="caption-text">Result plot for left arcuate fasciculus (AF_L) on FA measure</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
-<p>We can also visualize and highlight the specific location of group differences on the bundle by providing
-output p-values file from dipy_buan_lmm workflow. The user can specify at what level of
-significance they want to see group differences by providing threshold value of p-value to <code class="docutils literal notranslate"><span class="pre">buan_thr</span></code> (default 0.05).
-The color of the highlighted area can be specified by providing RGB color values to <code class="docutils literal notranslate"><span class="pre">buan_highlight</span></code> (Default Red)</p>
+<p>We can also visualize where along the bundle the groups differ by giving Skyline the p-values file saved by
+the dipy_buan_lmm workflow. Skyline colors each segment of the bundle by its p-value. The <em>Hue</em>, <em>Saturation</em>
+and <em>Value</em> sliders in the tractogram controls adjust the colors.</p>
 <p>Run the following commandline for visualizing group differences on the model bundle:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="n">bundles</span><span class="o">/</span><span class="n">AF_L</span><span class="o">.</span><span class="n">trk</span> <span class="n">lmm_plots</span><span class="o">/</span><span class="n">AF_L_fa_pvalues</span><span class="o">.</span><span class="n">npy</span> <span class="o">--</span><span class="n">buan</span> <span class="o">--</span><span class="n">buan_thr</span> <span class="mf">0.05</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">bundles</span><span class="o">/</span><span class="n">AF_L</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">buan_pvals</span> <span class="n">lmm_plots</span><span class="o">/</span><span class="n">AF_L_fa_pvalues</span><span class="o">.</span><span class="n">npy</span>
 </pre></div>
 </div>
 <p>Where, <code class="docutils literal notranslate"><span class="pre">AF_L.trk</span> <span class="pre">``</span> <span class="pre">is</span> <span class="pre">located</span> <span class="pre">in</span> <span class="pre">your</span> <span class="pre">model</span> <span class="pre">bundle</span> <span class="pre">folder</span> <span class="pre">``bundles</span></code> and
@@ -1103,24 +1102,16 @@ The color of the highlighted area can be specified by providing RGB color values
 <a class="reference internal image-reference" href="https://github.com/dipy/dipy_data/blob/master/AF_L_highlighted.png?raw=true"><img alt="alternate text" src="https://github.com/dipy/dipy_data/blob/master/AF_L_highlighted.png?raw=true" style="width: 70%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">Result plot for left arcuate fasciculus (AF_L) with a highlighted area on the bundle in red color.
-The highlighted area represents the segments on bundles with significant group differences
-that have pvalues &lt; 0.05.</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
+<p><span class="caption-text">Left arcuate fasciculus (AF_L) colored by the BUAN p-values of the FA group comparison.
+The highlighted area marks the segments with significant group differences (p &lt; 0.05).</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
-<p>Let’s use a different highlight color this time on <code class="docutils literal notranslate"><span class="pre">CST_L</span></code> bundle:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="n">bundles</span><span class="o">/</span><span class="n">CST_L</span><span class="o">.</span><span class="n">trk</span> <span class="n">lmm_plots</span><span class="o">/</span><span class="n">CST_L_fa_pvalues</span><span class="o">.</span><span class="n">npy</span> <span class="o">--</span><span class="n">buan</span> <span class="o">--</span><span class="n">buan_thr</span> <span class="mf">0.05</span> <span class="o">--</span><span class="n">buan_highlight</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span>
+<p>The same command works for any other bundle, for example the left corticospinal tract (CST_L):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">bundles</span><span class="o">/</span><span class="n">CST_L</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">buan_pvals</span> <span class="n">lmm_plots</span><span class="o">/</span><span class="n">CST_L_fa_pvalues</span><span class="o">.</span><span class="n">npy</span>
 </pre></div>
 </div>
-<figure class="align-center" id="id9">
-<a class="reference internal image-reference" href="https://github.com/dipy/dipy_data/blob/master/CST_L_highlighted.png?raw=true"><img alt="alternate text" src="https://github.com/dipy/dipy_data/blob/master/CST_L_highlighted.png?raw=true" style="width: 50%;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Result plot for left corticospinal tract left (CST_L) with a highlighted area on the bundle
-in yellow color. The highlighted area represents the segments on bundles with significant
-group differences that have pvalues &lt; 0.05.</span><a class="headerlink" href="#id9" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
+<p>A p-values file can also be loaded into a running window with <em>Upload BUAN P values</em> in the tractogram controls,
+and <em>Reset colors</em> restores the original colors. See <a class="reference internal" href="viz_flow.html#viz-flow"><span class="std std-ref">dMRI Visualization with Skyline</span></a> for the other viewer options.</p>
 </section>
 <section id="shape-similarity-of-specific-bundles-across-the-populations">
 <h2>Shape similarity of specific bundles across the populations<a class="headerlink" href="#shape-similarity-of-specific-bundles-across-the-populations" title="Link to this heading">#</a></h2>
@@ -1135,13 +1126,13 @@ group differences that have pvalues &lt; 0.05.</span><a class="headerlink" href=
 <p>This workflow will generate 30 bundles shape similarity plots. Shape similarity
 score ranges between 0-1, where 1 being highest similarity and 0 being lowest.
 Plots will look like the following example:</p>
-<figure class="align-center" id="id10">
+<figure class="align-center" id="id9">
 <a class="reference internal image-reference" href="https://github.com/dipy/dipy_data/blob/master/SM_moved_UF_R__recognized.png?raw=true"><img alt="alternate text" src="https://github.com/dipy/dipy_data/blob/master/SM_moved_UF_R__recognized.png?raw=true" style="width: 50%;" />
 </a>
 <figcaption>
 <p><span class="caption-text">Result plot for right uncinate fasciculus (UF_R) for 10 subjects.
 First 5 subjects belong to the healthy control group and last 5 subjects belong to patient group.
-In the diagonal, we have shape similarity score of 1 as it is calculated between a bundle and itself.</span><a class="headerlink" href="#id10" title="Link to this image">#</a></p>
+In the diagonal, we have shape similarity score of 1 as it is calculated between a bundle and itself.</span><a class="headerlink" href="#id9" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>

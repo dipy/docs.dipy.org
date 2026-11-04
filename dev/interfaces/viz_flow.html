@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dMRI Visualization with Horizon &#8212; dipy 1.13.0.dev0+git20261104.138379e documentation</title>
+    <title>dMRI Visualization with Skyline &#8212; dipy 1.13.0.dev0+git20261104.4ce8d8e documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=7054ed7e"></script>
+    <script src="../_static/documentation_options.js?v=8908dbe6"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -850,7 +850,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="buan_flow.html">BUndle ANalytics (BUAN) framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bundle_segmentation_flow.html">White Matter Bundle Segmentation with RecoBundles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bundlewarp_registration_flow.html">Nonrigid White Matter Bundle Registration with BundleWarp</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">dMRI Visualization with Horizon</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">dMRI Visualization with Skyline</a></li>
 </ul>
 </div>
 </nav></div>
@@ -908,86 +908,139 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="dmri-visualization-with-horizon">
-<span id="viz-flow"></span><h1>dMRI Visualization with Horizon<a class="headerlink" href="#dmri-visualization-with-horizon" title="Link to this heading">#</a></h1>
-<p>This section talks about Horizon workflows in DIPY and how to use them.</p>
-<p>To follow this tutorial let’s make sure we have the latest version of dipy and
-fury installed on our system.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">dipy</span> <span class="o">--</span><span class="n">upgrade</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">fury</span> <span class="o">--</span><span class="n">upgrade</span>
+  <section id="dmri-visualization-with-skyline">
+<span id="viz-flow"></span><h1>dMRI Visualization with Skyline<a class="headerlink" href="#dmri-visualization-with-skyline" title="Link to this heading">#</a></h1>
+<p>Skyline is DIPY’s interactive viewer for diffusion MRI data. It shows images,
+tractograms, peaks, ODFs, ROIs and surfaces together in one 3D scene and is
+started from the command line with <code class="docutils literal notranslate"><span class="pre">dipy_skyline</span></code>.</p>
+<p>Skyline replaces Horizon. <code class="docutils literal notranslate"><span class="pre">dipy_horizon</span></code> is deprecated: it still opens your
+files, but it forwards them to Skyline and ignores the options that only
+Horizon had (see <a class="reference internal" href="#moving-from-dipy-horizon">Moving from dipy_horizon</a>).</p>
+<p>To follow this tutorial, install DIPY with its visualization dependencies
+(FURY 2.1 or later and <code class="docutils literal notranslate"><span class="pre">imgui_bundle</span></code>).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s2">"dipy[viz]"</span> <span class="o">--</span><span class="n">upgrade</span>
 </pre></div>
 </div>
-<p>Let’s explore the options that horizon provides.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">--</span><span class="n">help</span>
+<p>Let’s explore the options that Skyline provides.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">--</span><span class="n">help</span>
 </pre></div>
 </div>
-<section id="visualize-3d-brain-image">
-<h2>Visualize 3D Brain Image<a class="headerlink" href="#visualize-3d-brain-image" title="Link to this heading">#</a></h2>
-<p>This tutorial provides a basic example of loading an dMRI image to horizon using
-the command line interface.</p>
+<section id="the-skyline-window">
+<h2>The Skyline window<a class="headerlink" href="#the-skyline-window" title="Link to this heading">#</a></h2>
+<p>Every command in this tutorial opens the same window: the 3D scene on the
+right and a control panel on the left. The top of the panel has three buttons:</p>
+<ul class="simple">
+<li><p><strong>Add Visualization</strong> opens a menu to load <em>3D/4D Images</em>, <em>Peaks</em>, <em>ODFs</em>,
+<em>Surfaces</em>, <em>Tractograms</em> or <em>ROIs</em> through a file dialog. For <em>ODFs</em>, pick
+the <em>Input SH basis</em> before <em>Select files…</em>.</p></li>
+<li><p><strong>Change Background Color</strong> sets the scene background.</p></li>
+<li><p><strong>Take Snapshot</strong> saves the current view as a PNG file.</p></li>
+</ul>
+<p>Below them, the <strong>Global Slices</strong> block moves the X, Y and Z slices of every
+dataset whose <em>Synchronize Slices</em> toggle is on, and the toggle next to each
+axis shows or hides that axis for all datasets at once. The dataset that
+defines the slice coordinates is shown as <em>Reference</em>.</p>
+<p>Loaded datasets are grouped as <em>Images</em>, <em>Tractograms</em>, <em>Peaks</em>, <em>ODFs</em>,
+<em>ROIs</em> and <em>Surfaces</em>. Each group can be collapsed or hidden, and each dataset
+opens its own controls and can be removed from the scene.</p>
+<p>You can also start with an empty window and load everything from the menu,
+which opens automatically.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">run</span>
+</pre></div>
+</div>
+</section>
+<section id="visualize-3d-brain-images">
+<h2>Visualize 3D Brain Images<a class="headerlink" href="#visualize-3d-brain-images" title="Link to this heading">#</a></h2>
 <p>Using a terminal, let’s download a dataset called <code class="docutils literal notranslate"><span class="pre">mni_template</span></code>. You can
 skip this step if you already have the dataset downloaded.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_fetch</span> <span class="n">mni_template</span>
 </pre></div>
 </div>
-<p>To see more details about <code class="docutils literal notranslate"><span class="pre">dipy_fetch</span></code> you can refer to <a class="reference internal" href="data_fetch.html#data-fetch"><span class="std std-ref">Downloading DIPY datasets</span></a></p>
-<p>This command will download the data in your <code class="docutils literal notranslate"><span class="pre">.dipy</span></code> folder placed in your home
-directory.</p>
-<p>Let’s try to load the image.</p>
+<p>To see more details about <code class="docutils literal notranslate"><span class="pre">dipy_fetch</span></code> you can refer to <a class="reference internal" href="data_fetch.html#data-fetch"><span class="std std-ref">Downloading DIPY datasets</span></a>.</p>
+<p>This command will download the data in your <code class="docutils literal notranslate"><span class="pre">.dipy</span></code> folder placed in your
+home directory.</p>
+<p>Let’s load the T1 and T2 templates together.</p>
 <p><strong>For macOS and Linux</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t1_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t2_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t1_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t2_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span>
 </pre></div>
 </div>
-<p><strong>For Windows(cmd)</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t1_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t2_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span>
+<p><strong>For Windows (cmd)</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t1_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t2_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span>
 </pre></div>
 </div>
-<p><strong>For Windows(powershell)</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="s2">"$home/.dipy/mni_template/mni_icbm152_t1_tal_nlin_asym_09a.nii"</span> <span class="s2">"$home/.dipy/mni_template/mni_icbm152_t2_tal_nlin_asym_09a.nii"</span>
+<p><strong>For Windows (PowerShell)</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="s2">"$home/.dipy/mni_template/mni_icbm152_t1_tal_nlin_asym_09a.nii"</span> <span class="s2">"$home/.dipy/mni_template/mni_icbm152_t2_tal_nlin_asym_09a.nii"</span>
 </pre></div>
 </div>
-<p>You can also use your own data by invoking the command below.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">&lt;</span><span class="n">your_file_name</span><span class="o">&gt;.</span><span class="n">nii</span>
+<p>Skyline reads <code class="docutils literal notranslate"><span class="pre">.nii</span></code> and <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code> images. Each image has these controls:</p>
+<ul class="simple">
+<li><p><em>Synchronize Slices</em> links the image to the Global Slices.</p></li>
+<li><p><em>Opacity</em> and the <em>Slice</em> sliders for the X, Y and Z planes, each with a
+visibility toggle.</p></li>
+<li><p><em>Intensities</em> sets the displayed intensity range by percentiles.</p></li>
+<li><p><em>Colormap</em> picks one of Gray, Inferno, Magma, Plasma, Viridis, Cool, Hot,
+Bone, Copper, Pink, Spring, Summer, Autumn, Winter, Jet, Cividis, Distinct
+or Divergent.</p></li>
+<li><p><em>Interpolation</em> switches between Linear and Nearest.</p></li>
+</ul>
+<p>Instead of listing files one by one, you can pass a quoted glob pattern or a
+folder. Skyline then loads every matching file and skips the formats it does
+not support.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="s2">"$HOME/.dipy/mni_template/*.nii"</span>
+<span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span>
 </pre></div>
 </div>
-<p>We also support direct visualization of compressed NIFTI files with extension
-<code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">&lt;</span><span class="n">your_fist_file_name</span><span class="o">&gt;.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span>
-</pre></div>
-</div>
+<p>On Windows, use <code class="docutils literal notranslate"><span class="pre">%USERPROFILE%</span></code> (cmd) or <code class="docutils literal notranslate"><span class="pre">$home</span></code> (PowerShell) instead of
+<code class="docutils literal notranslate"><span class="pre">$HOME</span></code> and <code class="docutils literal notranslate"><span class="pre">~</span></code>, as above. The remaining examples show the macOS and Linux
+form only.</p>
 </section>
 <section id="visualize-4d-brain-image">
 <h2>Visualize 4D Brain Image<a class="headerlink" href="#visualize-4d-brain-image" title="Link to this heading">#</a></h2>
-<p>This tutorial shows how visualize a 3D image with Volume.</p>
-<p>Using a terminal, let’s download a dataset called <code class="docutils literal notranslate"><span class="pre">stanford_hardi</span></code>. You can
-skip this step if you already have the dataset downloaded.</p>
+<p>Let’s download a diffusion dataset called <code class="docutils literal notranslate"><span class="pre">stanford_hardi</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_fetch</span> <span class="n">stanford_hardi</span>
 </pre></div>
 </div>
-<p>This dataset has a NIFTI file with volumes.</p>
-<p>Let’s try to load the image.</p>
+<p>This dataset has a NIfTI file with 160 volumes.</p>
 <p><strong>For macOS and Linux</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">stanford_hardi</span><span class="o">/</span><span class="n">HARDI150</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">stanford_hardi</span><span class="o">/</span><span class="n">HARDI150</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span>
 </pre></div>
 </div>
-<p><strong>For Windows(cmd)</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">stanford_hardi</span><span class="o">/</span><span class="n">HARDI150</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span>
+<p><strong>For Windows (cmd)</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">stanford_hardi</span><span class="o">/</span><span class="n">HARDI150</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span>
 </pre></div>
 </div>
-<p><strong>For Windows(powershell)</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="s2">"$home/.dipy/stanford_hardi/HARDI150.nii.gz"</span>
+<p><strong>For Windows (PowerShell)</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="s2">"$home/.dipy/stanford_hardi/HARDI150.nii.gz"</span>
+</pre></div>
+</div>
+<p>For 4D images, the <em>Directions</em> slider selects which volume is shown.</p>
+<p>Color images, such as the DEC map that <code class="docutils literal notranslate"><span class="pre">dipy_fit_dti</span></code> saves as
+<code class="docutils literal notranslate"><span class="pre">rgb.nii.gz</span></code>, are shown in RGB automatically when the file uses the NIfTI
+RGB data type. For other 4D images whose last dimension is 3 (RGB) or 4
+(RGBA), an <em>RGB</em> toggle appears in the image controls. You can also choose
+from the command line: <code class="docutils literal notranslate"><span class="pre">--rgb</span></code> forces RGB mode and <code class="docutils literal notranslate"><span class="pre">--no-rgb</span></code> turns it
+off.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">rgb</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">--</span><span class="n">rgb</span>
 </pre></div>
 </div>
 </section>
+<section id="visualize-brain-rois">
+<h2>Visualize Brain ROIs<a class="headerlink" href="#visualize-brain-rois" title="Link to this heading">#</a></h2>
+<p>Binary masks given with <code class="docutils literal notranslate"><span class="pre">--rois</span></code> are drawn as 3D contours over the anatomy.
+The <code class="docutils literal notranslate"><span class="pre">mni_template</span></code> dataset includes a brain mask for the 2009c template.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t1_tal_nlin_asym_09c</span><span class="o">.</span><span class="n">nii</span> <span class="o">--</span><span class="n">rois</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t1_tal_nlin_asym_09c_mask</span><span class="o">.</span><span class="n">nii</span>
+</pre></div>
+</div>
+<p>Each ROI has an <em>Opacity</em> slider and a color picker. ROIs must be <code class="docutils literal notranslate"><span class="pre">.nii</span></code> or
+<code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code> files.</p>
+</section>
 <section id="visualize-brain-tractogram">
 <h2>Visualize Brain Tractogram<a class="headerlink" href="#visualize-brain-tractogram" title="Link to this heading">#</a></h2>
-<p>This tutorial shows how to visualize a tractogram.</p>
-<p>Using a terminal, let’s download a dataset called <code class="docutils literal notranslate"><span class="pre">bundle_atlas_hcp842</span></code>. You
-can skip this step if you already have the dataset downloaded.</p>
+<p>Let’s download a dataset called <code class="docutils literal notranslate"><span class="pre">bundle_atlas_hcp842</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_fetch</span> <span class="n">bundle_atlas_hcp842</span>
 </pre></div>
 </div>
-<p>Horizon supports below mentioned tractogram formats.</p>
+<p>Skyline supports the following tractogram formats.</p>
 <ul class="simple">
 <li><p>.trk</p></li>
 <li><p>.trx</p></li>
@@ -997,51 +1050,191 @@ can skip this step if you already have the dataset downloaded.</p>
 <li><p>.vtp</p></li>
 <li><p>.fib</p></li>
 </ul>
-<p>Let’s try to load the tractogram.</p>
+<p><code class="docutils literal notranslate"><span class="pre">.trk</span></code> and <code class="docutils literal notranslate"><span class="pre">.trx</span></code> files carry their own spatial reference. The other
+formats are placed using the header of the MNI ICBM 2009c template.</p>
+<p>Let’s load the whole-brain atlas and group its streamlines into clusters.</p>
 <p><strong>For macOS and Linux</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">bundle_atlas_hcp842</span><span class="o">/</span><span class="n">Atlas_80_Bundles</span><span class="o">/</span><span class="n">whole_brain</span><span class="o">/</span><span class="n">whole_brain_MNI</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">cluster</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">bundle_atlas_hcp842</span><span class="o">/</span><span class="n">Atlas_80_Bundles</span><span class="o">/</span><span class="n">whole_brain</span><span class="o">/</span><span class="n">whole_brain_MNI</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">cluster</span>
 </pre></div>
 </div>
-<p><strong>For Windows(cmd)</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">bundle_atlas_hcp842</span><span class="o">/</span><span class="n">Atlas_80_Bundles</span><span class="o">/</span><span class="n">whole_brain</span><span class="o">/</span><span class="n">whole_brain_MNI</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">cluster</span>
+<p><strong>For Windows (cmd)</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">bundle_atlas_hcp842</span><span class="o">/</span><span class="n">Atlas_80_Bundles</span><span class="o">/</span><span class="n">whole_brain</span><span class="o">/</span><span class="n">whole_brain_MNI</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">cluster</span>
 </pre></div>
 </div>
-<p><strong>For Windows(powershell)</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="s2">"$home/.dipy/bundle_atlas_hcp842/Atlas_80_Bundles/whole_brain/whole_brain_MNI.trk"</span> <span class="o">--</span><span class="n">cluster</span>
+<p><strong>For Windows (PowerShell)</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="s2">"$home/.dipy/bundle_atlas_hcp842/Atlas_80_Bundles/whole_brain/whole_brain_MNI.trk"</span> <span class="o">--</span><span class="n">cluster</span>
 </pre></div>
 </div>
-<p>Using the <code class="docutils literal notranslate"><span class="pre">--cluster</span></code> option, we visualize the clusters(bundles) of the
-tractograms. If we do not provide <code class="docutils literal notranslate"><span class="pre">--cluster</span></code> it will open up all the
-streamlines and the interaction panel will not be provided. Opening the
-streamlines can be computationally expensive, if a large dataset is provided.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">--cluster</span></code>, the streamlines are grouped with QuickBundlesX and each
+cluster is drawn as its centroid. These options control the clustering:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--cluster_thr</span></code> is the distance threshold in mm (default 15.0). For small
+animal brains you may need something smaller, such as 2.0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cluster_size_thr</span></code> hides clusters with fewer streamlines than this
+value. By default it is the 50th percentile of the cluster sizes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--cluster_length_thr</span></code> hides clusters whose average length in mm is below
+this value. By default it is the 25th percentile of the cluster lengths.</p></li>
+</ul>
+<p>The same values can be changed in the tractogram controls (<em>Threshold</em>,
+<em>Size</em> and <em>Length</em>). Click a centroid to select or deselect its cluster,
+then use these keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">e</span></code> expands the selected clusters into their streamlines.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c</span></code> collapses them back into centroids.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">a</span></code> selects all clusters and <code class="docutils literal notranslate"><span class="pre">d</span></code> deselects all.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">h</span></code> hides the deselected clusters and <code class="docutils literal notranslate"><span class="pre">s</span></code> shows all clusters again.</p></li>
+</ul>
+<p>The download button in the cluster controls saves the selected clusters as a
+new <code class="docutils literal notranslate"><span class="pre">.trx</span></code> tractogram.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">--cluster</span></code>, every streamline is drawn. Opening a large tractogram
+this way can be computationally expensive. The <em>Cluster</em> toggle in the
+tractogram controls switches between both modes at any time.</p>
+<p><strong>Colors.</strong> By default, streamlines are colored by their local direction. Use
+<code class="docutils literal notranslate"><span class="pre">--tract_colors</span> <span class="pre">random</span></code> to give each tractogram its own distinguishable
+color, or three numbers between 0 and 1 for a single RGB color.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">bundle_atlas_hcp842</span><span class="o">/</span><span class="n">Atlas_80_Bundles</span><span class="o">/</span><span class="n">bundles</span><span class="o">/</span><span class="n">AF_L</span><span class="o">.</span><span class="n">trk</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">bundle_atlas_hcp842</span><span class="o">/</span><span class="n">Atlas_80_Bundles</span><span class="o">/</span><span class="n">bundles</span><span class="o">/</span><span class="n">CST_L</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">tract_colors</span> <span class="n">random</span>
+<span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">bundle_atlas_hcp842</span><span class="o">/</span><span class="n">Atlas_80_Bundles</span><span class="o">/</span><span class="n">bundles</span><span class="o">/</span><span class="n">AF_L</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">tract_colors</span> <span class="s2">"1 0 0"</span>
+</pre></div>
+</div>
+<p>The color picker in the tractogram controls changes the color afterwards.</p>
+<p><strong>Lines or tubes.</strong> Streamlines are drawn as tubes by default. For large
+tractograms, <code class="docutils literal notranslate"><span class="pre">--performance_version</span></code> draws them as lines, which is much
+faster. The <em>Line Type</em> switch in the tractogram controls changes this at
+any time, and <em>Opacity</em> and <em>Thickness</em> adjust the lines.</p>
+<p><strong>Tractograms with anatomy.</strong> The atlas is in MNI space, so it lines up with
+the MNI template.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t1_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">bundle_atlas_hcp842</span><span class="o">/</span><span class="n">Atlas_80_Bundles</span><span class="o">/</span><span class="n">whole_brain</span><span class="o">/</span><span class="n">whole_brain_MNI</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">cluster</span>
+</pre></div>
+</div>
+<p><strong>BUAN p-values.</strong> Pass the p-values file saved by <code class="docutils literal notranslate"><span class="pre">dipy_buan_lmm</span></code> with
+<code class="docutils literal notranslate"><span class="pre">--buan_pvals</span></code> to color a bundle by the significance of group differences
+along its length.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">AF_L</span><span class="o">.</span><span class="n">trk</span> <span class="o">--</span><span class="n">buan_pvals</span> <span class="n">AF_L_fa_pvalues</span><span class="o">.</span><span class="n">npy</span>
+</pre></div>
+</div>
+<p>The <em>Hue</em>, <em>Saturation</em> and <em>Value</em> sliders tune the colors. <em>Upload BUAN P
+values</em> in the tractogram controls loads a p-values file into a running
+window. See <a class="reference internal" href="buan_flow.html#buan-flow"><span class="std std-ref">BUndle ANalytics (BUAN) framework</span></a> for how these files are produced.</p>
+</section>
+<section id="visualize-peaks-and-odfs">
+<h2>Visualize Peaks and ODFs<a class="headerlink" href="#visualize-peaks-and-odfs" title="Link to this heading">#</a></h2>
+<p>Peaks and spherical harmonic ODFs come from reconstruction workflows. Here we
+use the <code class="docutils literal notranslate"><span class="pre">recons_csd_output/peaks.pam5</span></code> file saved by <code class="docutils literal notranslate"><span class="pre">dipy_fit_csd</span></code> in
+<a class="reference internal" href="reconstruction_flow.html#reconstruction-flow"><span class="std std-ref">Reconstruction</span></a>.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">.pam5</span></code> file given as an input file is shown as peaks.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">recons_csd_output</span><span class="o">/</span><span class="n">peaks</span><span class="o">.</span><span class="n">pam5</span>
+</pre></div>
+</div>
+<p>To show its ODF glyphs, pass the same file to <code class="docutils literal notranslate"><span class="pre">--odfs</span></code>. Use <code class="docutils literal notranslate"><span class="pre">run</span></code> as the
+input file when you only load files through options.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">run</span> <span class="o">--</span><span class="n">odfs</span> <span class="n">recons_csd_output</span><span class="o">/</span><span class="n">peaks</span><span class="o">.</span><span class="n">pam5</span>
+</pre></div>
+</div>
+<p>Peaks and ODFs can also come from NIfTI files. <code class="docutils literal notranslate"><span class="pre">--peaks</span></code> accepts volumes of
+shape (X, Y, Z, 3*N) or (X, Y, Z, N, 3), and <code class="docutils literal notranslate"><span class="pre">--odfs</span></code> accepts 4D volumes of
+SH coefficients, such as the <code class="docutils literal notranslate"><span class="pre">peaks_dirs.nii.gz</span></code> and <code class="docutils literal notranslate"><span class="pre">shm.nii.gz</span></code> files
+that <code class="docutils literal notranslate"><span class="pre">dipy_fit_csd</span> <span class="pre">--extract_pam_values</span></code> writes.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">run</span> <span class="o">--</span><span class="n">peaks</span> <span class="n">recons_csd_output</span><span class="o">/</span><span class="n">peaks_dirs</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">--</span><span class="n">odfs</span> <span class="n">recons_csd_output</span><span class="o">/</span><span class="n">shm</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">--sh_basis</span></code> declares the SH convention of the ODF files:
+<code class="docutils literal notranslate"><span class="pre">descoteaux07</span></code> (the default, current DIPY), <code class="docutils literal notranslate"><span class="pre">descoteaux07_legacy</span></code> (older
+DIPY), <code class="docutils literal notranslate"><span class="pre">tournier07</span></code> (MRtrix 0.2) or <code class="docutils literal notranslate"><span class="pre">tournier19</span></code> (MRtrix3).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">run</span> <span class="o">--</span><span class="n">odfs</span> <span class="n">wm_fod</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">--</span><span class="n">sh_basis</span> <span class="n">tournier19</span>
+</pre></div>
+</div>
+<p>Peaks and ODFs have <em>Synchronize Slices</em>, <em>Scale</em>, <em>Opacity</em> and <em>Slice</em>
+controls, so you can step through them together with an image such as FA.</p>
 </section>
 <section id="visualize-brain-surface">
 <h2>Visualize Brain Surface<a class="headerlink" href="#visualize-brain-surface" title="Link to this heading">#</a></h2>
-<p>This tutorial shows how to visualize surfaces in the Horizon.</p>
-<p>Using terminal, let’s download brain surface.</p>
+<p>Skyline reads FreeSurfer surfaces (<code class="docutils literal notranslate"><span class="pre">.pial</span></code>) and GIFTI surfaces (<code class="docutils literal notranslate"><span class="pre">.gii</span></code>,
+<code class="docutils literal notranslate"><span class="pre">.gii.gz</span></code>).</p>
+<p>Using terminal, let’s download a brain surface.</p>
 <p><strong>For macOS and Linux</strong></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">maharshi</span><span class="o">-</span><span class="n">gor</span><span class="o">/</span><span class="n">dipy_data</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">surface_data</span><span class="o">/</span><span class="n">surfaces</span><span class="o">/</span><span class="n">lh</span><span class="o">.</span><span class="n">pial</span>
 </pre></div>
 </div>
-<p><strong>For Windows(powershell)</strong></p>
+<p><strong>For Windows (PowerShell)</strong></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">maharshi</span><span class="o">-</span><span class="n">gor</span><span class="o">/</span><span class="n">dipy_data</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">surface_data</span><span class="o">/</span><span class="n">surfaces</span><span class="o">/</span><span class="n">lh</span><span class="o">.</span><span class="n">pial</span> <span class="o">-</span><span class="n">O</span> <span class="n">lh</span><span class="o">.</span><span class="n">pial</span>
 </pre></div>
 </div>
-<p><strong>For macOS users</strong>, if you do not have <code class="docutils literal notranslate"><span class="pre">wget</span></code> on your terminal you can setup
-by writing following command</p>
+<p><strong>For macOS users</strong>, if you do not have <code class="docutils literal notranslate"><span class="pre">wget</span></code> on your terminal you can set
+it up with the following command.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">brew</span> <span class="n">install</span> <span class="n">wget</span>
 </pre></div>
 </div>
 <p>If you are still getting an error you can download the surface by clicking
 <a class="reference external" href="https://github.com/maharshi-gor/dipy_data/raw/surface_data/surfaces/lh.pial">here</a>.</p>
-<p>Previous step will download the file into your current directory.</p>
-<p><strong>Downloaded using wget</strong> To load the surface,</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="n">lh</span><span class="o">.</span><span class="n">pial</span>
+<p>The previous step downloads the file into your current directory. To load the
+surface,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">lh</span><span class="o">.</span><span class="n">pial</span>
 </pre></div>
 </div>
-<p><strong>Downloaded using link</strong> To load the surface,</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_horizon</span> <span class="o">&lt;</span><span class="n">PATH_TO_YOUR_DIRECTORY</span><span class="o">&gt;/</span><span class="n">lh</span><span class="o">.</span><span class="n">pial</span>
+<p>Each surface has an <em>Opacity</em> slider. <code class="docutils literal notranslate"><span class="pre">--glass_brain</span></code> draws surfaces as dark
+translucent shells on a white background, which is useful for showing
+tractograms inside the brain.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="n">lh</span><span class="o">.</span><span class="n">pial</span> <span class="o">--</span><span class="n">glass_brain</span>
 </pre></div>
+</div>
+</section>
+<section id="save-figures-without-a-window">
+<h2>Save Figures Without a Window<a class="headerlink" href="#save-figures-without-a-window" title="Link to this heading">#</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--stealth</span></code> to render the scene offscreen and save it as a PNG instead
+of opening a window. <code class="docutils literal notranslate"><span class="pre">--out_dir</span></code> and <code class="docutils literal notranslate"><span class="pre">--out_stealth_png</span></code> choose where the
+image goes.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dipy_skyline</span> <span class="o">~/.</span><span class="n">dipy</span><span class="o">/</span><span class="n">mni_template</span><span class="o">/</span><span class="n">mni_icbm152_t1_tal_nlin_asym_09a</span><span class="o">.</span><span class="n">nii</span> <span class="o">--</span><span class="n">stealth</span> <span class="o">--</span><span class="n">out_dir</span> <span class="n">figures</span> <span class="o">--</span><span class="n">out_stealth_png</span> <span class="n">t1</span><span class="o">.</span><span class="n">png</span>
+</pre></div>
+</div>
+<p>Setting the environment variable <code class="docutils literal notranslate"><span class="pre">DIPY_OFFSCREEN</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code> or <code class="docutils literal notranslate"><span class="pre">true</span></code> has
+the same effect without changing the command, which is convenient on servers
+and in scripts.</p>
+<p><code class="docutils literal notranslate"><span class="pre">--bg_color</span></code> sets the background as three numbers between 0 and 1, for
+example <code class="docutils literal notranslate"><span class="pre">--bg_color</span> <span class="pre">1</span> <span class="pre">1</span> <span class="pre">1</span></code> for white. In an open window, the <em>Take Snapshot</em>
+button saves the current view.</p>
+</section>
+<section id="moving-from-dipy-horizon">
+<h2>Moving from dipy_horizon<a class="headerlink" href="#moving-from-dipy-horizon" title="Link to this heading">#</a></h2>
+<p>Most <code class="docutils literal notranslate"><span class="pre">dipy_horizon</span></code> options have a direct <code class="docutils literal notranslate"><span class="pre">dipy_skyline</span></code> equivalent.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">dipy_horizon</span></code></p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">dipy_skyline</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--cluster</span></code>, <code class="docutils literal notranslate"><span class="pre">--cluster_thr</span></code></p></td>
+<td><p>unchanged</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--clusters_gt</span> <span class="pre">N</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--cluster_size_thr</span> <span class="pre">N</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--length_gt</span> <span class="pre">L</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--cluster_length_thr</span> <span class="pre">L</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--random_colors</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--tract_colors</span> <span class="pre">random</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--buan</span></code> with a <code class="docutils literal notranslate"><span class="pre">.npy</span></code> input file</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--buan_pvals</span> <span class="pre">file.npy</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--roi_images</span></code> with binary images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--rois</span> <span class="pre">file.nii.gz</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--rgb</span></code>, <code class="docutils literal notranslate"><span class="pre">--bg_color</span></code>, <code class="docutils literal notranslate"><span class="pre">--stealth</span></code>, <code class="docutils literal notranslate"><span class="pre">--out_dir</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--out_stealth_png</span></code></p></td>
+<td><p>unchanged</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--buan_thr</span></code>, <code class="docutils literal notranslate"><span class="pre">--buan_highlight</span></code>, <code class="docutils literal notranslate"><span class="pre">--roi_colors</span></code></p></td>
+<td><p><em>Hue</em>, <em>Saturation</em>, <em>Value</em> sliders and the color pickers in the
+window</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--length_lt</span></code>, <code class="docutils literal notranslate"><span class="pre">--clusters_lt</span></code>, <code class="docutils literal notranslate"><span class="pre">--native_coords</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--emergency_header</span></code>, <code class="docutils literal notranslate"><span class="pre">--disable_order_transparency</span></code></p></td>
+<td><p>not available</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </section>
 </section>
@@ -1092,10 +1285,15 @@ by writing following command</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-3d-brain-image">Visualize 3D Brain Image</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-skyline-window">The Skyline window</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-3d-brain-images">Visualize 3D Brain Images</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-4d-brain-image">Visualize 4D Brain Image</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-brain-rois">Visualize Brain ROIs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-brain-tractogram">Visualize Brain Tractogram</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-peaks-and-odfs">Visualize Peaks and ODFs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-brain-surface">Visualize Brain Surface</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#save-figures-without-a-window">Save Figures Without a Window</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#moving-from-dipy-horizon">Moving from dipy_horizon</a></li>
 </ul>
   </nav></div>
 
