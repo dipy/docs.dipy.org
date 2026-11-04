@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API changes &#8212; dipy 1.13.0.dev0+git20261104.597cb3a documentation</title>
+    <title>API changes &#8212; dipy 1.13.0.dev0+git20261104.138379e documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="_static/documentation_options.js?v=d09b08d3"></script>
+    <script src="_static/documentation_options.js?v=7054ed7e"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/sg-tags.js?v=d80f6fa4"></script>
@@ -916,6 +916,37 @@ using it raises a <code class="docutils literal notranslate"><span class="pre">D
 </pre></div>
 </div>
 </li>
+</ul>
+<p><strong>Align</strong></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dipy.align.reslice.reslice</span></code> now takes <code class="docutils literal notranslate"><span class="pre">new_zooms</span></code> as an optional
+keyword-only argument. If omitted, an isotropic voxel size that preserves the
+original voxel volume is picked by the new
+<code class="docutils literal notranslate"><span class="pre">dipy.align.reslice.isotropic_voxel_size</span></code>. Passing <code class="docutils literal notranslate"><span class="pre">new_zooms</span></code> positionally
+keeps working and warns until 2.0.0:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reslice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">zooms</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>  <span class="c1"># warns</span>
+</pre></div>
+</div>
+<p>becomes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reslice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">zooms</span><span class="p">,</span> <span class="n">new_zooms</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p><strong>Workflows</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dipy_reslice</span></code> (<code class="docutils literal notranslate"><span class="pre">ResliceFlow</span></code>) changed how it picks the voxel size when
+<code class="docutils literal notranslate"><span class="pre">--new_vox_size</span></code> is not given. The old rule interpolated between the two
+largest voxel edges and halved any result above 2 mm, which could upsample
+isotropic data (2.5 mm became 1.25 mm, 8x more voxels). The new rule keeps the
+original voxel volume: 1x1x3 mm gives 1.5 mm, 0.1x0.1x0.2 mm gives 0.125 mm and
+isotropic input is left untouched. Outputs of scripts relying on the automatic
+size will differ; pass <code class="docutils literal notranslate"><span class="pre">--new_vox_size</span></code> to keep a fixed resolution.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">vox_factor</span></code> parameter of <code class="docutils literal notranslate"><span class="pre">ResliceFlow.run</span></code> (<code class="docutils literal notranslate"><span class="pre">--vox_factor</span></code>) is
+deprecated since 1.13.0, ignored, and removed in 1.15.0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ResliceFlow.run</span></code> options after <code class="docutils literal notranslate"><span class="pre">input_files</span></code> are now keyword-only. Passing
+them positionally from Python keeps working and warns until 2.0.0. The command
+line is unchanged.</p></li>
 </ul>
 <p><strong>Reconstruction</strong></p>
 <ul>

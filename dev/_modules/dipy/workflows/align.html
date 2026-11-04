@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.align &#8212; dipy 1.13.0.dev0+git20261104.597cb3a documentation</title>
+    <title>dipy.workflows.align &#8212; dipy 1.13.0.dev0+git20261104.138379e documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=d09b08d3"></script>
+    <script src="../../../_static/documentation_options.js?v=7054ed7e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -893,7 +893,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.imaffine</span><span class="w"> </span><span class="kn">import</span> <span class="n">AffineMap</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.imwarp</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffeomorphicMap</span><span class="p">,</span> <span class="n">SymmetricDiffeomorphicRegistration</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CCMetric</span><span class="p">,</span> <span class="n">EMMetric</span><span class="p">,</span> <span class="n">MIMetric</span><span class="p">,</span> <span class="n">SSDMetric</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.reslice</span><span class="w"> </span><span class="kn">import</span> <span class="n">reslice</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.reslice</span><span class="w"> </span><span class="kn">import</span> <span class="n">isotropic_voxel_size</span><span class="p">,</span> <span class="n">reslice</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamlinear</span><span class="w"> </span><span class="kn">import</span> <span class="n">slr_with_qbx</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.streamwarp</span><span class="w"> </span><span class="kn">import</span> <span class="n">bundlewarp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -906,6 +906,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.stateful_tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">StatefulTractogram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_tractogram</span><span class="p">,</span> <span class="n">save_tractogram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_number_of_points</span><span class="p">,</span> <span class="n">transform_streamlines</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span><span class="p">,</span> <span class="n">warning_for_keywords</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">handle_vol_idx</span>
@@ -957,25 +958,27 @@ document.write(`
 
 <div class="viewcode-block" id="ResliceFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.align.ResliceFlow.run">[docs]</a>
+    <span class="nd">@warning_for_keywords</span><span class="p">()</span>
+    <span class="nd">@deprecated_params</span><span class="p">([</span><span class="s2">"vox_factor"</span><span class="p">],</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"1.15"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
         <span class="n">new_vox_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">mode</span><span class="o">=</span><span class="s2">"constant"</span><span class="p">,</span>
         <span class="n">cval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">num_processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">vox_factor</span><span class="o">=</span><span class="mf">0.14</span><span class="p">,</span>
+        <span class="n">vox_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_resliced</span><span class="o">=</span><span class="s2">"resliced.nii.gz"</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Reslice data to a new voxel resolution with automatic or manual sizing.</span>
 
 <span class="sd">        This workflow resamples volumetric data to a specified voxel size or</span>
-<span class="sd">        automatically determines an optimal isotropic resolution. When automatic</span>
-<span class="sd">        calculation is used, the new voxel size balances data quality with</span>
-<span class="sd">        computational efficiency by interpolating between the original voxel</span>
-<span class="sd">        dimensions.</span>
+<span class="sd">        automatically determines an isotropic resolution that preserves the</span>
+<span class="sd">        original voxel volume, so the resliced image keeps roughly the same</span>
+<span class="sd">        number of voxels and the same signal per voxel.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -983,14 +986,13 @@ document.write(`
 <span class="sd">            Path to the input volumes. This path may contain wildcards to</span>
 <span class="sd">            process multiple inputs at once.</span>
 <span class="sd">        new_vox_size : variable float, optional</span>
-<span class="sd">            New voxel size as (x, y, z) in mm. If None, it will be</span>
-<span class="sd">            automatically calculated using the formula:</span>
-<span class="sd">            new_vox = voxel_sorted[1] + (voxel_sorted[2] - voxel_sorted[1]) * vox_factor</span>
-<span class="sd">            where voxel_sorted are the original voxel dimensions sorted in</span>
-<span class="sd">            ascending order. The calculated value is applied isotropically</span>
-<span class="sd">            to all three dimensions. If the auto-calculated value is strictly</span>
-<span class="sd">            greater than 2.0mm, it is halved repeatedly until it falls below</span>
-<span class="sd">            2.0mm (e.g. 2.5 → 1.25mm, 5.0 → 1.25mm).</span>
+<span class="sd">            New voxel size as (x, y, z) in mm. If None, an isotropic voxel</span>
+<span class="sd">            size is computed from the original voxel volume</span>
+<span class="sd">            ``V = x * y * z``: the geometric mean ``V ** (1 / 3)`` is snapped</span>
+<span class="sd">            to the grid value whose cubed volume is closest to ``V``. The grid</span>
+<span class="sd">            is 0.25mm for voxels between 1 and 10mm and 0.025mm for voxels</span>
+<span class="sd">            between 0.1 and 1mm (e.g. 1x1x3mm gives 1.5mm, 0.1x0.1x0.2mm</span>
+<span class="sd">            gives 0.125mm, 2x2x2mm is kept as is).</span>
 <span class="sd">        order : str, optional</span>
 <span class="sd">            Interpolation order. Integer values 0–5 select spline order via</span>
 <span class="sd">            scipy (0 nearest, 1 trilinear, …). String values ``'lanczos'`` or</span>
@@ -1008,12 +1010,11 @@ document.write(`
 <span class="sd">            number of cores minus ``num_processes + 1`` is used (enter -1 to</span>
 <span class="sd">            use as many cores as possible). 0 raises an error.</span>
 <span class="sd">        vox_factor : float, optional</span>
-<span class="sd">            Interpolation factor for automatic voxel size calculation,</span>
-<span class="sd">            ranging from 0.0 to 1.0. Controls the trade-off between the</span>
-<span class="sd">            second-largest and largest original voxel dimensions. 0.0: uses</span>
-<span class="sd">            second-largest voxel size (finer resolution). 1.0: uses largest voxel</span>
-<span class="sd">            size (coarser resolution). 0.14: recommended value for balanced resolution.</span>
-<span class="sd">            Only used when new_vox_size is None.</span>
+<span class="sd">            .. deprecated:: 1.13.0</span>
+<span class="sd">               This parameter is ignored and will be removed in 1.15.0. The</span>
+<span class="sd">               automatic voxel size now preserves the original voxel volume.</span>
+
+<span class="sd">            Former interpolation factor for automatic voxel size calculation.</span>
 <span class="sd">        out_dir : string, optional</span>
 <span class="sd">            Output directory for saving results.</span>
 <span class="sd">        out_resliced : string, optional</span>
@@ -1033,26 +1034,12 @@ document.write(`
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing </span><span class="si">{</span><span class="n">inputfile</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">new_vox_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">voxsize_sorted</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">zooms</span><span class="p">)</span>
-                <span class="n">max_vox_size</span> <span class="o">=</span> <span class="n">voxsize_sorted</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="n">smax_vox_size</span> <span class="o">=</span> <span class="n">voxsize_sorted</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-                <span class="n">calculated_vox_size</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">smax_vox_size</span> <span class="o">+</span> <span class="p">(</span><span class="n">max_vox_size</span> <span class="o">-</span> <span class="n">smax_vox_size</span><span class="p">)</span> <span class="o">*</span> <span class="n">vox_factor</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="n">calculated_vox_size</span> <span class="o">&gt;</span> <span class="mf">2.0</span><span class="p">:</span>
-                    <span class="n">divisor</span> <span class="o">=</span> <span class="mi">2</span>
-                    <span class="k">while</span> <span class="n">calculated_vox_size</span> <span class="o">/</span> <span class="n">divisor</span> <span class="o">&gt;=</span> <span class="mf">2.0</span><span class="p">:</span>
-                        <span class="n">divisor</span> <span class="o">*=</span> <span class="mi">2</span>
-                    <span class="n">calculated_vox_size</span> <span class="o">/=</span> <span class="n">divisor</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"Auto-calculated voxel size &gt; 2.0mm. "</span>
-                        <span class="sa">f</span><span class="s2">"Divided by </span><span class="si">{</span><span class="n">divisor</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">calculated_vox_size</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">mm."</span>
-                    <span class="p">)</span>
-                <span class="n">new_vox_size_to_use</span> <span class="o">=</span> <span class="p">[</span><span class="n">calculated_vox_size</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>
+                <span class="n">new_vox_size_to_use</span> <span class="o">=</span> <span class="p">[</span><span class="n">isotropic_voxel_size</span><span class="p">(</span><span class="n">zooms</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">3</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"new_vox_size not provided. Automatically calculated as "</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">new_vox_size_to_use</span><span class="si">}</span><span class="s2"> based on original voxel size "</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">zooms</span><span class="p">)</span><span class="si">}</span><span class="s2"> using vox_factor=</span><span class="si">{</span><span class="n">vox_factor</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">new_vox_size_to_use</span><span class="si">}</span><span class="s2"> to preserve the original voxel "</span>
+                    <span class="sa">f</span><span class="s2">"volume of </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zooms</span><span class="p">))</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">mm^3 "</span>
+                    <span class="sa">f</span><span class="s2">"(voxel size </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">zooms</span><span class="p">)</span><span class="si">}</span><span class="s2">)."</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">new_vox_size_to_use</span> <span class="o">=</span> <span class="n">new_vox_size</span>
@@ -1077,7 +1064,7 @@ document.write(`
                     <span class="n">data</span><span class="p">,</span>
                     <span class="n">affine</span><span class="p">,</span>
                     <span class="n">zooms</span><span class="p">,</span>
-                    <span class="n">new_vox_size_to_use</span><span class="p">,</span>
+                    <span class="n">new_zooms</span><span class="o">=</span><span class="n">new_vox_size_to_use</span><span class="p">,</span>
                     <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span>
                     <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
                     <span class="n">cval</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>align &#8212; dipy 1.13.0.dev0+git20261104.597cb3a documentation</title>
+    <title>align &#8212; dipy 1.13.0.dev0+git20261104.138379e documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=d09b08d3"></script>
+    <script src="../_static/documentation_options.js?v=7054ed7e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1152,7 +1152,10 @@ metric with the input images with different levels of smoothing.</p>
 <span id="module-align-reslice"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">align.reslice</span></code><a class="headerlink" href="#module-dipy.align.reslice" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.reslice.reslice" title="dipy.align.reslice.reslice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reslice</span></code></a>(data, affine, zooms, new_zooms, *[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.align.reslice.isotropic_voxel_size" title="dipy.align.reslice.isotropic_voxel_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isotropic_voxel_size</span></code></a>(zooms, *[, step])</p></td>
+<td><p>Find the isotropic voxel size that best preserves the voxel volume.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.align.reslice.reslice" title="dipy.align.reslice.reslice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reslice</span></code></a>(data, affine, zooms, *[, new_zooms, ...])</p></td>
 <td><p>Reslice data with new voxel resolution defined by <code class="docutils literal notranslate"><span class="pre">new_zooms</span></code>.</p></td>
 </tr>
 </tbody>
@@ -4249,11 +4252,51 @@ displacement field</p>
 </dd></dl>
 
 </section>
+<section id="isotropic-voxel-size">
+<h3>isotropic_voxel_size<a class="headerlink" href="#isotropic-voxel-size" title="Link to this heading">#</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="dipy.align.reslice.isotropic_voxel_size">
+<span class="sig-prename descclassname"><span class="pre">dipy.align.reslice.</span></span><span class="sig-name descname"><span class="pre">isotropic_voxel_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zooms</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/align/reslice.html#isotropic_voxel_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.align.reslice.isotropic_voxel_size" title="Link to this definition">#</a></dt>
+<dd><p>Find the isotropic voxel size that best preserves the voxel volume.</p>
+<p>The voxel volume <code class="docutils literal notranslate"><span class="pre">prod(zooms)</span></code> sets the amount of signal each voxel
+integrates. An isotropic voxel of edge <code class="docutils literal notranslate"><span class="pre">s</span></code> has volume <code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">**</span> <span class="pre">3</span></code>, so the
+volume-preserving edge is the geometric mean <code class="docutils literal notranslate"><span class="pre">prod(zooms)</span> <span class="pre">**</span> <span class="pre">(1</span> <span class="pre">/</span> <span class="pre">3)</span></code>.
+That value is snapped to the nearest multiple of <code class="docutils literal notranslate"><span class="pre">step</span></code> in volume-ratio
+terms: among the two grid neighbours, the one minimising
+<code class="docutils literal notranslate"><span class="pre">|log(s</span> <span class="pre">**</span> <span class="pre">3</span> <span class="pre">/</span> <span class="pre">prod(zooms))|</span></code> is kept. Comparing volumes rather than
+edges matters because volume grows with the cube of the edge. For a
+1x1x3 mm voxel (volume 3), 1.25 mm gives a volume of 1.95 and 1.5 mm
+gives 3.375, so 1.5 mm is selected while 2 mm (volume 8) is far off.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zooms</strong><span class="classifier">array-like, shape (3,)</span></dt><dd><p>Voxel size along each spatial axis. Values within a relative and
+absolute tolerance of 1e-3 of each other are considered isotropic.</p>
+</dd>
+<dt><strong>step</strong><span class="classifier">float, optional</span></dt><dd><p>Grid spacing on which the isotropic voxel size is snapped. If None,
+the grid scales with the voxel size: a quarter of the power of ten
+just below the geometric mean, i.e. 0.25 for voxels between 1 and 10,
+0.025 for voxels between 0.1 and 1 (e.g. ex-vivo data). Use 0 to
+return the exact geometric mean.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>voxel_size</strong><span class="classifier">float</span></dt><dd><p>Isotropic voxel size. Already isotropic <code class="docutils literal notranslate"><span class="pre">zooms</span></code> are returned
+unchanged.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="reslice">
 <h3>reslice<a class="headerlink" href="#reslice" title="Link to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="dipy.align.reslice.reslice">
-<span class="sig-prename descclassname"><span class="pre">dipy.align.reslice.</span></span><span class="sig-name descname"><span class="pre">reslice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zooms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_zooms</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/align/reslice.html#reslice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.align.reslice.reslice" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dipy.align.reslice.</span></span><span class="sig-name descname"><span class="pre">reslice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zooms</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_zooms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/align/reslice.html#reslice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.align.reslice.reslice" title="Link to this definition">#</a></dt>
 <dd><p>Reslice data with new voxel resolution defined by <code class="docutils literal notranslate"><span class="pre">new_zooms</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4264,7 +4307,9 @@ displacement field</p>
 </dd>
 <dt><strong>zooms</strong><span class="classifier">tuple, shape (3,)</span></dt><dd><p>voxel size for (i,j,k) dimensions</p>
 </dd>
-<dt><strong>new_zooms</strong><span class="classifier">tuple, shape (3,)</span></dt><dd><p>new voxel size for (i,j,k) after resampling</p>
+<dt><strong>new_zooms</strong><span class="classifier">tuple, shape (3,), optional</span></dt><dd><p>new voxel size for (i,j,k) after resampling. If None, an isotropic
+voxel size preserving the original voxel volume is selected with
+<a class="reference internal" href="#dipy.align.reslice.isotropic_voxel_size" title="dipy.align.reslice.isotropic_voxel_size"><code class="xref py py-func docutils literal notranslate"><span class="pre">isotropic_voxel_size()</span></code></a>.</p>
 </dd>
 <dt><strong>order</strong><span class="classifier">int or str</span></dt><dd><p>Interpolation order. Integer 0–5 selects spline order via scipy
 (0 nearest, 1 trilinear, …). String values <code class="docutils literal notranslate"><span class="pre">'lanczos'</span></code> or
@@ -4310,8 +4355,15 @@ If None, it is calculated through the affine matrix and current shape.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_zooms</span> <span class="o">=</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span><span class="mf">3.</span><span class="p">,</span><span class="mf">3.</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_zooms</span>
 <span class="go">(3.0, 3.0, 3.0)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data2</span><span class="p">,</span> <span class="n">affine2</span> <span class="o">=</span> <span class="n">reslice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">zooms</span><span class="p">,</span> <span class="n">new_zooms</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data2</span><span class="p">,</span> <span class="n">affine2</span> <span class="o">=</span> <span class="n">reslice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">zooms</span><span class="p">,</span> <span class="n">new_zooms</span><span class="o">=</span><span class="n">new_zooms</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">77</span><span class="p">,</span> <span class="mi">77</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>With <code class="docutils literal notranslate"><span class="pre">new_zooms=None</span></code> the isotropic voxel size preserving the original
+voxel volume (4 * 4 * 5 = 80) is used, here 4.25 (4.25 ** 3 = 76.8).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data3</span><span class="p">,</span> <span class="n">affine3</span> <span class="o">=</span> <span class="n">reslice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">zooms</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data3</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">55</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">28</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>
@@ -5973,6 +6025,10 @@ length of the bundle</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#v-cycle-3d">v_cycle_3d</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.metrics.v_cycle_3d"><code class="docutils literal notranslate"><span class="pre">v_cycle_3d()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#isotropic-voxel-size">isotropic_voxel_size</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.align.reslice.isotropic_voxel_size"><code class="docutils literal notranslate"><span class="pre">isotropic_voxel_size()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reslice">reslice</a><ul class="nav section-nav flex-column">

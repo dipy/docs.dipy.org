@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.align.reslice &#8212; dipy 1.13.0.dev0+git20261104.597cb3a documentation</title>
+    <title>dipy.align.reslice &#8212; dipy 1.13.0.dev0+git20261104.138379e documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=d09b08d3"></script>
+    <script src="../../../_static/documentation_options.js?v=7054ed7e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1032,6 +1032,64 @@ document.write(`
     <span class="k">return</span> <span class="n">vol</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="isotropic_voxel_size">
+<a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.reslice.isotropic_voxel_size">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">isotropic_voxel_size</span><span class="p">(</span><span class="n">zooms</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Find the isotropic voxel size that best preserves the voxel volume.</span>
+
+<span class="sd">    The voxel volume ``prod(zooms)`` sets the amount of signal each voxel</span>
+<span class="sd">    integrates. An isotropic voxel of edge ``s`` has volume ``s ** 3``, so the</span>
+<span class="sd">    volume-preserving edge is the geometric mean ``prod(zooms) ** (1 / 3)``.</span>
+<span class="sd">    That value is snapped to the nearest multiple of ``step`` in volume-ratio</span>
+<span class="sd">    terms: among the two grid neighbours, the one minimising</span>
+<span class="sd">    ``|log(s ** 3 / prod(zooms))|`` is kept. Comparing volumes rather than</span>
+<span class="sd">    edges matters because volume grows with the cube of the edge. For a</span>
+<span class="sd">    1x1x3 mm voxel (volume 3), 1.25 mm gives a volume of 1.95 and 1.5 mm</span>
+<span class="sd">    gives 3.375, so 1.5 mm is selected while 2 mm (volume 8) is far off.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zooms : array-like, shape (3,)</span>
+<span class="sd">        Voxel size along each spatial axis. Values within a relative and</span>
+<span class="sd">        absolute tolerance of 1e-3 of each other are considered isotropic.</span>
+<span class="sd">    step : float, optional</span>
+<span class="sd">        Grid spacing on which the isotropic voxel size is snapped. If None,</span>
+<span class="sd">        the grid scales with the voxel size: a quarter of the power of ten</span>
+<span class="sd">        just below the geometric mean, i.e. 0.25 for voxels between 1 and 10,</span>
+<span class="sd">        0.025 for voxels between 0.1 and 1 (e.g. ex-vivo data). Use 0 to</span>
+<span class="sd">        return the exact geometric mean.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    voxel_size : float</span>
+<span class="sd">        Isotropic voxel size. Already isotropic ``zooms`` are returned</span>
+<span class="sd">        unchanged.</span>
+<span class="sd">    """</span>
+    <span class="n">zooms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">zooms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">zooms</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">zooms</span><span class="p">))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">zooms</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"zooms must be 3 finite positive values, got </span><span class="si">{</span><span class="n">zooms</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">step</span><span class="p">)</span> <span class="ow">and</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"step must be finite and non-negative, got </span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">zooms</span><span class="p">,</span> <span class="n">zooms</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">zooms</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zooms</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cbrt</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">target</span><span class="p">))</span>
+
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">target</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span><span class="p">),</span> <span class="mi">6</span><span class="p">),</span>
+        <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">target</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span><span class="p">),</span> <span class="mi">6</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">candidates</span> <span class="k">if</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">c</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="n">volume</span><span class="p">)))</span></div>
+
+
+
 <div class="viewcode-block" id="reslice">
 <a class="viewcode-back" href="../../../reference/dipy.align.html#dipy.align.reslice.reslice">[docs]</a>
 <span class="nd">@warning_for_keywords</span><span class="p">()</span>
@@ -1039,8 +1097,8 @@ document.write(`
     <span class="n">data</span><span class="p">,</span>
     <span class="n">affine</span><span class="p">,</span>
     <span class="n">zooms</span><span class="p">,</span>
-    <span class="n">new_zooms</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
+    <span class="n">new_zooms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="n">mode</span><span class="o">=</span><span class="s2">"constant"</span><span class="p">,</span>
     <span class="n">cval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -1057,8 +1115,10 @@ document.write(`
 <span class="sd">        mapping from voxel coordinates to world coordinates</span>
 <span class="sd">    zooms : tuple, shape (3,)</span>
 <span class="sd">        voxel size for (i,j,k) dimensions</span>
-<span class="sd">    new_zooms : tuple, shape (3,)</span>
-<span class="sd">        new voxel size for (i,j,k) after resampling</span>
+<span class="sd">    new_zooms : tuple, shape (3,), optional</span>
+<span class="sd">        new voxel size for (i,j,k) after resampling. If None, an isotropic</span>
+<span class="sd">        voxel size preserving the original voxel volume is selected with</span>
+<span class="sd">        :func:`isotropic_voxel_size`.</span>
 <span class="sd">    order : int or str</span>
 <span class="sd">        Interpolation order. Integer 0–5 selects spline order via scipy</span>
 <span class="sd">        (0 nearest, 1 trilinear, …). String values ``'lanczos'`` or</span>
@@ -1102,8 +1162,15 @@ document.write(`
 <span class="sd">    &gt;&gt;&gt; new_zooms = (3.,3.,3.)</span>
 <span class="sd">    &gt;&gt;&gt; new_zooms</span>
 <span class="sd">    (3.0, 3.0, 3.0)</span>
-<span class="sd">    &gt;&gt;&gt; data2, affine2 = reslice(data, affine, zooms, new_zooms)</span>
+<span class="sd">    &gt;&gt;&gt; data2, affine2 = reslice(data, affine, zooms, new_zooms=new_zooms)</span>
 <span class="sd">    &gt;&gt;&gt; data2.shape == (77, 77, 40)</span>
+<span class="sd">    True</span>
+
+<span class="sd">    With ``new_zooms=None`` the isotropic voxel size preserving the original</span>
+<span class="sd">    voxel volume (4 * 4 * 5 = 80) is used, here 4.25 (4.25 ** 3 = 76.8).</span>
+
+<span class="sd">    &gt;&gt;&gt; data3, affine3 = reslice(data, affine, zooms)</span>
+<span class="sd">    &gt;&gt;&gt; data3.shape == (55, 55, 28)</span>
 <span class="sd">    True</span>
 
 <span class="sd">    """</span>
@@ -1137,6 +1204,8 @@ document.write(`
     <span class="c1"># input to scipy's affine_transform is [0, 0, 0]</span>
     <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">".*scipy.*18.*"</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">new_zooms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_zooms</span> <span class="o">=</span> <span class="p">(</span><span class="n">isotropic_voxel_size</span><span class="p">(</span><span class="n">zooms</span><span class="p">),)</span> <span class="o">*</span> <span class="mi">3</span>
         <span class="n">new_zooms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_zooms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"f8"</span><span class="p">)</span>
         <span class="n">zooms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zooms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"f8"</span><span class="p">)</span>
         <span class="n">scale</span> <span class="o">=</span> <span class="n">new_zooms</span> <span class="o">/</span> <span class="n">zooms</span>
