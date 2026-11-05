@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.denoise &#8212; dipy 1.13.0.dev0+git20261105.36bb84a documentation</title>
+    <title>dipy.workflows.denoise &#8212; dipy 1.13.0.dev0+git20261105.631bda8 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=425b1157"></script>
+    <script src="../../../_static/documentation_options.js?v=bd221749"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1408,14 +1408,15 @@ document.write(`
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Denoising </span><span class="si">{</span><span class="n">fpath</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">image</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+                <span class="n">sigma_used</span> <span class="o">=</span> <span class="n">sigma</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sigma</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Estimating sigma"</span><span class="p">)</span>
-                    <span class="n">sigma</span> <span class="o">=</span> <span class="n">estimate_sigma</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found sigma </span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                    <span class="n">sigma_used</span> <span class="o">=</span> <span class="n">estimate_sigma</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found sigma </span><span class="si">{</span><span class="n">sigma_used</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
                 <span class="n">denoised_data</span> <span class="o">=</span> <span class="n">nlmeans</span><span class="p">(</span>
                     <span class="n">data</span><span class="p">,</span>
-                    <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                    <span class="n">sigma</span><span class="o">=</span><span class="n">sigma_used</span><span class="p">,</span>
                     <span class="n">patch_radius</span><span class="o">=</span><span class="n">patch_radius</span><span class="p">,</span>
                     <span class="n">block_radius</span><span class="o">=</span><span class="n">block_radius</span><span class="p">,</span>
                     <span class="n">rician</span><span class="o">=</span><span class="n">rician</span><span class="p">,</span>
@@ -1518,18 +1519,19 @@ document.write(`
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Denoising </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">dwi</span><span class="p">)</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">image</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+            <span class="n">sigma_used</span> <span class="o">=</span> <span class="n">sigma</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">sigma</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Estimating sigma"</span><span class="p">)</span>
                 <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span> <span class="o">=</span> <span class="n">read_bvals_bvecs</span><span class="p">(</span><span class="n">bval</span><span class="p">,</span> <span class="n">bvec</span><span class="p">)</span>
                 <span class="n">gtab</span> <span class="o">=</span> <span class="n">gradient_table</span><span class="p">(</span>
                     <span class="n">bvals</span><span class="p">,</span> <span class="n">bvecs</span><span class="o">=</span><span class="n">bvecs</span><span class="p">,</span> <span class="n">b0_threshold</span><span class="o">=</span><span class="n">b0_threshold</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">bvecs_tol</span>
                 <span class="p">)</span>
-                <span class="n">sigma</span> <span class="o">=</span> <span class="n">pca_noise_estimate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">correct_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Found sigma </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+                <span class="n">sigma_used</span> <span class="o">=</span> <span class="n">pca_noise_estimate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gtab</span><span class="p">,</span> <span class="n">correct_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Found sigma </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">sigma_used</span><span class="p">)</span>
 
             <span class="n">denoised_data</span> <span class="o">=</span> <span class="n">localpca</span><span class="p">(</span>
                 <span class="n">data</span><span class="p">,</span>
-                <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                <span class="n">sigma</span><span class="o">=</span><span class="n">sigma_used</span><span class="p">,</span>
                 <span class="n">patch_radius</span><span class="o">=</span><span class="n">patch_radius</span><span class="p">,</span>
                 <span class="n">pca_method</span><span class="o">=</span><span class="n">pca_method</span><span class="p">,</span>
                 <span class="n">tau_factor</span><span class="o">=</span><span class="n">tau_factor</span><span class="p">,</span>
