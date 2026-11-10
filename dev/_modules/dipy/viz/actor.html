@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.actor &#8212; dipy 1.13.0.dev0+git20261109.7c58671 documentation</title>
+    <title>dipy.viz.actor &#8212; dipy 1.13.0.dev0+git20261110.d17cbc2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=0adf595f"></script>
+    <script src="../../../_static/documentation_options.js?v=429ed8a1"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1282,9 +1282,9 @@ document.write(`
 
 
 
-<span class="c1"># TODO: Move `_taubin_smooth` and `smooth_contour_from_roi` to FURY and remove them</span>
-<span class="c1"># from DIPY once https://github.com/fury-gl/fury/issues/1390 is closed</span>
-<span class="c1"># (smooth option for `contour_from_roi` and `contour_from_label`).</span>
+<span class="c1"># TODO(fury#1390): Move `_taubin_smooth` and this `contour_from_roi` override</span>
+<span class="c1"># (FURY signature plus ``iterations``) to FURY, then remove both from DIPY</span>
+<span class="c1"># once https://github.com/fury-gl/fury/issues/1390 is closed.</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_taubin_smooth</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">iterations</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mu</span><span class="o">=-</span><span class="mf">0.53</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Smooth a triangle mesh with Taubin (shrink-free) Laplacian smoothing.</span>
 
@@ -1322,10 +1322,16 @@ document.write(`
     <span class="k">return</span> <span class="n">smoothed</span>
 
 
-<div class="viewcode-block" id="smooth_contour_from_roi">
-<a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.actor.smooth_contour_from_roi">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">smooth_contour_from_roi</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">20</span>
+<div class="viewcode-block" id="contour_from_roi">
+<a class="viewcode-back" href="../../../reference/dipy.viz.html#dipy.viz.actor.contour_from_roi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">contour_from_roi</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">affine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">material</span><span class="o">=</span><span class="s2">"phong"</span><span class="p">,</span>
+    <span class="n">iterations</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Generate a smooth surface actor from a binary ROI.</span>
 
@@ -1339,6 +1345,9 @@ document.write(`
 <span class="sd">        Contour color (hex string, RGB in [0, 1] or in [0, 255]).</span>
 <span class="sd">    opacity : float, optional</span>
 <span class="sd">        Opacity from 0 (transparent) to 1 (opaque).</span>
+<span class="sd">    material : str, optional</span>
+<span class="sd">        Material of the contour mesh, as accepted by :func:`fury.actor.surface`</span>
+<span class="sd">        (``"phong"``, ``"basic"``, ``"standard"``, ``"physical"``).</span>
 <span class="sd">    iterations : int, optional</span>
 <span class="sd">        Number of smoothing passes. Use 0 to keep the blocky voxel surface.</span>
 
@@ -1349,9 +1358,9 @@ document.write(`
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    :func:`fury.actor.contour_from_roi` draws the voxel faces, which looks</span>
-<span class="sd">    staircased on anatomical ROIs. This function smooths that surface with</span>
-<span class="sd">    Taubin smoothing, which does not shrink the ROI.</span>
+<span class="sd">    Overrides :func:`fury.actor.contour_from_roi`, which draws staircased voxel</span>
+<span class="sd">    faces. The surface is smoothed with Taubin smoothing, which does not shrink</span>
+<span class="sd">    the ROI.</span>
 <span class="sd">    """</span>
     <span class="n">color</span> <span class="o">=</span> <span class="n">normalize_colors</span><span class="p">(</span><span class="n">color</span><span class="p">)[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
     <span class="n">contour</span> <span class="o">=</span> <span class="n">Group</span><span class="p">()</span>
@@ -1359,7 +1368,15 @@ document.write(`
         <span class="n">vertices</span> <span class="o">=</span> <span class="n">_taubin_smooth</span><span class="p">(</span><span class="n">mesh</span><span class="p">[</span><span class="s2">"verts"</span><span class="p">],</span> <span class="n">mesh</span><span class="p">[</span><span class="s2">"faces"</span><span class="p">],</span> <span class="n">iterations</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">vertices</span> <span class="o">=</span> <span class="n">apply_affine</span><span class="p">(</span><span class="n">affine</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
-        <span class="n">contour</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">surface</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">mesh</span><span class="p">[</span><span class="s2">"faces"</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">))</span>
+        <span class="n">contour</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">surface</span><span class="p">(</span>
+                <span class="n">vertices</span><span class="p">,</span>
+                <span class="n">mesh</span><span class="p">[</span><span class="s2">"faces"</span><span class="p">],</span>
+                <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">,</span>
+                <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="n">contour</span></div>
 
 
