@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.fwdti &#8212; dipy 1.13.0.dev0+git20261110.9765f5e documentation</title>
+    <title>dipy.reconst.fwdti &#8212; dipy 1.13.0.dev0+git20261111.d1786c2 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=0ca6a626"></script>
+    <script src="../../../_static/documentation_options.js?v=76a29d03"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -898,11 +898,14 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dki</span><span class="w"> </span><span class="kn">import</span> <span class="n">_positive_evals</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dti</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TensorFit</span><span class="p">,</span>
+    <span class="n">_cholesky_to_lower_triangular_jacobian</span><span class="p">,</span>
     <span class="n">_decompose_tensor_nan</span><span class="p">,</span>
+    <span class="n">cholesky_to_lower_triangular</span><span class="p">,</span>
     <span class="n">decompose_tensor</span><span class="p">,</span>
     <span class="n">design_matrix</span><span class="p">,</span>
     <span class="n">from_lower_triangular</span><span class="p">,</span>
     <span class="n">lower_triangular</span><span class="p">,</span>
+    <span class="n">lower_triangular_to_cholesky</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.multi_voxel</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_voxel_fit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.vec_val_sum</span><span class="w"> </span><span class="kn">import</span> <span class="n">vec_val_vect</span>
@@ -1476,6 +1479,11 @@ document.write(`
 <span class="sd">        See fwdti.nls_fit_tensor.</span>
 <span class="sd">    """</span>
     <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">tensor_elements</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cholesky</span><span class="p">:</span>
+        <span class="n">r_params</span> <span class="o">=</span> <span class="n">tensor_elements</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">chol_jacobian</span> <span class="o">=</span> <span class="n">_cholesky_to_lower_triangular_jacobian</span><span class="p">(</span><span class="n">r_params</span><span class="p">)</span>
+        <span class="n">tensor</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">cholesky_to_lower_triangular</span><span class="p">(</span><span class="n">r_params</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">f_transform</span><span class="p">:</span>
         <span class="n">f</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">tensor</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1486,13 +1494,18 @@ document.write(`
 
     <span class="n">T</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">t</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">design_matrix</span>
     <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">design_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">S</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">s</span>
+    <span class="n">S</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">s</span> <span class="o">*</span> <span class="n">design_matrix</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">f_transform</span><span class="p">:</span>
         <span class="n">df</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">tensor</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">t</span> <span class="o">-</span> <span class="n">s</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">T</span> <span class="o">-</span> <span class="n">S</span><span class="p">,</span> <span class="n">df</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">T</span> <span class="o">-</span> <span class="n">S</span><span class="p">,</span> <span class="n">df</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cholesky</span><span class="p">:</span>
+        <span class="n">jacobian</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">@</span> <span class="n">chol_jacobian</span>
+
+    <span class="k">return</span> <span class="n">jacobian</span>
 
 
 <div class="viewcode-block" id="nls_iter">
@@ -1571,6 +1584,15 @@ document.write(`
         <span class="n">design_matrix</span><span class="p">,</span> <span class="n">sig</span><span class="p">,</span> <span class="n">S0</span><span class="p">,</span> <span class="n">min_signal</span><span class="o">=</span><span class="n">min_signal</span><span class="p">,</span> <span class="n">Diso</span><span class="o">=</span><span class="n">Diso</span><span class="p">,</span> <span class="n">mdreg</span><span class="o">=</span><span class="n">mdreg</span>
     <span class="p">)</span>
 
+    <span class="n">partial_jac_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">_nls_jacobian_func</span><span class="p">,</span>
+        <span class="n">Diso</span><span class="o">=</span><span class="n">Diso</span><span class="p">,</span>
+        <span class="n">weighting</span><span class="o">=</span><span class="n">weighting</span><span class="p">,</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+        <span class="n">cholesky</span><span class="o">=</span><span class="n">cholesky</span><span class="p">,</span>
+        <span class="n">f_transform</span><span class="o">=</span><span class="n">f_transform</span><span class="p">,</span>
+    <span class="p">)</span>
+
     <span class="n">partial_err_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
         <span class="n">_nls_err_func</span><span class="p">,</span>
         <span class="n">Diso</span><span class="o">=</span><span class="n">Diso</span><span class="p">,</span>
@@ -1585,9 +1607,13 @@ document.write(`
         <span class="c1"># converting evals and evecs to diffusion tensor elements</span>
         <span class="n">evals</span> <span class="o">=</span> <span class="n">params</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">evecs</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="n">dt</span> <span class="o">=</span> <span class="n">lower_triangular</span><span class="p">(</span><span class="n">vec_val_vect</span><span class="p">(</span><span class="n">evecs</span><span class="p">,</span> <span class="n">evals</span><span class="p">))</span>
 
         <span class="c1"># Cholesky decomposition if requested</span>
+        <span class="k">if</span> <span class="n">cholesky</span><span class="p">:</span>
+            <span class="n">evals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">evals</span><span class="p">,</span> <span class="mf">2e-7</span><span class="p">)</span>
+
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">lower_triangular</span><span class="p">(</span><span class="n">vec_val_vect</span><span class="p">(</span><span class="n">evecs</span><span class="p">,</span> <span class="n">evals</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">cholesky</span><span class="p">:</span>
             <span class="n">dt</span> <span class="o">=</span> <span class="n">lower_triangular_to_cholesky</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
 
@@ -1599,12 +1625,13 @@ document.write(`
 
         <span class="c1"># Use the Levenberg-Marquardt algorithm wrapped in opt.leastsq</span>
         <span class="n">start_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">dt</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">S0</span><span class="p">),</span> <span class="n">f</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">jac</span><span class="p">:</span>
             <span class="n">this_tensor</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">leastsq</span><span class="p">(</span>
                 <span class="n">partial_err_func</span><span class="p">,</span>
                 <span class="n">start_params</span><span class="p">[:</span><span class="mi">8</span><span class="p">],</span>
                 <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">design_matrix</span><span class="p">,</span> <span class="n">sig</span><span class="p">),</span>
-                <span class="n">Dfun</span><span class="o">=</span><span class="n">_nls_jacobian_func</span><span class="p">,</span>
+                <span class="n">Dfun</span><span class="o">=</span><span class="n">partial_jac_func</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">this_tensor</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">leastsq</span><span class="p">(</span>
@@ -1615,19 +1642,26 @@ document.write(`
         <span class="k">if</span> <span class="n">cholesky</span><span class="p">:</span>
             <span class="n">this_tensor</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">cholesky_to_lower_triangular</span><span class="p">(</span><span class="n">this_tensor</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
 
+        <span class="n">start_tensor</span> <span class="o">=</span> <span class="n">start_params</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">cholesky</span><span class="p">:</span>
+            <span class="n">start_tensor</span> <span class="o">=</span> <span class="n">cholesky_to_lower_triangular</span><span class="p">(</span><span class="n">start_tensor</span><span class="p">)</span>
+
         <span class="n">evals</span><span class="p">,</span> <span class="n">evecs</span> <span class="o">=</span> <span class="n">_decompose_tensor_nan</span><span class="p">(</span>
             <span class="n">from_lower_triangular</span><span class="p">(</span><span class="n">this_tensor</span><span class="p">[:</span><span class="mi">6</span><span class="p">]),</span>
-            <span class="n">from_lower_triangular</span><span class="p">(</span><span class="n">start_params</span><span class="p">[:</span><span class="mi">6</span><span class="p">]),</span>
+            <span class="n">from_lower_triangular</span><span class="p">(</span><span class="n">start_tensor</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="c1"># Process water volume fraction f</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">this_tensor</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="n">f_transform</span><span class="p">:</span>
             <span class="n">f</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">f</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
             <span class="p">(</span><span class="n">evals</span><span class="p">,</span> <span class="n">evecs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">evecs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">evecs</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="p">])),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
         <span class="p">)</span>
+
     <span class="k">return</span> <span class="n">params</span></div>
 
 
@@ -1743,69 +1777,6 @@ document.write(`
             <span class="n">fw_params</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span>
 
     <span class="k">return</span> <span class="n">fw_params</span></div>
-
-
-
-<div class="viewcode-block" id="lower_triangular_to_cholesky">
-<a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.fwdti.lower_triangular_to_cholesky">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">lower_triangular_to_cholesky</span><span class="p">(</span><span class="n">tensor_elements</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Performs Cholesky decomposition of the diffusion tensor</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    tensor_elements : array (6,)</span>
-<span class="sd">        Array containing the six elements of diffusion tensor's lower</span>
-<span class="sd">        triangular.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    cholesky_elements : array (6,)</span>
-<span class="sd">        Array containing the six Cholesky's decomposition elements</span>
-<span class="sd">        (R0, R1, R2, R3, R4, R5) :footcite:p:`Koay2006b`.</span>
-
-<span class="sd">    References</span>
-<span class="sd">    ----------</span>
-<span class="sd">    .. footbibliography::</span>
-<span class="sd">    """</span>
-    <span class="n">R0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tensor_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">R3</span> <span class="o">=</span> <span class="n">tensor_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">R0</span>
-    <span class="n">R1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tensor_elements</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">R3</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-    <span class="n">R5</span> <span class="o">=</span> <span class="n">tensor_elements</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="n">R0</span>
-    <span class="n">R4</span> <span class="o">=</span> <span class="p">(</span><span class="n">tensor_elements</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">-</span> <span class="n">R3</span> <span class="o">*</span> <span class="n">R5</span><span class="p">)</span> <span class="o">/</span> <span class="n">R1</span>
-    <span class="n">R2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tensor_elements</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">-</span> <span class="n">R4</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">R5</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">R0</span><span class="p">,</span> <span class="n">R1</span><span class="p">,</span> <span class="n">R2</span><span class="p">,</span> <span class="n">R3</span><span class="p">,</span> <span class="n">R4</span><span class="p">,</span> <span class="n">R5</span><span class="p">])</span></div>
-
-
-
-<div class="viewcode-block" id="cholesky_to_lower_triangular">
-<a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.fwdti.cholesky_to_lower_triangular">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">cholesky_to_lower_triangular</span><span class="p">(</span><span class="n">R</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Convert Cholesky decomposition elements to the diffusion tensor elements</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    R : array (6,)</span>
-<span class="sd">        Array containing the six Cholesky's decomposition elements</span>
-<span class="sd">        (R0, R1, R2, R3, R4, R5) :footcite:p:`Koay2006b`.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    tensor_elements : array (6,)</span>
-<span class="sd">        Array containing the six elements of diffusion tensor's lower</span>
-<span class="sd">        triangular.</span>
-
-<span class="sd">    References</span>
-<span class="sd">    ----------</span>
-<span class="sd">    .. footbibliography::</span>
-<span class="sd">    """</span>
-    <span class="n">Dxx</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="n">Dxy</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">R</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-    <span class="n">Dyy</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="n">Dxz</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">R</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
-    <span class="n">Dyz</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">R</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">R</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
-    <span class="n">Dzz</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">R</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Dxx</span><span class="p">,</span> <span class="n">Dxy</span><span class="p">,</span> <span class="n">Dyy</span><span class="p">,</span> <span class="n">Dxz</span><span class="p">,</span> <span class="n">Dyz</span><span class="p">,</span> <span class="n">Dzz</span><span class="p">])</span></div>
 
 
 

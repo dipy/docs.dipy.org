@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>reconst &#8212; dipy 1.13.0.dev0+git20261110.9765f5e documentation</title>
+    <title>reconst &#8212; dipy 1.13.0.dev0+git20261111.d1786c2 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=0ca6a626"></script>
+    <script src="../_static/documentation_options.js?v=76a29d03"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1270,6 +1270,12 @@ orientation dispersion index (ODI) <a class="footnote-reference brackets" href="
 <tr class="row-even"><td><p><a class="reference internal" href="#dipy.reconst.dti.TensorFit" title="dipy.reconst.dti.TensorFit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorFit</span></code></a>(model, model_params, *[, model_S0])</p></td>
 <td><p>Stores the fit result of the Diffusion Tensor model.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.reconst.dti.lower_triangular_to_cholesky" title="dipy.reconst.dti.lower_triangular_to_cholesky"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower_triangular_to_cholesky</span></code></a>(tensor_elements)</p></td>
+<td><p>Convert diffusion-tensor elements to Cholesky elements.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#dipy.reconst.dti.cholesky_to_lower_triangular" title="dipy.reconst.dti.cholesky_to_lower_triangular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cholesky_to_lower_triangular</span></code></a>(R)</p></td>
+<td><p>Convert Cholesky elements to diffusion-tensor elements.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.reconst.dti.fractional_anisotropy" title="dipy.reconst.dti.fractional_anisotropy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fractional_anisotropy</span></code></a>(evals, *[, axis])</p></td>
 <td><p>Return Fractional anisotropy (FA) of a diffusion tensor.</p></td>
 </tr>
@@ -1472,12 +1478,6 @@ contamination</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#dipy.reconst.fwdti.nls_fit_tensor" title="dipy.reconst.fwdti.nls_fit_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nls_fit_tensor</span></code></a>(gtab, data, *[, mask, Diso, ...])</p></td>
 <td><p>Fit the water elimination tensor model using the non-linear least-squares.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#dipy.reconst.fwdti.lower_triangular_to_cholesky" title="dipy.reconst.fwdti.lower_triangular_to_cholesky"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower_triangular_to_cholesky</span></code></a>(tensor_elements)</p></td>
-<td><p>Performs Cholesky decomposition of the diffusion tensor</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#dipy.reconst.fwdti.cholesky_to_lower_triangular" title="dipy.reconst.fwdti.cholesky_to_lower_triangular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cholesky_to_lower_triangular</span></code></a>(R)</p></td>
-<td><p>Convert Cholesky decomposition elements to the diffusion tensor elements</p></td>
 </tr>
 </tbody>
 </table>
@@ -7191,7 +7191,7 @@ direction on the input sphere</p>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-westin1997" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id175">1</a>,<a role="doc-backlink" href="#id180">2</a>,<a role="doc-backlink" href="#id181">3</a>,<a role="doc-backlink" href="#id199">4</a>,<a role="doc-backlink" href="#id200">5</a>,<a role="doc-backlink" href="#id201">6</a>)</span>
+<span class="backrefs">(<a role="doc-backlink" href="#id175">1</a>,<a role="doc-backlink" href="#id180">2</a>,<a role="doc-backlink" href="#id181">3</a>,<a role="doc-backlink" href="#id202">4</a>,<a role="doc-backlink" href="#id203">5</a>,<a role="doc-backlink" href="#id204">6</a>)</span>
 <p>Carl-Fredrik Westin, Sharon Peled, Hákon Gudbjartsson, Ron Kikinis, and Ferenc Jolesz. Geometrical diffusion measures for MRI from tensor basis analysis. In <em>5th Scientific Meeting and Exhibition</em>, volume. Vancouver, Canada, 1997. International Society for Magnetic Resonance in Medicine (ISMRM).</p>
 </aside>
 </aside>
@@ -7380,6 +7380,67 @@ the GradientTable input for that direction</p>
 </dd></dl>
 
 </section>
+<section id="lower-triangular-to-cholesky">
+<h3>lower_triangular_to_cholesky<a class="headerlink" href="#lower-triangular-to-cholesky" title="Link to this heading">#</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="dipy.reconst.dti.lower_triangular_to_cholesky">
+<span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">lower_triangular_to_cholesky</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor_elements</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#lower_triangular_to_cholesky"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.lower_triangular_to_cholesky" title="Link to this definition">#</a></dt>
+<dd><p>Convert diffusion-tensor elements to Cholesky elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tensor_elements</strong><span class="classifier">array (6,)</span></dt><dd><p>Six independent elements of the diffusion tensor in lower-triangular
+order.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>cholesky_elements</strong><span class="classifier">array (6,)</span></dt><dd><p>Six elements of the Cholesky decomposition, ordered as
+<code class="docutils literal notranslate"><span class="pre">(R0,</span> <span class="pre">R1,</span> <span class="pre">R2,</span> <span class="pre">R3,</span> <span class="pre">R4,</span> <span class="pre">R5)</span></code> <a class="footnote-reference brackets" href="#footcite-koay2006b" id="id182" role="doc-noteref"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></a>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div class="docutils container" id="id183">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-koay2006b" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id182">1</a>,<a role="doc-backlink" href="#id184">2</a>)</span>
+<p>Cheng Guan Koay, John D. Carew, Andrew L. Alexander, Peter J. Basser, and M. Elizabeth Meyerand. Investigation of anomalous estimates of tensor-derived quantities in diffusion tensor imaging. <em>Magnetic Resonance in Medicine</em>, 55(4):930–936, April 2006. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.20832">https://doi.org/10.1002/mrm.20832</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.20832">doi:10.1002/mrm.20832</a>.</p>
+</aside>
+</aside>
+</div>
+</dd></dl>
+
+</section>
+<section id="cholesky-to-lower-triangular">
+<h3>cholesky_to_lower_triangular<a class="headerlink" href="#cholesky-to-lower-triangular" title="Link to this heading">#</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="dipy.reconst.dti.cholesky_to_lower_triangular">
+<span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">cholesky_to_lower_triangular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#cholesky_to_lower_triangular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.cholesky_to_lower_triangular" title="Link to this definition">#</a></dt>
+<dd><p>Convert Cholesky elements to diffusion-tensor elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>R</strong><span class="classifier">array (6,)</span></dt><dd><p>Six elements of the Cholesky decomposition, ordered as
+<code class="docutils literal notranslate"><span class="pre">(R0,</span> <span class="pre">R1,</span> <span class="pre">R2,</span> <span class="pre">R3,</span> <span class="pre">R4,</span> <span class="pre">R5)</span></code> <a class="footnote-reference brackets" href="#footcite-koay2006b" id="id184" role="doc-noteref"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></a>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tensor_elements</strong><span class="classifier">array (6,)</span></dt><dd><p>Six independent elements of the diffusion tensor in lower-triangular
+order.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+</dd></dl>
+
+</section>
 <section id="fractional-anisotropy">
 <h3>fractional_anisotropy<a class="headerlink" href="#fractional-anisotropy" title="Link to this heading">#</a></h3>
 <dl class="py function">
@@ -7422,7 +7483,7 @@ the GradientTable input for that direction</p>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>evals</strong><span class="classifier">array-like</span></dt><dd><p>Eigenvalues of a diffusion tensor.</p>
 </dd>
-<dt><strong>axis</strong><span class="classifier">int, optional</span></dt><dd><p>Axis of <cite>evals</cite> which contains 3 eigenvalues.</p>
+<dt><strong>axis</strong><span class="classifier">int, optional</span></dt><dd><p>Axis of evals which contains 3 eigenvalues.</p>
 </dd>
 </dl>
 </dd>
@@ -7435,7 +7496,7 @@ the GradientTable input for that direction</p>
 </dl>
 <p class="rubric">Notes</p>
 <p>GA is calculated using the following equation given in
-<a class="footnote-reference brackets" href="#footcite-batchelor2005" id="id182" role="doc-noteref"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></a>:</p>
+<a class="footnote-reference brackets" href="#footcite-batchelor2005" id="id185" role="doc-noteref"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></a>:</p>
 <div class="math notranslate nohighlight">
 \[GA = \sqrt{\sum_{i=1}^3
 \log^2{\left ( \lambda_i/&lt;\mathbf{D}&gt; \right )}},
@@ -7443,38 +7504,38 @@ the GradientTable input for that direction</p>
 (\lambda_1\lambda_2\lambda_3)^{1/3}\]</div>
 <p>Note that the notation, <span class="math notranslate nohighlight">\(&lt;D&gt;\)</span>, is often used as the mean diffusivity (MD)
 of the diffusion tensor and can lead to confusions in the literature
-(see <a class="footnote-reference brackets" href="#footcite-batchelor2005" id="id183" role="doc-noteref"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></a> versus <a class="footnote-reference brackets" href="#footcite-correia2011b" id="id184" role="doc-noteref"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></a> versus
-<a class="footnote-reference brackets" href="#footcite-lee2008" id="id185" role="doc-noteref"><span class="fn-bracket">[</span>43<span class="fn-bracket">]</span></a> for example). <a class="footnote-reference brackets" href="#footcite-correia2011b" id="id186" role="doc-noteref"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></a> defines
+(see <a class="footnote-reference brackets" href="#footcite-batchelor2005" id="id186" role="doc-noteref"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></a> versus <a class="footnote-reference brackets" href="#footcite-correia2011b" id="id187" role="doc-noteref"><span class="fn-bracket">[</span>43<span class="fn-bracket">]</span></a> versus
+<a class="footnote-reference brackets" href="#footcite-lee2008" id="id188" role="doc-noteref"><span class="fn-bracket">[</span>44<span class="fn-bracket">]</span></a> for example). <a class="footnote-reference brackets" href="#footcite-correia2011b" id="id189" role="doc-noteref"><span class="fn-bracket">[</span>43<span class="fn-bracket">]</span></a> defines
 geodesic anisotropy (GA) with <span class="math notranslate nohighlight">\(&lt;D&gt;\)</span> as the MD in the denominator of the
-sum. This is wrong. The original paper <a class="footnote-reference brackets" href="#footcite-batchelor2005" id="id187" role="doc-noteref"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></a> defines
+sum. This is wrong. The original paper <a class="footnote-reference brackets" href="#footcite-batchelor2005" id="id190" role="doc-noteref"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></a> defines
 GA with  <span class="math notranslate nohighlight">\(&lt;D&gt; = det(D)^{1/3}\)</span>, as the isotropic part of the distance. This
 might be an explanation for the confusion. The isotropic part of the
 diffusion tensor in Euclidean space is the MD whereas the isotropic part of
 the tensor in log-Euclidean space is <span class="math notranslate nohighlight">\(det(D)^{1/3}\)</span>. The Appendix of
-<a class="footnote-reference brackets" href="#footcite-batchelor2005" id="id188" role="doc-noteref"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></a> and log-Euclidean derivations from
-<a class="footnote-reference brackets" href="#footcite-lee2008" id="id189" role="doc-noteref"><span class="fn-bracket">[</span>43<span class="fn-bracket">]</span></a> are clear on this. Hence, all that to say that
+<a class="footnote-reference brackets" href="#footcite-batchelor2005" id="id191" role="doc-noteref"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></a> and log-Euclidean derivations from
+<a class="footnote-reference brackets" href="#footcite-lee2008" id="id192" role="doc-noteref"><span class="fn-bracket">[</span>44<span class="fn-bracket">]</span></a> are clear on this. Hence, all that to say that
 <span class="math notranslate nohighlight">\(&lt;D&gt; = det(D)^{1/3}\)</span> here for the GA definition and not MD.</p>
-<p>See also <a class="footnote-reference brackets" href="#footcite-arsigny2006" id="id190" role="doc-noteref"><span class="fn-bracket">[</span>44<span class="fn-bracket">]</span></a>.</p>
+<p>See also <a class="footnote-reference brackets" href="#footcite-arsigny2006" id="id193" role="doc-noteref"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></a>.</p>
 <p class="rubric">References</p>
-<div class="docutils container" id="id191">
+<div class="docutils container" id="id194">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-batchelor2005" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id182">1</a>,<a role="doc-backlink" href="#id183">2</a>,<a role="doc-backlink" href="#id187">3</a>,<a role="doc-backlink" href="#id188">4</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id185">1</a>,<a role="doc-backlink" href="#id186">2</a>,<a role="doc-backlink" href="#id190">3</a>,<a role="doc-backlink" href="#id191">4</a>)</span>
 <p>Phillipp G. Batchelor, Maher Moakher, David Atkinson, Fernando Calamante, and Alan Connelly. A rigorous framework for diffusion tensor calculus. <em>Magnetic Resonance in Medicine</em>, 53(1):221–225, 2005. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.20334">https://doi.org/10.1002/mrm.20334</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.20334">doi:10.1002/mrm.20334</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-correia2011b" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id184">1</a>,<a role="doc-backlink" href="#id186">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>43<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id187">1</a>,<a role="doc-backlink" href="#id189">2</a>)</span>
 <p>Marta Morgado Correia, Virginia F. J. Newcombe, and Guy B. Williams. Contrast-to-noise ratios for indices of anisotropy obtained from diffusion MRI: A study with standard clinical b-values at 3T. <em>NeuroImage</em>, 57(3):1103–1115, August 2011. Special Issue: Educational Neuroscience. URL: <a class="reference external" href="https://doi.org/10.1016/j.neuroimage.2011.03.004">https://doi.org/10.1016/j.neuroimage.2011.03.004</a>, <a class="reference external" href="https://doi.org/10.1016/j.neuroimage.2011.03.004">doi:10.1016/j.neuroimage.2011.03.004</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-lee2008" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>43<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id185">1</a>,<a role="doc-backlink" href="#id189">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>44<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id188">1</a>,<a role="doc-backlink" href="#id192">2</a>)</span>
 <p>Agatha D. Lee, Natasha Lepore, Marina Barysheva, Yi-Yu Chou, Caroline Brun, Sarah K. Madsen, Katie L. McMahon, Greig I. de Zubicaray, Matthew Meredith, Margaret J. Wright, Arthur W. Toga, and Paul M. Thompson. Comparison of fractional and geodesic anisotropy in diffusion tensor images of 90 monozygotic and dizygotic twins. In <em>2008 5th IEEE International Symposium on Biomedical Imaging: From Nano to Macro</em>, volume, 943–946. May 2008. <a class="reference external" href="https://doi.org/10.1109/ISBI.2008.4541153">doi:10.1109/ISBI.2008.4541153</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-arsigny2006" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id190">44</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id193">45</a><span class="fn-bracket">]</span></span>
 <p>Vincent Arsigny, Pierre Fillard, Xavier Pennec, and Nicholas Ayache. Log-Euclidean metrics for fast and simple calculus on diffusion tensors. <em>Magnetic Resonance in Medicine</em>, 56(2):411–421, 2006. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.20965">https://doi.org/10.1002/mrm.20965</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.20965">doi:10.1002/mrm.20965</a>.</p>
 </aside>
 </aside>
@@ -7663,7 +7724,7 @@ tensors. Should be of shape (x, y, z, 3, 3) or (n, 3, 3) or (3, 3).</p>
 <dt class="sig sig-object py" id="dipy.reconst.dti.isotropic">
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">isotropic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_form</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#isotropic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.isotropic" title="Link to this definition">#</a></dt>
 <dd><p>Calculate the isotropic part of the tensor.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-ennis2006" id="id192" role="doc-noteref"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-ennis2006" id="id195" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -7681,15 +7742,15 @@ tensors. Should be of shape (x,y,z,3,3) or (n, 3, 3) or (3,3).</p>
 </dl>
 <p class="rubric">Notes</p>
 <p>The isotropic part of a tensor is defined as (equations 3-5 of
-<a class="footnote-reference brackets" href="#footcite-ennis2006" id="id193" role="doc-noteref"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></a>):</p>
+<a class="footnote-reference brackets" href="#footcite-ennis2006" id="id196" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a>):</p>
 <div class="math notranslate nohighlight">
 \[\bar{A} = \frac{1}{3} tr(A) I\]</div>
 <p class="rubric">References</p>
-<div class="docutils container" id="id194">
+<div class="docutils container" id="id197">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-ennis2006" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id192">1</a>,<a role="doc-backlink" href="#id193">2</a>,<a role="doc-backlink" href="#id195">3</a>,<a role="doc-backlink" href="#id196">4</a>,<a role="doc-backlink" href="#id197">5</a>,<a role="doc-backlink" href="#id198">6</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id195">1</a>,<a role="doc-backlink" href="#id196">2</a>,<a role="doc-backlink" href="#id198">3</a>,<a role="doc-backlink" href="#id199">4</a>,<a role="doc-backlink" href="#id200">5</a>,<a role="doc-backlink" href="#id201">6</a>)</span>
 <p>Daniel B. Ennis and Gordon Kindlmann. Orthogonal tensor invariants and the analysis of diffusion tensor magnetic resonance images. <em>Magnetic Resonance in Medicine</em>, 55(1):136–146, 2006. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.20741">https://doi.org/10.1002/mrm.20741</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.20741">doi:10.1002/mrm.20741</a>.</p>
 </aside>
 </aside>
@@ -7703,7 +7764,7 @@ tensors. Should be of shape (x,y,z,3,3) or (n, 3, 3) or (3,3).</p>
 <dt class="sig sig-object py" id="dipy.reconst.dti.deviatoric">
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">deviatoric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_form</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#deviatoric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.deviatoric" title="Link to this definition">#</a></dt>
 <dd><p>Calculate the deviatoric (anisotropic) part of the tensor.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-ennis2006" id="id195" role="doc-noteref"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-ennis2006" id="id198" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -7721,7 +7782,7 @@ tensors. Should be of shape (x,y,z,3,3) or (n, 3, 3) or (3,3).</p>
 </dl>
 <p class="rubric">Notes</p>
 <p>The deviatoric part of the tensor is defined as (equations 3-5 in
-<a class="footnote-reference brackets" href="#footcite-ennis2006" id="id196" role="doc-noteref"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></a>):</p>
+<a class="footnote-reference brackets" href="#footcite-ennis2006" id="id199" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a>):</p>
 <div class="math notranslate nohighlight">
 \[\widetilde{A} = A - \bar{A}\]</div>
 <p>Where <span class="math notranslate nohighlight">\(A\)</span> is the tensor quadratic form and <span class="math notranslate nohighlight">\(\bar{A}\)</span> is the isotropic
@@ -7771,7 +7832,7 @@ coordinate.</p>
 <dt class="sig sig-object py" id="dipy.reconst.dti.mode">
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_form</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.mode" title="Link to this definition">#</a></dt>
 <dd><p>Mode (MO) of a diffusion tensor.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-ennis2006" id="id197" role="doc-noteref"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-ennis2006" id="id200" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -7793,7 +7854,7 @@ with 0 representing orthotropy. Mode is undefined for isotropic tensors:
 0 is returned when the deviatoric part is exactly zero, but nearly
 isotropic tensors can give unstable values anywhere in [-1, 1]. Mode is
 calculated with the following equation (equation 9 in
-<a class="footnote-reference brackets" href="#footcite-ennis2006" id="id198" role="doc-noteref"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></a>):</p>
+<a class="footnote-reference brackets" href="#footcite-ennis2006" id="id201" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a>):</p>
 <div class="math notranslate nohighlight">
 \[Mode = 3*\sqrt{6}*det(\widetilde{A}/norm(\widetilde{A}))\]</div>
 <p>Where <span class="math notranslate nohighlight">\(\widetilde{A}\)</span> is the deviatoric part of the tensor quadratic form.</p>
@@ -7807,7 +7868,7 @@ calculated with the following equation (equation 9 in
 <dt class="sig sig-object py" id="dipy.reconst.dti.linearity">
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">linearity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evals</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#linearity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.linearity" title="Link to this definition">#</a></dt>
 <dd><p>The linearity of the tensor.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-westin1997" id="id199" role="doc-noteref"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-westin1997" id="id202" role="doc-noteref"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -7838,7 +7899,7 @@ calculated with the following equation (equation 9 in
 <dt class="sig sig-object py" id="dipy.reconst.dti.planarity">
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">planarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evals</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#planarity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.planarity" title="Link to this definition">#</a></dt>
 <dd><p>The planarity of the tensor.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-westin1997" id="id200" role="doc-noteref"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-westin1997" id="id203" role="doc-noteref"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -7870,7 +7931,7 @@ calculated with the following equation (equation 9 in
 <dt class="sig sig-object py" id="dipy.reconst.dti.sphericity">
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">sphericity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evals</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#sphericity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.sphericity" title="Link to this definition">#</a></dt>
 <dd><p>The sphericity of the tensor.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-westin1997" id="id201" role="doc-noteref"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-westin1997" id="id204" role="doc-noteref"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -7989,7 +8050,7 @@ increased.</p>
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">wls_fit_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">design_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_S0_hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_lower_triangular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_leverages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#wls_fit_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.wls_fit_tensor" title="Link to this definition">#</a></dt>
 <dd><p>Computes weighted least squares (WLS) fit to calculate self-diffusion
 tensor using a linear regression model.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-chung2006" id="id202" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-chung2006" id="id205" role="doc-noteref"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -8002,7 +8063,7 @@ dimension should contain the data. It makes no copies of data.</p>
 <dt><strong>weights</strong><span class="classifier">array ([X, Y, Z, …], g), optional</span></dt><dd><p>Weights to apply for fitting. These weights must correspond to the
 squared residuals such that <span class="math notranslate nohighlight">\(S = \sum_i w_i r_i^2\)</span>.
 If not provided, weights are estimated as the squared predicted signal
-from an initial OLS fit <a class="footnote-reference brackets" href="#footcite-chung2006" id="id203" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a>.</p>
+from an initial OLS fit <a class="footnote-reference brackets" href="#footcite-chung2006" id="id206" role="doc-noteref"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></a>.</p>
 </dd>
 <dt><strong>return_S0_hat</strong><span class="classifier">bool, optional</span></dt><dd><p>Boolean to return (True) or not (False) the S0 values for the fit.</p>
 </dd>
@@ -8054,11 +8115,11 @@ X = \mathrm{design matrix} \\
 W = \mathrm{diag}((X \hat{\beta}_\mathrm{OLS})^2),
 \mathrm{where} \hat{\beta}_\mathrm{OLS} = (X^T X)^{-1} X^T y\end{split}\]</div>
 <p class="rubric">References</p>
-<div class="docutils container" id="id204">
+<div class="docutils container" id="id207">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-chung2006" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id202">1</a>,<a role="doc-backlink" href="#id203">2</a>,<a role="doc-backlink" href="#id205">3</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id205">1</a>,<a role="doc-backlink" href="#id206">2</a>,<a role="doc-backlink" href="#id208">3</a>)</span>
 <p>SungWon Chung, Ying Lu, and Roland G. Henry. Comparison of bootstrap approaches for estimation of uncertainties of DTI parameters. <em>NeuroImage</em>, 33(2):531–541, 2006. URL: <a class="reference external" href="https://doi.org/10.1016/j.neuroimage.2006.07.001">https://doi.org/10.1016/j.neuroimage.2006.07.001</a>, <a class="reference external" href="https://doi.org/10.1016/j.neuroimage.2006.07.001">doi:10.1016/j.neuroimage.2006.07.001</a>.</p>
 </aside>
 </aside>
@@ -8073,7 +8134,7 @@ W = \mathrm{diag}((X \hat{\beta}_\mathrm{OLS})^2),
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">ols_fit_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">design_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_S0_hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_lower_triangular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_leverages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#ols_fit_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.ols_fit_tensor" title="Link to this definition">#</a></dt>
 <dd><p>Computes ordinary least squares (OLS) fit to calculate self-diffusion
 tensor using a linear regression model.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-chung2006" id="id205" role="doc-noteref"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-chung2006" id="id208" role="doc-noteref"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -8122,7 +8183,7 @@ X = \mathrm{design matrix} \\\end{split}\\\hat{\beta}_\mathrm{OLS} = (X^T X)^{-1
 <h3>nlls_fit_tensor<a class="headerlink" href="#nlls-fit-tensor" title="Link to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="dipy.reconst.dti.nlls_fit_tensor">
-<span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">nlls_fit_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">design_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_S0_hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_is_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_lower_triangular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_leverages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#nlls_fit_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.nlls_fit_tensor" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">nlls_fit_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">design_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_S0_hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_is_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_lower_triangular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_leverages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cholesky</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#nlls_fit_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.nlls_fit_tensor" title="Link to this definition">#</a></dt>
 <dd><p>Fit the cumulant expansion params (e.g. DTI, DKI) using non-linear
 least-squares.</p>
 <dl class="field-list simple">
@@ -8151,6 +8212,9 @@ squared residuals such that <span class="math notranslate nohighlight">\(S = \su
 </dd>
 <dt><strong>init_params</strong><span class="classifier">array ([X, Y, Z, …], Npar), optional</span></dt><dd><p>Parameters in lower triangular form as initial optimization guess.</p>
 </dd>
+<dt><strong>cholesky</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, use a Cholesky parameterization for fitting the tensor.
+Default: False.</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -8174,7 +8238,7 @@ kurtosis at zero diffusivity. The CTI covariance elements are retained.</p>
 <dt class="sig sig-object py" id="dipy.reconst.dti.restore_fit_tensor">
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.dti.</span></span><span class="sig-name descname"><span class="pre">restore_fit_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">design_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_S0_hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_is_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/dti.html#restore_fit_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.dti.restore_fit_tensor" title="Link to this definition">#</a></dt>
 <dd><p>Compute a robust tensor fit using the RESTORE algorithm.</p>
-<p>Note that the RESTORE algorithm defined in <a class="footnote-reference brackets" href="#footcite-chang2005" id="id206" role="doc-noteref"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></a> does not define
+<p>Note that the RESTORE algorithm defined in <a class="footnote-reference brackets" href="#footcite-chang2005" id="id209" role="doc-noteref"><span class="fn-bracket">[</span>48<span class="fn-bracket">]</span></a> does not define
 Geman–McClure M-estimator weights as claimed (instead, Cauchy M-estimator
 weights are defined), but this function does define correct Geman–McClure
 M-estimator weights.</p>
@@ -8187,12 +8251,12 @@ coefficients.</p>
 <dt><strong>data</strong><span class="classifier">array of shape ([X, Y, Z, n_directions], g)</span></dt><dd><p>Data or response variables holding the data. Note that the last
 dimension should contain the data. It makes no copies of data.</p>
 </dd>
-<dt><strong>sigma</strong><span class="classifier">float, optional</span></dt><dd><p>An estimate of the variance. <a class="footnote-reference brackets" href="#footcite-chang2005" id="id207" role="doc-noteref"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></a> recommend to use
+<dt><strong>sigma</strong><span class="classifier">float, optional</span></dt><dd><p>An estimate of the variance. <a class="footnote-reference brackets" href="#footcite-chang2005" id="id210" role="doc-noteref"><span class="fn-bracket">[</span>48<span class="fn-bracket">]</span></a> recommend to use
 1.5267 * std(background_noise), where background_noise is estimated
 from some part of the image known to contain no signal (only noise).
 If not provided, will be estimated per voxel as:
 sigma = 1.4826 * sqrt(N / (N - p)) * MAD(residuals)
-as in <a class="footnote-reference brackets" href="#footcite-chang2012" id="id208" role="doc-noteref"><span class="fn-bracket">[</span>48<span class="fn-bracket">]</span></a> but with the additional correction factor
+as in <a class="footnote-reference brackets" href="#footcite-chang2012" id="id211" role="doc-noteref"><span class="fn-bracket">[</span>49<span class="fn-bracket">]</span></a> but with the additional correction factor
 1.4826 required to link standard deviation to MAD.</p>
 </dd>
 <dt><strong>jac</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to use the Jacobian of the tensor to speed the non-linear
@@ -8212,15 +8276,15 @@ optimization procedure used to fit the tensor parameters (see also
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div class="docutils container" id="id209">
+<div class="docutils container" id="id212">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-chang2005" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id206">1</a>,<a role="doc-backlink" href="#id207">2</a>,<a role="doc-backlink" href="#id221">3</a>,<a role="doc-backlink" href="#id222">4</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>48<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id209">1</a>,<a role="doc-backlink" href="#id210">2</a>,<a role="doc-backlink" href="#id224">3</a>,<a role="doc-backlink" href="#id225">4</a>)</span>
 <p>Lin-Ching Chang, Derek K. Jones, and Carlo Pierpaoli. RESTORE: Robust estimation of tensors by outlier rejection. <em>Magnetic Resonance in Medicine</em>, 53(5):1088–1095, 2005. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.20426">https://doi.org/10.1002/mrm.20426</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.20426">doi:10.1002/mrm.20426</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-chang2012" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id208">48</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id211">49</a><span class="fn-bracket">]</span></span>
 <p>Lin-Ching Chang, Lindsay Walker, and Carlo Pierpaoli. Informed RESTORE: A method for robust estimation of diffusion tensor from low redundancy datasets in the presence of physiological noise artifacts. <em>Magnetic Resonance in Medicine</em>, 68(5):1654–1663, 2012. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.24173">https://doi.org/10.1002/mrm.24173</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.24173">doi:10.1002/mrm.24173</a>.</p>
 </aside>
 </aside>
@@ -9373,14 +9437,14 @@ spans the entire prior range.</p>
 <dd><p>Bases: <a class="reference internal" href="#dipy.reconst.odf.OdfModel" title="dipy.reconst.odf.OdfModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">OdfModel</span></code></a>, <a class="reference internal" href="#dipy.reconst.cache.Cache" title="dipy.reconst.cache.Cache"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cache</span></code></a></p>
 <p>Fiber ORientation Estimated using Continuous Axially Symmetric Tensors
 (FORECAST).</p>
-<p>FORECAST <a class="footnote-reference brackets" href="#footcite-anderson2005" id="id210" role="doc-noteref"><span class="fn-bracket">[</span>49<span class="fn-bracket">]</span></a>, <a class="footnote-reference brackets" href="#footcite-kaden2016a" id="id211" role="doc-noteref"><span class="fn-bracket">[</span>50<span class="fn-bracket">]</span></a>,
-<a class="footnote-reference brackets" href="#footcite-zucchelli2017" id="id212" role="doc-noteref"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></a> is a Spherical Deconvolution reconstruction
+<p>FORECAST <a class="footnote-reference brackets" href="#footcite-anderson2005" id="id213" role="doc-noteref"><span class="fn-bracket">[</span>50<span class="fn-bracket">]</span></a>, <a class="footnote-reference brackets" href="#footcite-kaden2016a" id="id214" role="doc-noteref"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></a>,
+<a class="footnote-reference brackets" href="#footcite-zucchelli2017" id="id215" role="doc-noteref"><span class="fn-bracket">[</span>52<span class="fn-bracket">]</span></a> is a Spherical Deconvolution reconstruction
 model for multi-shell diffusion data which enables the calculation of a
 voxel adaptive response function using the Spherical Mean Technique (SMT)
-<a class="footnote-reference brackets" href="#footcite-kaden2016a" id="id213" role="doc-noteref"><span class="fn-bracket">[</span>50<span class="fn-bracket">]</span></a>, <a class="footnote-reference brackets" href="#footcite-zucchelli2017" id="id214" role="doc-noteref"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></a>.</p>
+<a class="footnote-reference brackets" href="#footcite-kaden2016a" id="id216" role="doc-noteref"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></a>, <a class="footnote-reference brackets" href="#footcite-zucchelli2017" id="id217" role="doc-noteref"><span class="fn-bracket">[</span>52<span class="fn-bracket">]</span></a>.</p>
 <p>With FORECAST it is possible to calculate crossing invariant parallel
 diffusivity, perpendicular diffusivity, mean diffusivity, and fractional
-anisotropy <a class="footnote-reference brackets" href="#footcite-kaden2016a" id="id215" role="doc-noteref"><span class="fn-bracket">[</span>50<span class="fn-bracket">]</span></a>.</p>
+anisotropy <a class="footnote-reference brackets" href="#footcite-kaden2016a" id="id218" role="doc-noteref"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></a>.</p>
 <p class="rubric">Methods</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -9402,20 +9466,20 @@ anisotropy <a class="footnote-reference brackets" href="#footcite-kaden2016a" id
 <p class="rubric">Notes</p>
 <p>The implementation of FORECAST may require CVXPY (<a class="reference external" href="https://www.cvxpy.org/">https://www.cvxpy.org/</a>).</p>
 <p class="rubric">References</p>
-<div class="docutils container" id="id216">
+<div class="docutils container" id="id219">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-anderson2005" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id210">49</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id213">50</a><span class="fn-bracket">]</span></span>
 <p>Adam W. Anderson. Measurement of fiber orientation distributions using high angular resolution diffusion imaging. <em>Magnetic Resonance in Medicine</em>, 54(5):1194–1206, 2005. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.20667">https://doi.org/10.1002/mrm.20667</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.20667">doi:10.1002/mrm.20667</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-kaden2016a" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>50<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id211">1</a>,<a role="doc-backlink" href="#id213">2</a>,<a role="doc-backlink" href="#id215">3</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id214">1</a>,<a role="doc-backlink" href="#id216">2</a>,<a role="doc-backlink" href="#id218">3</a>)</span>
 <p>Enrico Kaden, Frithjof Kruggel, and Daniel C. Alexander. Quantitative mapping of the per-axon diffusion coefficients in brain white matter. <em>Magnetic Resonance in Medicine</em>, 75(4):1752–1763, April 2016. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.25734">https://doi.org/10.1002/mrm.25734</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.25734">doi:10.1002/mrm.25734</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-zucchelli2017" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id212">1</a>,<a role="doc-backlink" href="#id214">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>52<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id215">1</a>,<a role="doc-backlink" href="#id217">2</a>)</span>
 <p>Mauro Zucchelli, Maxime Descoteaux, and Gloria Menegaz. A generalized SMT-based framework for Diffusion MRI microstructural model estimation. In Enrico Kaden, Francesco Grussu, Lipeng Ning, Chantal M. W. Tax, and Jelle Veraart, editors, <em>Computational Diffusion MRI</em>, 51–63. Cham, 2018. Springer International Publishing.</p>
 </aside>
 </aside>
@@ -9817,13 +9881,13 @@ direction on the sphere for which a signal is to be predicted, <span class="math
 value provided in the GradientTable input for that direction, <span class="math notranslate nohighlight">\(Q\)</span> is the
 quadratic form of the tensor determined by the input parameters, <span class="math notranslate nohighlight">\(f\)</span> is the
 free water diffusion compartment, <span class="math notranslate nohighlight">\(D_{iso}\)</span> is the free water diffusivity
-which is equal to $3 * 10^{-3} mm^{2}s^{-1} <a class="footnote-reference brackets" href="#footcite-netohenriques2017" id="id217" role="doc-noteref"><span class="fn-bracket">[</span>52<span class="fn-bracket">]</span></a>.</p>
+which is equal to $3 * 10^{-3} mm^{2}s^{-1} <a class="footnote-reference brackets" href="#footcite-netohenriques2017" id="id220" role="doc-noteref"><span class="fn-bracket">[</span>53<span class="fn-bracket">]</span></a>.</p>
 <p class="rubric">References</p>
-<div class="docutils container" id="id218">
+<div class="docutils container" id="id221">
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-netohenriques2017" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>52<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id217">1</a>,<a role="doc-backlink" href="#id220">2</a>)</span>
+<span class="label"><span class="fn-bracket">[</span>53<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id220">1</a>,<a role="doc-backlink" href="#id223">2</a>)</span>
 <p>Rafael Neto Henriques, Ariel Rokem, Eleftherios Garyfallidis, Samuel St-Jean, Eric Thomas Peterson, and Marta Morgado Correia. [Re] Optimization of a free water elimination two-compartment model for diffusion tensor imaging. bioRxiv, 2017. <a class="reference external" href="https://doi.org/https://doi.org/10.1101/108795">doi:https://doi.org/10.1101/108795</a>.</p>
 </aside>
 </aside>
@@ -9886,14 +9950,14 @@ first, second and third coordinates of the eigenvector</p></li>
 </dd></dl>
 
 </section>
-<section id="id219">
-<h3>wls_fit_tensor<a class="headerlink" href="#id219" title="Link to this heading">#</a></h3>
+<section id="id222">
+<h3>wls_fit_tensor<a class="headerlink" href="#id222" title="Link to this heading">#</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="dipy.reconst.fwdti.wls_fit_tensor">
 <span class="sig-prename descclassname"><span class="pre">dipy.reconst.fwdti.</span></span><span class="sig-name descname"><span class="pre">wls_fit_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gtab</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">Diso</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.003</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_signal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">piterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdreg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0027</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/fwdti.html#wls_fit_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.fwdti.wls_fit_tensor" title="Link to this definition">#</a></dt>
 <dd><p>Computes weighted least squares (WLS) fit to calculate self-diffusion
 tensor using a linear regression model.</p>
-<p>See <a class="footnote-reference brackets" href="#footcite-netohenriques2017" id="id220" role="doc-noteref"><span class="fn-bracket">[</span>52<span class="fn-bracket">]</span></a> for further details about the method.</p>
+<p>See <a class="footnote-reference brackets" href="#footcite-netohenriques2017" id="id223" role="doc-noteref"><span class="fn-bracket">[</span>53<span class="fn-bracket">]</span></a> for further details about the method.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -9989,7 +10053,7 @@ squared-error. Default behavior is to use uniform weighting. Other
 options: ‘sigma’ ‘gmm’</p>
 </dd>
 <dt><strong>sigma: float, optional</strong></dt><dd><p>If the ‘sigma’ weighting scheme is used, a value of sigma needs to be
-provided here. According to Chang <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chang2005" id="id221" role="doc-noteref"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></a>, a good value to use
+provided here. According to Chang <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chang2005" id="id224" role="doc-noteref"><span class="fn-bracket">[</span>48<span class="fn-bracket">]</span></a>, a good value to use
 is 1.5267 * std(background_noise), where background_noise is estimated
 from some part of the image known to contain no signal (only noise).</p>
 </dd>
@@ -10056,7 +10120,7 @@ squared-error. Default behavior is to use uniform weighting. Other
 options: ‘sigma’ ‘gmm’</p>
 </dd>
 <dt><strong>sigma: float, optional</strong></dt><dd><p>If the ‘sigma’ weighting scheme is used, a value of sigma needs to be
-provided here. According to Chang <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chang2005" id="id222" role="doc-noteref"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></a>, a good value to use
+provided here. According to Chang <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chang2005" id="id225" role="doc-noteref"><span class="fn-bracket">[</span>48<span class="fn-bracket">]</span></a>, a good value to use
 is 1.5267 * std(background_noise), where background_noise is estimated
 from some part of the image known to contain no signal (only noise).</p>
 </dd>
@@ -10074,67 +10138,6 @@ first, second and third coordinates of the eigenvector</p></li>
 <li><p>The volume fraction of the free water compartment</p></li>
 </ol>
 </div></blockquote>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">References</p>
-</dd></dl>
-
-</section>
-<section id="lower-triangular-to-cholesky">
-<h3>lower_triangular_to_cholesky<a class="headerlink" href="#lower-triangular-to-cholesky" title="Link to this heading">#</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="dipy.reconst.fwdti.lower_triangular_to_cholesky">
-<span class="sig-prename descclassname"><span class="pre">dipy.reconst.fwdti.</span></span><span class="sig-name descname"><span class="pre">lower_triangular_to_cholesky</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor_elements</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/fwdti.html#lower_triangular_to_cholesky"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.fwdti.lower_triangular_to_cholesky" title="Link to this definition">#</a></dt>
-<dd><p>Performs Cholesky decomposition of the diffusion tensor</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>tensor_elements</strong><span class="classifier">array (6,)</span></dt><dd><p>Array containing the six elements of diffusion tensor’s lower
-triangular.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>cholesky_elements</strong><span class="classifier">array (6,)</span></dt><dd><p>Array containing the six Cholesky’s decomposition elements
-(R0, R1, R2, R3, R4, R5) <a class="footnote-reference brackets" href="#footcite-koay2006b" id="id223" role="doc-noteref"><span class="fn-bracket">[</span>53<span class="fn-bracket">]</span></a>.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">References</p>
-<div class="docutils container" id="id224">
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="footcite-koay2006b" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>53<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id223">1</a>,<a role="doc-backlink" href="#id225">2</a>)</span>
-<p>Cheng Guan Koay, John D. Carew, Andrew L. Alexander, Peter J. Basser, and M. Elizabeth Meyerand. Investigation of anomalous estimates of tensor-derived quantities in diffusion tensor imaging. <em>Magnetic Resonance in Medicine</em>, 55(4):930–936, April 2006. URL: <a class="reference external" href="https://doi.org/10.1002/mrm.20832">https://doi.org/10.1002/mrm.20832</a>, <a class="reference external" href="https://doi.org/10.1002/mrm.20832">doi:10.1002/mrm.20832</a>.</p>
-</aside>
-</aside>
-</div>
-</dd></dl>
-
-</section>
-<section id="cholesky-to-lower-triangular">
-<h3>cholesky_to_lower_triangular<a class="headerlink" href="#cholesky-to-lower-triangular" title="Link to this heading">#</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="dipy.reconst.fwdti.cholesky_to_lower_triangular">
-<span class="sig-prename descclassname"><span class="pre">dipy.reconst.fwdti.</span></span><span class="sig-name descname"><span class="pre">cholesky_to_lower_triangular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/reconst/fwdti.html#cholesky_to_lower_triangular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.reconst.fwdti.cholesky_to_lower_triangular" title="Link to this definition">#</a></dt>
-<dd><p>Convert Cholesky decomposition elements to the diffusion tensor elements</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>R</strong><span class="classifier">array (6,)</span></dt><dd><p>Array containing the six Cholesky’s decomposition elements
-(R0, R1, R2, R3, R4, R5) <a class="footnote-reference brackets" href="#footcite-koay2006b" id="id225" role="doc-noteref"><span class="fn-bracket">[</span>53<span class="fn-bracket">]</span></a>.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>tensor_elements</strong><span class="classifier">array (6,)</span></dt><dd><p>Array containing the six elements of diffusion tensor’s lower
-triangular.</p>
 </dd>
 </dl>
 </dd>
@@ -18880,6 +18883,14 @@ On the last iteration, NLLS is performed without outliers.</p>
 </li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lower-triangular-to-cholesky">lower_triangular_to_cholesky</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.reconst.dti.lower_triangular_to_cholesky"><code class="docutils literal notranslate"><span class="pre">lower_triangular_to_cholesky()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cholesky-to-lower-triangular">cholesky_to_lower_triangular</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.reconst.dti.cholesky_to_lower_triangular"><code class="docutils literal notranslate"><span class="pre">cholesky_to_lower_triangular()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fractional-anisotropy">fractional_anisotropy</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.reconst.dti.fractional_anisotropy"><code class="docutils literal notranslate"><span class="pre">fractional_anisotropy()</span></code></a></li>
 </ul>
@@ -19186,7 +19197,7 @@ On the last iteration, NLLS is performed without outliers.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.reconst.fwdti.wls_iter"><code class="docutils literal notranslate"><span class="pre">wls_iter()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id219">wls_fit_tensor</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id222">wls_fit_tensor</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.reconst.fwdti.wls_fit_tensor"><code class="docutils literal notranslate"><span class="pre">wls_fit_tensor()</span></code></a></li>
 </ul>
 </li>
@@ -19196,14 +19207,6 @@ On the last iteration, NLLS is performed without outliers.</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nls-fit-tensor">nls_fit_tensor</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.reconst.fwdti.nls_fit_tensor"><code class="docutils literal notranslate"><span class="pre">nls_fit_tensor()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lower-triangular-to-cholesky">lower_triangular_to_cholesky</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.reconst.fwdti.lower_triangular_to_cholesky"><code class="docutils literal notranslate"><span class="pre">lower_triangular_to_cholesky()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cholesky-to-lower-triangular">cholesky_to_lower_triangular</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dipy.reconst.fwdti.cholesky_to_lower_triangular"><code class="docutils literal notranslate"><span class="pre">cholesky_to_lower_triangular()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generalizedqsamplingmodel"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralizedQSamplingModel</span></code></a><ul class="nav section-nav flex-column">
