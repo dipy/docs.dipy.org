@@ -36,10 +36,12 @@ General Options
   
   - 'median_otsu': Classical median Otsu segmentation, DWI-focused.
   - 'evac': Deep learning EVACPlus method, T1-focused.
+  - 'mindgrab': Deep learning MindGrab method, lightweight and
+    works for all modalities.
   - 'synthseg': Deep learning SynthSeg method, works for all
     modalities.
   
-  (default: synthseg)
+  (default: mindgrab)
 
 * ``--bvalues_files``
 
@@ -84,7 +86,8 @@ General Options
 * ``--finalize_mask``
 
   Whether to remove potential holes or islands. Useful for solving
-  minor errors. Used for 'median_otsu' and 'synthseg' methods.
+  minor errors. Used for 'median_otsu', 'synthseg' and 'mindgrab'
+  methods.
   (default: True)
 
 * ``--save_masked``
@@ -94,9 +97,26 @@ General Options
 
 * ``--use_cuda``
 
-  Use CUDA for GPU acceleration. Used only for 'evac' and
-  'synthseg' methods.
+  Use CUDA for GPU acceleration. Used only for 'evac', 'synthseg'
+  and 'mindgrab' methods. For 'mindgrab', same as ``device='cuda'``.
   (default: False)
+
+* ``--device``
+
+  Where to run 'mindgrab': 'auto', 'cpu', 'webgpu' or 'cuda'. 'auto'
+  uses any GPU through WebGPU if the wgpu package is installed,
+  otherwise CUDA if PyTorch finds an NVIDIA GPU, otherwise the CPU.
+  Used only for 'mindgrab' method.
+  (default: auto)
+
+* ``--num_threads``
+
+  Number of threads to use on the CPU. If None, the value of the
+  ``OMP_NUM_THREADS`` environment variable is used if set, otherwise
+  all available cores. If < 0, the maximal number of threads minus
+  $|num_threads + 1|$ is used (enter -1 to use as many threads as
+  possible). 0 raises an error. Used only for 'mindgrab' method.
+  (default: None)
 
 Output Options
 --------------

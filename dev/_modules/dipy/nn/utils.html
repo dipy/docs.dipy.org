@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.nn.utils &#8212; dipy 1.13.0.dev0+git20261111.d1786c2 documentation</title>
+    <title>dipy.nn.utils &#8212; dipy 1.13.0.dev0+git20261111.ba1fae7 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=76a29d03"></script>
+    <script src="../../../_static/documentation_options.js?v=be3014ea"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,7 +883,10 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.nn.utils</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">affine_transform</span><span class="p">,</span> <span class="n">map_coordinates</span>
@@ -1297,6 +1300,111 @@ document.write(`
     <span class="p">]</span>
 
     <span class="k">return</span> <span class="n">image</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rebuild_tensor</span><span class="p">(</span><span class="n">storage</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Rebuild a pickled PyTorch tensor as a NumPy array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    storage : np.ndarray</span>
+<span class="sd">        Flat storage of the tensor.</span>
+<span class="sd">    offset : int</span>
+<span class="sd">        Offset of the tensor in the storage, in elements.</span>
+<span class="sd">    size : tuple of int</span>
+<span class="sd">        Shape of the tensor.</span>
+<span class="sd">    stride : tuple of int</span>
+<span class="sd">        Strides of the tensor, in elements.</span>
+<span class="sd">    *args</span>
+<span class="sd">        Gradient and hook metadata, ignored.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Copy of the tensor data.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">stride_tricks</span><span class="o">.</span><span class="n">as_strided</span><span class="p">(</span>
+        <span class="n">storage</span><span class="p">[</span><span class="n">offset</span><span class="p">:],</span>
+        <span class="n">shape</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">size</span><span class="p">),</span>
+        <span class="n">strides</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">storage</span><span class="o">.</span><span class="n">itemsize</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">stride</span><span class="p">),</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+<span class="n">_STATE_DICT_GLOBALS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="s2">"collections"</span><span class="p">,</span> <span class="s2">"OrderedDict"</span><span class="p">):</span> <span class="n">OrderedDict</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"torch._utils"</span><span class="p">,</span> <span class="s2">"_rebuild_tensor_v2"</span><span class="p">):</span> <span class="n">_rebuild_tensor</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"torch"</span><span class="p">,</span> <span class="s2">"FloatStorage"</span><span class="p">):</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"torch"</span><span class="p">,</span> <span class="s2">"DoubleStorage"</span><span class="p">):</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"torch"</span><span class="p">,</span> <span class="s2">"HalfStorage"</span><span class="p">):</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"torch"</span><span class="p">,</span> <span class="s2">"IntStorage"</span><span class="p">):</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"torch"</span><span class="p">,</span> <span class="s2">"LongStorage"</span><span class="p">):</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_StateDictUnpickler</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">Unpickler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Unpickler rebuilding the tensors of a PyTorch state dict as arrays.</span>
+
+<span class="sd">    Only the globals listed in ``_STATE_DICT_GLOBALS`` can be loaded, so</span>
+<span class="sd">    reading a file cannot execute arbitrary code.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file : file object</span>
+<span class="sd">        Opened ``data.pkl`` member of the archive.</span>
+<span class="sd">    archive : zipfile.ZipFile</span>
+<span class="sd">        Archive holding the tensor storages.</span>
+<span class="sd">    prefix : str</span>
+<span class="sd">        Top-level folder of the archive.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">archive</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">archive</span> <span class="o">=</span> <span class="n">archive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_STATE_DICT_GLOBALS</span><span class="p">[(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Unsupported object </span><span class="si">{</span><span class="n">module</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> in a PyTorch state dict"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">persistent_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">numel</span> <span class="o">=</span> <span class="n">pid</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="si">}</span><span class="s2">/data/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="s2">"&lt;"</span><span class="p">),</span> <span class="n">count</span><span class="o">=</span><span class="n">numel</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="load_state_dict">
+<a class="viewcode-back" href="../../../reference/dipy.nn.html#dipy.nn.utils.load_state_dict">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_state_dict</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Read a PyTorch state dict saved by ``torch.save``, without PyTorch.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fname : str or Path</span>
+<span class="sd">        Path to the file, in the zip format used by PyTorch since 1.6.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Parameter names mapped to NumPy arrays.</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">archive</span><span class="p">:</span>
+            <span class="n">pickles</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">archive</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/data.pkl"</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pickles</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> is not a PyTorch state dict"</span><span class="p">)</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">pickles</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">"/data.pkl"</span><span class="p">)]</span>
+            <span class="k">with</span> <span class="n">archive</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pickles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">_StateDictUnpickler</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">archive</span><span class="o">=</span><span class="n">archive</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">zipfile</span><span class="o">.</span><span class="n">BadZipFile</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not read the PyTorch state dict </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> is not a PyTorch state dict"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
 
 </pre></div>
 

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dipy_brain_mask &#8212; dipy 1.13.0.dev0+git20261111.d1786c2 documentation</title>
+    <title>dipy_brain_mask &#8212; dipy 1.13.0.dev0+git20261111.ba1fae7 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=76a29d03"></script>
+    <script src="../_static/documentation_options.js?v=be3014ea"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -57,6 +57,7 @@
                 gtag('js', new Date());
                 gtag('config', 'G-D610GKJZRC');
             </script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference_cmd/dipy_brain_mask';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
@@ -991,10 +992,12 @@ process multiple inputs at once.</p>
 <ul class="simple">
 <li><p>‘median_otsu’: Classical median Otsu segmentation, DWI-focused.</p></li>
 <li><p>‘evac’: Deep learning EVACPlus method, T1-focused.</p></li>
+<li><p>‘mindgrab’: Deep learning MindGrab method, lightweight and
+works for all modalities.</p></li>
 <li><p>‘synthseg’: Deep learning SynthSeg method, works for all
 modalities.</p></li>
 </ul>
-<p>(default: synthseg)</p>
+<p>(default: mindgrab)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--bvalues_files</span></code></p>
 <p>Path to the b-values files. Used only for ‘median_otsu’ method.
@@ -1032,7 +1035,8 @@ for mask computation.
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--finalize_mask</span></code></p>
 <p>Whether to remove potential holes or islands. Useful for solving
-minor errors. Used for ‘median_otsu’ and ‘synthseg’ methods.
+minor errors. Used for ‘median_otsu’, ‘synthseg’ and ‘mindgrab’
+methods.
 (default: True)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--save_masked</span></code></p>
@@ -1040,9 +1044,24 @@ minor errors. Used for ‘median_otsu’ and ‘synthseg’ methods.
 (default: False)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--use_cuda</span></code></p>
-<p>Use CUDA for GPU acceleration. Used only for ‘evac’ and
-‘synthseg’ methods.
+<p>Use CUDA for GPU acceleration. Used only for ‘evac’, ‘synthseg’
+and ‘mindgrab’ methods. For ‘mindgrab’, same as <code class="docutils literal notranslate"><span class="pre">device='cuda'</span></code>.
 (default: False)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--device</span></code></p>
+<p>Where to run ‘mindgrab’: ‘auto’, ‘cpu’, ‘webgpu’ or ‘cuda’. ‘auto’
+uses any GPU through WebGPU if the wgpu package is installed,
+otherwise CUDA if PyTorch finds an NVIDIA GPU, otherwise the CPU.
+Used only for ‘mindgrab’ method.
+(default: auto)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--num_threads</span></code></p>
+<p>Number of threads to use on the CPU. If None, the value of the
+<code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> environment variable is used if set, otherwise
+all available cores. If &lt; 0, the maximal number of threads minus
+<span class="math notranslate nohighlight">\(|num_threads + 1|\)</span> is used (enter -1 to use as many threads as
+possible). 0 raises an error. Used only for ‘mindgrab’ method.
+(default: None)</p>
 </li>
 </ul>
 </section>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.segment &#8212; dipy 1.13.0.dev0+git20261111.d1786c2 documentation</title>
+    <title>dipy.workflows.segment &#8212; dipy 1.13.0.dev0+git20261111.ba1fae7 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=76a29d03"></script>
+    <script src="../../../_static/documentation_options.js?v=be3014ea"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -884,6 +884,7 @@ document.write(`
                   
   <h1>Source code for dipy.workflows.segment</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
@@ -894,6 +895,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">save_nifti</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.stateful_tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <span class="n">StatefulTractogram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_tractogram</span><span class="p">,</span> <span class="n">save_tractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.nn.mindgrab</span><span class="w"> </span><span class="kn">import</span> <span class="n">MindGrab</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.nn.synthseg</span><span class="w"> </span><span class="kn">import</span> <span class="n">SynthSeg</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.nn.torch.synthseg</span><span class="w"> </span><span class="kn">import</span> <span class="n">have_torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.segment.bundles</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecoBundles</span>
@@ -1551,7 +1553,7 @@ document.write(`
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_files</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">method</span><span class="o">=</span><span class="s2">"synthseg"</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">"mindgrab"</span><span class="p">,</span>
         <span class="n">bvalues_files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">b0_threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
         <span class="n">median_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
@@ -1561,6 +1563,8 @@ document.write(`
         <span class="n">finalize_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">save_masked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">use_cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">,</span>
+        <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_mask</span><span class="o">=</span><span class="s2">"brain_mask.nii.gz"</span><span class="p">,</span>
         <span class="n">out_masked</span><span class="o">=</span><span class="s2">"brain_masked.nii.gz"</span><span class="p">,</span>
@@ -1580,6 +1584,8 @@ document.write(`
 
 <span class="sd">            - 'median_otsu': Classical median Otsu segmentation, DWI-focused.</span>
 <span class="sd">            - 'evac': Deep learning EVACPlus method, T1-focused.</span>
+<span class="sd">            - 'mindgrab': Deep learning MindGrab method, lightweight and</span>
+<span class="sd">              works for all modalities.</span>
 <span class="sd">            - 'synthseg': Deep learning SynthSeg method, works for all</span>
 <span class="sd">              modalities.</span>
 
@@ -1607,12 +1613,24 @@ document.write(`
 <span class="sd">            'median_otsu' method.</span>
 <span class="sd">        finalize_mask : bool, optional</span>
 <span class="sd">            Whether to remove potential holes or islands. Useful for solving</span>
-<span class="sd">            minor errors. Used for 'median_otsu' and 'synthseg' methods.</span>
+<span class="sd">            minor errors. Used for 'median_otsu', 'synthseg' and 'mindgrab'</span>
+<span class="sd">            methods.</span>
 <span class="sd">        save_masked : bool, optional</span>
 <span class="sd">            Save the masked volume in addition to the mask.</span>
 <span class="sd">        use_cuda : bool, optional</span>
-<span class="sd">            Use CUDA for GPU acceleration. Used only for 'evac' and</span>
-<span class="sd">            'synthseg' methods.</span>
+<span class="sd">            Use CUDA for GPU acceleration. Used only for 'evac', 'synthseg'</span>
+<span class="sd">            and 'mindgrab' methods. For 'mindgrab', same as ``device='cuda'``.</span>
+<span class="sd">        device : string, optional</span>
+<span class="sd">            Where to run 'mindgrab': 'auto', 'cpu', 'webgpu' or 'cuda'. 'auto'</span>
+<span class="sd">            uses any GPU through WebGPU if the wgpu package is installed,</span>
+<span class="sd">            otherwise CUDA if PyTorch finds an NVIDIA GPU, otherwise the CPU.</span>
+<span class="sd">            Used only for 'mindgrab' method.</span>
+<span class="sd">        num_threads : int, optional</span>
+<span class="sd">            Number of threads to use on the CPU. If None, the value of the</span>
+<span class="sd">            ``OMP_NUM_THREADS`` environment variable is used if set, otherwise</span>
+<span class="sd">            all available cores. If &lt; 0, the maximal number of threads minus</span>
+<span class="sd">            $|num_threads + 1|$ is used (enter -1 to use as many threads as</span>
+<span class="sd">            possible). 0 raises an error. Used only for 'mindgrab' method.</span>
 <span class="sd">        out_dir : string or Path, optional</span>
 <span class="sd">            Output directory.</span>
 <span class="sd">        out_mask : string, optional</span>
@@ -1620,7 +1638,7 @@ document.write(`
 <span class="sd">        out_masked : string, optional</span>
 <span class="sd">            Name of the masked volume to be saved.</span>
 <span class="sd">        """</span>
-        <span class="n">valid_methods</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"median_otsu"</span><span class="p">,</span> <span class="s2">"synthseg"</span><span class="p">,</span> <span class="s2">"evac"</span><span class="p">]</span>
+        <span class="n">valid_methods</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"median_otsu"</span><span class="p">,</span> <span class="s2">"synthseg"</span><span class="p">,</span> <span class="s2">"evac"</span><span class="p">,</span> <span class="s2">"mindgrab"</span><span class="p">]</span>
         <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_methods</span><span class="p">:</span>
@@ -1664,13 +1682,32 @@ document.write(`
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Loading EVACPlus model..."</span><span class="p">)</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.nn.evac</span><span class="w"> </span><span class="kn">import</span> <span class="n">EVACPlus</span>
 
-            <span class="n">evac_model</span> <span class="o">=</span> <span class="n">EVACPlus</span><span class="p">(</span><span class="n">use_cuda</span><span class="o">=</span><span class="n">use_cuda</span><span class="p">)</span>
+            <span class="n">predict_mask</span> <span class="o">=</span> <span class="n">EVACPlus</span><span class="p">(</span><span class="n">use_cuda</span><span class="o">=</span><span class="n">use_cuda</span><span class="p">)</span><span class="o">.</span><span class="n">predict</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"EVACPlus model loaded."</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"synthseg"</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Loading SynthSeg model..."</span><span class="p">)</span>
             <span class="n">synthseg_model</span> <span class="o">=</span> <span class="n">SynthSeg</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="n">use_cuda</span><span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">predict_mask</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">synthseg_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+                    <span class="n">vol</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">finalize_mask</span><span class="o">=</span><span class="n">finalize_mask</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">mask</span>
+
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"SynthSeg model loaded."</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"mindgrab"</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Loading MindGrab model..."</span><span class="p">)</span>
+            <span class="n">predict_mask</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+                <span class="n">MindGrab</span><span class="p">(</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span> <span class="k">if</span> <span class="n">use_cuda</span> <span class="k">else</span> <span class="n">device</span><span class="p">,</span>
+                    <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">predict</span><span class="p">,</span>
+                <span class="n">finalize_mask</span><span class="o">=</span><span class="n">finalize_mask</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"MindGrab model loaded."</span><span class="p">)</span>
 
         <span class="n">bvals_counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">mask_out_path</span><span class="p">,</span> <span class="n">masked_out_path</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
@@ -1703,29 +1740,14 @@ document.write(`
                     <span class="n">finalize_mask</span><span class="o">=</span><span class="n">finalize_mask</span><span class="p">,</span>
                 <span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"evac"</span><span class="p">:</span>
+            <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fpath</span><span class="si">}</span><span class="s2"> is a 4D image. Only the first volume will "</span>
-                        <span class="s2">"be used for 'evac' brain masking."</span>
+                        <span class="sa">f</span><span class="s2">"be used for '</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">' brain masking."</span>
                     <span class="p">)</span>
                 <span class="n">vol</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">data</span>
-                <span class="n">mask_volume</span> <span class="o">=</span> <span class="n">evac_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
-                <span class="n">mask_for_apply</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">mask_volume</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">mask_volume</span>
-                <span class="p">)</span>
-                <span class="n">masked_volume</span> <span class="o">=</span> <span class="n">data</span> <span class="o">*</span> <span class="n">mask_for_apply</span>
-
-            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"synthseg"</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fpath</span><span class="si">}</span><span class="s2"> is a 4D image. Only the first volume will "</span>
-                        <span class="s2">"be used for 'synthseg' brain masking."</span>
-                    <span class="p">)</span>
-                <span class="n">vol</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">data</span>
-                <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">mask_volume</span> <span class="o">=</span> <span class="n">synthseg_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
-                    <span class="n">vol</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">finalize_mask</span><span class="o">=</span><span class="n">finalize_mask</span>
-                <span class="p">)</span>
+                <span class="n">mask_volume</span> <span class="o">=</span> <span class="n">predict_mask</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
                 <span class="n">mask_for_apply</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">mask_volume</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">mask_volume</span>
                 <span class="p">)</span>
