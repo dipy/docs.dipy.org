@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.report &#8212; dipy 1.13.0.dev0+git20261119.54c4e17 documentation</title>
+    <title>dipy.workflows.report &#8212; dipy 1.13.0.dev0+git20261119.5eaf75a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=ce76a7e7"></script>
+    <script src="../../../_static/documentation_options.js?v=756b7eab"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -893,7 +893,6 @@ document.write(`
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">html</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
@@ -902,12 +901,12 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shlex</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">cli_flows</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.qc</span><span class="w"> </span><span class="kn">import</span> <span class="n">STATUS_LEVELS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.skyline_app</span><span class="w"> </span><span class="kn">import</span> <span class="n">SKYLINE_FORMATS</span><span class="p">,</span> <span class="n">skyline_argument</span><span class="p">,</span> <span class="n">skyline_url</span>
 
 <span class="n">HTML_TEMPLATE</span> <span class="o">=</span> <span class="s2">"""&lt;!DOCTYPE html&gt;</span>
 <span class="s2">&lt;html lang="en"&gt;</span>
@@ -1571,7 +1570,7 @@ document.write(`
 
 <span class="s2">    &lt;div class="qc-dialog" id="qc-dialog"&gt;</span>
 <span class="s2">        &lt;div class="qc-dialog-box"&gt;</span>
-<span class="s2">            &lt;h2 id="qc-dialog-title"&gt;Skyline was not found&lt;/h2&gt;</span>
+<span class="s2">            &lt;h2 id="qc-dialog-title"&gt;Open in Skyline&lt;/h2&gt;</span>
 <span class="s2">            &lt;p id="qc-dialog-msg"&gt;&lt;/p&gt;</span>
 <span class="s2">            &lt;code id="qc-dialog-cmd"&gt;&lt;/code&gt;</span>
 <span class="s2">            &lt;button class="qc-open" onclick="qcCopy()"&gt;Copy command&lt;/button&gt;</span>
@@ -1596,15 +1595,37 @@ document.write(`
 <span class="s2">                window.prompt('Copy the command:', text);</span>
 <span class="s2">            }}</span>
 <span class="s2">        }}</span>
-<span class="s2">        function qcOpen(path, command) {{</span>
-<span class="s2">            var notServed =</span>
-<span class="s2">                'Skyline can only be launched when this report is served. ' +</span>
-<span class="s2">                'Run "dipy_auto &lt;report.html&gt;" and use the button from there, ' +</span>
-<span class="s2">                'or run the command below yourself.';</span>
+<span class="s2">        function qcLaunchApp(url, command) {{</span>
+<span class="s2">            var left = false;</span>
+<span class="s2">            var onBlur = function () {{ left = true; }};</span>
+<span class="s2">            window.addEventListener('blur', onBlur);</span>
+<span class="s2">            var frame = document.createElement('iframe');</span>
+<span class="s2">            frame.style.display = 'none';</span>
+<span class="s2">            frame.src = url;</span>
+<span class="s2">            document.body.appendChild(frame);</span>
+<span class="s2">            setTimeout(function () {{</span>
+<span class="s2">                document.body.removeChild(frame);</span>
+<span class="s2">                window.removeEventListener('blur', onBlur);</span>
+<span class="s2">                if (!left) {{</span>
+<span class="s2">                    qcDialog(</span>
+<span class="s2">                        'If nothing opened, your browser may still be asking ' +</span>
+<span class="s2">                        'for permission, or Skyline is not registered on this ' +</span>
+<span class="s2">                        'computer. In that case run dipy_auto with ' +</span>
+<span class="s2">                        '--register_skyline on a pipeline or on this report, ' +</span>
+<span class="s2">                        'or run "dipy_skyline --setup" in a terminal of the ' +</span>
+<span class="s2">                        'Python environment where DIPY is installed, then use ' +</span>
+<span class="s2">                        'this button again. You can also run the command below ' +</span>
+<span class="s2">                        'yourself.',</span>
+<span class="s2">                        command</span>
+<span class="s2">                    );</span>
+<span class="s2">                }}</span>
+<span class="s2">            }}, 2000);</span>
+<span class="s2">        }}</span>
+<span class="s2">        function qcOpen(path, command, url) {{</span>
 <span class="s2">            // The server adds this tag to the pages it serves, never to files.</span>
 <span class="s2">            var token = document.querySelector('meta[name="dipy-qc-token"]');</span>
 <span class="s2">            if (!token) {{</span>
-<span class="s2">                qcDialog(notServed, command);</span>
+<span class="s2">                qcLaunchApp(url, command);</span>
 <span class="s2">                return;</span>
 <span class="s2">            }}</span>
 <span class="s2">            fetch('/qc-open', {{</span>
@@ -1616,29 +1637,12 @@ document.write(`
 <span class="s2">                        return r.text().then(function (t) {{ qcDialog(t, command); }});</span>
 <span class="s2">                    }}</span>
 <span class="s2">                }})</span>
-<span class="s2">                .catch(function () {{ qcDialog(notServed, command); }});</span>
+<span class="s2">                .catch(function () {{ qcLaunchApp(url, command); }});</span>
 <span class="s2">        }}</span>
 <span class="s2">    &lt;/script&gt;</span>
 <span class="s2">&lt;/body&gt;</span>
 <span class="s2">&lt;/html&gt;</span>
 <span class="s2">"""</span>
-
-<span class="c1"># Formats the Skyline viewer can load; anything else opens in the browser.</span>
-<span class="n">SKYLINE_FORMATS</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">".nii"</span><span class="p">,</span>
-    <span class="s2">".nii.gz"</span><span class="p">,</span>
-    <span class="s2">".trx"</span><span class="p">,</span>
-    <span class="s2">".trk"</span><span class="p">,</span>
-    <span class="s2">".tck"</span><span class="p">,</span>
-    <span class="s2">".pam5"</span><span class="p">,</span>
-    <span class="s2">".vtk"</span><span class="p">,</span>
-    <span class="s2">".vtp"</span><span class="p">,</span>
-    <span class="s2">".fib"</span><span class="p">,</span>
-    <span class="s2">".dpy"</span><span class="p">,</span>
-    <span class="s2">".nrrd"</span><span class="p">,</span>
-    <span class="s2">".mgh"</span><span class="p">,</span>
-    <span class="s2">".mgz"</span><span class="p">,</span>
-<span class="p">)</span>
 
 
 <span class="c1"># =============================================================================</span>
@@ -1755,28 +1759,6 @@ document.write(`
     <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
 
 
-<div class="viewcode-block" id="skyline_argument">
-<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.report.skyline_argument">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">skyline_argument</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Command-line argument that makes Skyline load exactly ``path``.</span>
-
-<span class="sd">    Skyline expands its input files as glob patterns, so the characters</span>
-<span class="sd">    ``*``, ``?`` and ``[`` of a real file name are escaped.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    path : str</span>
-<span class="sd">        File to display.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    str</span>
-<span class="sd">        Glob-escaped path.</span>
-<span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">glob</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">))</span></div>
-
-
-
 <div class="viewcode-block" id="skyline_command">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.report.skyline_command">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">skyline_command</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
@@ -1792,10 +1774,18 @@ document.write(`
 <span class="sd">    str</span>
 <span class="sd">        ``dipy_skyline`` followed by the escaped path, quoted for the shell</span>
 <span class="sd">        of the current platform so that it can be pasted as is.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    On Windows the path is double-quoted, which both ``cmd.exe`` and PowerShell</span>
+<span class="sd">    read literally except for ``%``, ``$``, the backtick and the curly double</span>
+<span class="sd">    quotes that PowerShell accepts. Those are replaced by the glob wildcard</span>
+<span class="sd">    ``?``, which Skyline expands.</span>
 <span class="sd">    """</span>
     <span class="n">argument</span> <span class="o">=</span> <span class="n">skyline_argument</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"nt"</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"dipy_skyline </span><span class="si">{</span><span class="n">subprocess</span><span class="o">.</span><span class="n">list2cmdline</span><span class="p">([</span><span class="n">argument</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">argument</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">"[%$`</span><span class="se">\u201c\u201d\u201e</span><span class="s2">]"</span><span class="p">,</span> <span class="s2">"?"</span><span class="p">,</span> <span class="n">argument</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'dipy_skyline "</span><span class="si">{</span><span class="n">argument</span><span class="si">}</span><span class="s1">"'</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"dipy_skyline </span><span class="si">{</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">argument</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span></div>
 
 
@@ -1863,13 +1853,17 @@ document.write(`
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
-<span class="sd">        Mapping of :func:`skyline_key` to file path.</span>
+<span class="sd">        Mapping of :func:`skyline_key` to file path. A symbolic link that leads</span>
+<span class="sd">        out of ``root`` is left out.</span>
 <span class="sd">    """</span>
     <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="n">real_root</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">():</span> <span class="n">path</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SKYLINE_FORMATS</span><span class="p">)</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SKYLINE_FORMATS</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+        <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">is_relative_to</span><span class="p">(</span><span class="n">real_root</span><span class="p">)</span>
     <span class="p">}</span></div>
 
 
@@ -1901,8 +1895,10 @@ document.write(`
         <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SKYLINE_FORMATS</span><span class="p">):</span>
             <span class="n">target</span> <span class="o">=</span> <span class="n">skyline_key</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">page_dir</span><span class="o">=</span><span class="n">page_dir</span><span class="p">)</span>
             <span class="n">command</span> <span class="o">=</span> <span class="n">skyline_command</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">())</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">skyline_url</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
             <span class="n">arguments</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">quote</span><span class="o">=</span><span class="kc">True</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">quote</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">button</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="sa">f</span><span class="s1">'&lt;button class="qc-open" onclick="qcOpen(</span><span class="si">{</span><span class="n">arguments</span><span class="si">}</span><span class="s1">)"&gt;'</span>

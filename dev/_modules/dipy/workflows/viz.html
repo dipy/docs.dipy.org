@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.viz &#8212; dipy 1.13.0.dev0+git20261119.54c4e17 documentation</title>
+    <title>dipy.workflows.viz &#8212; dipy 1.13.0.dev0+git20261119.5eaf75a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=ce76a7e7"></script>
+    <script src="../../../_static/documentation_options.js?v=756b7eab"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -886,24 +886,35 @@ document.write(`
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_filename_extension</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.tripwire</span><span class="w"> </span><span class="kn">import</span> <span class="n">TripWire</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">skyline_app</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span>
 
 <span class="n">fury_pckg_msg</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">"Skyline requires FURY version 2.1.0 or higher. "</span>
     <span class="s2">"Please install or upgrade FURY using pip install -U fury."</span>
 <span class="p">)</span>
-<span class="n">fury</span><span class="p">,</span> <span class="n">has_fury</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
-    <span class="s2">"fury"</span><span class="p">,</span> <span class="n">trip_msg</span><span class="o">=</span><span class="n">fury_pckg_msg</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.1.0"</span>
-<span class="p">)</span>
-<span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">skyline_from_files</span>
+<span class="n">missing_viewer_packages</span> <span class="o">=</span> <span class="n">skyline_app</span><span class="o">.</span><span class="n">missing_viz_requirements</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">missing_viewer_packages</span><span class="p">:</span>
+    <span class="n">skyline_from_files</span> <span class="o">=</span> <span class="n">TripWire</span><span class="p">(</span>
+        <span class="s2">"Skyline needs packages that are not installed: "</span>
+        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_viewer_packages</span><span class="p">)</span><span class="si">}</span><span class="s1">. Run "dipy_skyline --setup".'</span>
+    <span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">skyline_from_files</span> <span class="o">=</span> <span class="n">fury</span>
+    <span class="n">fury</span><span class="p">,</span> <span class="n">has_fury</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span>
+        <span class="s2">"fury"</span><span class="p">,</span> <span class="n">trip_msg</span><span class="o">=</span><span class="n">fury_pckg_msg</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.1.0"</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">skyline_from_files</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">skyline_from_files</span> <span class="o">=</span> <span class="n">fury</span>
 
 
 <div class="viewcode-block" id="SkylineFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.viz.SkylineFlow">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SkylineFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+    <span class="n">inputs_are_optional</span> <span class="o">=</span> <span class="kc">True</span>
+
 <div class="viewcode-block" id="SkylineFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.viz.SkylineFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>
@@ -932,15 +943,17 @@ document.write(`
         <span class="n">buan_pvals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">stealth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">rgb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">setup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_setup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_stealth_png</span><span class="o">=</span><span class="s2">"out_skyline.png"</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Launch Skyline GUI.</span>
 
-<span class="sd">        If you want to load only odfs or rois.</span>
-<span class="sd">        use dipy_skyline run --odfs &lt;Your ODF files&gt; or</span>
-<span class="sd">        dipy_skyline run --rois &lt;Your ROI files&gt; respectively. You can also load</span>
-<span class="sd">        peaks with dipy_skyline run --peaks &lt;Your peak files&gt;.</span>
+<span class="sd">        If you want to load only odfs or rois,</span>
+<span class="sd">        use dipy_skyline --odfs &lt;Your ODF files&gt; or</span>
+<span class="sd">        dipy_skyline --rois &lt;Your ROI files&gt; respectively. You can also load</span>
+<span class="sd">        peaks with dipy_skyline --peaks &lt;Your peak files&gt;.</span>
 
 <span class="sd">        These options should be used in stealth mode. For GUI mode, the files can be</span>
 <span class="sd">        loaded through the file dialog.</span>
@@ -1005,6 +1018,12 @@ document.write(`
 <span class="sd">        rgb : bool or None, optional</span>
 <span class="sd">            ``None``: auto-detect from structured NIfTI ``DT_RGB24`` dtype;</span>
 <span class="sd">            ``--rgb`` forces RGB; ``--no-rgb`` disables it entirely.</span>
+<span class="sd">        setup : bool, optional</span>
+<span class="sd">            Install missing viewer packages into this Python environment and</span>
+<span class="sd">            register Skyline as an application (menu and desktop icon, report</span>
+<span class="sd">            links, Open with).</span>
+<span class="sd">        remove_setup : bool, optional</span>
+<span class="sd">            Remove the application registration.</span>
 <span class="sd">        out_dir : str or Path, optional</span>
 <span class="sd">            Output directory for offscreen figures.</span>
 <span class="sd">        out_stealth_png : str, optional</span>
@@ -1012,13 +1031,32 @@ document.write(`
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Skyline</span>
+<span class="sd">        Skyline or None</span>
 <span class="sd">            The viewer, returned once its window is closed or the offscreen</span>
-<span class="sd">            figure is saved.</span>
+<span class="sd">            figure is saved. None when ``setup`` or ``remove_setup`` is used.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``setup`` and ``remove_setup`` are combined.</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If ``setup`` fails.</span>
 <span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">setup</span> <span class="ow">and</span> <span class="n">remove_setup</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"setup and remove_setup cannot be combined"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">setup</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">skyline_app</span><span class="o">.</span><span class="n">setup_app</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s2">"Skyline setup did not finish; see the messages above."</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">remove_setup</span><span class="p">:</span>
+            <span class="n">skyline_app</span><span class="o">.</span><span class="n">unregister_app</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">None</span>
         <span class="n">skyline_input_files</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">start_gui</span> <span class="o">=</span> <span class="n">input_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">input_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="n">start_gui</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">input_files</span> <span class="ow">or</span> <span class="n">input_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span>
             <span class="s2">"run"</span><span class="p">,</span>
             <span class="s2">"start"</span><span class="p">,</span>
             <span class="s2">"launch"</span><span class="p">,</span>
@@ -1066,6 +1104,8 @@ document.write(`
 <div class="viewcode-block" id="HorizonFlow">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.viz.HorizonFlow">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">HorizonFlow</span><span class="p">(</span><span class="n">SkylineFlow</span><span class="p">):</span>
+    <span class="n">inputs_are_optional</span> <span class="o">=</span> <span class="kc">False</span>
+
 <div class="viewcode-block" id="HorizonFlow.get_short_name">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.viz.HorizonFlow.get_short_name">[docs]</a>
     <span class="nd">@classmethod</span>

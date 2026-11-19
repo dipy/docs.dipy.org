@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.combined_workflow &#8212; dipy 1.13.0.dev0+git20261119.54c4e17 documentation</title>
+    <title>dipy.workflows.combined_workflow &#8212; dipy 1.13.0.dev0+git20261119.5eaf75a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=ce76a7e7"></script>
+    <script src="../../../_static/documentation_options.js?v=756b7eab"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -920,7 +920,6 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">secrets</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">socketserver</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
@@ -948,7 +947,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span><span class="p">,</span> <span class="n">load_nifti_data</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_handler</span><span class="p">,</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">interactive</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">templates</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">interactive</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">skyline_app</span><span class="p">,</span> <span class="n">templates</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">cli_flows</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.multi_io</span><span class="w"> </span><span class="kn">import</span> <span class="n">_resolve_path_or_pattern</span><span class="p">,</span> <span class="n">connect_output_paths</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.qc</span><span class="w"> </span><span class="kn">import</span> <span class="n">qc_result</span><span class="p">,</span> <span class="n">run_stage_qc</span>
@@ -3901,6 +3900,13 @@ document.write(`
 <span class="c1"># =============================================================================</span>
 <span class="c1"># AutoFlow Workflow</span>
 <span class="c1"># =============================================================================</span>
+<span class="n">_DETACHED_PROCESS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">{</span><span class="s2">"creationflags"</span><span class="p">:</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CREATE_NEW_PROCESS_GROUP</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"nt"</span>
+    <span class="k">else</span> <span class="p">{</span><span class="s2">"start_new_session"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="p">)</span>
+
+
 <span class="k">class</span><span class="w"> </span><span class="nc">_ReportHandler</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">SimpleHTTPRequestHandler</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Serve a report and launch Skyline on the files it lists.</span>
 
@@ -3909,8 +3915,9 @@ document.write(`
 <span class="sd">    a ``POST /qc-open`` request. A launch requires that token, so that no</span>
 <span class="sd">    other web page can trigger one. The request names the file by its</span>
 <span class="sd">    :func:`~dipy.workflows.report.skyline_key`, and only files Skyline can</span>
-<span class="sd">    display under the served directory are known. The response body is the message the page shows when the</span>
-<span class="sd">    launch fails. Anything else is served statically.</span>
+<span class="sd">    display under the served directory are known. The response body is the</span>
+<span class="sd">    message the page shows when the launch fails. Anything else is served</span>
+<span class="sd">    statically.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -3919,16 +3926,42 @@ document.write(`
 <span class="sd">    token : str, optional</span>
 <span class="sd">        Secret a launch request must carry. Without it, every launch request</span>
 <span class="sd">        is refused.</span>
+<span class="sd">    launcher : list of str, optional</span>
+<span class="sd">        Command prefix that opens a file in Skyline; the file path is appended.</span>
+<span class="sd">        When None, the serving interpreter is used and a launch is refused with</span>
+<span class="sd">        a 404 when its viewer packages are missing. A custom launcher may run</span>
+<span class="sd">        another environment, so it is not checked.</span>
 <span class="sd">    **kwargs</span>
 <span class="sd">        Keyword arguments of :class:`http.server.SimpleHTTPRequestHandler`.</span>
 <span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">timeout</span> <span class="o">=</span> <span class="mi">10</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">launcher</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># The base class handles the request from its constructor.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span> <span class="o">=</span> <span class="n">launcher</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_host_is_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Refuse the request, and return False, unless it was sent to this server.</span>
+
+<span class="sd">        A web page whose DNS name was rebound to this machine sends its own</span>
+<span class="sd">        name in ``Host``; answering it would let that page read the report.</span>
+<span class="sd">        """</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">server_address</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Host"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"127.0.0.1:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"localhost:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">"</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_error</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s2">"This request does not come from a page of this report."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">do_HEAD</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host_is_local</span><span class="p">():</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">do_HEAD</span><span class="p">()</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">do_GET</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host_is_local</span><span class="p">():</span>
+            <span class="k">return</span>
         <span class="k">if</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="s2">"/qc-open"</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span><span class="mi">405</span><span class="p">,</span> <span class="s2">"Skyline is launched with a POST request."</span><span class="p">)</span>
             <span class="k">return</span>
@@ -3942,12 +3975,14 @@ document.write(`
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">do_GET</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">do_POST</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host_is_local</span><span class="p">():</span>
+            <span class="k">return</span>
         <span class="k">if</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">path</span> <span class="o">!=</span> <span class="s2">"/qc-open"</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s2">"Not found."</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">length</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Content-Length"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">65536</span><span class="p">)</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Content-Length"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">65536</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">parse_qs</span><span class="p">(</span>
@@ -3955,25 +3990,24 @@ document.write(`
         <span class="p">)</span>
         <span class="n">token</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"token"</span><span class="p">,</span> <span class="p">[</span><span class="s2">""</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">,</span> <span class="p">[</span><span class="s2">""</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">host</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Host"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span>
-            <span class="ow">or</span> <span class="ow">not</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
-            <span class="ow">or</span> <span class="n">host</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"127.0.0.1"</span><span class="p">,</span> <span class="s2">"localhost"</span><span class="p">)</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">encode</span><span class="p">()):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s2">"This request does not come from a page of this report."</span><span class="p">)</span>
         <span class="c1"># A lookup, so that no file path is ever built from the request.</span>
         <span class="k">elif</span> <span class="p">(</span><span class="n">path</span> <span class="o">:=</span> <span class="n">report</span><span class="o">.</span><span class="n">skyline_files</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2">' is not a file served by this report."</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="p">(</span><span class="n">skyline</span> <span class="o">:=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"dipy_skyline"</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">missing</span> <span class="o">:=</span> <span class="n">skyline_app</span><span class="o">.</span><span class="n">missing_viz_requirements</span><span class="p">()</span>
+        <span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span>
                 <span class="mi">404</span><span class="p">,</span>
-                <span class="s2">"Skyline (dipy_skyline) was not found in this environment. "</span>
-                <span class="s2">"Install it, or run the command below yourself."</span><span class="p">,</span>
+                <span class="s2">"Skyline needs packages that are not installed: "</span>
+                <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s1">. Run "dipy_skyline --setup" in the '</span>
+                <span class="s2">"environment serving this report."</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">skyline</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">skyline_argument</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)])</span>
+            <span class="n">launcher</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span> <span class="ow">or</span> <span class="n">skyline_app</span><span class="o">.</span><span class="n">launcher_command</span><span class="p">()</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="o">*</span><span class="n">launcher</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)],</span> <span class="o">**</span><span class="n">_DETACHED_PROCESS</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reply</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Skyline launched on </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_send_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">page</span><span class="p">):</span>
@@ -4007,6 +4041,24 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">wfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">_ReportServer</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">ThreadingHTTPServer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Threaded HTTP server that refuses to share its port.</span>
+
+<span class="sd">    On Windows, ``SO_REUSEADDR``, which ``HTTPServer`` sets, lets another</span>
+<span class="sd">    process bind the same port and receive the requests, token included.</span>
+<span class="sd">    Dropping it is not enough there, since a process that sets it can still</span>
+<span class="sd">    take the port, so ``SO_EXCLUSIVEADDRUSE`` is set before binding.</span>
+<span class="sd">    """</span>
+
+    <span class="n">allow_reuse_address</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">server_bind</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Bind the socket, exclusively on Windows."""</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">socket</span><span class="p">,</span> <span class="s2">"SO_EXCLUSIVEADDRUSE"</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">SOL_SOCKET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SO_EXCLUSIVEADDRUSE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">server_bind</span><span class="p">()</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_serve_html_report</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">report_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Serve an HTML pipeline report via a local HTTP server and open it.</span>
 
@@ -4024,24 +4076,23 @@ document.write(`
     <span class="n">report_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
     <span class="n">report_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">report_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
 
-    <span class="n">host</span> <span class="o">=</span> <span class="s2">"127.0.0.1"</span>
-    <span class="n">port</span> <span class="o">=</span> <span class="mi">8000</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
-                <span class="k">break</span>
-            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                <span class="n">port</span> <span class="o">+=</span> <span class="mi">1</span>
-
     <span class="n">handler</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
         <span class="n">_ReportHandler</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="n">report_dir</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">secrets</span><span class="o">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
     <span class="p">)</span>
+    <span class="n">host</span> <span class="o">=</span> <span class="s2">"127.0.0.1"</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="mi">8000</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">httpd</span> <span class="o">=</span> <span class="n">_ReportServer</span><span class="p">((</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="n">handler</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="n">port</span> <span class="o">+=</span> <span class="mi">1</span>
+
     <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"http://localhost:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">report_name</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Serving report at: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Press Ctrl+C to stop the server."</span><span class="p">)</span>
     <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">socketserver</span><span class="o">.</span><span class="n">TCPServer</span><span class="p">((</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="n">handler</span><span class="p">)</span> <span class="k">as</span> <span class="n">httpd</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">httpd</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">httpd</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
@@ -4116,6 +4167,7 @@ document.write(`
         <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">list_pipelines</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">register_skyline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_report</span><span class="o">=</span><span class="s2">"reports.toml"</span><span class="p">,</span>
     <span class="p">):</span>
@@ -4183,6 +4235,11 @@ document.write(`
 <span class="sd">            Show execution plan without running commands.</span>
 <span class="sd">        list_pipelines : bool, optional</span>
 <span class="sd">            List all available predefined pipelines and exit.</span>
+<span class="sd">        register_skyline : bool, optional</span>
+<span class="sd">            Register Skyline as a desktop application of the user, so that the</span>
+<span class="sd">            *Open in Skyline* buttons of the reports work, unless a working</span>
+<span class="sd">            registration of any environment exists. Skipped on Linux without a</span>
+<span class="sd">            graphical session.</span>
 <span class="sd">        out_dir : str, optional</span>
 <span class="sd">            Output directory. When omitted, the ``out_dir`` of the ``[io]``</span>
 <span class="sd">            section of the configuration, or the current directory. With</span>
@@ -4208,6 +4265,9 @@ document.write(`
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
         <span class="n">inputs</span> <span class="o">=</span> <span class="n">_classify_inputs</span><span class="p">(</span><span class="n">input_files</span><span class="o">=</span><span class="n">input_files</span><span class="p">,</span> <span class="n">bids_mode</span><span class="o">=</span><span class="n">bids</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">register_skyline</span><span class="p">:</span>
+            <span class="n">skyline_app</span><span class="o">.</span><span class="n">ensure_app_registered</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"report"</span><span class="p">]:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>

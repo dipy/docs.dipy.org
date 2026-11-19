@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.UI.theme &#8212; dipy 1.13.0.dev0+git20261119.54c4e17 documentation</title>
+    <title>dipy.viz.skyline.UI.theme &#8212; dipy 1.13.0.dev0+git20261119.5eaf75a documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=ce76a7e7"></script>
+    <script src="../../../../../_static/documentation_options.js?v=756b7eab"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -885,10 +885,7 @@ document.write(`
   <h1>Source code for dipy.viz.skyline.UI.theme</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""Theme utilities for Skyline UI components."""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlretrieve</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">asset_home</span><span class="p">,</span> <span class="n">fetch_asset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.optpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">optional_package</span>
 
 <span class="n">fury</span><span class="p">,</span> <span class="n">has_fury</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">optional_package</span><span class="p">(</span><span class="s2">"fury"</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s2">"2.1.0"</span><span class="p">)</span>
@@ -897,9 +894,8 @@ document.write(`
 <span class="k">else</span><span class="p">:</span>
     <span class="n">Image</span> <span class="o">=</span> <span class="n">fury</span>
 
-<span class="n">DIPY_DATA_MIRROR</span> <span class="o">=</span> <span class="s2">"https://github.com/dipy/dipy_data/raw/refs/heads/master"</span>
-<span class="n">SKYLINE_HOME</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span> <span class="o">/</span> <span class="s2">".dipy-skyline"</span>
 
+<span class="n">SKYLINE_HOME</span> <span class="o">=</span> <span class="n">asset_home</span><span class="p">(</span><span class="s2">"dipy-skyline"</span><span class="p">)</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">SKYLINE_HOME</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
     <span class="n">SKYLINE_HOME</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -915,46 +911,23 @@ document.write(`
 <span class="k">if</span> <span class="ow">not</span> <span class="n">IMAGES</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
     <span class="n">IMAGES</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">LOGO</span> <span class="o">=</span> <span class="n">IMAGES</span> <span class="o">/</span> <span class="s2">"dipy-logo.png"</span>
+<span class="n">LOGO</span> <span class="o">=</span> <span class="n">fetch_asset</span><span class="p">(</span><span class="s2">"dipy-skyline"</span><span class="p">,</span> <span class="s2">"images/dipy-logo.png"</span><span class="p">)</span>
 <span class="n">LOGO_SMALL</span> <span class="o">=</span> <span class="n">IMAGES</span> <span class="o">/</span> <span class="s2">"dipy-logo-small.png"</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">LOGO</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Downloading Skyline UI logo..."</span><span class="p">)</span>
-    <span class="n">urlretrieve</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">DIPY_DATA_MIRROR</span><span class="si">}</span><span class="s2">/dipy-skyline/assets/images/dipy-logo.png"</span><span class="p">,</span> <span class="n">LOGO</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">has_fury</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">LOGO</span><span class="p">)</span> <span class="k">as</span> <span class="n">img</span><span class="p">:</span>
-        <span class="n">logo_img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGBA"</span><span class="p">)</span>
-        <span class="n">logo_img</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-        <span class="n">logo_img</span> <span class="o">=</span> <span class="n">logo_img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="n">logo_img</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">48</span><span class="p">):</span>
-        <span class="n">logo_img</span> <span class="o">=</span> <span class="n">logo_img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">48</span><span class="p">,</span> <span class="mi">48</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
-        <span class="n">logo_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">LOGO</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
     <span class="n">logo_small_ok</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="n">LOGO_SMALL</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">LOGO_SMALL</span><span class="p">)</span> <span class="k">as</span> <span class="n">img_small_existing</span><span class="p">:</span>
             <span class="n">logo_small_ok</span> <span class="o">=</span> <span class="n">img_small_existing</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">logo_small_ok</span><span class="p">:</span>
-        <span class="n">img_small</span> <span class="o">=</span> <span class="n">logo_img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">LOGO</span><span class="p">)</span> <span class="k">as</span> <span class="n">img</span><span class="p">:</span>
+            <span class="n">img_small</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGBA"</span><span class="p">)</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
         <span class="n">img_small</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">LOGO_SMALL</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
-<span class="n">FONT</span> <span class="o">=</span> <span class="n">FONTS</span> <span class="o">/</span> <span class="s2">"Inter_18pt-Regular.ttf"</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">FONT</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Downloading Skyline UI font..."</span><span class="p">)</span>
-    <span class="n">urlretrieve</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">DIPY_DATA_MIRROR</span><span class="si">}</span><span class="s2">/dipy-skyline/assets/fonts/Inter_18pt-Regular.ttf"</span><span class="p">,</span> <span class="n">FONT</span>
-    <span class="p">)</span>
-
-<span class="n">FONT_AWESOME</span> <span class="o">=</span> <span class="n">FONTS</span> <span class="o">/</span> <span class="s2">"fontawesome-webfont.ttf"</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">FONT_AWESOME</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Downloading Font Awesome Icons for Skyline UI..."</span><span class="p">)</span>
-    <span class="n">urlretrieve</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">DIPY_DATA_MIRROR</span><span class="si">}</span><span class="s2">/dipy-skyline/assets/fonts/fontawesome-webfont.ttf"</span><span class="p">,</span>
-        <span class="n">FONT_AWESOME</span><span class="p">,</span>
-    <span class="p">)</span>
+<span class="n">FONT</span> <span class="o">=</span> <span class="n">fetch_asset</span><span class="p">(</span><span class="s2">"dipy-skyline"</span><span class="p">,</span> <span class="s2">"fonts/Inter_18pt-Regular.ttf"</span><span class="p">)</span>
+<span class="n">FONT_AWESOME</span> <span class="o">=</span> <span class="n">fetch_asset</span><span class="p">(</span><span class="s2">"dipy-skyline"</span><span class="p">,</span> <span class="s2">"fonts/fontawesome-webfont.ttf"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="hex_to_rgba">
