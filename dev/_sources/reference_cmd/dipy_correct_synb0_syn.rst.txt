@@ -1,0 +1,115 @@
+.. dipy_correct_synb0_syn:
+
+======================
+dipy_correct_synb0_syn
+======================
+
+Synopsis
+--------
+
+Synb0-SyN distortion correction for diffusion MRI data.
+
+This workflow uses Synb0-SyN to correct
+susceptibility-induced distortions in diffusion MRI data
+:footcite:p:`Chigurupati2024`, :footcite:p:`Schilling2019`,
+:footcite:p:`Schilling2020`.
+
+Usage
+-----
+
+.. code-block:: bash
+
+    dipy_correct_synb0_syn [OPTIONS] dwi_files t1_files
+
+Input Parameters
+----------------
+
+* ``dwi_files``
+
+  Path to the input diffusion MRI volumes. This path may contain
+  wildcards to process multiple inputs at once.
+
+* ``t1_files``
+
+  Path to the T1-weighted structural image files. This path may
+  contain wildcards to use multiple T1 files at once.
+
+General Options
+---------------
+
+* ``--b0_index``
+
+  The index of the b0 volume used for field estimation when
+  the DWI data is 4D.
+  (default: 0)
+
+* ``--pe_axis``
+
+  The phase-encoding axis, as a voxel axis of the DWI (0, 1 or 2),
+  not a world axis. The returned field is the displacement in mm
+  along this axis.
+  (default: 1)
+
+* ``--dwi_mask_file``
+
+  Path to the DWI brain mask file. If empty, no masking is applied.
+  (default: )
+
+* ``--t1_mask_file``
+
+  Path to the T1 brain mask file. If empty, no masking is applied.
+  (default: )
+
+* ``--apply_skull_strip``
+
+  If True, apply MindGrab skull stripping to both the T1 and
+  DWI b0 images before registration.
+  (default: False)
+
+* ``--apply_deepn4``
+
+  If True, apply DeepN4 bias field correction to the T1 image
+  before the first affine registration. DeepN4 requires PyTorch
+  or TensorFlow.
+  (default: False)
+
+* ``--b0_to_t1_method``
+
+  How the b0 is aligned to the T1: 'mi' for a rigid registration
+  maximizing mutual information, 'bbr' to refine it with a rigid
+  boundary-based registration :footcite:p:`Greve2009`, or
+  'bbr_scaling' to also estimate a scaling along each axis, for a
+  T1 and a DWI that do not share the same geometry.
+  (default: bbr)
+
+* ``--num_threads``
+
+  Number of threads used by the registrations, MindGrab, Synb0 and
+  the final warping. If None, the default of each step is used; a
+  negative value uses all the threads minus $|num_threads + 1|$.
+  (default: None)
+
+Output Options
+--------------
+
+* ``--out_dir``
+
+  Directory to save the corrected image and field map.
+  (default:  current directory)
+
+* ``--out_corrected``
+
+  Name for the saved distortion-corrected DWI image.
+  (default: corrected.nii.gz)
+
+* ``--out_field``
+
+  Name for the saved estimated deformation field.
+  (default: field.nii.gz)
+
+References
+----------
+
+.. footbibliography::
+
+Garyfallidis, E., M. Brett, B. Amirbekian, A. Rokem, S. Van Der Walt, M. Descoteaux, and I. Nimmo-Smith. Dipy, a library for the analysis of diffusion MRI data. Frontiers in Neuroinformatics, 1-18, 2014.

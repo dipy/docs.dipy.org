@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.nn.utils &#8212; dipy 1.13.0.dev0+git20261119.5eaf75a documentation</title>
+    <title>dipy.nn.utils &#8212; dipy 1.13.0.dev0+git20261119.11d58b6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=756b7eab"></script>
+    <script src="../../../_static/documentation_options.js?v=1d04fe10"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1351,17 +1351,15 @@ document.write(`
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    file : file object</span>
-<span class="sd">        Opened ``data.pkl`` member of the archive.</span>
-<span class="sd">    archive : zipfile.ZipFile</span>
-<span class="sd">        Archive holding the tensor storages.</span>
-<span class="sd">    prefix : str</span>
-<span class="sd">        Top-level folder of the archive.</span>
+<span class="sd">        Opened pickle of the state dict.</span>
+<span class="sd">    load_storage : callable</span>
+<span class="sd">        Called as ``load_storage(dtype, key, numel)`` for each tensor storage</span>
+<span class="sd">        of the pickle, it returns the storage as a flat array.</span>
 <span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">archive</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">load_storage</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">archive</span> <span class="o">=</span> <span class="n">archive</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_storage</span> <span class="o">=</span> <span class="n">load_storage</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">find_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1372,9 +1370,95 @@ document.write(`
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">persistent_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">numel</span> <span class="o">=</span> <span class="n">pid</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="si">}</span><span class="s2">/data/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="s2">"&lt;"</span><span class="p">),</span> <span class="n">count</span><span class="o">=</span><span class="n">numel</span><span class="p">)</span>
+        <span class="c1"># The legacy format appends a view metadata field to the zip one.</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">numel</span> <span class="o">=</span> <span class="n">pid</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_storage</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="s2">"&lt;"</span><span class="p">),</span> <span class="n">key</span><span class="p">,</span> <span class="n">numel</span><span class="p">)</span>
+
+
+<span class="c1"># First pickle of the files written by torch.save before PyTorch 1.6.</span>
+<span class="n">_LEGACY_MAGIC_NUMBER</span> <span class="o">=</span> <span class="mh">0x1950A86A20F9469CFC6C</span>
+<span class="n">_LEGACY_PROTOCOL_VERSION</span> <span class="o">=</span> <span class="mi">1001</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_zip_state_dict</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Read a state dict in the zip format used by PyTorch since 1.6.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fname : str or Path</span>
+<span class="sd">        Path to the file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    object</span>
+<span class="sd">        Unpickled state dict.</span>
+<span class="sd">    """</span>
+    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">archive</span><span class="p">:</span>
+        <span class="n">pickles</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">archive</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/data.pkl"</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pickles</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> is not a PyTorch state dict"</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">pickles</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">"/data.pkl"</span><span class="p">)]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">load_storage</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">numel</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">/data/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">numel</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">archive</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pickles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_StateDictUnpickler</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">load_storage</span><span class="o">=</span><span class="n">load_storage</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_legacy_state_dict</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Read a state dict in the format used by PyTorch before 1.6.</span>
+
+<span class="sd">    The file holds a magic number, a protocol version, system information,</span>
+<span class="sd">    the state dict and the list of its storage keys, each as a pickle,</span>
+<span class="sd">    followed by every storage as its number of elements (int64) and its raw</span>
+<span class="sd">    data, in the order of the keys. The storages come after the state dict,</span>
+<span class="sd">    so it is unpickled twice: once to find the type of every storage, then</span>
+<span class="sd">    once with the storages read.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fname : str or Path</span>
+<span class="sd">        Path to the file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    object</span>
+<span class="sd">        Unpickled state dict.</span>
+<span class="sd">    """</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="n">_StateDictUnpickler</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">load_storage</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+        <span class="n">magic</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">sys_info</span> <span class="o">=</span> <span class="n">header</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">magic</span> <span class="o">!=</span> <span class="n">_LEGACY_MAGIC_NUMBER</span>
+            <span class="ow">or</span> <span class="n">protocol</span> <span class="o">!=</span> <span class="n">_LEGACY_PROTOCOL_VERSION</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sys_info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="n">sys_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"little_endian"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> is not a PyTorch state dict"</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+
+        <span class="n">dtypes</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">record_dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">numel</span><span class="p">):</span>
+            <span class="n">dtypes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">dtype</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">numel</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">_StateDictUnpickler</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">load_storage</span><span class="o">=</span><span class="n">record_dtype</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">_StateDictUnpickler</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">load_storage</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">set</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">dtypes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> is not a PyTorch state dict"</span><span class="p">)</span>
+        <span class="n">storages</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">numel</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="s2">"little"</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">numel</span> <span class="o">*</span> <span class="n">dtypes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">itemsize</span><span class="p">)</span>
+            <span class="n">storages</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">count</span><span class="o">=</span><span class="n">numel</span><span class="p">)</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_StateDictUnpickler</span><span class="p">(</span>
+            <span class="n">f</span><span class="p">,</span> <span class="n">load_storage</span><span class="o">=</span><span class="k">lambda</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">numel</span><span class="p">:</span> <span class="n">storages</span><span class="p">[</span><span class="n">key</span><span class="p">][:</span><span class="n">numel</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="load_state_dict">
@@ -1385,7 +1469,8 @@ document.write(`
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fname : str or Path</span>
-<span class="sd">        Path to the file, in the zip format used by PyTorch since 1.6.</span>
+<span class="sd">        Path to the file, either in the zip format used by PyTorch since 1.6</span>
+<span class="sd">        or in the legacy format used before.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1393,14 +1478,18 @@ document.write(`
 <span class="sd">        Parameter names mapped to NumPy arrays.</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">archive</span><span class="p">:</span>
-            <span class="n">pickles</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">archive</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/data.pkl"</span><span class="p">)]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pickles</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> is not a PyTorch state dict"</span><span class="p">)</span>
-            <span class="n">prefix</span> <span class="o">=</span> <span class="n">pickles</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">"/data.pkl"</span><span class="p">)]</span>
-            <span class="k">with</span> <span class="n">archive</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pickles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">state</span> <span class="o">=</span> <span class="n">_StateDictUnpickler</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">archive</span><span class="o">=</span><span class="n">archive</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-    <span class="k">except</span> <span class="p">(</span><span class="n">zipfile</span><span class="o">.</span><span class="n">BadZipFile</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">is_zipfile</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">_load_zip_state_dict</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">_load_legacy_state_dict</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span>
+        <span class="n">zipfile</span><span class="o">.</span><span class="n">BadZipFile</span><span class="p">,</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span><span class="p">,</span>
+        <span class="ne">EOFError</span><span class="p">,</span>
+        <span class="ne">KeyError</span><span class="p">,</span>
+        <span class="ne">TypeError</span><span class="p">,</span>
+        <span class="ne">ValueError</span><span class="p">,</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not read the PyTorch state dict </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> is not a PyTorch state dict"</span><span class="p">)</span>

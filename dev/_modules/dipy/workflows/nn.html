@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.nn &#8212; dipy 1.13.0.dev0+git20261119.5eaf75a documentation</title>
+    <title>dipy.workflows.nn &#8212; dipy 1.13.0.dev0+git20261119.11d58b6 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=756b7eab"></script>
+    <script src="../../../_static/documentation_options.js?v=1d04fe10"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -888,6 +888,7 @@ document.write(`
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.align.disco</span><span class="w"> </span><span class="kn">import</span> <span class="n">synb0_syn</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">gradient_table</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.denoise.bias_correction</span><span class="w"> </span><span class="kn">import</span> <span class="n">bias_field_correction</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_bvals_bvecs</span>
@@ -1164,6 +1165,134 @@ document.write(`
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Corrected volume saved as </span><span class="si">{</span><span class="n">corrected_out_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">io_it</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Synb0SynFlow">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.nn.Synb0SynFlow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Synb0SynFlow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Workflow for Synb0-SyN susceptibility distortion correction."""</span>
+
+<div class="viewcode-block" id="Synb0SynFlow.get_short_name">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.nn.Synb0SynFlow.get_short_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_short_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"synb0_syn"</span></div>
+
+
+<div class="viewcode-block" id="Synb0SynFlow.run">
+<a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.nn.Synb0SynFlow.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dwi_files</span><span class="p">,</span>
+        <span class="n">t1_files</span><span class="p">,</span>
+        <span class="n">b0_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">pe_axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">dwi_mask_file</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+        <span class="n">t1_mask_file</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+        <span class="n">apply_skull_strip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">apply_deepn4</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">b0_to_t1_method</span><span class="o">=</span><span class="s2">"bbr"</span><span class="p">,</span>
+        <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+        <span class="n">out_corrected</span><span class="o">=</span><span class="s2">"corrected.nii.gz"</span><span class="p">,</span>
+        <span class="n">out_field</span><span class="o">=</span><span class="s2">"field.nii.gz"</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Synb0-SyN distortion correction for diffusion MRI data.</span>
+
+<span class="sd">        This workflow uses Synb0-SyN to correct</span>
+<span class="sd">        susceptibility-induced distortions in diffusion MRI data</span>
+<span class="sd">        :footcite:p:`Chigurupati2024`, :footcite:p:`Schilling2019`,</span>
+<span class="sd">        :footcite:p:`Schilling2020`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dwi_files : string or Path</span>
+<span class="sd">            Path to the input diffusion MRI volumes. This path may contain</span>
+<span class="sd">            wildcards to process multiple inputs at once.</span>
+<span class="sd">        t1_files : string or Path</span>
+<span class="sd">            Path to the T1-weighted structural image files. This path may</span>
+<span class="sd">            contain wildcards to use multiple T1 files at once.</span>
+<span class="sd">        b0_index : int, optional</span>
+<span class="sd">            The index of the b0 volume used for field estimation when</span>
+<span class="sd">            the DWI data is 4D.</span>
+<span class="sd">        pe_axis : int, optional</span>
+<span class="sd">            The phase-encoding axis, as a voxel axis of the DWI (0, 1 or 2),</span>
+<span class="sd">            not a world axis. The returned field is the displacement in mm</span>
+<span class="sd">            along this axis.</span>
+<span class="sd">        dwi_mask_file : string or Path, optional</span>
+<span class="sd">            Path to the DWI brain mask file. If empty, no masking is applied.</span>
+<span class="sd">        t1_mask_file : string or Path, optional</span>
+<span class="sd">            Path to the T1 brain mask file. If empty, no masking is applied.</span>
+<span class="sd">        apply_skull_strip : bool, optional</span>
+<span class="sd">            If True, apply MindGrab skull stripping to both the T1 and</span>
+<span class="sd">            DWI b0 images before registration.</span>
+<span class="sd">        apply_deepn4 : bool, optional</span>
+<span class="sd">            If True, apply DeepN4 bias field correction to the T1 image</span>
+<span class="sd">            before the first affine registration. DeepN4 requires PyTorch</span>
+<span class="sd">            or TensorFlow.</span>
+<span class="sd">        b0_to_t1_method : string, optional</span>
+<span class="sd">            How the b0 is aligned to the T1: 'mi' for a rigid registration</span>
+<span class="sd">            maximizing mutual information, 'bbr' to refine it with a rigid</span>
+<span class="sd">            boundary-based registration :footcite:p:`Greve2009`, or</span>
+<span class="sd">            'bbr_scaling' to also estimate a scaling along each axis, for a</span>
+<span class="sd">            T1 and a DWI that do not share the same geometry.</span>
+<span class="sd">        num_threads : int, optional</span>
+<span class="sd">            Number of threads used by the registrations, MindGrab, Synb0 and</span>
+<span class="sd">            the final warping. If None, the default of each step is used; a</span>
+<span class="sd">            negative value uses all the threads minus $|num_threads + 1|$.</span>
+<span class="sd">        out_dir : string or Path, optional</span>
+<span class="sd">            Directory to save the corrected image and field map.</span>
+<span class="sd">        out_corrected : string, optional</span>
+<span class="sd">            Name for the saved distortion-corrected DWI image.</span>
+<span class="sd">        out_field : string, optional</span>
+<span class="sd">            Name for the saved estimated deformation field.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. footbibliography::</span>
+<span class="sd">        """</span>
+        <span class="n">io_it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_io_iterator</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">dwi_path</span><span class="p">,</span> <span class="n">t1_path</span><span class="p">,</span> <span class="n">ocorrected</span><span class="p">,</span> <span class="n">ofield</span> <span class="ow">in</span> <span class="n">io_it</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading DWI file </span><span class="si">{</span><span class="n">dwi_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">dwi_data</span><span class="p">,</span> <span class="n">dwi_affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi_path</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading T1 file </span><span class="si">{</span><span class="n">t1_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">t1_data</span><span class="p">,</span> <span class="n">t1_affine</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">t1_path</span><span class="p">)</span>
+
+            <span class="n">dwi_mask</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">dwi_mask_file</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading DWI mask file </span><span class="si">{</span><span class="n">dwi_mask_file</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">dwi_mask</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">dwi_mask_file</span><span class="p">)</span>
+
+            <span class="n">t1_mask</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">t1_mask_file</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading T1 mask file </span><span class="si">{</span><span class="n">t1_mask_file</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">t1_mask</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_nifti</span><span class="p">(</span><span class="n">t1_mask_file</span><span class="p">)</span>
+
+            <span class="n">corrected_dwi</span><span class="p">,</span> <span class="n">field</span> <span class="o">=</span> <span class="n">synb0_syn</span><span class="p">(</span>
+                <span class="n">dwi</span><span class="o">=</span><span class="n">dwi_data</span><span class="p">,</span>
+                <span class="n">T1</span><span class="o">=</span><span class="n">t1_data</span><span class="p">,</span>
+                <span class="n">dwi_affine</span><span class="o">=</span><span class="n">dwi_affine</span><span class="p">,</span>
+                <span class="n">T1_affine</span><span class="o">=</span><span class="n">t1_affine</span><span class="p">,</span>
+                <span class="n">b0_index</span><span class="o">=</span><span class="n">b0_index</span><span class="p">,</span>
+                <span class="n">dwi_mask</span><span class="o">=</span><span class="n">dwi_mask</span><span class="p">,</span>
+                <span class="n">T1_mask</span><span class="o">=</span><span class="n">t1_mask</span><span class="p">,</span>
+                <span class="n">pe_axis</span><span class="o">=</span><span class="n">pe_axis</span><span class="p">,</span>
+                <span class="n">return_field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">apply_skull_strip</span><span class="o">=</span><span class="n">apply_skull_strip</span><span class="p">,</span>
+                <span class="n">apply_deepn4</span><span class="o">=</span><span class="n">apply_deepn4</span><span class="p">,</span>
+                <span class="n">b0_to_t1_method</span><span class="o">=</span><span class="n">b0_to_t1_method</span><span class="p">,</span>
+                <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Saving corrected DWI to </span><span class="si">{</span><span class="n">ocorrected</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">save_nifti</span><span class="p">(</span><span class="n">ocorrected</span><span class="p">,</span> <span class="n">corrected_dwi</span><span class="p">,</span> <span class="n">dwi_affine</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Saving deformation field to </span><span class="si">{</span><span class="n">ofield</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">save_nifti</span><span class="p">(</span><span class="n">ofield</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">dwi_affine</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
