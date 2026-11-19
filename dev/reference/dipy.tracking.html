@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>tracking &#8212; dipy 1.13.0.dev0+git20261117.b2adc77 documentation</title>
+    <title>tracking &#8212; dipy 1.13.0.dev0+git20261119.54c4e17 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   
 <link rel="stylesheet" href="../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../_static/documentation_options.js?v=14ad50d1"></script>
+    <script src="../_static/documentation_options.js?v=ce76a7e7"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -2126,6 +2126,18 @@ otherwise (default) return scalar giving total length.</p>
 <dt class="sig sig-object py" id="dipy.tracking.metrics.frenet_serret">
 <span class="sig-prename descclassname"><span class="pre">dipy.tracking.metrics.</span></span><span class="sig-name descname"><span class="pre">frenet_serret</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dipy/tracking/metrics.html#frenet_serret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dipy.tracking.metrics.frenet_serret" title="Link to this definition">#</a></dt>
 <dd><p>Frenet-Serret Space Curve Invariants</p>
+<p>frenet_serret is deprecated because the torsion calculation is incorrect: it computes -dot(B, N), but since B = cross(T, N) the binormal is orthogonal to the normal, so dot(B, N) is always zero. Use mean_curvature() for curvature-related functionality.</p>
+<ul class="simple">
+<li><p>deprecated from version: 1.13.0</p></li>
+<li><p>Will raise &lt;class ‘dipy.utils.deprecator.ExpiredDeprecationError’&gt; as of version: 2.0.0</p></li>
+</ul>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 1.13.0: </span><code class="docutils literal notranslate"><span class="pre">frenet_serret</span></code> is deprecated because the torsion calculation is
+incorrect: it computes <code class="docutils literal notranslate"><span class="pre">-dot(B,</span> <span class="pre">N)</span></code>, but since <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">cross(T,</span> <span class="pre">N)</span></code>
+the binormal is orthogonal to the normal, so <code class="docutils literal notranslate"><span class="pre">dot(B,</span> <span class="pre">N)</span></code> is always
+zero. Use <a class="reference internal" href="#dipy.tracking.metrics.mean_curvature" title="dipy.tracking.metrics.mean_curvature"><code class="xref py py-func docutils literal notranslate"><span class="pre">mean_curvature()</span></code></a> for curvature-related functionality.
+Will be removed in DIPY 2.0.0.</p>
+</div>
 <p>Calculates the 3 vector and 2 scalar invariants of a space curve
 defined by vectors r = (x,y,z).  If z is omitted (i.e. the array xyz has
 shape (N,2)), then the curve is
@@ -2166,14 +2178,17 @@ with respect to the parameter <span class="math notranslate nohighlight">\(s\)</
 <p class="rubric">Examples</p>
 <p>Create a helix and calculate its tangent, normal, binormal, curvature
 and torsion</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics</span> <span class="k">as</span> <span class="n">tm</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics</span> <span class="k">as</span> <span class="n">tm</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">theta</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">=</span><span class="n">theta</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">xyz</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">t</span><span class="o">=</span><span class="n">tm</span><span class="o">.</span><span class="n">frenet_serret</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">T</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">t</span><span class="o">=</span><span class="n">tm</span><span class="o">.</span><span class="n">frenet_serret</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

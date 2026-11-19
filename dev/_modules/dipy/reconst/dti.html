@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.reconst.dti &#8212; dipy 1.13.0.dev0+git20261117.b2adc77 documentation</title>
+    <title>dipy.reconst.dti &#8212; dipy 1.13.0.dev0+git20261119.54c4e17 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=14ad50d1"></script>
+    <script src="../../../_static/documentation_options.js?v=ce76a7e7"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1473,6 +1473,9 @@ document.write(`
 
 <span class="sd">    See :footcite:p:`Ennis2006` for further details about the method.</span>
 
+<span class="sd">    Mode is the third orthogonal moment of the eigenvalue distribution</span>
+<span class="sd">    :footcite:p:`Chad2021`.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    q_form : ndarray</span>
@@ -1517,6 +1520,54 @@ document.write(`
     <span class="n">mode</span><span class="p">[</span><span class="n">nonzero</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode_nonzero</span>
 
     <span class="k">return</span> <span class="n">mode</span></div>
+
+
+
+<div class="viewcode-block" id="norm_anisotropy">
+<a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.dti.norm_anisotropy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">norm_anisotropy</span><span class="p">(</span><span class="n">q_form</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""</span>
+<span class="sd">    Norm of anisotropy (NA) of a diffusion tensor.</span>
+
+<span class="sd">    NA is the second orthogonal moment of the eigenvalue distribution. See</span>
+<span class="sd">    :footcite:p:`Ennis2006` and :footcite:p:`Chad2021` for further details.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    q_form : ndarray</span>
+<span class="sd">        The quadratic form of a tensor, or an array with quadratic forms of</span>
+<span class="sd">        tensors. Should be of shape (x, y, z, 3, 3) or (n, 3, 3) or (3, 3).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    na : array</span>
+<span class="sd">        Calculated norm of anisotropy in each spatial coordinate.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Quote from :footcite:t:`Chad2021`:</span>
+<span class="sd">    "... NA is a shape measure directly based on the variance of the</span>
+<span class="sd">    eigenvalues and thus irrespective of alteration in MD. Degeneration of</span>
+<span class="sd">    primarily single-tract regions would manifest as decreased NA, whereas</span>
+<span class="sd">    selective degeneration of secondary crossing tracts would manifest as</span>
+<span class="sd">    increased NA."</span>
+
+<span class="sd">    NA is computed as (equation 6 in :footcite:p:`Chad2021`):</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        NA = \lVert \widetilde{D} \rVert</span>
+<span class="sd">            = \sqrt{(\lambda_1-MD)^2 + (\lambda_2-MD)^2 + (\lambda_3-MD)^2}</span>
+
+<span class="sd">    Where :math:`\widetilde{D}` is the deviatoric part of the tensor quadratic form.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. footbibliography::</span>
+<span class="sd">    """</span>
+
+    <span class="n">A_squiggle</span> <span class="o">=</span> <span class="n">deviatoric</span><span class="p">(</span><span class="n">q_form</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">norm</span><span class="p">(</span><span class="n">A_squiggle</span><span class="p">)</span></div>
 
 
 
@@ -2004,6 +2055,16 @@ document.write(`
 <span class="sd">        Tensor mode calculated from the tensor quadratic form.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">mode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadratic_form</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TensorFit.na">
+<a class="viewcode-back" href="../../../reference/dipy.reconst.html#dipy.reconst.dti.TensorFit.na">[docs]</a>
+    <span class="nd">@auto_attr</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">na</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Norm of anisotropy (NA) calculated from the tensor quadratic form.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">norm_anisotropy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadratic_form</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="TensorFit.md">

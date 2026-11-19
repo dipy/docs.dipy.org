@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.tracking.metrics &#8212; dipy 1.13.0.dev0+git20261117.b2adc77 documentation</title>
+    <title>dipy.tracking.metrics &#8212; dipy 1.13.0.dev0+git20261119.54c4e17 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=14ad50d1"></script>
+    <script src="../../../_static/documentation_options.js?v=ce76a7e7"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -888,7 +888,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">splev</span><span class="p">,</span> <span class="n">splprep</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">warning_for_keywords</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecate_with_version</span><span class="p">,</span> <span class="n">warning_for_keywords</span>
 
 
 <div class="viewcode-block" id="winding">
@@ -1109,8 +1109,23 @@ document.write(`
 
 <div class="viewcode-block" id="frenet_serret">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.metrics.frenet_serret">[docs]</a>
+<span class="nd">@deprecate_with_version</span><span class="p">(</span>
+    <span class="s2">"frenet_serret is deprecated because the torsion calculation is incorrect: "</span>
+    <span class="s2">"it computes -dot(B, N), but since B = cross(T, N) the binormal is "</span>
+    <span class="s2">"orthogonal to the normal, so dot(B, N) is always zero. "</span>
+    <span class="s2">"Use mean_curvature() for curvature-related functionality."</span><span class="p">,</span>
+    <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span>
+    <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">frenet_serret</span><span class="p">(</span><span class="n">xyz</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">"""Frenet-Serret Space Curve Invariants</span>
+
+<span class="sd">    .. deprecated:: 1.13.0</span>
+<span class="sd">        ``frenet_serret`` is deprecated because the torsion calculation is</span>
+<span class="sd">        incorrect: it computes ``-dot(B, N)``, but since ``B = cross(T, N)``</span>
+<span class="sd">        the binormal is orthogonal to the normal, so ``dot(B, N)`` is always</span>
+<span class="sd">        zero. Use :func:`mean_curvature` for curvature-related functionality.</span>
+<span class="sd">        Will be removed in DIPY 2.0.0.</span>
 
 <span class="sd">    Calculates the 3 vector and 2 scalar invariants of a space curve</span>
 <span class="sd">    defined by vectors r = (x,y,z).  If z is omitted (i.e. the array xyz has</span>
@@ -1156,6 +1171,7 @@ document.write(`
 <span class="sd">    Create a helix and calculate its tangent, normal, binormal, curvature</span>
 <span class="sd">    and torsion</span>
 
+<span class="sd">    &gt;&gt;&gt; import warnings</span>
 <span class="sd">    &gt;&gt;&gt; from dipy.tracking import metrics as tm</span>
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; theta = 2*np.pi*np.linspace(0,2,100)</span>
@@ -1163,7 +1179,9 @@ document.write(`
 <span class="sd">    &gt;&gt;&gt; y=np.sin(theta)</span>
 <span class="sd">    &gt;&gt;&gt; z=theta/(2*np.pi)</span>
 <span class="sd">    &gt;&gt;&gt; xyz=np.vstack((x,y,z)).T</span>
-<span class="sd">    &gt;&gt;&gt; T,N,B,k,t=tm.frenet_serret(xyz)</span>
+<span class="sd">    &gt;&gt;&gt; with warnings.catch_warnings():</span>
+<span class="sd">    ...     warnings.simplefilter("ignore", category=DeprecationWarning)</span>
+<span class="sd">    ...     T,N,B,k,t=tm.frenet_serret(xyz)</span>
 <span class="sd">    """</span>
 
     <span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
