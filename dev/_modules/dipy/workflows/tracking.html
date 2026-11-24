@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.workflows.tracking &#8212; dipy 1.13.0.dev0+git20261119.11d58b6 documentation</title>
+    <title>dipy.workflows.tracking &#8212; dipy 1.13.0.dev0+git20261124.37a5993 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=1d04fe10"></script>
+    <script src="../../../_static/documentation_options.js?v=8cac367b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -884,13 +884,14 @@ document.write(`
                   
   <h1>Source code for dipy.workflows.tracking</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">SPHERE_FILES</span><span class="p">,</span> <span class="n">get_sphere</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_nifti</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_pam</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.stateful_tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Space</span><span class="p">,</span> <span class="n">StatefulTractogram</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_tractogram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.streamline</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_tractogram</span><span class="p">,</span> <span class="n">save_trx_from_generator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.stopping_criterion</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BinaryStoppingCriterion</span><span class="p">,</span>
@@ -905,8 +906,49 @@ document.write(`
     <span class="n">probabilistic_tracking</span><span class="p">,</span>
     <span class="n">ptt_tracking</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.workflows.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_save_tracking_result</span><span class="p">(</span>
+    <span class="n">tracking_result</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="n">out_tract</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">save_seeds</span><span class="p">,</span> <span class="n">chunked</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Save tracking results to a file. Shared by local and PFT tracking workflows.</span>
+<span class="sd">    This function should disappear when their tracking APIs are unified.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tracking_result : generator</span>
+<span class="sd">        Streamlines, ``(streamline, seed)`` pairs if ``save_seeds`` is True,</span>
+<span class="sd">        or chunks if ``chunked`` is True (TRX output only).</span>
+<span class="sd">    reference : str or Path</span>
+<span class="sd">        The reference image path for the tractogram.</span>
+<span class="sd">    out_tract : str or Path</span>
+<span class="sd">        The output tractogram file path.</span>
+<span class="sd">    save_seeds : bool</span>
+<span class="sd">        Whether to save the seeds associated with their streamlines in the output file.</span>
+<span class="sd">    chunked : bool</span>
+<span class="sd">        Whether ``tracking_result`` yields chunks.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_tract</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">".trx"</span><span class="p">:</span>
+        <span class="n">trx_file</span> <span class="o">=</span> <span class="n">save_trx_from_generator</span><span class="p">(</span>
+            <span class="n">tracking_result</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">out_tract</span><span class="p">,</span> <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span>
+        <span class="p">)</span>
+        <span class="n">trx_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">save_seeds</span><span class="p">:</span>
+            <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">tracking_result</span><span class="p">)</span>
+            <span class="n">seeds</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"seeds"</span><span class="p">:</span> <span class="n">seeds</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">streamlines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tracking_result</span><span class="p">)</span>
+            <span class="n">seeds</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span>
+            <span class="n">streamlines</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">,</span> <span class="n">data_per_streamline</span><span class="o">=</span><span class="n">seeds</span>
+        <span class="p">)</span>
+        <span class="n">save_tractogram</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="n">out_tract</span><span class="p">,</span> <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Saved </span><span class="si">{</span><span class="n">out_tract</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="LocalFiberTrackingPAMFlow">
@@ -921,6 +963,12 @@ document.write(`
 
 <div class="viewcode-block" id="LocalFiberTrackingPAMFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.tracking.LocalFiberTrackingPAMFlow.run">[docs]</a>
+    <span class="nd">@deprecated_params</span><span class="p">(</span>
+        <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span>
+        <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span>
+        <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span>
+        <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pam_files</span><span class="p">,</span>
@@ -939,7 +987,8 @@ document.write(`
         <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_tractogram</span><span class="o">=</span><span class="s2">"out_tractogram.trx"</span><span class="p">,</span>
     <span class="p">):</span>
@@ -1007,10 +1056,11 @@ document.write(`
 <span class="sd">            than 0 will all produce the same streamline trajectory for a given seed</span>
 <span class="sd">            coordinate. A value of 0 may produces various streamline tracjectories</span>
 <span class="sd">            for a given seed coordinate.</span>
+<span class="sd">        chunk_size : int, optional</span>
+<span class="sd">            Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">        seed_buffer_fraction : float, optional</span>
-<span class="sd">            Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">            buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">            a way to reduce memory usage.</span>
+<span class="sd">            Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">            usage.</span>
 <span class="sd">        out_dir : string or Path, optional</span>
 <span class="sd">           Output directory.</span>
 <span class="sd">        out_tractogram : string, optional</span>
@@ -1048,12 +1098,14 @@ document.write(`
                 <span class="n">seed_mask</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="p">[</span><span class="n">seed_density</span><span class="p">,</span> <span class="n">seed_density</span><span class="p">,</span> <span class="n">seed_density</span><span class="p">]</span>
             <span class="p">)</span>
 
+            <span class="n">chunked</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_tract</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">".trx"</span>
             <span class="k">if</span> <span class="n">max_angle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">max_angle</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="k">if</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"ptt"</span><span class="p">]</span> <span class="k">else</span> <span class="mf">30.0</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"max_angle not set by user, defaulting to </span><span class="si">{</span><span class="n">max_angle</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Starting to track"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"closestpeaks"</span><span class="p">,</span> <span class="s2">"cp"</span><span class="p">]:</span>
+                <span class="n">chunked</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">closestpeak_tracking</span><span class="p">(</span>
                     <span class="n">seeds</span><span class="p">,</span>
                     <span class="n">stopping_criterion</span><span class="p">,</span>
@@ -1068,7 +1120,7 @@ document.write(`
                     <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
                     <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
                     <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span>
                 <span class="s2">"eudx"</span><span class="p">,</span>
@@ -1077,6 +1129,7 @@ document.write(`
                     <span class="n">seeds</span><span class="p">,</span>
                     <span class="n">stopping_criterion</span><span class="p">,</span>
                     <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
                     <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
                     <span class="n">pam</span><span class="o">=</span><span class="n">pam</span><span class="p">,</span>
                     <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
@@ -1088,13 +1141,14 @@ document.write(`
                     <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
                     <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
                     <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"deterministic"</span><span class="p">,</span> <span class="s2">"det"</span><span class="p">]:</span>
                 <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">deterministic_tracking</span><span class="p">(</span>
                     <span class="n">seeds</span><span class="p">,</span>
                     <span class="n">stopping_criterion</span><span class="p">,</span>
                     <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
                     <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
                     <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
                     <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
@@ -1105,13 +1159,14 @@ document.write(`
                     <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
                     <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
                     <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"probabilistic"</span><span class="p">,</span> <span class="s2">"prob"</span><span class="p">]:</span>
                 <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">probabilistic_tracking</span><span class="p">(</span>
                     <span class="n">seeds</span><span class="p">,</span>
                     <span class="n">stopping_criterion</span><span class="p">,</span>
                     <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
                     <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
                     <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
                     <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
@@ -1122,13 +1177,14 @@ document.write(`
                     <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
                     <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
                     <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">tracking_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"ptt"</span><span class="p">]:</span>
                 <span class="n">tracking_result</span> <span class="o">=</span> <span class="n">ptt_tracking</span><span class="p">(</span>
                     <span class="n">seeds</span><span class="p">,</span>
                     <span class="n">stopping_criterion</span><span class="p">,</span>
                     <span class="n">affine</span><span class="p">,</span>
+                    <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
                     <span class="n">sh</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">shm_coeff</span><span class="p">,</span>
                     <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
                     <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
@@ -1139,7 +1195,7 @@ document.write(`
                     <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
                     <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
                     <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-                    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
@@ -1148,18 +1204,13 @@ document.write(`
                     <span class="sa">f</span><span class="s2">"'eudx', 'deterministic', 'probabilistic', 'closestpeaks', 'ptt'"</span>
                 <span class="p">)</span>
                 <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">save_seeds</span><span class="p">:</span>
-                <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">tracking_result</span><span class="p">)</span>
-                <span class="n">seeds</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"seeds"</span><span class="p">:</span> <span class="n">seeds</span><span class="p">}</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">streamlines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tracking_result</span><span class="p">)</span>
-                <span class="n">seeds</span> <span class="o">=</span> <span class="p">{}</span>
-
-            <span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span>
-                <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeding_path</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">,</span> <span class="n">data_per_streamline</span><span class="o">=</span><span class="n">seeds</span>
-            <span class="p">)</span>
-            <span class="n">save_tractogram</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="n">out_tract</span><span class="p">,</span> <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Saved </span><span class="si">{</span><span class="n">out_tract</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+            <span class="n">_save_tracking_result</span><span class="p">(</span>
+                <span class="n">tracking_result</span><span class="p">,</span>
+                <span class="n">seeding_path</span><span class="p">,</span>
+                <span class="n">out_tract</span><span class="p">,</span>
+                <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+                <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
+            <span class="p">)</span></div>
 </div>
 
 
@@ -1176,6 +1227,12 @@ document.write(`
 
 <div class="viewcode-block" id="PFTrackingPAMFlow.run">
 <a class="viewcode-back" href="../../../reference/dipy.workflows.html#dipy.workflows.tracking.PFTrackingPAMFlow.run">[docs]</a>
+    <span class="nd">@deprecated_params</span><span class="p">(</span>
+        <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span>
+        <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span>
+        <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span>
+        <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pam_files</span><span class="p">,</span>
@@ -1196,7 +1253,8 @@ document.write(`
         <span class="n">min_wm_pve_before_stopping</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">out_dir</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
         <span class="n">out_tractogram</span><span class="o">=</span><span class="s2">"tractogram.trx"</span><span class="p">,</span>
     <span class="p">):</span>
@@ -1265,10 +1323,11 @@ document.write(`
 <span class="sd">            than 0 will all produce the same streamline trajectory for a given seed</span>
 <span class="sd">            coordinate. A value of 0 may produces various streamline tracjectories</span>
 <span class="sd">            for a given seed coordinate.</span>
+<span class="sd">        chunk_size : int, optional</span>
+<span class="sd">            Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">        seed_buffer_fraction : float, optional</span>
-<span class="sd">            Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">            buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">            a way to reduce memory usage.</span>
+<span class="sd">            Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">            usage.</span>
 <span class="sd">        out_dir : string or Path, optional</span>
 <span class="sd">           Output directory.</span>
 <span class="sd">        out_tractogram : string, optional</span>
@@ -1322,21 +1381,16 @@ document.write(`
                 <span class="n">max_angle</span><span class="o">=</span><span class="n">max_angle</span><span class="p">,</span>
                 <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
                 <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-                <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+                <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
             <span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">save_seeds</span><span class="p">:</span>
-                <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">tracking_result</span><span class="p">)</span>
-                <span class="n">seeds</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"seeds"</span><span class="p">:</span> <span class="n">seeds</span><span class="p">}</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">streamlines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tracking_result</span><span class="p">)</span>
-                <span class="n">seeds</span> <span class="o">=</span> <span class="p">{}</span>
-
-            <span class="n">sft</span> <span class="o">=</span> <span class="n">StatefulTractogram</span><span class="p">(</span>
-                <span class="n">streamlines</span><span class="p">,</span> <span class="n">seeding_path</span><span class="p">,</span> <span class="n">Space</span><span class="o">.</span><span class="n">RASMM</span><span class="p">,</span> <span class="n">data_per_streamline</span><span class="o">=</span><span class="n">seeds</span>
-            <span class="p">)</span>
-            <span class="n">save_tractogram</span><span class="p">(</span><span class="n">sft</span><span class="p">,</span> <span class="n">out_tract</span><span class="p">,</span> <span class="n">bbox_valid_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Saved </span><span class="si">{</span><span class="n">out_tract</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+            <span class="n">_save_tracking_result</span><span class="p">(</span>
+                <span class="n">tracking_result</span><span class="p">,</span>
+                <span class="n">seeding_path</span><span class="p">,</span>
+                <span class="n">out_tract</span><span class="p">,</span>
+                <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+                <span class="n">chunked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span></div>
 </div>
 
 </pre></div>

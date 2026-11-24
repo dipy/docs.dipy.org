@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.io.streamline &#8212; dipy 1.13.0.dev0+git20261119.11d58b6 documentation</title>
+    <title>dipy.io.streamline &#8212; dipy 1.13.0.dev0+git20261124.37a5993 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=1d04fe10"></script>
+    <script src="../../../_static/documentation_options.js?v=8cac367b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -891,6 +891,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.streamlines</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_format</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.streamlines.tractogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tractogram</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">trx.trx_file_memmap</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tmm</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.io.dpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dpy</span>
@@ -1060,6 +1061,156 @@ document.write(`
 
     <span class="k">return</span> <span class="n">lines</span></div>
 
+
+
+<div class="viewcode-block" id="save_trx_from_generator">
+<a class="viewcode-back" href="../../../reference/dipy.io.html#dipy.io.streamline.save_trx_from_generator">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_trx_from_generator</span><span class="p">(</span>
+    <span class="n">sl_generator</span><span class="p">,</span>
+    <span class="n">reference</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">chunked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">nb_streamlines_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">nb_vertices_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">offset_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">,</span>
+    <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Build a TRX file on disk from a streamline generator, without ever</span>
+<span class="sd">    holding the whole tractogram in memory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sl_generator : iterable</span>
+<span class="sd">        Output of a DIPY tracking function (streamlines in world space): one</span>
+<span class="sd">        streamline ``(N, 3)`` (or ``(streamline, seed)``) at a time, or, with</span>
+<span class="sd">        ``chunked=True``, chunks ``(points, lengths)`` /</span>
+<span class="sd">        ``(points, lengths, seeds)``. Chunks are written in bulk and are much</span>
+<span class="sd">        faster.</span>
+<span class="sd">    reference : Nifti1Image, str, Path or dict</span>
+<span class="sd">        Reference for the TRX header (e.g. the seeding or stopping image).</span>
+<span class="sd">    filename : str or Path, optional</span>
+<span class="sd">        If given, write the ``.trx`` file there.</span>
+<span class="sd">    chunked : bool, optional</span>
+<span class="sd">        True if ``sl_generator`` yields chunks (tracking functions called</span>
+<span class="sd">        with ``chunked=True``).</span>
+<span class="sd">    nb_streamlines_estimate : int, optional</span>
+<span class="sd">        Estimated total number of streamlines, used to preallocate the TRX</span>
+<span class="sd">        file on disk.</span>
+<span class="sd">    nb_vertices_estimate : int, optional</span>
+<span class="sd">        Estimated total number of vertices, used to preallocate the TRX</span>
+<span class="sd">        file on disk. If None, ``nb_streamlines_estimate * 100`` is used.</span>
+<span class="sd">    offset_dtype : data-type, optional</span>
+<span class="sd">        Data type for the offsets array in the TRX file.</span>
+<span class="sd">    data_dtype : data-type, optional</span>
+<span class="sd">        Data type for the data array in the TRX file. ``np.float16`` halves</span>
+<span class="sd">        the file size but rounds world coordinates to about 0.06 mm at</span>
+<span class="sd">        100 mm from the origin.</span>
+<span class="sd">    batch_size : int, optional</span>
+<span class="sd">        Number of single streamlines to buffer before writing them.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    trx_file : trx.trx_file_memmap.TrxFile</span>
+<span class="sd">        The (resized) TRX object, with seeds in ``data_per_streamline["seeds"]``</span>
+<span class="sd">        when the generator provides them. It is backed by a temporary folder</span>
+<span class="sd">        as large as the tractogram: call ``trx_file.close()`` when done.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">nb_streamlines_estimate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nb_streamlines_estimate</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e6</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nb_vertices_estimate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nb_vertices_estimate</span> <span class="o">=</span> <span class="n">nb_streamlines_estimate</span> <span class="o">*</span> <span class="mi">100</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+
+    <span class="n">trx_reference</span> <span class="o">=</span> <span class="n">tmm</span><span class="o">.</span><span class="n">TrxFile</span><span class="p">(</span><span class="n">reference</span><span class="o">=</span><span class="n">reference</span><span class="p">)</span>
+    <span class="n">trx_reference</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">trx_reference</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">data_dtype</span><span class="p">)</span>
+    <span class="n">trx_reference</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_offsets</span> <span class="o">=</span> <span class="n">trx_reference</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+        <span class="n">offset_dtype</span>
+    <span class="p">)</span>
+    <span class="n">trx_file</span> <span class="o">=</span> <span class="n">tmm</span><span class="o">.</span><span class="n">TrxFile</span><span class="p">(</span>
+        <span class="n">nb_streamlines</span><span class="o">=</span><span class="n">nb_streamlines_estimate</span><span class="p">,</span>
+        <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertices_estimate</span><span class="p">,</span>
+        <span class="n">init_as</span><span class="o">=</span><span class="n">trx_reference</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">trx_reference</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">chunks</span> <span class="o">=</span> <span class="n">sl_generator</span> <span class="k">if</span> <span class="n">chunked</span> <span class="k">else</span> <span class="n">_batch_streamlines</span><span class="p">(</span><span class="n">sl_generator</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+    <span class="n">sl_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">data_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">seeds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">nb_streamlines_estimate</span><span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+                <span class="n">points</span><span class="p">,</span> <span class="n">lengths</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">n_sl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+                <span class="n">n_pts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">sl_idx</span> <span class="o">+</span> <span class="n">n_sl</span> <span class="o">&gt;</span> <span class="n">trx_file</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">"NB_STREAMLINES"</span><span class="p">]</span>
+                    <span class="ow">or</span> <span class="n">data_idx</span> <span class="o">+</span> <span class="n">n_pts</span> <span class="o">&gt;</span> <span class="n">trx_file</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">"NB_VERTICES"</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"TRX resizing..."</span><span class="p">)</span>
+                    <span class="n">trx_file</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span>
+                        <span class="n">nb_streamlines</span><span class="o">=</span><span class="p">(</span><span class="n">sl_idx</span> <span class="o">+</span> <span class="n">n_sl</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+                        <span class="n">nb_vertices</span><span class="o">=</span><span class="p">(</span><span class="n">data_idx</span> <span class="o">+</span> <span class="n">n_pts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="n">trx_file</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">data_idx</span> <span class="p">:</span> <span class="n">data_idx</span> <span class="o">+</span> <span class="n">n_pts</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span>
+                <span class="n">trx_file</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_offsets</span><span class="p">[</span><span class="n">sl_idx</span> <span class="p">:</span> <span class="n">sl_idx</span> <span class="o">+</span> <span class="n">n_sl</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">data_idx</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">-</span> <span class="n">lengths</span>
+                <span class="p">)</span>
+                <span class="n">trx_file</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">_lengths</span><span class="p">[</span><span class="n">sl_idx</span> <span class="p">:</span> <span class="n">sl_idx</span> <span class="o">+</span> <span class="n">n_sl</span><span class="p">]</span> <span class="o">=</span> <span class="n">lengths</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">chunk</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">seeds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+                <span class="n">sl_idx</span> <span class="o">+=</span> <span class="n">n_sl</span>
+                <span class="n">data_idx</span> <span class="o">+=</span> <span class="n">n_pts</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">n_sl</span><span class="p">)</span>
+
+        <span class="n">trx_file</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">nb_streamlines</span><span class="o">=</span><span class="n">sl_idx</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">data_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">seeds</span><span class="p">:</span>
+            <span class="n">trx_file</span><span class="o">.</span><span class="n">data_per_streamline</span><span class="p">[</span><span class="s2">"seeds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">seeds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tmm</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">trx_file</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="n">trx_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">trx_file</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_batch_streamlines</span><span class="p">(</span><span class="n">sl_generator</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Group single streamlines into ``(points, lengths, seeds)`` chunks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sl_generator : iterable</span>
+<span class="sd">        Yields streamlines ``(N, 3)`` or ``(streamline, seed)`` pairs.</span>
+<span class="sd">    batch_size : int</span>
+<span class="sd">        Number of streamlines per chunk.</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    chunk : tuple</span>
+<span class="sd">        ``(points, lengths, seeds)``, with ``seeds`` None when the generator</span>
+<span class="sd">        yields bare streamlines.</span>
+<span class="sd">    """</span>
+    <span class="n">sls</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sl_generator</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">seeds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sls</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">batch_size</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">_flush_streamlines</span><span class="p">(</span><span class="n">sls</span><span class="p">,</span> <span class="n">seeds</span><span class="p">)</span>
+            <span class="n">sls</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">sls</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">_flush_streamlines</span><span class="p">(</span><span class="n">sls</span><span class="p">,</span> <span class="n">seeds</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flush_streamlines</span><span class="p">(</span><span class="n">sls</span><span class="p">,</span> <span class="n">seeds</span><span class="p">):</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">sl</span><span class="p">)</span> <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">sls</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">sls</span><span class="p">),</span> <span class="n">lengths</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">seeds</span><span class="p">)</span> <span class="k">if</span> <span class="n">seeds</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="save_tractogram">

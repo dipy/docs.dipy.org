@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.tracking.utils &#8212; dipy 1.13.0.dev0+git20261119.11d58b6 documentation</title>
+    <title>dipy.tracking.utils &#8212; dipy 1.13.0.dev0+git20261124.37a5993 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=1d04fe10"></script>
+    <script src="../../../_static/documentation_options.js?v=8cac367b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1403,6 +1403,8 @@ document.write(`
 <span class="sd">        of seeds.</span>
 <span class="sd">    random_seed : int</span>
 <span class="sd">        The seed for the random seed generator (numpy.random.Generator).</span>
+<span class="sd">        For a given ``random_seed`` and ``mask``, the first ``k`` seeds are</span>
+<span class="sd">        the same whatever ``seeds_count`` is.</span>
 
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
@@ -1443,45 +1445,51 @@ document.write(`
     <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"mask cannot be more than 3d"</span><span class="p">)</span>
 
-    <span class="c1"># Randomize the voxels</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
     <span class="n">shape</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">))</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
     <span class="n">rng</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">mask</span><span class="p">[</span><span class="n">indices</span><span class="p">]]</span>
+    <span class="n">num_voxels</span> <span class="o">=</span> <span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="n">where</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span> <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">num_voxels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">seed_count_per_voxel</span><span class="p">:</span>
-        <span class="c1"># Generate enough seeds per voxel</span>
-        <span class="n">seeds_per_voxel</span> <span class="o">=</span> <span class="n">seeds_count</span> <span class="o">//</span> <span class="n">num_voxels</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">seed_count_per_voxel</span><span class="p">:</span>
+        <span class="n">nb_seeds</span> <span class="o">=</span> <span class="n">seeds_count</span> <span class="o">*</span> <span class="n">num_voxels</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">seeds_per_voxel</span> <span class="o">=</span> <span class="n">seeds_count</span>
+        <span class="n">nb_seeds</span> <span class="o">=</span> <span class="n">seeds_count</span> <span class="k">if</span> <span class="n">num_voxels</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
 
-    <span class="n">seeds</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">seeds_per_voxel</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">where</span><span class="p">:</span>
-            <span class="c1"># Set the random seed with the current seed, the current value of</span>
-            <span class="c1"># seeds per voxel and the global random seed.</span>
-            <span class="k">if</span> <span class="n">random_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">s_random_seed</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="n">random_seed</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">32</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">s_random_seed</span><span class="p">)</span>
-            <span class="c1"># Generate random triplet</span>
-            <span class="n">grid</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-            <span class="n">seed</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="n">grid</span> <span class="o">-</span> <span class="mf">0.5</span>
-            <span class="n">seeds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-    <span class="n">seeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seeds</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nb_seeds</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">seed_count_per_voxel</span><span class="p">:</span>
-        <span class="c1"># Select the requested amount</span>
-        <span class="n">seeds</span> <span class="o">=</span> <span class="n">seeds</span><span class="p">[:</span><span class="n">seeds_count</span><span class="p">]</span>
+    <span class="c1"># Seeds are placed one pass over the shuffled voxels at a time: seed t is</span>
+    <span class="c1"># in voxel t % num_voxels during pass t // num_voxels + 1. The first seeds</span>
+    <span class="c1"># therefore do not depend on seeds_count.</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nb_seeds</span><span class="p">)</span>
+    <span class="n">voxel_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">shape</span><span class="p">))</span>
+    <span class="n">voxel</span> <span class="o">=</span> <span class="n">t</span> <span class="o">%</span> <span class="n">num_voxels</span>
+    <span class="n">seeds</span> <span class="o">=</span> <span class="n">voxel_coords</span><span class="p">[</span><span class="n">voxel</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">random_seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">seeds</span> <span class="o">+=</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">nb_seeds</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">voxel_sums</span> <span class="o">=</span> <span class="n">voxel_coords</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="n">voxel</span><span class="p">]</span>
+        <span class="n">passes</span> <span class="o">=</span> <span class="n">t</span> <span class="o">//</span> <span class="n">num_voxels</span> <span class="o">+</span> <span class="mi">1</span>
 
-    <span class="c1"># Apply the spatial transform</span>
-    <span class="k">if</span> <span class="n">seeds</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
-        <span class="c1"># Use affine to move seeds into real world coordinates</span>
-        <span class="n">seeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">seeds</span><span class="p">,</span> <span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">seeds</span> <span class="o">+=</span> <span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+        <span class="n">pairs</span><span class="p">,</span> <span class="n">inverse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">voxel_sums</span><span class="p">,</span> <span class="n">passes</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">voxel_sum</span><span class="p">,</span> <span class="n">n_pass</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pairs</span><span class="p">):</span>
+            <span class="n">s_random_seed</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">((</span><span class="n">voxel_sum</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_pass</span><span class="p">)</span> <span class="o">+</span> <span class="n">random_seed</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="mi">2</span><span class="o">**</span><span class="mi">32</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="p">)</span>
+            <span class="n">offsets</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">s_random_seed</span><span class="p">)</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">seeds</span> <span class="o">+=</span> <span class="n">offsets</span><span class="p">[</span><span class="n">inverse</span><span class="o">.</span><span class="n">ravel</span><span class="p">()]</span>
+
+    <span class="n">seeds</span> <span class="o">-=</span> <span class="mf">0.5</span>
+
+    <span class="c1"># Use affine to move seeds into real world coordinates</span>
+    <span class="n">seeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">seeds</span><span class="p">,</span> <span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">seeds</span> <span class="o">+=</span> <span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">seeds</span></div>
 

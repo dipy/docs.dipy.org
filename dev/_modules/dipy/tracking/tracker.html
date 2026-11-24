@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.tracking.tracker &#8212; dipy 1.13.0.dev0+git20261119.11d58b6 documentation</title>
+    <title>dipy.tracking.tracker &#8212; dipy 1.13.0.dev0+git20261124.37a5993 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=1d04fe10"></script>
+    <script src="../../../_static/documentation_options.js?v=8cac367b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -883,25 +883,216 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for dipy.tracking.tracker</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">voxel_sizes</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span><span class="p">,</span> <span class="n">voxel_sizes</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sphere</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BootDirectionGetter</span><span class="p">,</span>
     <span class="n">ClosestPeakDirectionGetter</span><span class="p">,</span>
     <span class="n">ProbabilisticDirectionGetter</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.peaks</span><span class="w"> </span><span class="kn">import</span> <span class="n">peaks_from_positions</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.pmf</span><span class="w"> </span><span class="kn">import</span> <span class="n">SHCoeffPmfGen</span><span class="p">,</span> <span class="n">SimplePeakGen</span><span class="p">,</span> <span class="n">SimplePmfGen</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.pmf</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SHCoeffPmfGen</span><span class="p">,</span>
+    <span class="n">SimplePeakGen</span><span class="p">,</span>
+    <span class="n">SimplePmfGen</span><span class="p">,</span>
+    <span class="n">_sh_order_from_ncoef</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.shm</span><span class="w"> </span><span class="kn">import</span> <span class="n">sh_to_sf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.accel</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">gpu_streamline_generator</span><span class="p">,</span>
+    <span class="n">prepare_gpu_tracker_data</span><span class="p">,</span>
+    <span class="n">select_accel_backend</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.local_tracking</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalTracking</span><span class="p">,</span> <span class="n">ParticleFilteringTracking</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.stopping_criterion</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThresholdStoppingCriterion</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.tracker_parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_tracking_parameters</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.tractogen</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_tractogram</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.tracking.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">seeds_directions_pairs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.deprecator</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_is_symmetric</span><span class="p">(</span><span class="n">is_symmetric</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">sh</span><span class="p">,</span> <span class="n">full_basis</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Resolve the ``is_symmetric`` tracking option.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    is_symmetric : bool or None</span>
+<span class="sd">        User choice. None infers it from ``sh``.</span>
+<span class="sd">    sh : ndarray or None</span>
+<span class="sd">        Spherical harmonic coefficients. A full (odd and even order) basis</span>
+<span class="sd">        describes an asymmetric ODF.</span>
+<span class="sd">    full_basis : bool or None</span>
+<span class="sd">        Whether ``sh`` uses a full basis. None infers it from the number of</span>
+<span class="sd">        coefficients.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    is_symmetric : bool</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">is_symmetric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">is_symmetric</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="n">_sh_order_from_ncoef</span><span class="p">(</span><span class="n">sh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">full_basis</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_has_peaks</span><span class="p">(</span><span class="n">pam</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Whether ``pam`` holds the peak indices and values tracked from a pam."""</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">"peak_indices"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">"peak_values"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pam_odf_vertices</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="n">sphere</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Sphere vertices that ``pam.peak_indices`` index into.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pam : PeaksAndMetrics</span>
+<span class="sd">        Peaks.</span>
+<span class="sd">    sphere : Sphere</span>
+<span class="sd">        Fallback sphere when ``pam`` has no ``odf_vertices``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    odf_vertices : ndarray, shape (N, 3)</span>
+<span class="sd">    """</span>
+    <span class="n">odf_vertices</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="s2">"odf_vertices"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span> <span class="k">if</span> <span class="n">odf_vertices</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">odf_vertices</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pam_seed_directions</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="n">seed_positions</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">odf_vertices</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Seed positions and directions from the peaks of the seed voxels.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pam : PeaksAndMetrics</span>
+<span class="sd">        Peaks.</span>
+<span class="sd">    seed_positions : ndarray, shape (N, 3)</span>
+<span class="sd">        Seed positions in world space.</span>
+<span class="sd">    affine : ndarray, shape (4, 4)</span>
+<span class="sd">        Voxel-to-world affine.</span>
+<span class="sd">    odf_vertices : ndarray, shape (M, 3)</span>
+<span class="sd">        Sphere vertices that ``pam.peak_indices`` index into.</span>
+<span class="sd">    max_cross : int or None</span>
+<span class="sd">        Maximum number of peaks tracked per seed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    seed_positions, seed_directions : ndarray</span>
+<span class="sd">        See :func:`dipy.tracking.utils.seeds_directions_pairs`.</span>
+<span class="sd">    """</span>
+    <span class="n">seed_voxels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">apply_affine</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">affine</span><span class="p">),</span> <span class="n">seed_positions</span><span class="p">))</span>
+    <span class="n">seed_voxels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+        <span class="n">seed_voxels</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="p">)</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">seed_voxels</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">seed_peak_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+        <span class="n">pam</span><span class="o">.</span><span class="n">peak_indices</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">odf_vertices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">seeds_directions_pairs</span><span class="p">(</span>
+        <span class="n">seed_positions</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">odf_vertices</span><span class="p">)[</span><span class="n">seed_peak_indices</span><span class="p">],</span>
+        <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">,</span>
+        <span class="n">peak_values</span><span class="o">=</span><span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_peaks_to_sf</span><span class="p">(</span><span class="n">peak_indices</span><span class="p">,</span> <span class="n">peak_values</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Sparse spherical function whose interpolation is the pmf of peaks.</span>
+
+<span class="sd">    ``SimplePeakGen`` adds ``weight * peak_value`` at ``peak_index`` for each</span>
+<span class="sd">    of the 8 interpolation neighbours, which is the trilinear interpolation</span>
+<span class="sd">    of this volume: GPU backends then track the same pmf as the CPU.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    peak_indices : ndarray, shape (X, Y, Z, npeaks)</span>
+<span class="sd">        Sphere vertex index of each peak (negative when there is no peak).</span>
+<span class="sd">    peak_values : ndarray, shape (X, Y, Z, npeaks)</span>
+<span class="sd">        Value of each peak.</span>
+<span class="sd">    nb_vertices : int</span>
+<span class="sd">        Number of sphere vertices.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sf : ndarray of float32, shape (X, Y, Z, nb_vertices)</span>
+<span class="sd">    """</span>
+    <span class="n">peak_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">peak_indices</span><span class="p">)</span>
+    <span class="n">peak_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">peak_values</span><span class="p">)</span>
+    <span class="n">sf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">peak_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">nb_vertices</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">peak_indices</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">peak_indices</span> <span class="o">&lt;</span> <span class="n">nb_vertices</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">peak_values</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">peak_indices</span><span class="p">[</span><span class="n">valid</span><span class="p">]),</span> <span class="n">peak_values</span><span class="p">[</span><span class="n">valid</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sf</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_gpu_unsupported</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">sc</span><span class="p">,</span> <span class="n">sf</span><span class="p">,</span> <span class="n">sh</span><span class="p">,</span> <span class="n">pam</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Why the GPU backends cannot run this tracking, or None if they can.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sc : StoppingCriterion</span>
+<span class="sd">        Stopping criterion.</span>
+<span class="sd">    sf, sh : ndarray or None</span>
+<span class="sd">        Spherical function or SH coefficients.</span>
+<span class="sd">    pam : PeaksAndMetrics or None</span>
+<span class="sd">        Peaks.</span>
+<span class="sd">    voxel_size : ndarray, shape (3,)</span>
+<span class="sd">        Voxel size.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    reason : str or None</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">sf</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sh</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_has_peaks</span><span class="p">(</span><span class="n">pam</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"they need sf, sh or a pam with peak_indices and peak_values"</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="n">ThresholdStoppingCriterion</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"they need a ThresholdStoppingCriterion"</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="s2">"they need isotropic voxels"</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_select_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">inputs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Resolve ``backend="auto"`` to the best backend able to run the tracking.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    backend : str</span>
+<span class="sd">        "auto", "cpu", "metal", "cuda" or "webgpu".</span>
+<span class="sd">    **inputs : dict</span>
+<span class="sd">        Arguments of :func:`_gpu_unsupported`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    backend : str</span>
+<span class="sd">        ``backend`` itself unless it is "auto": then the first available GPU</span>
+<span class="sd">        backend (Metal, CUDA, WebGPU) if the inputs allow it, else "cpu".</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="o">!=</span> <span class="s2">"auto"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">backend</span>
+    <span class="n">reason</span> <span class="o">=</span> <span class="n">_gpu_unsupported</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">reason</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Tracking on the CPU: GPU backends cannot be used (</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">)."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">"cpu"</span>
+    <span class="n">selected</span> <span class="o">=</span> <span class="n">select_accel_backend</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">selected</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Tracking on the CPU: no GPU backend available."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">"cpu"</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Tracking with the </span><span class="si">{</span><span class="n">selected</span><span class="si">}</span><span class="s2"> GPU backend."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">selected</span>
 
 
 <div class="viewcode-block" id="generic_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.generic_tracking">[docs]</a>
+<span class="nd">@deprecated_params</span><span class="p">(</span>
+    <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">generic_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">seed_directions</span><span class="p">,</span>
@@ -915,9 +1106,12 @@ document.write(`
     <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">basis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">full_basis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">max_cross</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">chunked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span> <span class="k">if</span> <span class="n">affine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
@@ -953,18 +1147,13 @@ document.write(`
 
     <span class="k">if</span> <span class="n">selected_pmf</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"pam"</span><span class="p">:</span>
         <span class="n">peak_data</span> <span class="o">=</span> <span class="n">selected_pmf</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">peak_data</span><span class="p">,</span> <span class="s2">"peak_indices"</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span>
-            <span class="n">peak_data</span><span class="p">,</span> <span class="s2">"peak_values"</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_peaks</span><span class="p">(</span><span class="n">peak_data</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">"pam must be a PeaksAndMetrics object with "</span>
                 <span class="s2">"peak_indices and peak_values attributes"</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">peak_data</span><span class="p">,</span> <span class="s2">"odf_vertices"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">peak_data</span><span class="o">.</span><span class="n">odf_vertices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">odf_vertices</span> <span class="o">=</span> <span class="n">peak_data</span><span class="o">.</span><span class="n">odf_vertices</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">odf_vertices</span> <span class="o">=</span> <span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span>
+        <span class="n">odf_vertices</span> <span class="o">=</span> <span class="n">_pam_odf_vertices</span><span class="p">(</span><span class="n">peak_data</span><span class="p">,</span> <span class="n">sphere</span><span class="p">)</span>
 
         <span class="n">pmf_gen</span> <span class="o">=</span> <span class="n">selected_pmf</span><span class="p">[</span><span class="s2">"cls"</span><span class="p">](</span>
             <span class="c1"># Peak indices are integer sphere vertex ids.</span>
@@ -979,6 +1168,7 @@ document.write(`
             <span class="n">sphere</span><span class="p">,</span>
             <span class="n">basis_type</span><span class="o">=</span><span class="n">basis_type</span><span class="p">,</span>
             <span class="n">legacy</span><span class="o">=</span><span class="n">legacy</span><span class="p">,</span>
+            <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">pmf_gen</span> <span class="o">=</span> <span class="n">selected_pmf</span><span class="p">[</span><span class="s2">"cls"</span><span class="p">](</span>
@@ -997,45 +1187,12 @@ document.write(`
             <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">selected_pmf</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"pam"</span><span class="p">:</span>
-            <span class="c1"># Compute seed voxel coordinates</span>
-            <span class="n">inv_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">affine</span><span class="p">)</span>
-            <span class="n">seed_voxels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">seed_positions</span><span class="p">,</span> <span class="n">inv_affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-            <span class="n">seed_voxels</span> <span class="o">+=</span> <span class="n">inv_affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-            <span class="n">seed_voxels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">seed_voxels</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-
-            <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
-                <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">peak_data</span><span class="o">.</span><span class="n">peak_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-            <span class="p">)</span>
-            <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
-                <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">peak_data</span><span class="o">.</span><span class="n">peak_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-            <span class="p">)</span>
-            <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
-                <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">peak_data</span><span class="o">.</span><span class="n">peak_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-            <span class="p">)</span>
-
-            <span class="n">seed_peak_indices</span> <span class="o">=</span> <span class="n">peak_data</span><span class="o">.</span><span class="n">peak_indices</span><span class="p">[</span>
-                <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
-            <span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-
-            <span class="n">seed_peak_values</span> <span class="o">=</span> <span class="n">peak_data</span><span class="o">.</span><span class="n">peak_values</span><span class="p">[</span>
-                <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">seed_voxels</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
-            <span class="p">]</span>
-
-            <span class="n">seed_peak_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">seed_peak_indices</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">odf_vertices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">peak_dirs_at_seeds</span> <span class="o">=</span> <span class="n">odf_vertices</span><span class="p">[</span><span class="n">seed_peak_indices</span><span class="p">]</span>
-
-            <span class="n">seed_positions</span><span class="p">,</span> <span class="n">seed_directions</span> <span class="o">=</span> <span class="n">seeds_directions_pairs</span><span class="p">(</span>
+            <span class="n">seed_positions</span><span class="p">,</span> <span class="n">seed_directions</span> <span class="o">=</span> <span class="n">_pam_seed_directions</span><span class="p">(</span>
+                <span class="n">peak_data</span><span class="p">,</span>
                 <span class="n">seed_positions</span><span class="p">,</span>
-                <span class="n">peak_dirs_at_seeds</span><span class="p">,</span>
+                <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span>
+                <span class="n">odf_vertices</span><span class="o">=</span><span class="n">odf_vertices</span><span class="p">,</span>
                 <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">,</span>
-                <span class="n">peak_values</span><span class="o">=</span><span class="n">seed_peak_values</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">peaks_obj</span> <span class="o">=</span> <span class="n">peaks_from_positions</span><span class="p">(</span>
-                <span class="n">seed_positions</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">npeaks</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span> <span class="n">pmf_gen</span><span class="o">=</span><span class="n">pmf_gen</span>
-            <span class="p">)</span>
-            <span class="n">seed_positions</span><span class="p">,</span> <span class="n">seed_directions</span> <span class="o">=</span> <span class="n">seeds_directions_pairs</span><span class="p">(</span>
-                <span class="n">seed_positions</span><span class="p">,</span> <span class="n">peaks_obj</span><span class="p">,</span> <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span>
             <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">generate_tractogram</span><span class="p">(</span>
@@ -1046,14 +1203,19 @@ document.write(`
         <span class="n">pmf_gen</span><span class="p">,</span>
         <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span>
         <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-        <span class="n">buffer_frac</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
         <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+        <span class="n">max_cross</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">max_cross</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">max_cross</span><span class="p">,</span>
+        <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="probabilistic_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.probabilistic_tracking">[docs]</a>
+<span class="nd">@deprecated_params</span><span class="p">(</span>
+    <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">probabilistic_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
@@ -1072,11 +1234,17 @@ document.write(`
     <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">basis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">full_basis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">chunked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">max_cross</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">,</span>
+    <span class="n">is_symmetric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Probabilistic tracking algorithm.</span>
 
@@ -1116,23 +1284,58 @@ document.write(`
 <span class="sd">    legacy: bool, optional</span>
 <span class="sd">        True to use a legacy basis definition for backward compatibility</span>
 <span class="sd">        with previous ``tournier07`` and ``descoteaux07`` implementations.</span>
+<span class="sd">    full_basis: bool or None, optional</span>
+<span class="sd">        True if ``sh`` uses a full (odd and even order) SH basis, e.g. from</span>
+<span class="sd">        an asymmetric ODF model. If None, it is inferred from the number of</span>
+<span class="sd">        coefficients.</span>
 <span class="sd">    nbr_threads: int, optional</span>
 <span class="sd">        Number of threads to use for the processing. By default, all available threads</span>
 <span class="sd">        will be used.</span>
 <span class="sd">    random_seed: int, optional</span>
-<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value of greater than 0</span>
-<span class="sd">        will all produce the same streamline trajectory for a given seed coordinate.</span>
-<span class="sd">        A value of 0 may produces various streamline tracjectories for a given seed</span>
+<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value greater than 0</span>
+<span class="sd">        produces the same streamline trajectory for a given seed coordinate and</span>
+<span class="sd">        initial direction, whatever the seed order, ``chunk_size``,</span>
+<span class="sd">        ``nbr_threads`` or ``backend``: every backend draws the same random</span>
+<span class="sd">        numbers (Philox4x32-10, one stream per seed and direction). CPU</span>
+<span class="sd">        (float64) and GPU (float32) arithmetic differ slightly, so a few</span>
+<span class="sd">        streamlines can still diverge between a CPU and a GPU run. A value of</span>
+<span class="sd">        0 may produce various streamline trajectories for a given seed</span>
 <span class="sd">        coordinate.</span>
+<span class="sd">    chunk_size: int, optional</span>
+<span class="sd">        Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">    seed_buffer_fraction: float, optional</span>
-<span class="sd">        Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">        buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">        a way to reduce memory usage.</span>
+<span class="sd">        Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">        usage.</span>
+<span class="sd">    chunked: bool, optional</span>
+<span class="sd">        Yield ``(points, lengths)`` per chunk (``(points, lengths, seeds)``</span>
+<span class="sd">        with ``save_seeds``) instead of single streamlines; see</span>
+<span class="sd">        :func:`dipy.tracking.tractogen.generate_tractogram`.</span>
 <span class="sd">    return_all: bool, optional</span>
 <span class="sd">        True to return all the streamlines, False to return only the streamlines that</span>
 <span class="sd">        reached the stopping criterion.</span>
 <span class="sd">    save_seeds: bool, optional</span>
 <span class="sd">        True to return the seeds with the associated streamline.</span>
+<span class="sd">    max_cross : int or None, optional</span>
+<span class="sd">        Maximum number of peaks tracked from each seed when</span>
+<span class="sd">        ``seed_directions`` is None. None tracks the largest peak only; a</span>
+<span class="sd">        value &lt;= 0 tracks every peak.</span>
+<span class="sd">    backend : str, optional</span>
+<span class="sd">        "auto", "cpu", "metal" (Apple Silicon, requires ``dipy[metal]``),</span>
+<span class="sd">        "cuda" (requires ``dipy[cu12]`` or ``dipy[cu13]``) or "webgpu"</span>
+<span class="sd">        (requires ``dipy[webgpu]``). "auto" picks the first available GPU</span>
+<span class="sd">        backend in that order (Metal, CUDA, WebGPU) when the inputs allow</span>
+<span class="sd">        it, and the CPU otherwise. GPU backends (see</span>
+<span class="sd">        :mod:`dipy.tracking.accel`) assume:</span>
+<span class="sd">        (1) the entire SF fits in memory (sf, sh or a pam);</span>
+<span class="sd">        (2) isotropic voxels;</span>
+<span class="sd">        (3) a ThresholdStoppingCriterion.</span>
+<span class="sd">        Every backend tracks the peaks of a ``pam``; GPU backends expand them</span>
+<span class="sd">        into a sparse SF of shape (X, Y, Z, nb_vertices). To track the ODF of</span>
+<span class="sd">        a ``pam`` instead, pass ``sf=pam.odf, sphere=pam.sphere``.</span>
+<span class="sd">    is_symmetric : bool or None, optional</span>
+<span class="sd">        If False, the pmf is treated as an asymmetric spherical function</span>
+<span class="sd">        (no antipodal folding when selecting directions). If None, it is</span>
+<span class="sd">        False for a full-basis ``sh`` and True otherwise.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1140,6 +1343,15 @@ document.write(`
 
 <span class="sd">    """</span>
     <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">voxel_size</span> <span class="k">if</span> <span class="n">voxel_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">voxel_sizes</span><span class="p">(</span><span class="n">affine</span><span class="p">)</span>
+
+    <span class="n">backend</span> <span class="o">=</span> <span class="n">_select_backend</span><span class="p">(</span>
+        <span class="n">backend</span><span class="p">,</span> <span class="n">sc</span><span class="o">=</span><span class="n">sc</span><span class="p">,</span> <span class="n">sf</span><span class="o">=</span><span class="n">sf</span><span class="p">,</span> <span class="n">sh</span><span class="o">=</span><span class="n">sh</span><span class="p">,</span> <span class="n">pam</span><span class="o">=</span><span class="n">pam</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="n">voxel_size</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="o">!=</span> <span class="s2">"cpu"</span><span class="p">:</span>
+        <span class="n">reason</span> <span class="o">=</span> <span class="n">_gpu_unsupported</span><span class="p">(</span><span class="n">sc</span><span class="o">=</span><span class="n">sc</span><span class="p">,</span> <span class="n">sf</span><span class="o">=</span><span class="n">sf</span><span class="p">,</span> <span class="n">sh</span><span class="o">=</span><span class="n">sh</span><span class="p">,</span> <span class="n">pam</span><span class="o">=</span><span class="n">pam</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reason</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"GPU backends cannot be used: </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="n">is_symmetric</span> <span class="o">=</span> <span class="n">_resolve_is_symmetric</span><span class="p">(</span><span class="n">is_symmetric</span><span class="p">,</span> <span class="n">sh</span><span class="o">=</span><span class="n">sh</span><span class="p">,</span> <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">)</span>
 
     <span class="n">params</span> <span class="o">=</span> <span class="n">generate_tracking_parameters</span><span class="p">(</span>
         <span class="s2">"prob"</span><span class="p">,</span>
@@ -1151,7 +1363,71 @@ document.write(`
         <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
         <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
         <span class="n">return_all</span><span class="o">=</span><span class="n">return_all</span><span class="p">,</span>
+        <span class="n">is_symmetric</span><span class="o">=</span><span class="n">is_symmetric</span><span class="p">,</span>
     <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">backend</span> <span class="o">!=</span> <span class="s2">"cpu"</span><span class="p">:</span>
+        <span class="n">sphere</span> <span class="o">=</span> <span class="n">sphere</span> <span class="k">if</span> <span class="n">sphere</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_sphere</span>
+        <span class="k">if</span> <span class="n">sf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pmf_field</span> <span class="o">=</span> <span class="n">sf</span>
+        <span class="k">elif</span> <span class="n">sh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sh_order_max</span><span class="p">,</span> <span class="n">full_basis</span> <span class="o">=</span> <span class="n">_sh_order_from_ncoef</span><span class="p">(</span><span class="n">sh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">full_basis</span><span class="p">)</span>
+            <span class="n">pmf_field</span> <span class="o">=</span> <span class="n">sh_to_sf</span><span class="p">(</span>
+                <span class="n">sh</span><span class="p">,</span>
+                <span class="n">sphere</span><span class="p">,</span>
+                <span class="n">sh_order_max</span><span class="o">=</span><span class="n">sh_order_max</span><span class="p">,</span>
+                <span class="n">basis_type</span><span class="o">=</span><span class="n">basis_type</span><span class="p">,</span>
+                <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">,</span>
+                <span class="n">legacy</span><span class="o">=</span><span class="n">legacy</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Track the peaks, as on the CPU (SimplePeakGen), not pam.odf.</span>
+            <span class="n">odf_vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+                <span class="n">_pam_odf_vertices</span><span class="p">(</span><span class="n">pam</span><span class="p">,</span> <span class="n">sphere</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">"C"</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">sphere</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">odf_vertices</span><span class="p">):</span>
+                <span class="n">sphere</span> <span class="o">=</span> <span class="n">Sphere</span><span class="p">(</span><span class="n">xyz</span><span class="o">=</span><span class="n">odf_vertices</span><span class="p">)</span>
+            <span class="n">pmf_field</span> <span class="o">=</span> <span class="n">_peaks_to_sf</span><span class="p">(</span>
+                <span class="n">pam</span><span class="o">.</span><span class="n">peak_indices</span><span class="p">,</span> <span class="n">pam</span><span class="o">.</span><span class="n">peak_values</span><span class="p">,</span> <span class="n">odf_vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">seed_directions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">seed_positions</span><span class="p">,</span> <span class="n">seed_directions</span> <span class="o">=</span> <span class="n">_pam_seed_directions</span><span class="p">(</span>
+                    <span class="n">pam</span><span class="p">,</span>
+                    <span class="n">seed_positions</span><span class="p">,</span>
+                    <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span>
+                    <span class="n">odf_vertices</span><span class="o">=</span><span class="n">odf_vertices</span><span class="p">,</span>
+                    <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">random_seed</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">random_seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">**</span><span class="mi">63</span><span class="p">))</span>
+        <span class="n">tracker_data</span> <span class="o">=</span> <span class="n">prepare_gpu_tracker_data</span><span class="p">(</span>
+            <span class="n">pmf</span><span class="o">=</span><span class="n">pmf_field</span><span class="p">,</span>
+            <span class="n">stop_map</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sc</span><span class="o">.</span><span class="n">metric_map</span><span class="p">),</span>
+            <span class="n">stop_threshold</span><span class="o">=</span><span class="n">sc</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span>
+            <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
+            <span class="n">max_angle</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">max_angle</span><span class="p">,</span>
+            <span class="n">step_size</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">step_size</span> <span class="o">/</span> <span class="n">voxel_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">min_steps</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">min_nbr_pts</span><span class="p">,</span>
+            <span class="n">max_steps</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">max_nbr_pts</span><span class="p">,</span>
+            <span class="n">pmf_threshold</span><span class="o">=</span><span class="n">pmf_threshold</span><span class="p">,</span>
+            <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+            <span class="n">relative_peak_thresh</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">min_separation_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">25</span><span class="p">),</span>
+            <span class="n">max_cross</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">max_cross</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">max_cross</span><span class="p">,</span>
+            <span class="n">is_symmetric</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">is_symmetric</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">gpu_streamline_generator</span><span class="p">(</span>
+            <span class="n">tracker_data</span><span class="p">,</span>
+            <span class="n">seed_positions</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+            <span class="n">seed_directions</span><span class="o">=</span><span class="n">seed_directions</span><span class="p">,</span>
+            <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
+            <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+            <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">,</span>
+            <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
+            <span class="n">return_all</span><span class="o">=</span><span class="n">return_all</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">generic_tracking</span><span class="p">(</span>
         <span class="n">seed_positions</span><span class="p">,</span>
@@ -1165,15 +1441,21 @@ document.write(`
         <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
         <span class="n">basis_type</span><span class="o">=</span><span class="n">basis_type</span><span class="p">,</span>
         <span class="n">legacy</span><span class="o">=</span><span class="n">legacy</span><span class="p">,</span>
+        <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">,</span>
         <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
         <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
+        <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">,</span>
+        <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="deterministic_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.deterministic_tracking">[docs]</a>
+<span class="nd">@deprecated_params</span><span class="p">(</span>
+    <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">deterministic_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
@@ -1192,9 +1474,12 @@ document.write(`
     <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">basis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">full_basis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">chunked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
@@ -1236,18 +1521,28 @@ document.write(`
 <span class="sd">    legacy: bool, optional</span>
 <span class="sd">        True to use a legacy basis definition for backward compatibility</span>
 <span class="sd">        with previous ``tournier07`` and ``descoteaux07`` implementations.</span>
+<span class="sd">    full_basis: bool or None, optional</span>
+<span class="sd">        True if ``sh`` uses a full (odd and even order) SH basis, e.g. from</span>
+<span class="sd">        an asymmetric ODF model. If None, it is inferred from the number of</span>
+<span class="sd">        coefficients.</span>
 <span class="sd">    nbr_threads: int, optional</span>
 <span class="sd">        Number of threads to use for the processing. By default, all available threads</span>
 <span class="sd">        will be used.</span>
 <span class="sd">    random_seed: int, optional</span>
-<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value of greater than 0</span>
-<span class="sd">        will all produce the same streamline trajectory for a given seed coordinate.</span>
-<span class="sd">        A value of 0 may produces various streamline tracjectories for a given seed</span>
-<span class="sd">        coordinate.</span>
+<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value greater than 0</span>
+<span class="sd">        produces the same streamline trajectory for a given seed coordinate and</span>
+<span class="sd">        initial direction, whatever the seed order, ``chunk_size`` or</span>
+<span class="sd">        ``nbr_threads``. A value of 0 may produce various streamline trajectories</span>
+<span class="sd">        for a given seed coordinate.</span>
+<span class="sd">    chunk_size: int, optional</span>
+<span class="sd">        Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">    seed_buffer_fraction: float, optional</span>
-<span class="sd">        Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">        buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">        a way to reduce memory usage.</span>
+<span class="sd">        Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">        usage.</span>
+<span class="sd">    chunked: bool, optional</span>
+<span class="sd">        Yield ``(points, lengths)`` per chunk (``(points, lengths, seeds)``</span>
+<span class="sd">        with ``save_seeds``) instead of single streamlines; see</span>
+<span class="sd">        :func:`dipy.tracking.tractogen.generate_tractogram`.</span>
 <span class="sd">    return_all: bool, optional</span>
 <span class="sd">        True to return all the streamlines, False to return only the streamlines that</span>
 <span class="sd">        reached the stopping criterion.</span>
@@ -1284,8 +1579,10 @@ document.write(`
         <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
         <span class="n">basis_type</span><span class="o">=</span><span class="n">basis_type</span><span class="p">,</span>
         <span class="n">legacy</span><span class="o">=</span><span class="n">legacy</span><span class="p">,</span>
+        <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">,</span>
         <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+        <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
         <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -1293,6 +1590,9 @@ document.write(`
 
 <div class="viewcode-block" id="ptt_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.ptt_tracking">[docs]</a>
+<span class="nd">@deprecated_params</span><span class="p">(</span>
+    <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">ptt_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
@@ -1316,9 +1616,12 @@ document.write(`
     <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">basis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">full_basis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">chunked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
@@ -1370,18 +1673,28 @@ document.write(`
 <span class="sd">    legacy: bool, optional</span>
 <span class="sd">        True to use a legacy basis definition for backward compatibility</span>
 <span class="sd">        with previous ``tournier07`` and ``descoteaux07`` implementations.</span>
+<span class="sd">    full_basis: bool or None, optional</span>
+<span class="sd">        True if ``sh`` uses a full (odd and even order) SH basis, e.g. from</span>
+<span class="sd">        an asymmetric ODF model. If None, it is inferred from the number of</span>
+<span class="sd">        coefficients.</span>
 <span class="sd">    nbr_threads: int, optional</span>
 <span class="sd">        Number of threads to use for the processing. By default, all available threads</span>
 <span class="sd">        will be used.</span>
 <span class="sd">    random_seed: int, optional</span>
-<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value of greater than 0</span>
-<span class="sd">        will all produce the same streamline trajectory for a given seed coordinate.</span>
-<span class="sd">        A value of 0 may produces various streamline tracjectories for a given seed</span>
-<span class="sd">        coordinate.</span>
+<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value greater than 0</span>
+<span class="sd">        produces the same streamline trajectory for a given seed coordinate and</span>
+<span class="sd">        initial direction, whatever the seed order, ``chunk_size`` or</span>
+<span class="sd">        ``nbr_threads``. A value of 0 may produce various streamline trajectories</span>
+<span class="sd">        for a given seed coordinate.</span>
+<span class="sd">    chunk_size: int, optional</span>
+<span class="sd">        Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">    seed_buffer_fraction: float, optional</span>
-<span class="sd">        Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">        buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">        a way to reduce memory usage.</span>
+<span class="sd">        Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">        usage.</span>
+<span class="sd">    chunked: bool, optional</span>
+<span class="sd">        Yield ``(points, lengths)`` per chunk (``(points, lengths, seeds)``</span>
+<span class="sd">        with ``save_seeds``) instead of single streamlines; see</span>
+<span class="sd">        :func:`dipy.tracking.tractogen.generate_tractogram`.</span>
 <span class="sd">    return_all: bool, optional</span>
 <span class="sd">        True to return all the streamlines, False to return only the streamlines that</span>
 <span class="sd">        reached the stopping criterion.</span>
@@ -1422,8 +1735,10 @@ document.write(`
         <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
         <span class="n">basis_type</span><span class="o">=</span><span class="n">basis_type</span><span class="p">,</span>
         <span class="n">legacy</span><span class="o">=</span><span class="n">legacy</span><span class="p">,</span>
+        <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">,</span>
         <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+        <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
         <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -1431,6 +1746,9 @@ document.write(`
 
 <div class="viewcode-block" id="closestpeak_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.closestpeak_tracking">[docs]</a>
+<span class="nd">@deprecated_params</span><span class="p">(</span>
+    <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">closestpeak_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
@@ -1450,7 +1768,8 @@ document.write(`
     <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
@@ -1494,14 +1813,16 @@ document.write(`
 <span class="sd">        Number of threads to use for the processing. By default, all available threads</span>
 <span class="sd">        will be used.</span>
 <span class="sd">    random_seed: int, optional</span>
-<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value of greater than 0</span>
-<span class="sd">        will all produce the same streamline trajectory for a given seed coordinate.</span>
-<span class="sd">        A value of 0 may produces various streamline tracjectories for a given seed</span>
-<span class="sd">        coordinate.</span>
+<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value greater than 0</span>
+<span class="sd">        produces the same streamline trajectory for a given seed coordinate and</span>
+<span class="sd">        initial direction, whatever the seed order, ``chunk_size`` or</span>
+<span class="sd">        ``nbr_threads``. A value of 0 may produce various streamline trajectories</span>
+<span class="sd">        for a given seed coordinate.</span>
+<span class="sd">    chunk_size: int, optional</span>
+<span class="sd">        Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">    seed_buffer_fraction: float, optional</span>
-<span class="sd">        Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">        buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">        a way to reduce memory usage.</span>
+<span class="sd">        Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">        usage.</span>
 <span class="sd">    return_all: bool, optional</span>
 <span class="sd">        True to return all the streamlines, False to return only the streamlines that</span>
 <span class="sd">        reached the stopping criterion.</span>
@@ -1553,6 +1874,9 @@ document.write(`
 
 <div class="viewcode-block" id="bootstrap_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.bootstrap_tracking">[docs]</a>
+<span class="nd">@deprecated_params</span><span class="p">(</span>
+    <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
@@ -1574,7 +1898,8 @@ document.write(`
     <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
@@ -1620,14 +1945,16 @@ document.write(`
 <span class="sd">        Number of threads to use for the processing. By default, all available threads</span>
 <span class="sd">        will be used.</span>
 <span class="sd">    random_seed: int, optional</span>
-<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value of greater than 0</span>
-<span class="sd">        will all produce the same streamline trajectory for a given seed coordinate.</span>
-<span class="sd">        A value of 0 may produces various streamline tracjectories for a given seed</span>
-<span class="sd">        coordinate.</span>
+<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value greater than 0</span>
+<span class="sd">        produces the same streamline trajectory for a given seed coordinate and</span>
+<span class="sd">        initial direction, whatever the seed order, ``chunk_size`` or</span>
+<span class="sd">        ``nbr_threads``. A value of 0 may produce various streamline trajectories</span>
+<span class="sd">        for a given seed coordinate.</span>
+<span class="sd">    chunk_size: int, optional</span>
+<span class="sd">        Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">    seed_buffer_fraction: float, optional</span>
-<span class="sd">        Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">        buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">        a way to reduce memory usage.</span>
+<span class="sd">        Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">        usage.</span>
 <span class="sd">    return_all: bool, optional</span>
 <span class="sd">        True to return all the streamlines, False to return only the streamlines that</span>
 <span class="sd">        reached the stopping criterion.</span>
@@ -1671,6 +1998,9 @@ document.write(`
 
 <div class="viewcode-block" id="eudx_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.eudx_tracking">[docs]</a>
+<span class="nd">@deprecated_params</span><span class="p">(</span>
+    <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">eudx_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
@@ -1690,9 +2020,12 @@ document.write(`
     <span class="n">sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">basis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">full_basis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">chunked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">save_seeds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
@@ -1735,18 +2068,28 @@ document.write(`
 <span class="sd">    legacy: bool, optional</span>
 <span class="sd">        True to use a legacy basis definition for backward compatibility</span>
 <span class="sd">        with previous ``tournier07`` and ``descoteaux07`` implementations.</span>
+<span class="sd">    full_basis: bool or None, optional</span>
+<span class="sd">        True if ``sh`` uses a full (odd and even order) SH basis, e.g. from</span>
+<span class="sd">        an asymmetric ODF model. If None, it is inferred from the number of</span>
+<span class="sd">        coefficients.</span>
 <span class="sd">    nbr_threads: int, optional</span>
 <span class="sd">        Number of threads to use for parallel processing. Default is 0, which</span>
 <span class="sd">        uses all available cores.</span>
 <span class="sd">    random_seed: int, optional</span>
-<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value of greater than 0</span>
-<span class="sd">        will all produce the same streamline trajectory for a given seed coordinate.</span>
-<span class="sd">        A value of 0 may produces various streamline tracjectories for a given seed</span>
-<span class="sd">        coordinate.</span>
+<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value greater than 0</span>
+<span class="sd">        produces the same streamline trajectory for a given seed coordinate and</span>
+<span class="sd">        initial direction, whatever the seed order, ``chunk_size`` or</span>
+<span class="sd">        ``nbr_threads``. A value of 0 may produce various streamline trajectories</span>
+<span class="sd">        for a given seed coordinate.</span>
+<span class="sd">    chunk_size: int, optional</span>
+<span class="sd">        Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">    seed_buffer_fraction: float, optional</span>
-<span class="sd">        Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">        buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">        a way to reduce memory usage.</span>
+<span class="sd">        Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">        usage.</span>
+<span class="sd">    chunked: bool, optional</span>
+<span class="sd">        Yield ``(points, lengths)`` per chunk (``(points, lengths, seeds)``</span>
+<span class="sd">        with ``save_seeds``) instead of single streamlines; see</span>
+<span class="sd">        :func:`dipy.tracking.tractogen.generate_tractogram`.</span>
 <span class="sd">    return_all: bool, optional</span>
 <span class="sd">        True to return all the streamlines, False to return only the streamlines that</span>
 <span class="sd">        reached the stopping criterion.</span>
@@ -1789,9 +2132,11 @@ document.write(`
         <span class="n">sphere</span><span class="o">=</span><span class="n">sphere</span><span class="p">,</span>
         <span class="n">basis_type</span><span class="o">=</span><span class="n">basis_type</span><span class="p">,</span>
         <span class="n">legacy</span><span class="o">=</span><span class="n">legacy</span><span class="p">,</span>
+        <span class="n">full_basis</span><span class="o">=</span><span class="n">full_basis</span><span class="p">,</span>
         <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">,</span>
         <span class="n">nbr_threads</span><span class="o">=</span><span class="n">nbr_threads</span><span class="p">,</span>
-        <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="n">seed_buffer_fraction</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+        <span class="n">chunked</span><span class="o">=</span><span class="n">chunked</span><span class="p">,</span>
         <span class="n">save_seeds</span><span class="o">=</span><span class="n">save_seeds</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -1799,6 +2144,9 @@ document.write(`
 
 <div class="viewcode-block" id="pft_tracking">
 <a class="viewcode-back" href="../../../reference/dipy.tracking.html#dipy.tracking.tracker.pft_tracking">[docs]</a>
+<span class="nd">@deprecated_params</span><span class="p">(</span>
+    <span class="s2">"seed_buffer_fraction"</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"1.13.0"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2.0.0"</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">"chunk_size"</span>
+<span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">pft_tracking</span><span class="p">(</span>
     <span class="n">seed_positions</span><span class="p">,</span>
     <span class="n">sc</span><span class="p">,</span>
@@ -1820,7 +2168,8 @@ document.write(`
     <span class="n">legacy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">nbr_threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+    <span class="n">seed_buffer_fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">return_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">pft_back_tracking_dist</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
     <span class="n">pft_front_tracking_dist</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -1873,14 +2222,16 @@ document.write(`
 <span class="sd">        Number of threads to use for the processing. By default, all available threads</span>
 <span class="sd">        will be used.</span>
 <span class="sd">    random_seed: int, optional</span>
-<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value of greater than 0</span>
-<span class="sd">        will all produce the same streamline trajectory for a given seed coordinate.</span>
-<span class="sd">        A value of 0 may produces various streamline tracjectories for a given seed</span>
-<span class="sd">        coordinate.</span>
+<span class="sd">        Seed for the random number generator, must be &gt;= 0. A value greater than 0</span>
+<span class="sd">        produces the same streamline trajectory for a given seed coordinate and</span>
+<span class="sd">        initial direction, whatever the seed order, ``chunk_size`` or</span>
+<span class="sd">        ``nbr_threads``. A value of 0 may produce various streamline trajectories</span>
+<span class="sd">        for a given seed coordinate.</span>
+<span class="sd">    chunk_size: int, optional</span>
+<span class="sd">        Number of seeds tracked at once. Lower it to reduce memory usage.</span>
 <span class="sd">    seed_buffer_fraction: float, optional</span>
-<span class="sd">        Fraction of the seed buffer to use. A value of 1.0 will use the entire seed</span>
-<span class="sd">        buffer. A value of 0.5 will use half of the seed buffer then the other half.</span>
-<span class="sd">        a way to reduce memory usage.</span>
+<span class="sd">        Deprecated and ignored. Use ``chunk_size`` to control the memory</span>
+<span class="sd">        usage.</span>
 <span class="sd">    return_all: bool, optional</span>
 <span class="sd">        True to return all the streamlines, False to return only the streamlines that</span>
 <span class="sd">        reached the stopping criterion.</span>

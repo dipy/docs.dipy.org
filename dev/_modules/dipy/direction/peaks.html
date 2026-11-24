@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.direction.peaks &#8212; dipy 1.13.0.dev0+git20261119.11d58b6 documentation</title>
+    <title>dipy.direction.peaks &#8212; dipy 1.13.0.dev0+git20261124.37a5993 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../_static/documentation_options.js?v=1d04fe10"></script>
+    <script src="../../../_static/documentation_options.js?v=8cac367b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -889,13 +889,14 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.affines</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_affine</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">opt</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.interpolation</span><span class="w"> </span><span class="kn">import</span> <span class="n">trilinear_interpolate4d</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.ndindex</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndindex</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.core.sphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sphere</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_sphere</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dipy.direction.pmf</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimplePmfGen</span><span class="p">,</span> <span class="n">pmf_peaks</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.dirspeed</span><span class="w"> </span><span class="kn">import</span> <span class="n">peak_directions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.eudx_direction_getter</span><span class="w"> </span><span class="kn">import</span> <span class="n">EuDXDirectionGetter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dipy.reconst.odf</span><span class="w"> </span><span class="kn">import</span> <span class="n">gfa</span>
@@ -1553,30 +1554,32 @@ document.write(`
         <span class="c1"># use the sphere data from the pmf_gen</span>
         <span class="n">sphere</span> <span class="o">=</span> <span class="n">pmf_gen</span><span class="o">.</span><span class="n">get_sphere</span><span class="p">()</span>
 
-    <span class="n">inv_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">affine</span><span class="p">)</span>
-    <span class="n">vox_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">inv_affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
-    <span class="n">vox_positions</span> <span class="o">+=</span> <span class="n">inv_affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+    <span class="n">vox_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span>
+        <span class="n">apply_affine</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">affine</span><span class="p">),</span> <span class="n">positions</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span>
+    <span class="p">)</span>
 
-    <span class="n">peaks_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">),</span> <span class="n">npeaks</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">vox_positions</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="n">vox_positions</span> <span class="o">=</span> <span class="n">vox_positions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vox_positions</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">pmf_gen</span><span class="p">:</span>
-            <span class="n">odf</span> <span class="o">=</span> <span class="n">pmf_gen</span><span class="o">.</span><span class="n">get_pmf</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">odf</span> <span class="o">=</span> <span class="n">trilinear_interpolate4d</span><span class="p">(</span><span class="n">odfs</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-        <span class="n">peaks</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">peak_directions</span><span class="p">(</span>
-            <span class="n">odf</span><span class="p">,</span>
-            <span class="n">sphere</span><span class="p">,</span>
-            <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="n">relative_peak_threshold</span><span class="p">,</span>
-            <span class="n">min_separation_angle</span><span class="o">=</span><span class="n">min_separation_angle</span><span class="p">,</span>
-            <span class="n">is_symmetric</span><span class="o">=</span><span class="n">is_symmetric</span><span class="p">,</span>
+    <span class="k">if</span> <span class="n">pmf_gen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">odfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">odfs</span><span class="p">)</span>
+        <span class="n">outside</span> <span class="o">=</span> <span class="p">(</span><span class="n">vox_positions</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span>
+            <span class="n">vox_positions</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">odfs</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span> <span class="o">-</span> <span class="mf">0.5</span>
         <span class="p">)</span>
-        <span class="n">nbr_peaks</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">npeaks</span><span class="p">,</span> <span class="n">peaks</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">peaks_arr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">nbr_peaks</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">peaks</span><span class="p">[:</span><span class="n">nbr_peaks</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">if</span> <span class="n">outside</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">"The point is outside the image volume."</span><span class="p">)</span>
+        <span class="n">pmf_gen</span> <span class="o">=</span> <span class="n">SimplePmfGen</span><span class="p">(</span><span class="n">odfs</span><span class="p">,</span> <span class="n">sphere</span><span class="p">)</span>
 
+    <span class="n">offsets</span><span class="p">,</span> <span class="n">directions</span> <span class="o">=</span> <span class="n">pmf_peaks</span><span class="p">(</span>
+        <span class="n">vox_positions</span><span class="p">,</span>
+        <span class="n">pmf_gen</span><span class="p">,</span>
+        <span class="n">is_symmetric</span><span class="o">=</span><span class="n">is_symmetric</span><span class="p">,</span>
+        <span class="n">max_peaks</span><span class="o">=</span><span class="n">npeaks</span><span class="p">,</span>
+        <span class="n">relative_peak_threshold</span><span class="o">=</span><span class="n">relative_peak_threshold</span><span class="p">,</span>
+        <span class="n">min_separation_angle</span><span class="o">=</span><span class="n">min_separation_angle</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span>
+    <span class="n">point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vox_positions</span><span class="p">)),</span> <span class="n">counts</span><span class="p">)</span>
+    <span class="n">rank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">offsets</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">offsets</span><span class="p">[</span><span class="n">point</span><span class="p">]</span>
+    <span class="n">peaks_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">),</span> <span class="n">npeaks</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">peaks_arr</span><span class="p">[</span><span class="n">point</span><span class="p">,</span> <span class="n">rank</span><span class="p">]</span> <span class="o">=</span> <span class="n">directions</span>
     <span class="k">return</span> <span class="n">peaks_arr</span></div>
 
 </pre></div>
