@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dipy.viz.skyline.render.renderer &#8212; dipy 1.13.0.dev0+git20261124.37a5993 documentation</title>
+    <title>dipy.viz.skyline.render.renderer &#8212; dipy 1.13.0.dev0+git20261124.6cffbf0 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
   
 <link rel="stylesheet" href="../../../../../_static/styles/grg-sphinx-theme.css"/>
 
-    <script src="../../../../../_static/documentation_options.js?v=8cac367b"></script>
+    <script src="../../../../../_static/documentation_options.js?v=4cb3fd41"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/sg-tags.js?v=d80f6fa4"></script>
@@ -1299,6 +1299,35 @@ document.write(`
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_keep_drawing</span><span class="p">(</span><span class="n">show_m</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Draw continuously and skip re-entrant draws (stopgap until FURY re-arms draws).</span>
+
+<span class="sd">    "continuous" survives frames cancelled by wgpu (``DrawCancelled``, e.g. macOS</span>
+<span class="sd">    occlusion); the guard stops a native file dialog's nested event loop from</span>
+<span class="sd">    starting a second ImGui frame inside the first.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    show_m : ShowManager</span>
+<span class="sd">        Manager modified in place.</span>
+<span class="sd">    """</span>
+    <span class="n">show_m</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_update_mode</span><span class="p">(</span><span class="s2">"continuous"</span><span class="p">)</span>
+    <span class="n">draw_function</span> <span class="o">=</span> <span class="n">show_m</span><span class="o">.</span><span class="n">_draw_function</span>
+    <span class="n">drawing</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">draw_once</span><span class="p">():</span>
+        <span class="k">nonlocal</span> <span class="n">drawing</span>
+        <span class="k">if</span> <span class="n">drawing</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">drawing</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">draw_function</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">drawing</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">show_m</span><span class="o">.</span><span class="n">_draw_function</span> <span class="o">=</span> <span class="n">draw_once</span>
+
+
 <div class="viewcode-block" id="create_window">
 <a class="viewcode-back" href="../../../../../reference/dipy.viz.html#dipy.viz.skyline.render.renderer.create_window">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_window</span><span class="p">(</span>
@@ -1345,6 +1374,9 @@ document.write(`
 <span class="sd">    Successful window creation sets ``FURY_OFFSCREEN`` to ``1`` for stealth</span>
 <span class="sd">    or removes the key otherwise. Direct callers must restore their own</span>
 <span class="sd">    previous environment value or absence.</span>
+
+<span class="sd">    Non-stealth windows use the "continuous" update mode so a frame cancelled by the GPU</span>
+<span class="sd">    surface (for example while occluded on macOS) cannot stop redraws.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">visualizer_type</span> <span class="o">==</span> <span class="s2">"standalone"</span><span class="p">:</span>
         <span class="n">window_type</span> <span class="o">=</span> <span class="s2">"default"</span>
@@ -1371,6 +1403,8 @@ document.write(`
             <span class="n">imgui</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">imgui_draw_function</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="c1"># This is until the next FURY release, which will rearm the draw automatically on cancelled frames.</span>
+        <span class="n">_keep_drawing</span><span class="p">(</span><span class="n">show_m</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">window_type</span> <span class="o">==</span> <span class="s2">"default"</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">LOGO_SMALL</span><span class="p">)</span> <span class="k">as</span> <span class="n">img</span><span class="p">:</span>
                 <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGBA"</span><span class="p">)</span>
